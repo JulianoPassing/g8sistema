@@ -78,42 +78,32 @@
       display: flex;
       align-items: center;
       width: 100%;
-      max-width: 400px;
-      background: #fff;
-      border-radius: 24px;
-      border: 1.5px solid var(--border-color);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-      padding: 4px 16px 4px 14px;
-      margin: 0 auto 24px auto;
-      transition: box-shadow 0.2s, border-color 0.2s;
-    }
-    .search-box:focus-within {
-      border-color: var(--primary-color);
-      box-shadow: 0 6px 20px rgba(0,123,255,0.10);
+      max-width: 350px;
+      background: var(--light-color);
+      border-radius: var(--border-radius);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      padding: 2px 10px 2px 8px;
+      margin-left: auto;
     }
     .search-icon {
-      font-size: 1.35em;
-      color: var(--primary-color);
-      margin-right: 10px;
-      opacity: 0.85;
-      transition: color 0.2s;
+      font-size: 1.2em;
+      color: var(--secondary-color);
+      margin-right: 6px;
     }
     #busca-cliente {
       border: none;
       background: transparent;
       outline: none;
-      font-size: 1.13em;
+      font-size: 1em;
       font-family: "Poppins", sans-serif;
       width: 100%;
-      padding: 10px 0 10px 0;
+      padding: 8px 0;
       color: var(--text-color);
-      letter-spacing: 0.01em;
     }
     #busca-cliente::placeholder {
       color: #b0b0b0;
       opacity: 1;
-      font-size: 1em;
-      letter-spacing: 0.01em;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -136,9 +126,9 @@
         <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
         <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
       </div>
-      <div style="display: flex; justify-content: center;">
+      <div style="margin-bottom: 18px; display: flex; justify-content: flex-end;">
         <div class="search-box">
-          <span class="search-icon">&#128269;</span>
+          <span class="search-icon">🔍</span>
           <input type="text" id="busca-cliente" placeholder="Buscar cliente..." autocomplete="off" />
         </div>
       </div>
