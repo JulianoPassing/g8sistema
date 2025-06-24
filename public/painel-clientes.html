@@ -78,32 +78,81 @@
       display: flex;
       align-items: center;
       width: 100%;
-      max-width: 350px;
-      background: var(--light-color);
-      border-radius: var(--border-radius);
-      border: 1px solid var(--border-color);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      padding: 2px 10px 2px 8px;
-      margin-left: auto;
+      max-width: 400px;
+      background: #fff;
+      border-radius: 24px;
+      border: 1.5px solid var(--border-color);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+      padding: 4px 16px 4px 14px;
+      margin: 0 auto 24px auto;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .search-box:focus-within {
+      border-color: var(--primary-color);
+      box-shadow: 0 6px 20px rgba(0,123,255,0.10);
     }
     .search-icon {
-      font-size: 1.2em;
-      color: var(--secondary-color);
-      margin-right: 6px;
+      font-size: 1.35em;
+      color: var(--primary-color);
+      margin-right: 10px;
+      opacity: 0.85;
+      transition: color 0.2s;
     }
     #busca-cliente {
       border: none;
       background: transparent;
       outline: none;
-      font-size: 1em;
+      font-size: 1.13em;
       font-family: "Poppins", sans-serif;
       width: 100%;
-      padding: 8px 0;
+      padding: 10px 0 10px 0;
       color: var(--text-color);
+      letter-spacing: 0.01em;
     }
     #busca-cliente::placeholder {
       color: #b0b0b0;
       opacity: 1;
+      font-size: 1em;
+      letter-spacing: 0.01em;
+    }
+    .sugestoes-clientes {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      background: #fff;
+      border: 1.5px solid var(--border-color);
+      border-radius: 0 0 18px 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      z-index: 1001;
+      list-style: none;
+      padding: 0;
+      display: none;
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: 1em;
+    }
+    .sugestoes-clientes.show {
+      display: block;
+    }
+    .sugestoes-clientes li {
+      padding: 10px 18px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.18s;
+      color: #222;
+      line-height: 1.3;
+      background: #fff;
+    }
+    .sugestoes-clientes li:last-child {
+      border-bottom: none;
+    }
+    .sugestoes-clientes li:hover, .sugestoes-clientes li.active {
+      background: #f3f7fa;
+      color: var(--primary-color);
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -126,11 +175,12 @@
         <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
         <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
       </div>
-      <div style="margin-bottom: 18px; display: flex; justify-content: flex-end;">
-        <div class="search-box">
-          <span class="search-icon">🔍</span>
+      <div style="display: flex; justify-content: center; position: relative;">
+        <div class="search-box" style="width:100%;">
+          <span class="search-icon">&#128269;</span>
           <input type="text" id="busca-cliente" placeholder="Buscar cliente..." autocomplete="off" />
         </div>
+        <ul id="sugestoes-clientes" class="sugestoes-clientes"></ul>
       </div>
       <div class="table-responsive">
         <table>
@@ -183,15 +233,31 @@
         clientesFiltrados = clientes;
       } else {
         clientesFiltrados = clientes.filter(cli =>
-          (cli.razao && cli.razao.toLowerCase().includes(termo)) ||
-          (cli.cnpj && cli.cnpj.toLowerCase().includes(termo)) ||
-          (cli.cidade && cli.cidade.toLowerCase().includes(termo)) ||
-          (cli.estado && cli.estado.toLowerCase().includes(termo)) ||
-          (cli.telefone && cli.telefone.toLowerCase().includes(termo)) ||
-          (cli.email && cli.email.toLowerCase().includes(termo))
+          (cli.razao && String(cli.razao).toLowerCase().includes(termo)) ||
+          (cli.cnpj && String(cli.cnpj).toLowerCase().includes(termo)) ||
+          (cli.cidade && String(cli.cidade).toLowerCase().includes(termo)) ||
+          (cli.estado && String(cli.estado).toLowerCase().includes(termo)) ||
+          (cli.telefone && String(cli.telefone).toLowerCase().includes(termo)) ||
+          (cli.email && String(cli.email).toLowerCase().includes(termo))
         );
       }
       renderTabela();
+      mostrarSugestoes(texto);
+    }
+    function mostrarSugestoes(texto) {
+      const ul = document.getElementById('sugestoes-clientes');
+      const termo = texto.trim().toLowerCase();
+      if (!termo || clientesFiltrados.length === 0) {
+        ul.classList.remove('show');
+        ul.innerHTML = '';
+        return;
+      }
+      // Mostra até 8 sugestões
+      const sugestoes = clientesFiltrados.slice(0, 8);
+      ul.innerHTML = sugestoes.map(cli =>
+        `<li data-cnpj="${cli.cnpj}"><strong>${cli.razao}</strong><br><small>${cli.cnpj} - ${cli.cidade}/${cli.estado}</small></li>`
+      ).join('');
+      ul.classList.add('show');
     }
     document.getElementById('logout-button').onclick = function () {
       sessionStorage.removeItem('loggedInUser');
@@ -212,6 +278,22 @@
       // Busca em tempo real
       document.getElementById('busca-cliente').addEventListener('input', function() {
         filtrarClientes(this.value);
+      });
+      // Sugestão: clique
+      document.getElementById('sugestoes-clientes').addEventListener('mousedown', function(e) {
+        if (e.target.tagName === 'LI' || e.target.closest('li')) {
+          const li = e.target.closest('li');
+          const texto = li.querySelector('strong').textContent;
+          document.getElementById('busca-cliente').value = texto;
+          filtrarClientes(texto);
+          this.classList.remove('show');
+        }
+      });
+      // Esconde sugestões ao perder foco
+      document.getElementById('busca-cliente').addEventListener('blur', function() {
+        setTimeout(() => {
+          document.getElementById('sugestoes-clientes').classList.remove('show');
+        }, 150);
       });
     });
 
