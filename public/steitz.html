@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Steitz</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+      :root {
+        --primary-color: #007bff;
+        --primary-hover: #0056b3;
+        --secondary-color: #6c757d;
+        --secondary-hover: #5a6268;
+        --success-color: #28a745;
+        --success-hover: #218838;
+        --danger-color: #dc3545;
+        --danger-hover: #c82333;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+        --text-color: #495057;
+        --bg-color: #eef2f5;
+        --card-bg: #ffffff;
+        --border-color: #dee2e6;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --border-radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        /* Padding modificado para dar espaço ao header */
+        padding: 100px 20px 20px 20px;
+      }
+
+      /* --- NOVO: HEADER DE USUÁRIO E LOGOUT --- */
+      .header-top {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 15px 30px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        gap: 20px;
+        z-index: 1000;
+      }
+      #user-info {
+        font-family: "Roboto Slab", serif;
+        font-size: 1rem;
+        color: #333;
+        font-weight: 700;
+        text-transform: capitalize;
+      }
+      #logout-button {
+        font-family: "Roboto Slab", serif;
+        background-color: #d9534f;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: bold;
+        transition: background-color 0.3s;
+      }
+      #logout-button:hover {
+        background-color: #c9302c;
+      }
+      /* --- FIM DA SEÇÃO NOVA --- */
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      #logo-container {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      #logo {
+        max-width: 100%;
+        height: auto;
+        max-height: 120px;
+      }
+
+      .card {
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        padding: 25px;
+        margin-bottom: 25px;
+        border: 1px solid var(--border-color);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .card-header h2 {
+        font-size: 1.5em;
+        color: var(--dark-color);
+        font-weight: 600;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-group label {
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+      }
+
+      .form-group label span {
+        margin-right: 8px;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-family: "Poppins", sans-serif;
+        font-size: 0.95em;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+      }
+
+      thead th {
+        background-color: var(--light-color);
+        font-weight: 600;
+        color: var(--dark-color);
+        white-space: nowrap;
+      }
+
+      tbody tr:hover {
+        background-color: #f5f5f5;
+      }
+
+      .tamanho-input-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .tamanho-input-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .tamanho-input-item label {
+        font-size: 0.9em;
+        font-weight: 500;
+      }
+
+      .tamanho-input-item input {
+        width: 50px;
+        padding: 6px;
+        text-align: center;
+      }
+
+      .manual-input {
+        width: 100%;
+        min-width: 150px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: var(--border-radius);
+        border: none;
+        font-family: "Poppins", sans-serif;
+        font-weight: 500;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        animation: none;
+      }
+
+      /* NOVO - Botão secundário para "Voltar" */
+      .btn-secondary {
+        background-color: var(--secondary-color);
+        color: white;
+      }
+      .btn-secondary:hover {
+        background-color: var(--secondary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-success {
+        background-color: var(--success-color);
+        color: white;
+      }
+
+      .btn-success:hover {
+        background-color: var(--success-hover);
+      }
+
+      .btn-danger {
+        background-color: var(--danger-color);
+        color: white;
+        padding: 5px 10px;
+        font-size: 0.85em;
+      }
+
+      .btn-danger:hover {
+        background-color: var(--danger-hover);
+      }
+
+      /* Estilo modificado para o botão de gerar pedido */
+      #gerar-pedido-btn {
+        font-size: 1.1em;
+        padding: 15px;
+      }
+
+      /* NOVO - Container para os botões de ação */
+      .actions-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-top: 25px;
+        flex-wrap: wrap;
+      }
+
+      .pedido-item {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background-color: var(--light-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        margin-bottom: 10px;
+        gap: 15px;
+      }
+
+      .pedido-item-info {
+        flex-grow: 1;
+      }
+
+      .pedido-item-info strong {
+        color: var(--dark-color);
+        font-weight: 600;
+      }
+
+      #pedido-vazio {
+        text-align: center;
+        padding: 30px;
+        background: var(--light-color);
+        border: 2px dashed var(--border-color);
+        border-radius: var(--border-radius);
+        color: var(--secondary-color);
+      }
+
+      .total-container {
+        text-align: center;
+        margin-top: 25px;
+      }
+
+      .total-container h3 {
+        font-size: 1.6em;
+        font-weight: 700;
+        color: var(--dark-color);
+      }
+
+      #total-pedido {
+        color: var(--success-color);
+      }
+
+      @keyframes pulse {
+        from {
+          transform: scale(1);
+          box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+        }
+        to {
+          transform: scale(1.03);
+          box-shadow: 0 6px 16px rgba(0, 123, 255, 0.3);
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 90px 10px 10px 10px; /* Ajuste para mobile */
+        }
+        .card {
+          padding: 15px;
+        }
+        .card-header h2 {
+          font-size: 1.2em;
+        }
+        th,
+        td {
+          padding: 8px 10px;
+          font-size: 0.9em;
+        }
+        .header-top {
+          padding: 10px 15px;
+          gap: 10px;
+        }
+        #user-info {
+          font-size: 0.9rem;
+        }
+      }
+
+      #sugestoes-clientes {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        background: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        width: 100%;
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 1001;
+        margin-top: 2px;
+        padding: 0;
+        display: none;
+      }
+      .sugestao-cliente-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 1em;
+        background: #fff;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.18s;
+        color: #222;
+        line-height: 1.3;
+        display: block;
+      }
+      .sugestao-cliente-item:last-child {
+        border-bottom: none;
+      }
+      .sugestao-cliente-item:hover {
+        background: #f3f7fa;
+        color: #007bff;
+      }
+      #busca-cliente {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        padding: 10px 12px;
+        font-size: 1em;
+        margin-bottom: 6px;
+      }
+      .form-group {
+        position: relative;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="header-top">
+      <div id="user-info"></div>
+      <button id="logout-button">Sair</button>
+      <a
+        href="painel.html"
+        class="btn"
+        style="height: 35px; background-color: black; color: white"
+      >
+        ⬅️ Voltar ao Painel
+      </a>
+    </header>
+
+    <main class="container">
+      <div id="logo-container">
+        <img id="logo" src="https://i.imgur.com/vjq26ym.png" alt="Logo G8" />
+      </div>
+
+      <section class="card">
+        <div class="card-header">
+          <span
+            role="img"
+            aria-label="Gerenciar Cliente"
+            style="font-size: 1.8em"
+            >👤</span
+          >
+          <h2>Gerenciar Cliente - Steitz</h2>
+        </div>
+        <div class="form-group">
+          <input type="text" id="busca-cliente" placeholder="Buscar cliente..." style="margin-bottom: 10px;" />
+          <div id="sugestoes-clientes" style="position: relative; z-index: 10;"></div>
+          <label for="cliente-selecionado">Selecionar Cliente Existente</label>
+          <select id="cliente-selecionado">
+            <option value="">- Selecione um cliente -</option>
+            <option value="novo">- Inserir manualmente -</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span
+            role="img"
+            aria-label="Informações do Cliente"
+            style="font-size: 1.8em"
+            >📋</span
+          >
+          <h2>Informações do Cliente - Steitz</h2>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="razao"><span>🏢</span>Razão Social:</label>
+            <input type="text" id="razao" />
+          </div>
+          <div class="form-group">
+            <label for="cnpj"><span>🏭</span>CNPJ:</label>
+            <input type="text" id="cnpj" />
+          </div>
+          <div class="form-group">
+            <label for="ie"><span>📝</span>I.E:</label>
+            <input type="text" id="ie" />
+          </div>
+          <div class="form-group">
+            <label for="endereco"><span>🗺️</span>Endereço:</label>
+            <input type="text" id="endereco" />
+          </div>
+          <div class="form-group">
+            <label for="bairro"><span>🏘️</span>Bairro:</label>
+            <input type="text" id="bairro" />
+          </div>
+          <div class="form-group">
+            <label for="cidade"><span>🏙️</span>Cidade:</label>
+            <input type="text" id="cidade" />
+          </div>
+          <div class="form-group">
+            <label for="estado"><span>🌎</span>Estado:</label>
+            <input type="text" id="estado" />
+          </div>
+          <div class="form-group">
+            <label for="cep"><span>📫</span>CEP:</label>
+            <input type="text" id="cep" />
+          </div>
+          <div class="form-group">
+            <label for="email"><span>📧</span>E-mail:</label>
+            <input type="email" id="email" />
+          </div>
+          <div class="form-group">
+            <label for="telefone"><span>📞</span>Telefone:</label>
+            <input type="text" id="telefone" />
+          </div>
+          <div class="form-group">
+            <label for="transporte"><span>🚚</span>Transporte:</label>
+            <input type="text" id="transporte" placeholder="CIF" />
+          </div>
+          <div class="form-group">
+            <label for="prazo"><span>💰</span>Prazo Pagamento:</label>
+            <input type="text" id="prazo" placeholder="Ex: 30/60/90" />
+          </div>
+          <div class="form-group full-width">
+            <label for="obs"><span>💬</span>Observações:</label>
+            <textarea id="obs" rows="3"></textarea>
+          </div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-header">
+          <h2>
+            <span role="img" aria-label="Tabela de Preços">📋</span> Tabela de
+            Preços
+          </h2>
+        </div>
+        <div class="form-group">
+          <label for="tabela-precos-select">Selecionar Tabela de Preços:</label>
+          <select id="tabela-precos-select">
+            <option value="a_vista">À Vista</option>
+            <option value="p_30_45_60">30/45/60 Dias</option>
+            <option value="p_30_60_90">30/60/90 Dias</option>
+          </select>
+        </div>
+        <div id="produtos-container" class="table-responsive"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2><span role="img" aria-label="Seu Pedido">🛒</span> Seu Pedido</h2>
+        </div>
+        <div id="pedido-container">
+          <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
+        </div>
+        <div class="total-container">
+          <div class="form-group" style="max-width: 250px; margin: 15px auto">
+            <label for="desconto-extra-total"
+              ><strong>Desconto Extra (%):</strong></label
+            >
+            <input
+              type="number"
+              id="desconto-extra-total"
+              min="0"
+              max="100"
+              value="0"
+              style="text-align: center; font-size: 1.1em"
+            />
+          </div>
+          <h3>💰 Total do Pedido: R$ <span id="total-pedido">0.00</span></h3>
+        </div>
+      </section>
+
+      <div class="actions-container">
+        <a href="painel.html" class="btn btn-secondary">⬅️ Voltar ao Painel</a>
+        <button id="gerar-pedido-btn" class="btn btn-primary">
+          🖨️ Gerar Pedido
+        </button>
+      </div>
+    </main>
+
+    <script>
+      // Script para carregar dados dos clientes do arquivo clientes.json
+      let clientesCadastrados = [];
+
+      async function carregarClientes() {
+        try {
+          const response = await fetch('clientes.json');
+          if (!response.ok) throw new Error('Erro ao buscar clientes.json');
+          const data = await response.json();
+          clientesCadastrados = data;
+          // Aqui você pode chamar funções para popular selects, etc.
+        } catch (error) {
+          alert('Erro ao carregar os dados dos clientes. Verifique se o arquivo clientes.json está disponível.');
+        }
+      }
+
+      const produtosData = [
+        {
+          REF: "1041",
+          MODELO: "AUSTRAL-PRÓ WATER RESISTENT",
+          TAM: "37 a 45",
+          PRECOS: { p_30_60_90: 961.0, p_30_45_60: 921.0, a_vista: 898.0 },
+        },
+        {
+          REF: "1042",
+          MODELO: "AUSTRAL WATER RESISTENT",
+          TAM: "37 a 45",
+          PRECOS: { p_30_60_90: 839.0, p_30_45_60: 808.0, a_vista: 789.0 },
+        },
+        {
+          REF: "1004",
+          MODELO: "BOTA MOTOC. WATER RESISTENT",
+          TAM: "34 a 44",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1020",
+          MODELO: "BOTA MOTOC.WATER RESISTENT",
+          TAM: "34 a 44",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1005",
+          MODELO: "BOTA FEM.WATER RESISTENT",
+          TAM: "34 a 39",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1007",
+          MODELO: "BOTA FEM.WATER RESISTENT",
+          TAM: "34 a 40",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1009",
+          MODELO: "BOTA MOTOC. WATER RESISTENT",
+          TAM: "33 a 39",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1010.",
+          MODELO: "BOTINA MOTOC.WATER RESISTENT",
+          TAM: "35 a 44",
+          PRECOS: { p_30_60_90: 414.0, p_30_45_60: 401.0, a_vista: 388.0 },
+        },
+        {
+          REF: "04-A",
+          MODELO: "BOTA PRETA C/PROT.",
+          TAM: "34 a 44",
+          PRECOS: { p_30_60_90: 315.0, p_30_45_60: 299.0, a_vista: 284.0 },
+        },
+        {
+          REF: "04.",
+          MODELO: "BOTA PRETA C/PROT.",
+          TAM: "35 a 45",
+          PRECOS: { p_30_60_90: 315.0, p_30_45_60: 299.0, a_vista: 284.0 },
+        },
+        {
+          REF: "010.",
+          MODELO: "BOTINA MOTOC.",
+          TAM: "35 a 44",
+          PRECOS: { p_30_60_90: 299.0, p_30_45_60: 285.0, a_vista: 270.0 },
+        },
+        {
+          REF: "020.",
+          MODELO: "BOTA MOTOC.",
+          TAM: "34 a 44",
+          PRECOS: { p_30_60_90: 351.0, p_30_45_60: 333.0, a_vista: 316.0 },
+        },
+      ];
+
+      const selectCliente = document.getElementById("cliente-selecionado");
+      const inputsCliente = {
+        razao: document.getElementById("razao"),
+        cnpj: document.getElementById("cnpj"),
+        ie: document.getElementById("ie"),
+        endereco: document.getElementById("endereco"),
+        bairro: document.getElementById("bairro"),
+        cidade: document.getElementById("cidade"),
+        estado: document.getElementById("estado"),
+        cep: document.getElementById("cep"),
+        email: document.getElementById("email"),
+        telefone: document.getElementById("telefone"),
+        transporte: document.getElementById("transporte"),
+        prazo: document.getElementById("prazo"),
+        obs: document.getElementById("obs"),
+      };
+
+      async function popularClientes(filtro = "") {
+        if (clientesCadastrados.length === 0) {
+          await carregarClientes();
+        }
+        selectCliente.innerHTML = '';
+        const optionPadrao = document.createElement("option");
+        optionPadrao.value = "";
+        optionPadrao.textContent = "- Selecione um cliente -";
+        selectCliente.appendChild(optionPadrao);
+        const optionNovo = document.createElement("option");
+        optionNovo.value = "novo";
+        optionNovo.textContent = "- Inserir manualmente -";
+        selectCliente.appendChild(optionNovo);
+        const filtroLower = filtro.toLowerCase();
+        const clientesFiltrados = clientesCadastrados.filter((cliente) => {
+          return (
+            (cliente.razao && String(cliente.razao).toLowerCase().includes(filtroLower)) ||
+            (cliente.cnpj && String(cliente.cnpj).toLowerCase().includes(filtroLower)) ||
+            (cliente.cidade && String(cliente.cidade).toLowerCase().includes(filtroLower)) ||
+            (cliente.email && String(cliente.email).toLowerCase().includes(filtroLower)) ||
+            (cliente.telefone && String(cliente.telefone).toLowerCase().includes(filtroLower))
+          );
+        });
+        clientesFiltrados.forEach((cliente) => {
+          const option = document.createElement("option");
+          option.value = cliente.id;
+          option.textContent = cliente.razao;
+          selectCliente.appendChild(option);
+        });
+      }
+
+      function preencherFormularioCliente(clienteId) {
+        if (clienteId === "novo" || !clienteId) {
+          Object.values(inputsCliente).forEach((input) => (input.value = ""));
+          return;
+        }
+        const cliente = clientesCadastrados.find((c) => c.id === clienteId);
+        if (cliente) {
+          for (const key in inputsCliente) {
+            inputsCliente[key].value = cliente[key] || "";
+          }
+        }
+      }
+
+      const tabelaPrecosSelect = document.getElementById(
+        "tabela-precos-select"
+      );
+      const produtosContainer = document.getElementById("produtos-container");
+      const pedidoContainer = document.getElementById("pedido-container");
+      const pedidoVazio = document.getElementById("pedido-vazio");
+      const gerarPedidoBtn = document.getElementById("gerar-pedido-btn");
+      let pedidoItens = [];
+      let descontoExtraTotalPercentual = 0;
+
+      function parseTamanhoRange(tamStr) {
+        const match = tamStr.match(/^(\d+)\s*a\s*(\d+)$/);
+        if (!match) return null;
+        const start = parseInt(match[1], 10);
+        const end = parseInt(match[2], 10);
+        if (isNaN(start) || isNaN(end) || start > end) return null;
+        const range = [];
+        for (let i = start; i <= end; i++) {
+          range.push(i.toString());
+        }
+        return range;
+      }
+
+      function renderizarProdutos() {
+        const tabelaSelecionada = tabelaPrecosSelect.value;
+        const table = document.createElement("table");
+        table.innerHTML = `<thead><tr><th>REF.</th><th>MODELO</th><th>PREÇO UNIT.</th><th>TAMANHOS</th><th>COR</th><th>AÇÃO</th></tr></thead>`;
+        const tbody = document.createElement("tbody");
+        produtosData.forEach((produto) => {
+          const preco = produto.PRECOS[tabelaSelecionada];
+          const row = document.createElement("tr");
+          const tamanhosRange = parseTamanhoRange(produto.TAM);
+          let tamanhosHtml = "";
+          if (tamanhosRange) {
+            tamanhosHtml = '<div class="tamanho-input-container">';
+            tamanhosRange.forEach((tamanho) => {
+              tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
+            });
+            tamanhosHtml += "</div>";
+          } else {
+            tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
+          }
+          row.innerHTML = `<td>${produto.REF}</td><td>${
+            produto.MODELO
+          }</td><td>R$ ${preco.toFixed(
+            2
+          )}</td><td style="width: 40%;">${tamanhosHtml}</td><td style="width: 15%;"><input type="text" class="manual-input" id="cor-${
+            produto.REF
+          }" placeholder="Opcional"></td><td><button data-ref="${
+            produto.REF
+          }" class="btn btn-success btn-sm">Adicionar</button></td>`;
+          tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        produtosContainer.innerHTML = "";
+        produtosContainer.appendChild(table);
+      }
+
+      function adicionarAoPedido(ref) {
+        const produto = produtosData.find((p) => p.REF === ref);
+        if (!produto) return;
+        const cor = document.getElementById(`cor-${ref}`).value.trim();
+        const tabelaSelecionada = tabelaPrecosSelect.value;
+        const precoUnitario = produto.PRECOS[tabelaSelecionada];
+        let itensAdicionados = 0;
+        const tamanhosRange = parseTamanhoRange(produto.TAM);
+        if (tamanhosRange) {
+          tamanhosRange.forEach((tamanho) => {
+            const input = document.getElementById(
+              `qty-${produto.REF}-${tamanho}`
+            );
+            const quantidade = parseInt(input.value, 10);
+            if (quantidade > 0) {
+              const itemExistente = pedidoItens.find(
+                (item) =>
+                  item.REF === ref &&
+                  item.tamanho === tamanho &&
+                  item.preco === precoUnitario &&
+                  item.cor.toLowerCase() === cor.toLowerCase()
+              );
+              if (itemExistente) {
+                itemExistente.quantidade += quantidade;
+              } else {
+                pedidoItens.push({
+                  REF: produto.REF,
+                  MODELO: produto.MODELO,
+                  tamanho: tamanho,
+                  quantidade: quantidade,
+                  cor: cor || "-",
+                  preco: precoUnitario,
+                });
+              }
+              input.value = "";
+              itensAdicionados++;
+            }
+          });
+        } else {
+          const manualInput = document.getElementById(`tamanhos-manual-${ref}`);
+          const grade = parseTamanhosInput(manualInput.value);
+          if (grade && grade.length > 0) {
+            grade.forEach((itemGrade) => {
+              const itemExistente = pedidoItens.find(
+                (item) =>
+                  item.REF === ref &&
+                  item.tamanho === itemGrade.tamanho &&
+                  item.preco === precoUnitario &&
+                  item.cor.toLowerCase() === cor.toLowerCase()
+              );
+              if (itemExistente) {
+                itemExistente.quantidade += itemGrade.quantidade;
+              } else {
+                pedidoItens.push({
+                  REF: produto.REF,
+                  MODELO: produto.MODELO,
+                  tamanho: itemGrade.tamanho,
+                  quantidade: itemGrade.quantidade,
+                  cor: cor || "-",
+                  preco: precoUnitario,
+                });
+              }
+              itensAdicionados++;
+            });
+            manualInput.value = "";
+          }
+        }
+        if (itensAdicionados > 0) {
+          document.getElementById(`cor-${ref}`).value = "";
+          atualizarVisualizacaoPedido();
+        } else {
+          alert("Nenhuma quantidade foi preenchida para este produto.");
+        }
+      }
+
+      function parseTamanhosInput(inputStr) {
+        if (!inputStr || inputStr.trim() === "") return [];
+        const pares = inputStr.split(",");
+        const resultado = [];
+        for (const par of pares) {
+          const partes = par.split(":");
+          if (partes.length !== 2) {
+            alert(`Formato inválido: "${par}". Use "tamanho:quantidade".`);
+            return null;
+          }
+          const tamanho = partes[0].trim();
+          const quantidade = parseInt(partes[1].trim(), 10);
+          if (!tamanho || isNaN(quantidade) || quantidade <= 0) {
+            alert(`Valor inválido: "${par}".`);
+            return null;
+          }
+          resultado.push({
+            tamanho,
+            quantidade,
+          });
+        }
+        return resultado;
+      }
+
+      function atualizarVisualizacaoPedido() {
+        pedidoContainer.innerHTML = "";
+        let subtotalPedido = 0;
+        if (pedidoItens.length > 0) {
+          pedidoVazio.style.display = "none";
+          pedidoItens.forEach((item, index) => {
+            const itemDiv = document.createElement("div");
+            itemDiv.classList.add("pedido-item");
+            const precoTotalItem = item.preco * item.quantidade;
+            subtotalPedido += precoTotalItem;
+            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${
+              item.MODELO
+            }</strong> (Ref: ${item.REF})<br><small>Tam: <strong>${
+              item.tamanho
+            }</strong> | Cor: <strong>${item.cor}</strong> | Qtd: <strong>${
+              item.quantidade
+            }</strong> | Total: <strong>R$ ${precoTotalItem.toFixed(
+              2
+            )}</strong></small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            pedidoContainer.appendChild(itemDiv);
+          });
+        } else {
+          pedidoVazio.style.display = "block";
+        }
+        const valorDesconto =
+          subtotalPedido * (descontoExtraTotalPercentual / 100);
+        const totalFinal = subtotalPedido - valorDesconto;
+        document.getElementById("total-pedido").textContent =
+          totalFinal.toFixed(2);
+      }
+
+      window.removerDoPedido = (index) => {
+        pedidoItens.splice(index, 1);
+        atualizarVisualizacaoPedido();
+      };
+
+      function gerarPedidoPDF() {
+        if (!inputsCliente.razao.value) {
+          alert("Por favor, preencha as informações do cliente.");
+          return;
+        }
+        if (pedidoItens.length === 0) {
+          alert("O pedido está vazio. Adicione itens antes de gerar o PDF.");
+          return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF("p", "mm", "a4");
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+
+        const drawHeaderAndFooter = (data) => {
+          const logoImg = new Image();
+          logoImg.src = "https://i.imgur.com/vjq26ym.png";
+          doc.addImage(logoImg, "PNG", margin, 10, 35, 12);
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.text("Pedido de Venda - Steitz", pageWidth - margin, 18, {
+            align: "right",
+          });
+          const hoje = new Date();
+          const dataAtual = `${hoje.getDate().toString().padStart(2, "0")}/${(
+            hoje.getMonth() + 1
+          )
+            .toString()
+            .padStart(2, "0")}/${hoje.getFullYear()}`;
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Data: ${dataAtual}`, pageWidth - margin, 24, {
+            align: "right",
+          });
+
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          doc.text(
+            `Página ${data.pageNumber} de ${pageCount}`,
+            pageWidth / 2,
+            pageHeight - 10,
+            {
+              align: "center",
+            }
+          );
+        };
+
+        drawHeaderAndFooter({
+          pageNumber: 1,
+        });
+
+        doc.autoTable({
+          startY: 30,
+          theme: "grid",
+          head: [
+            [
+              {
+                content: "DADOS DO CLIENTE",
+                colSpan: 4,
+                styles: {
+                  halign: "center",
+                  fontStyle: "bold",
+                  fillColor: [230, 230, 230],
+                  textColor: 30,
+                },
+              },
+            ],
+          ],
+          body: [
+            [
+              "Cliente:",
+              {
+                content: inputsCliente.razao.value || "N/A",
+                colSpan: 3,
+              },
+            ],
+            [
+              "CNPJ:",
+              inputsCliente.cnpj.value || "N/A",
+              "I.E.:",
+              inputsCliente.ie.value || "N/A",
+            ],
+            [
+              "Telefone:",
+              inputsCliente.telefone.value || "N/A",
+              "E-mail:",
+              inputsCliente.email.value || "N/A",
+            ],
+            [
+              "Endereço:",
+              {
+                content: `${inputsCliente.endereco.value || ""}, ${
+                  inputsCliente.bairro.value || ""
+                }`,
+                colSpan: 3,
+              },
+            ],
+            [
+              "Cidade/UF:",
+              `${inputsCliente.cidade.value || ""}/${
+                inputsCliente.estado.value || ""
+              }`,
+              "CEP:",
+              inputsCliente.cep.value || "",
+            ],
+          ],
+          styles: {
+            fontSize: 8,
+            cellPadding: 1.5,
+            lineColor: [200, 200, 200],
+            lineWidth: 0.1,
+          },
+          headStyles: {
+            lineWidth: 0,
+          },
+          columnStyles: {
+            0: {
+              fontStyle: "bold",
+              cellWidth: 22,
+            },
+            2: {
+              fontStyle: "bold",
+              cellWidth: 20,
+            },
+          },
+          margin: {
+            left: margin,
+            right: margin,
+          },
+        });
+
+        let startY = doc.autoTable.previous.finalY + 7;
+
+        const head = [
+          [
+            "Ref.",
+            "Modelo",
+            "Cor",
+            "Tamanho",
+            "Qtd.",
+            "Vlr. Unit.",
+            "Subtotal",
+          ],
+        ];
+        const body = pedidoItens.map((item) => [
+          item.REF,
+          item.MODELO,
+          item.cor,
+          item.tamanho,
+          item.quantidade,
+          `R$ ${item.preco.toFixed(2)}`,
+          `R$ ${(item.preco * item.quantidade).toFixed(2)}`,
+        ]);
+
+        doc.autoTable({
+          head: head,
+          body: body,
+          startY: startY,
+          theme: "grid",
+          styles: {
+            fontSize: 8,
+            cellPadding: 2,
+            overflow: "linebreak",
+            valign: "middle",
+          },
+          headStyles: {
+            fillColor: [44, 62, 80],
+            textColor: [255, 255, 255],
+            fontStyle: "bold",
+            halign: "center",
+          },
+          columnStyles: {
+            0: {
+              cellWidth: 15,
+            },
+            1: {
+              cellWidth: "auto",
+            },
+            2: {
+              cellWidth: 20,
+            },
+            3: {
+              halign: "center",
+              cellWidth: 15,
+            },
+            4: {
+              halign: "center",
+              cellWidth: 15,
+            },
+            5: {
+              halign: "right",
+              cellWidth: 20,
+            },
+            6: {
+              halign: "right",
+              cellWidth: 22,
+            },
+          },
+          didDrawPage: (data) => {
+            if (data.pageNumber > 1) {
+              drawHeaderAndFooter(data);
+            }
+          },
+          margin: {
+            top: 30,
+            bottom: 15,
+          },
+        });
+
+        let finalY = doc.autoTable.previous.finalY;
+
+        const obsText = `Transporte: ${
+          inputsCliente.transporte.value || "A combinar"
+        }\nPrazo Pagamento: ${
+          inputsCliente.prazo.value || "A combinar"
+        }\n\nObservações:\n${inputsCliente.obs.value || "Nenhuma."}`;
+
+        let subtotalGeral = 0;
+        pedidoItens.forEach(
+          (item) => (subtotalGeral += item.preco * item.quantidade)
+        );
+        const valorDesconto =
+          subtotalGeral * (descontoExtraTotalPercentual / 100);
+        const totalFinalComDesconto = subtotalGeral - valorDesconto;
+
+        const summaryData = [];
+        summaryData.push(["Subtotal:", `R$ ${subtotalGeral.toFixed(2)}`]);
+        if (descontoExtraTotalPercentual > 0) {
+          summaryData.push([
+            `Desconto Extra (${descontoExtraTotalPercentual}%):`,
+            `- R$ ${valorDesconto.toFixed(2)}`,
+          ]);
+        }
+        summaryData.push(["", ""]);
+        summaryData.push([
+          {
+            content: "Total do Pedido:",
+            styles: { fontStyle: "bold", fontSize: 10 },
+          },
+          {
+            content: `R$ ${totalFinalComDesconto.toFixed(2)}`,
+            styles: { fontStyle: "bold", fontSize: 10 },
+          },
+        ]);
+
+        const finalTableBody = [];
+        const leftColumn = {
+          content: obsText,
+          rowSpan: summaryData.length,
+          styles: {
+            valign: "top",
+            fontSize: 9,
+          },
+        };
+
+        for (let i = 0; i < summaryData.length; i++) {
+          const row = [];
+          if (i === 0) row.push(leftColumn);
+          row.push(summaryData[i][0]);
+          row.push(summaryData[i][1]);
+          finalTableBody.push(row);
+        }
+
+        doc.autoTable({
+          startY: finalY + 8,
+          theme: "plain",
+          body: finalTableBody,
+          margin: {
+            left: margin,
+            right: margin,
+          },
+          columnStyles: {
+            0: {
+              cellWidth: pageWidth / 2 - margin,
+            },
+            1: {
+              halign: "right",
+              fontStyle: "bold",
+            },
+            2: {
+              halign: "right",
+            },
+          },
+        });
+
+        const nomeArquivo = `G8 Pedido Steitz - ${inputsCliente.razao.value.replace(
+          /[\s\/]/g,
+          "_"
+        )} - ${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`;
+        doc.save(nomeArquivo);
+      }
+
+      // SCRIPT DE INICIALIZAÇÃO DA PÁGINA (COM LÓGICA DE USUÁRIO)
+      document.addEventListener("DOMContentLoaded", async () => {
+        // --- Início da lógica de autenticação ---
+        const loggedInUser = sessionStorage.getItem("loggedInUser");
+
+        if (loggedInUser) {
+          document.getElementById(
+            "user-info"
+          ).textContent = `Bem-vindo(a), ${loggedInUser}!`;
+        } else {
+          alert("Acesso negado. Por favor, realize o login.");
+          window.location.href = "index.html"; // Mude se sua página de login tiver outro nome
+        }
+
+        document
+          .getElementById("logout-button")
+          .addEventListener("click", function () {
+            sessionStorage.removeItem("loggedInUser");
+            alert("Você saiu da sua conta.");
+            window.location.href = "index.html"; // Mude se sua página de login tiver outro nome
+          });
+        // --- Fim da lógica de autenticação ---
+
+        // Lógica original da página
+        await carregarClientes();
+        await popularClientes().then(() => {
+          renderizarProdutos();
+          atualizarVisualizacaoPedido();
+
+          selectCliente.addEventListener("change", (e) =>
+            preencherFormularioCliente(e.target.value)
+          );
+
+          const descontoInput = document.getElementById("desconto-extra-total");
+          descontoInput.addEventListener("input", () => {
+            descontoExtraTotalPercentual = parseFloat(descontoInput.value) || 0;
+            atualizarVisualizacaoPedido();
+          });
+          tabelaPrecosSelect.addEventListener("change", renderizarProdutos);
+          produtosContainer.addEventListener("click", (e) => {
+            if (e.target.tagName === "BUTTON") {
+              const ref = e.target.getAttribute("data-ref");
+              if (ref) {
+                adicionarAoPedido(ref);
+              }
+            }
+          });
+          gerarPedidoBtn.addEventListener("click", gerarPedidoPDF);
+
+          const buscaInput = document.getElementById("busca-cliente");
+          buscaInput.addEventListener("input", (e) => {
+            popularClientes(e.target.value);
+            mostrarSugestoesClientes(e.target.value);
+          });
+          document.addEventListener("mousedown", (event) => {
+            const sugestoesDiv = document.getElementById("sugestoes-clientes");
+            const buscaInput = document.getElementById("busca-cliente");
+            if (!sugestoesDiv.contains(event.target) && event.target !== buscaInput) {
+              sugestoesDiv.style.display = "none";
+            }
+          });
+        });
+      });
+
+      // Função para mostrar sugestões de clientes
+      function mostrarSugestoesClientes(filtro) {
+        const sugestoesDiv = document.getElementById("sugestoes-clientes");
+        sugestoesDiv.innerHTML = "";
+        if (!filtro || filtro.length < 2) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        const filtroLower = filtro.toLowerCase();
+        const clientesFiltrados = clientesCadastrados.filter((cliente) => {
+          return (
+            (cliente.razao && String(cliente.razao).toLowerCase().includes(filtroLower)) ||
+            (cliente.cnpj && String(cliente.cnpj).toLowerCase().includes(filtroLower)) ||
+            (cliente.cidade && String(cliente.cidade).toLowerCase().includes(filtroLower)) ||
+            (cliente.email && String(cliente.email).toLowerCase().includes(filtroLower)) ||
+            (cliente.telefone && String(cliente.telefone).toLowerCase().includes(filtroLower))
+          );
+        });
+        if (clientesFiltrados.length === 0) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        sugestoesDiv.style.display = "block";
+        clientesFiltrados.slice(0, 5).forEach((cliente) => {
+          const item = document.createElement("div");
+          item.className = "sugestao-cliente-item";
+          item.innerHTML = `<strong>${cliente.razao}</strong><br><small>${cliente.cidade || ""} | CNPJ: ${cliente.cnpj || ""} | Tel: ${cliente.telefone || ""}</small>`;
+          item.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            selectCliente.value = cliente.id;
+            preencherFormularioCliente(cliente.id);
+            document.getElementById("busca-cliente").value = cliente.razao;
+            sugestoesDiv.style.display = "none";
+          });
+          sugestoesDiv.appendChild(item);
+        });
+      }
+    </script>
+  </body>
+</html>

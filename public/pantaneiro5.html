@@ -1,0 +1,2913 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pantaneiro 5</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+      :root {
+        --primary-color: #007bff;
+        --primary-hover: #0056b3;
+        --secondary-color: #6c757d;
+        --success-color: #28a745;
+        --success-hover: #218838;
+        --danger-color: #dc3545;
+        --danger-hover: #c82333;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+        --text-color: #495057;
+        --bg-color: #eef2f5;
+        --card-bg: #ffffff;
+        --border-color: #dee2e6;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --border-radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        /* Padding modificado para dar espaço ao header */
+        padding: 100px 20px 20px 20px;
+      }
+
+      /* --- NOVO: HEADER DE USUÁRIO E LOGOUT (Importado do Painel) --- */
+      .header-top {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 15px 30px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        gap: 20px;
+        z-index: 1000; /* Garante que o header fique por cima */
+      }
+      #user-info {
+        font-family: "Roboto Slab", serif;
+        font-size: 1rem;
+        color: #333;
+        font-weight: 700;
+        text-transform: capitalize;
+      }
+      #logout-button {
+        font-family: "Roboto Slab", serif;
+        background-color: #d9534f;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: bold;
+        transition: background-color 0.3s;
+      }
+      #logout-button:hover {
+        background-color: #c9302c;
+      }
+      /* --- FIM DA SEÇÃO NOVA --- */
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      #logo-container {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      #logo {
+        max-width: 100%;
+        height: auto;
+        max-height: 120px;
+      }
+
+      .card {
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        padding: 25px;
+        margin-bottom: 25px;
+        border: 1px solid var(--border-color);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .card-header h2 {
+        font-size: 1.5em;
+        color: var(--dark-color);
+        font-weight: 600;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-group label {
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--dark-color);
+      }
+
+      .form-group label span {
+        margin-right: 8px;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-family: "Poppins", sans-serif;
+        font-size: 0.95em;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+      }
+
+      thead th {
+        background-color: var(--light-color);
+        font-weight: 600;
+        color: var(--dark-color);
+        white-space: nowrap;
+      }
+
+      tbody tr:hover {
+        background-color: #f5f5f5;
+      }
+
+      .tamanho-input-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .tamanho-input-container > div {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .tamanho-input-container label {
+        font-size: 0.8em;
+        font-weight: 500;
+      }
+
+      .tamanho-input-container input[type="number"] {
+        width: 50px;
+        padding: 6px;
+        text-align: center;
+      }
+
+      .manual-tamanho-input {
+        width: 150px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: var(--border-radius);
+        border: none;
+        font-family: "Poppins", sans-serif;
+        font-weight: 500;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+      }
+      .btn-primary:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+      }
+
+      .btn-success {
+        background-color: var(--success-color);
+        color: white;
+      }
+      .btn-success:hover {
+        background-color: var(--success-hover);
+      }
+
+      .btn-danger {
+        background-color: var(--danger-color);
+        color: white;
+        padding: 5px 10px;
+        font-size: 0.85em;
+      }
+      .btn-danger:hover {
+        background-color: var(--danger-hover);
+      }
+
+      #gerar-pedido-btn {
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin: 20px auto 0;
+        font-size: 1.1em;
+        padding: 15px;
+      }
+
+      .pedido-item {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background-color: var(--light-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        margin-bottom: 10px;
+        gap: 15px;
+      }
+      .pedido-item-info {
+        flex-grow: 1;
+      }
+      .pedido-item-info strong {
+        color: var(--dark-color);
+        font-weight: 600;
+      }
+
+      #pedido-vazio {
+        text-align: center;
+        padding: 30px;
+        background: var(--light-color);
+        border: 2px dashed var(--border-color);
+        border-radius: var(--border-radius);
+        color: var(--secondary-color);
+      }
+
+      .descontos-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .desconto-linha {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .desconto-linha input {
+        width: 70px;
+      }
+
+      .total-container {
+        text-align: center;
+        margin-top: 25px;
+      }
+
+      .total-container h3 {
+        font-size: 1.6em;
+        font-weight: 700;
+        color: var(--dark-color);
+      }
+
+      #total-pedido {
+        color: var(--success-color);
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 90px 10px 10px 10px; /* Ajuste para mobile */
+        }
+        .card {
+          padding: 15px;
+        }
+        .card-header h2 {
+          font-size: 1.2em;
+        }
+        th,
+        td {
+          padding: 8px 10px;
+          font-size: 0.9em;
+        }
+        .header-top {
+          padding: 10px 15px;
+          gap: 10px;
+        }
+        #user-info {
+          font-size: 0.9rem;
+        }
+      }
+
+      #sugestoes-clientes {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        background: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        width: 100%;
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 1001;
+        margin-top: 2px;
+        padding: 0;
+        display: none;
+      }
+      .sugestao-cliente-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 1em;
+        background: #fff;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.18s;
+        color: #222;
+        line-height: 1.3;
+        display: block;
+      }
+      .sugestao-cliente-item:last-child {
+        border-bottom: none;
+      }
+      .sugestao-cliente-item:hover {
+        background: #f3f7fa;
+        color: #007bff;
+      }
+      #busca-cliente {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        padding: 10px 12px;
+        font-size: 1em;
+        margin-bottom: 6px;
+      }
+      .form-group {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header-top">
+      <div id="user-info"></div>
+      <button id="logout-button">Sair</button>
+      <a
+        href="painel.html"
+        class="btn"
+        style="height: 35px; background-color: black; color: white"
+      >
+        ⬅️ Voltar ao Painel
+      </a>
+    </header>
+
+    <main class="container">
+      <div id="logo-container">
+        <img
+          id="logo"
+          src="https://i.imgur.com/vjq26ym.png"
+          alt="Logo G8 Pantaneiro"
+        />
+      </div>
+      <section class="card">
+        <div class="card-header">
+          <span
+            role="img"
+            aria-label="Gerenciar Cliente"
+            style="font-size: 1.8em"
+            >👤</span
+          >
+          <h2>Gerenciar Cliente - Tabela 5</h2>
+        </div>
+        <div class="form-group">
+          <input type="text" id="busca-cliente" placeholder="Buscar cliente..." style="margin-bottom: 10px;" />
+          <div id="sugestoes-clientes" style="position: relative; z-index: 10;"></div>
+          <label for="cliente-selecionado">Selecionar Cliente Existente</label>
+          <select id="cliente-selecionado">
+            <option value="">- Selecione um cliente -</option>
+            <option value="novo">- Inserir manualmente -</option>
+          </select>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-header">
+          <span
+            role="img"
+            aria-label="Informações do Cliente"
+            style="font-size: 1.8em"
+            >📋</span
+          >
+          <h2>Informações do Cliente - Tabela 5</h2>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="razao"><span>🏢</span>Razão Social:</label>
+            <input type="text" id="razao" />
+          </div>
+          <div class="form-group">
+            <label for="cnpj"><span>🏭</span>CNPJ:</label>
+            <input type="text" id="cnpj" />
+          </div>
+          <div class="form-group">
+            <label for="ie"><span>📝</span>I.E:</label>
+            <input type="text" id="ie" />
+          </div>
+          <div class="form-group">
+            <label for="endereco"><span>🗺️</span>Endereço:</label>
+            <input type="text" id="endereco" />
+          </div>
+          <div class="form-group">
+            <label for="bairro"><span>🏘️</span>Bairro:</label>
+            <input type="text" id="bairro" />
+          </div>
+          <div class="form-group">
+            <label for="cidade"><span>🏙️</span>Cidade:</label>
+            <input type="text" id="cidade" />
+          </div>
+          <div class="form-group">
+            <label for="estado"><span>🌎</span>Estado:</label>
+            <input type="text" id="estado" />
+          </div>
+          <div class="form-group">
+            <label for="cep"><span>📫</span>CEP:</label>
+            <input type="text" id="cep" />
+          </div>
+          <div class="form-group">
+            <label for="email"><span>📧</span>E-mail:</label>
+            <input type="email" id="email" />
+          </div>
+          <div class="form-group">
+            <label for="telefone"><span>📞</span>Telefone:</label>
+            <input type="text" id="telefone" />
+          </div>
+          <div class="form-group">
+            <label for="transporte"><span>🚚</span>Transporte:</label>
+            <input type="text" id="transporte" />
+          </div>
+          <div class="form-group">
+            <label for="prazo"><span>💰</span>Prazo Pagamento:</label>
+            <input type="text" id="prazo" placeholder="Ex: 30/60/90" />
+          </div>
+          <div class="form-group full-width">
+            <label for="obs"><span>💬</span>Observações:</label>
+            <textarea id="obs" rows="3"></textarea>
+          </div>
+        </div>
+      </section>
+      <div id="produtos-container"></div>
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Seu Pedido" style="font-size: 1.8em"
+            >🛒</span
+          >
+          <h2>Seu Pedido</h2>
+        </div>
+        <div id="pedido-container">
+          <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
+        </div>
+        <div class="descontos-container">
+          <div class="desconto-linha">
+            <label for="desconto-prazo"
+              ><span>⏳</span>Desconto Prazo (%):</label
+            >
+            <select
+              id="desconto-prazo"
+              onchange="aplicarDescontoPrazo(parseFloat(this.value))"
+            >
+              <option value="0" selected>0%</option>
+              <option value="1.2">1,2%</option>
+              <option value="2.5">2,5%</option>
+              <option value="5">5%</option>
+            </select>
+          </div>
+          <div class="desconto-linha">
+            <label for="desconto-volume"
+              ><span>📦</span>Desconto Volume (%):</label
+            >
+            <select
+              id="desconto-volume"
+              onchange="aplicarDescontoVolume(parseFloat(this.value))"
+            >
+              <option value="0" selected>0%</option>
+              <option value="2">2%</option>
+              <option value="4">4%</option>
+              <option value="6">6%</option>
+              <option value="8">8%</option>
+              <option value="10">10%</option>
+            </select>
+          </div>
+        </div>
+        <div class="total-container">
+          <h3>💰 Total do Pedido: R$ <span id="total-pedido">0.00</span></h3>
+        </div>
+        <button id="gerar-pedido-btn" class="btn btn-primary">
+          🖨️ Gerar Pedido em PDF
+        </button>
+        <div id="status-mensagem"></div>
+      </section>
+    </main>
+    <script>
+      // ========== INÍCIO DA LISTA DE PRODUTOS ATUALIZADA ==========
+      const produtosData = [
+        {
+          CATEGORIA: "Aventura",
+          REFERENCIA: "201",
+          DESCRIÇÃO: "JARDINEIRA PVC COM BOTA",
+          TAMANHOS: ["P - EX / BOTAS 35 - 46"],
+          PRECO: 135.39,
+        },
+        {
+          CATEGORIA: "Aventura",
+          REFERENCIA: "203",
+          DESCRIÇÃO: "PERNEIRA PVC VIRILHA COM BOTA",
+          TAMANHOS: ["ÚNICO / BOTAS 35 - 46"],
+          PRECO: 104.78,
+        },
+        {
+          CATEGORIA: "Aventura",
+          REFERENCIA: "204",
+          DESCRIÇÃO: "PERNEIRA PVC JOELHO COM BOTA",
+          TAMANHOS: ["ÚNICO / BOTAS 35 - 46"],
+          PRECO: 92.3,
+        },
+        {
+          CATEGORIA: "Aventura",
+          REFERENCIA: "209",
+          DESCRIÇÃO: "JAQUETA PVC PESCADOR",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 42.58,
+        },
+        {
+          CATEGORIA: "Aventura",
+          REFERENCIA: "210",
+          DESCRIÇÃO: "CALÇA PVC PESCADOR",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 29.17,
+        },
+        {
+          CATEGORIA: "Aventura",
+          REFERENCIA: "213",
+          DESCRIÇÃO: "JAQUETA NYLON PESCADOR",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 70.46,
+        },
+        {
+          CATEGORIA: "Aventura",
+          REFERENCIA: "214",
+          DESCRIÇÃO: "CALÇA NYLON PESCADOR",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 48.07,
+        },
+        {
+          CATEGORIA: "Aventura",
+          REFERENCIA: "234",
+          DESCRIÇÃO: "CONJUNTO PVC PESCADOR COM CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 64.52,
+        },
+        {
+          CATEGORIA: "Aventura",
+          REFERENCIA: "238",
+          DESCRIÇÃO: "CONJUNTO NYLON PESCADOR COM CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 117.69,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "222",
+          DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA SIMPLES COM VELCRO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 48.68,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "222.1",
+          DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA INTERNA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 47.04,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "225",
+          DESCRIÇÃO: "CAPA LONGA NYLON PADRÃO ELÁSTICO NOS PUNHOS",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 100.7,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "225.1",
+          DESCRIÇÃO: "CAPA LONGA NYLON CAPUZ LAPA INTERNA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 96.81,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "225FT900",
+          DESCRIÇÃO: "CAPA LONGA NYLON PADRÃO COM REFLETIVOS",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 131.69,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "225FT900.2",
+          DESCRIÇÃO:
+            "CAPA LONGA NYLON PADRÃO COM REFLETIVOS E ABERT. VENTILAÇÃO FRENTE E COSTAS",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 138.0,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "510",
+          DESCRIÇÃO: "JAQUETA NYLON PARA FRIO COM ELÁSTICO NA CINTURA",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          PRECO: 142.37,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "511",
+          DESCRIÇÃO: "JAQUETA NYLON PARA FRIO - MOD. PARKA",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          PRECO: 137.84,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "521",
+          DESCRIÇÃO: "JAQUETA NYLON PARA FRIO COM CAPUZ REMOVIVEL - MOD. PARKA",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          PRECO: 156.16,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "530",
+          DESCRIÇÃO: "JAQUETA NYLON PARA FRIO - MANGAS REMOVÍVEIS",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          PRECO: 168.71,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "550",
+          DESCRIÇÃO: "JAQUETA NYLON FEMININO PARA FRIO",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          PRECO: 114.04,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "551",
+          DESCRIÇÃO: "JAQUETA NYLON FEMININO PARA FRIO COM CAPUZ FIXO",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          PRECO: 126.79,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "670",
+          DESCRIÇÃO: "CONJUNTO NYLON COM REFLETIVO - MODELO SEGURANÇA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 146.76,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "670FT900.1",
+          DESCRIÇÃO:
+            "CONJUNTO NYLON CAPUZ COM ABERTURA DE VENTILAÇÃO FRENTE E COSTAS",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 152.61,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "670J",
+          DESCRIÇÃO: "JAQUETA NYLON - MODELO SEGURANÇA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 90.93,
+        },
+        {
+          CATEGORIA: "PRO",
+          REFERENCIA: "670C",
+          DESCRIÇÃO: "CALÇA NYLON - MODELO SEGURANÇA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 55.06,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "700",
+          DESCRIÇÃO: "CONJUNTO NYLON GOLA ECONÔMICO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 112.52,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "701",
+          DESCRIÇÃO: "CONJUNTO NYLON COM CAPUZ ECONÔMICO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 113.62,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "800",
+          DESCRIÇÃO: "CONJUNTO NYLON GOLA COM ABERTURA TRASEIRA PARA MOCHILA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 169.71,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "801",
+          DESCRIÇÃO: "CONJUNTO NYLON CAPUZ COM ABERTURA TRASEIRA PARA MOCHILA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 170.91,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1000",
+          DESCRIÇÃO: "CONJUNTO NYLON COM GOLA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 120.18,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1001",
+          DESCRIÇÃO: "CONJUNTO NYLON COM CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 121.8,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1002",
+          DESCRIÇÃO: "JAQUETA NYLON COM GOLA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 72.1,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1003",
+          DESCRIÇÃO: "JAQUETA NYLON COM CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 74.38,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1004",
+          DESCRIÇÃO: "CALÇA NYLON",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 51.97,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1100",
+          DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM GOLA - PRETO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 120.11,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1100C",
+          DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM GOLA - CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 120.11,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1100PC",
+          DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM GOLA - PRETO COM CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 126.48,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1101",
+          DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM CAPUZ - PRETO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 127.05,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1101C",
+          DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM CAPUZ - CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 127.05,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1101PC",
+          DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM CAPUZ - PRETO COM CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 136.3,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1102",
+          DESCRIÇÃO: "JAQUETA NYLON FEMININA COM GOLA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 71.55,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1103",
+          DESCRIÇÃO: "JAQUETA NYLON FEMININA COM CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 73.08,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1104",
+          DESCRIÇÃO: "CALÇA NYLON FEMININA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 48.82,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1200",
+          DESCRIÇÃO: "CONJUNTO NYLON LUXO COM FORRO E GOLA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 141.69,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1201",
+          DESCRIÇÃO: "CONJUNTO NYLON LUXO COM FORRO E CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 145.43,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1202",
+          DESCRIÇÃO: "JAQUETA NYLON LUXO COM FORRO E GOLA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 92.46,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1203",
+          DESCRIÇÃO: "JAQUETA NYLON LUXO COM FORRO E CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 97.55,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1204",
+          DESCRIÇÃO: "CALÇA NYLON LUXO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 53.27,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1600",
+          DESCRIÇÃO: "CONJUNTO 1000 + POLÂINA + MOCHILA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 139.29,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1700",
+          DESCRIÇÃO: "CONJUNTO 1100 FEMININO + POLÂINA + MOCHILA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 143.6,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1800",
+          DESCRIÇÃO: "CONJUNTO 1200 + POLÂINA + MOCHILA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 165.26,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1900",
+          DESCRIÇÃO: "CONJUNTO NYLON LUXO FEMININO COM FORRO E GOLA - PRETO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 146.33,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1900C",
+          DESCRIÇÃO: "CONJUNTO NYLON LUXO FEMININO COM FORRO E GOLA - CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 146.33,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1900PC",
+          DESCRIÇÃO:
+            "CONJUNTO NYLON LUXO FEMININO COM FORRO E GOLA - PRETO COM CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 152.7,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1901",
+          DESCRIÇÃO: "CONJUNTO NYLON LUXO FEMININO COM FORRO E CAPUZ - PRETO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 155.01,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1901C",
+          DESCRIÇÃO: "CONJUNTO NYLON LUXO FEMININO COM FORRO E CAPUZ - CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 155.01,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "1901PC",
+          DESCRIÇÃO:
+            "CONJUNTO NYLON LUXO FEMININO COM FORRO E CAPUZ - PRETO COM CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 164.36,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2000",
+          DESCRIÇÃO: "CONJUNTO PVC PREMIUM COM GOLA, BOLSO E REFLETIVO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 90.65,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2001",
+          DESCRIÇÃO: "CONJUNTO PVC PREMIUM COM CAPUZ, BOLSO E REFLETIVO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 94.44,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2002",
+          DESCRIÇÃO: "JAQUETA PVC PREMIUM COM GOLA, BOLSO E REFLETIVO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 52.77,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2003",
+          DESCRIÇÃO: "JAQUETA PVC PREMIUM COM CAPUZ, BOLSO E REFLETIVO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 53.32,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2004",
+          DESCRIÇÃO: "CALÇA PVC PREMIUM COM BOLSO E REFLETIVO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 38.54,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2300",
+          DESCRIÇÃO: "CONJUNTO PVC ECONOMICA COM GOLA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 58.67,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2301",
+          DESCRIÇÃO: "CONJUNTO PVC ECONOMICA COM CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 61.09,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2350",
+          DESCRIÇÃO: "CONJUNTO PVC ECONOMICA COM GOLA E BOLSO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 60.12,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2351",
+          DESCRIÇÃO: "CONJUNTO PVC ECONOMICA COM CAPUZ E BOLSO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 62.54,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2600",
+          DESCRIÇÃO: "CONJUNTO PVC INFANTIL COM GOLA",
+          TAMANHOS: ["ÚNICO"],
+          PRECO: 49.71,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2601",
+          DESCRIÇÃO: "CONJUNTO PVC INFANTIL COM CAPUZ",
+          TAMANHOS: ["ÚNICO"],
+          PRECO: 51.12,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2700",
+          DESCRIÇÃO: "CONJUNTO PVC TORNADO COM GOLA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 63.19,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2701",
+          DESCRIÇÃO: "CONJUNTO PVC TORNADO COM CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 67.38,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2702",
+          DESCRIÇÃO: "JAQUETA PVC TORNADO COM GOLA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 36.76,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2703",
+          DESCRIÇÃO: "JAQUETA PVC TORNADO COM CAPUZ",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 39.45,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2704",
+          DESCRIÇÃO: "CALÇA PVC TORNADO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 29.59,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2900",
+          DESCRIÇÃO: "CONJUNTO PVC TORNADO COM GOLA E BOLSO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 64.44,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2901",
+          DESCRIÇÃO: "CONJUNTO PVC TORNADO COM CAPUZ E BOLSO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 68.63,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2902",
+          DESCRIÇÃO: "JAQUETA PVC TORNADO COM GOLA E BOLSO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 38.03,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2903",
+          DESCRIÇÃO: "JAQUETA PVC TORNADO COM CAPUZ E BOLSO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 40.7,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "2904",
+          DESCRIÇÃO: "CALÇA PVC TORNADO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 29.59,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "3000",
+          DESCRIÇÃO: "CONJUNTO PVC FEMININO COM GOLA - PRETO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 67.53,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "3000PC",
+          DESCRIÇÃO: "CONJUNTO PVC FEMININO COM GOLA - PRETO COM CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 70.44,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "3001",
+          DESCRIÇÃO: "CONJUNTO PVC FEMININO COM CAPUZ - PRETO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 71.84,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "3001PC",
+          DESCRIÇÃO: "CONJUNTO PVC FEMININO COM CAPUZ - PRETO COM CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 75.65,
+        },
+        {
+          CATEGORIA: "Urbano",
+          REFERENCIA: "4000",
+          DESCRIÇÃO: "CONJUNTO PVC INVERNO COM GOLA",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 124.36,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "360",
+          DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL - PRETA",
+          TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44"],
+          PRECO: 62.73,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "360C",
+          DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL - CORES",
+          TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44"],
+          PRECO: 72.63,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "370",
+          DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL CANO MÉDIO",
+          TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44", "45/46"],
+          PRECO: 71.37,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "380",
+          DESCRIÇÃO: "BOTA DE COURO CANO CURTO COM ZÍPER - CITY",
+          TAMANHOS: ["37", "38", "39", "40", "41", "42", "43", "44", "45"],
+          PRECO: 281.09,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "390",
+          DESCRIÇÃO: "BOTA DE COURO CANO CURTO COM VELCRO E ELÁSTICO - SPEED",
+          TAMANHOS: ["37", "38", "39", "40", "41", "42", "43", "44", "45"],
+          PRECO: 313.57,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "400",
+          DESCRIÇÃO: "BOTA DE COURO CANO ALTO COM ZÍPER E IMPERMEÁVEL - DRY",
+          TAMANHOS: ["37", "38", "39", "40", "41", "42", "43", "44", "45"],
+          PRECO: 449.4,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2410",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - PEQUENA",
+          TAMANHOS: ["ATÉ 125 CILINDRADAS"],
+          PRECO: 93.21,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2411",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - MÉDIA",
+          TAMANHOS: ["125 - 150 CILINDRADAS"],
+          PRECO: 96.3,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2412",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - GRANDE",
+          TAMANHOS: ["250 - 450 CILINDRADAS"],
+          PRECO: 99.38,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2413",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - GRANDE GRANDE",
+          TAMANHOS: ["450 - 500 - 750 CILINDRADAS"],
+          PRECO: 104.77,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2414",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - EXTRA GRANDE",
+          TAMANHOS: ["750 - 1200 CILINDRADAS"],
+          PRECO: 110.94,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2415",
+          DESCRIÇÃO:
+            "CAPA DE MOTO PVC FORRADA COM FELTRO - EXTRA GRANDE GRANDE",
+          TAMANHOS: ["ACIMA DE 1.200 CILINDRADAS"],
+          PRECO: 134.8,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2421.1",
+          DESCRIÇÃO: "POLAINA PVC PREMIUM COM MEIA SOLA VELCRO",
+          TAMANHOS: ["P", "M", "G"],
+          PRECO: 16.44,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2422.1",
+          DESCRIÇÃO: "POLAINA PVC PREMIUM COM SOLA, ZÍPER E VELCRO",
+          TAMANHOS: ["P", "M", "G"],
+          PRECO: 19.05,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2424",
+          DESCRIÇÃO: "MOCHILA NYLON",
+          TAMANHOS: ["ÚNICO"],
+          PRECO: 9.48,
+        },
+        {
+          CATEGORIA: "Acessórios",
+          REFERENCIA: "2428",
+          DESCRIÇÃO: "CAPA PARA MOCHILA",
+          TAMANHOS: ["ÚNICO"],
+          PRECO: 26.26,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1008",
+          DESCRIÇÃO: "MACACÃO DE NYLON - MOD. ESTILO",
+          TAMANHOS: ["P", "M", "G", "GG", "EX", "EXG"],
+          PRECO: 194.33,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1008PC",
+          DESCRIÇÃO: "MACACÃO DE NYLON - PRETO COM CORES - MOD. ESTILO",
+          TAMANHOS: ["P", "M", "G", "GG", "EX", "EXG"],
+          PRECO: 207.87,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1300",
+          DESCRIÇÃO: "CONJUNTO NYLON LUXO GOLA VENTILAÇÃO COSTAS FORRADO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 171.34,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1300C",
+          DESCRIÇÃO:
+            "CONJUNTO NYLON LUXO GOLA VENTILAÇÃO COSTAS FORRADO - CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 174.01,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1350",
+          DESCRIÇÃO: "CONJUNTO NYLON LUXO GOLA VENTILAÇÃO COSTAS SEM FORRO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 156.23,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1350C",
+          DESCRIÇÃO:
+            "CONJUNTO NYLON LUXO GOLA VENTILAÇÃO COSTAS SEM FORRO - CORES",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 157.98,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1400",
+          DESCRIÇÃO: "CONJUNTO DE NYLON COM FORRO MASCULINO - MOD.ESTILO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 178.57,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1400PC",
+          DESCRIÇÃO:
+            "CONJUNTO DE NYLON COM FORRO MASCULINO - MOD.ESTILO - VIVO COLORIDO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 175.7,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1500",
+          DESCRIÇÃO: "CONJUNTO DE NYLON COM FORRO FEMININO - MOD. ESTILO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 175.47,
+        },
+        {
+          CATEGORIA: "Estilo",
+          REFERENCIA: "1500PC",
+          DESCRIÇÃO:
+            "CONJUNTO DE NYLON COM FORRO FEMININO - MOD. ESTILO - VIVO COLORIDO",
+          TAMANHOS: [
+            "PP",
+            "P",
+            "M",
+            "G",
+            "GG",
+            "EX",
+            "EXG",
+            "2G",
+            "3G",
+            "4G",
+            "5G",
+          ],
+          PRECO: 171.49,
+        },
+      ];
+      // ========== FIM DA LISTA DE PRODUTOS ATUALIZADA ==========
+
+      // Script para carregar dados dos clientes do arquivo clientes.json
+      let clientesCadastrados = [];
+
+      async function carregarClientes() {
+        try {
+          const response = await fetch('clientes.json');
+          if (!response.ok) throw new Error('Erro ao buscar clientes.json');
+          const data = await response.json();
+          clientesCadastrados = data;
+          // Aqui você pode chamar funções para popular selects, etc.
+        } catch (error) {
+          alert('Erro ao carregar os dados dos clientes. Verifique se o arquivo clientes.json está disponível.');
+        }
+      }
+
+      // ... O resto das variáveis permanecem as mesmas
+      let pedidoItens = [];
+      let subtotalPedido = 0;
+      let descontoPrazoPercentual = 0;
+      let descontoVolumePercentual = 0;
+      let totalPedidoComDesconto = 0;
+      const selectCliente = document.getElementById("cliente-selecionado");
+      const inputsCliente = {
+        razao: document.getElementById("razao"),
+        cnpj: document.getElementById("cnpj"),
+        ie: document.getElementById("ie"),
+        endereco: document.getElementById("endereco"),
+        bairro: document.getElementById("bairro"),
+        cidade: document.getElementById("cidade"),
+        estado: document.getElementById("estado"),
+        cep: document.getElementById("cep"),
+        email: document.getElementById("email"),
+        telefone: document.getElementById("telefone"),
+        transporte: document.getElementById("transporte"),
+        prazo: document.getElementById("prazo"),
+        obs: document.getElementById("obs"),
+      };
+      const produtosContainer = document.getElementById("produtos-container");
+      const pedidoContainer = document.getElementById("pedido-container");
+      const pedidoVazio = document.getElementById("pedido-vazio");
+      const gerarPedidoBtn = document.getElementById("gerar-pedido-btn");
+
+      // ... todas as suas funções (popularClientes, renderizar, adicionarAoPedido, etc.) permanecem aqui ...
+      async function popularClientes(filtro = "") {
+        if (clientesCadastrados.length === 0) {
+          await carregarClientes();
+        }
+        selectCliente.innerHTML = '';
+        const optionPadrao = document.createElement("option");
+        optionPadrao.value = "";
+        optionPadrao.textContent = "- Selecione um cliente -";
+        selectCliente.appendChild(optionPadrao);
+        const optionNovo = document.createElement("option");
+        optionNovo.value = "novo";
+        optionNovo.textContent = "- Inserir manualmente -";
+        selectCliente.appendChild(optionNovo);
+        const filtroLower = filtro.toLowerCase();
+        const clientesFiltrados = clientesCadastrados.filter((cliente) => {
+          return (
+            (cliente.razao && String(cliente.razao).toLowerCase().includes(filtroLower)) ||
+            (cliente.cnpj && String(cliente.cnpj).toLowerCase().includes(filtroLower)) ||
+            (cliente.cidade && String(cliente.cidade).toLowerCase().includes(filtroLower)) ||
+            (cliente.email && String(cliente.email).toLowerCase().includes(filtroLower)) ||
+            (cliente.telefone && String(cliente.telefone).toLowerCase().includes(filtroLower))
+          );
+        });
+        clientesFiltrados.forEach((cliente) => {
+          const option = document.createElement("option");
+          option.value = cliente.id;
+          option.textContent = cliente.razao;
+          selectCliente.appendChild(option);
+        });
+      }
+      function preencherFormularioCliente(clienteId) {
+        if (clienteId === "novo" || !clienteId) {
+          Object.values(inputsCliente).forEach((input) => (input.value = ""));
+          return;
+        }
+        const cliente = clientesCadastrados.find((c) => c.id === clienteId);
+        if (cliente) {
+          for (const key in inputsCliente) {
+            inputsCliente[key].value = cliente[key] || "";
+          }
+        }
+      }
+      function renderizarProdutosPorCategoria() {
+        const categoriasOrdenadas = [
+          "Aventura",
+          "PRO",
+          "Urbano",
+          "Estilo",
+          "Acessórios",
+        ];
+        const categoriasAgrupadas = produtosData.reduce((acc, produto) => {
+          acc[produto.CATEGORIA] = acc[produto.CATEGORIA] || [];
+          acc[produto.CATEGORIA].push(produto);
+          return acc;
+        }, {});
+        categoriasOrdenadas.forEach((categoria) => {
+          const categoriaProdutos = categoriasAgrupadas[categoria];
+          if (!categoriaProdutos || categoriaProdutos.length === 0) return;
+          const categoriaDiv = document.createElement("section");
+          categoriaDiv.className = "card";
+          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
+          categoriaProdutos.forEach((produto) => {
+            const tamanhosNormais =
+              produto.REFERENCIA !== "201" &&
+              produto.REFERENCIA !== "203" &&
+              produto.REFERENCIA !== "204";
+            let tamanhosInputHTML = '<div class="tamanho-input-container">';
+            if (tamanhosNormais) {
+              const tamanhosProduto = Array.isArray(produto.TAMANHOS)
+                ? produto.TAMANHOS
+                : [produto.TAMANHOS];
+              tamanhosProduto.forEach((tamanho) => {
+                const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+                tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+              });
+            } else {
+              tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
+            }
+            tamanhosInputHTML += "</div>";
+            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${
+              produto.DESCRIÇÃO
+            }<br><small style="color: #6c757d;">${
+              Array.isArray(produto.TAMANHOS)
+                ? produto.TAMANHOS.join(" / ")
+                : produto.TAMANHOS
+            }</small></td><td>R$ ${produto.PRECO.toFixed(
+              2
+            )}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${
+              produto.REFERENCIA
+            }" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${
+              produto.REFERENCIA
+            }" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(
+              produto
+            )})'>Adicionar</button></td></tr>`;
+          });
+          tabelaHTML += `</tbody></table></div>`;
+          categoriaDiv.innerHTML = tabelaHTML;
+          produtosContainer.appendChild(categoriaDiv);
+        });
+      }
+      function adicionarAoPedido(produto) {
+        const corSelecionada = document
+          .getElementById(`cor-${produto.REFERENCIA}`)
+          .value.trim();
+        const descontoExtra =
+          parseFloat(
+            document.getElementById(`desconto-${produto.REFERENCIA}`).value
+          ) || 0;
+        let itemAdicionado = false;
+        const handleItem = (tamanho, quantidade) => {
+          if (quantidade <= 0) return;
+          itemAdicionado = true;
+          let precoFinal = produto.PRECO;
+          if (descontoExtra > 0) {
+            precoFinal *= 1 - descontoExtra / 100;
+          }
+          const tamanhoNormalizado = tamanho.split("-")[0].trim().toUpperCase();
+          if (["EXG", "2G", "3G"].includes(tamanhoNormalizado))
+            precoFinal *= 1.15;
+          else if (["4G", "5G"].includes(tamanhoNormalizado)) precoFinal *= 1.4;
+          let itemDesc = tamanho;
+          if (corSelecionada) itemDesc += `, Cor: ${corSelecionada}`;
+          const itemExistente = pedidoItens.find(
+            (item) =>
+              item.REFERENCIA === produto.REFERENCIA &&
+              item.tamanho === itemDesc &&
+              item.preco === precoFinal
+          );
+          if (itemExistente) {
+            itemExistente.quantidade += quantidade;
+          } else {
+            pedidoItens.push({
+              REFERENCIA: produto.REFERENCIA,
+              DESCRIÇÃO: produto.DESCRIÇÃO,
+              tamanho: itemDesc,
+              preco: precoFinal,
+              quantidade: quantidade,
+              descontoExtra: descontoExtra,
+            });
+          }
+        };
+        const isManualSize = ["201", "203", "204"].includes(produto.REFERENCIA);
+        if (isManualSize) {
+          const tamanhoManual = document
+            .getElementById(`tamanho-${produto.REFERENCIA}`)
+            .value.trim();
+          if (tamanhoManual) {
+            handleItem(tamanhoManual, 1);
+          } else {
+            alert(
+              `Por favor, digite o tamanho para o produto ${produto.DESCRIÇÃO}.`
+            );
+          }
+        } else {
+          const tamanhosProduto = Array.isArray(produto.TAMANHOS)
+            ? produto.TAMANHOS
+            : [produto.TAMANHOS];
+          tamanhosProduto.forEach((tamanho) => {
+            const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+            const quantidade =
+              parseInt(
+                document.getElementById(
+                  `quantidade-${produto.REFERENCIA}-${tamanhoId}`
+                ).value
+              ) || 0;
+            handleItem(tamanho, quantidade);
+          });
+        }
+        if (itemAdicionado) {
+          atualizarVisualizacaoPedido();
+        } else if (!isManualSize) {
+          alert(
+            `Por favor, informe a quantidade para pelo menos um tamanho do produto ${produto.DESCRIÇÃO}.`
+          );
+        }
+      }
+      function removerDoPedido(index) {
+        pedidoItens.splice(index, 1);
+        atualizarVisualizacaoPedido();
+      }
+      function atualizarVisualizacaoPedido() {
+        pedidoContainer.innerHTML = "";
+        subtotalPedido = 0;
+        if (pedidoItens.length > 0) {
+          pedidoVazio.style.display = "none";
+          pedidoItens.forEach((item, index) => {
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "pedido-item";
+            const precoTotalItem = item.preco * item.quantidade;
+            subtotalPedido += precoTotalItem;
+            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${
+              item.DESCRIÇÃO
+            } (Ref: ${item.REFERENCIA})</strong><br><small>Tamanho/Cor: ${
+              item.tamanho
+            } | Qtd: ${item.quantidade} | Unit: R$ ${item.preco.toFixed(2)}${
+              item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
+            } | Total: R$ ${precoTotalItem.toFixed(
+              2
+            )}</small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            pedidoContainer.appendChild(itemDiv);
+          });
+        } else {
+          pedidoVazio.style.display = "block";
+        }
+        aplicarDescontosGerais();
+      }
+      function aplicarDescontosGerais() {
+        let totalComDescontoPrazo =
+          subtotalPedido * (1 - descontoPrazoPercentual / 100);
+        totalPedidoComDesconto =
+          totalComDescontoPrazo * (1 - descontoVolumePercentual / 100);
+        document.getElementById("total-pedido").textContent =
+          totalPedidoComDesconto.toFixed(2);
+      }
+      function aplicarDescontoPrazo(percentual) {
+        descontoPrazoPercentual = isNaN(percentual) ? 0 : percentual;
+        aplicarDescontosGerais();
+      }
+      function aplicarDescontoVolume(percentual) {
+        descontoVolumePercentual = isNaN(percentual) ? 0 : percentual;
+        aplicarDescontosGerais();
+      }
+      function gerarPedidoPDF() {
+        if (pedidoItens.length === 0) {
+          alert("O pedido está vazio. Adicione itens antes de gerar o PDF.");
+          return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF("p", "mm", "a4");
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        let finalY = 0;
+
+        const drawHeaderAndFooter = (data) => {
+          const logoImg = new Image();
+          logoImg.src = "https://i.imgur.com/vjq26ym.png";
+          doc.addImage(logoImg, "PNG", margin, 10, 90, 15);
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.text("Pedido de Venda - Pantaneiro", pageWidth - margin, 18, {
+            align: "right",
+          });
+          const hoje = new Date();
+          const dataAtual = `${hoje.getDate().toString().padStart(2, "0")}/${(
+            hoje.getMonth() + 1
+          )
+            .toString()
+            .padStart(2, "0")}/${hoje.getFullYear()}`;
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Data: ${dataAtual}`, pageWidth - margin, 24, {
+            align: "right",
+          });
+
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          doc.text(
+            `Página ${data.pageNumber} de ${pageCount}`,
+            pageWidth / 2,
+            pageHeight - 10,
+            { align: "center" }
+          );
+        };
+
+        drawHeaderAndFooter({ pageNumber: 1 });
+
+        doc.autoTable({
+          startY: 30,
+          theme: "grid",
+          head: [
+            [
+              {
+                content: "DADOS DO CLIENTE",
+                colSpan: 4,
+                styles: {
+                  halign: "center",
+                  fontStyle: "bold",
+                  fillColor: [230, 230, 230],
+                  textColor: 30,
+                },
+              },
+            ],
+          ],
+          body: [
+            [
+              "Cliente:",
+              { content: inputsCliente.razao.value || "N/A", colSpan: 3 },
+            ],
+            [
+              "CNPJ:",
+              inputsCliente.cnpj.value || "N/A",
+              "I.E.:",
+              inputsCliente.ie.value || "N/A",
+            ],
+            [
+              "Telefone:",
+              inputsCliente.telefone.value || "N/A",
+              "E-mail:",
+              inputsCliente.email.value || "N/A",
+            ],
+            [
+              "Endereço:",
+              {
+                content: `${inputsCliente.endereco.value || ""}, ${
+                  inputsCliente.bairro.value || ""
+                }`,
+                colSpan: 3,
+              },
+            ],
+            [
+              "Cidade/UF:",
+              `${inputsCliente.cidade.value || ""}/${
+                inputsCliente.estado.value || ""
+              }`,
+              "CEP:",
+              inputsCliente.cep.value || "",
+            ],
+          ],
+          styles: { fontSize: 8, cellPadding: 1.5 },
+          columnStyles: {
+            0: { fontStyle: "bold", cellWidth: 22 },
+            2: { fontStyle: "bold", cellWidth: 20 },
+          },
+          margin: { left: margin, right: margin },
+        });
+
+        let startY = doc.autoTable.previous.finalY + 7;
+
+        const head = [
+          ["Ref.", "Descrição", "Tam/Cor", "Qtd", "Unit.", "Desc.%", "Total"],
+        ];
+        const body = pedidoItens.map((item) => [
+          item.REFERENCIA,
+          item.DESCRIÇÃO,
+          item.tamanho,
+          item.quantidade,
+          `R$ ${item.preco.toFixed(2)}`,
+          `${item.descontoExtra}%`,
+          `R$ ${(item.preco * item.quantidade).toFixed(2)}`,
+        ]);
+
+        doc.autoTable({
+          head: head,
+          body: body,
+          startY: startY,
+          theme: "grid",
+          styles: {
+            fontSize: 8,
+            cellPadding: 2,
+            overflow: "linebreak",
+            valign: "middle",
+          },
+          headStyles: {
+            fillColor: [44, 62, 80],
+            textColor: [255, 255, 255],
+            fontStyle: "bold",
+            halign: "center",
+          },
+          columnStyles: {
+            0: { cellWidth: 15 },
+            1: { cellWidth: "auto" },
+            2: { cellWidth: 30 },
+            3: { cellWidth: 10, halign: "center" },
+            4: { cellWidth: 20, halign: "right" },
+            5: { cellWidth: 15, halign: "center" },
+            6: { cellWidth: 22, halign: "right" },
+          },
+          didDrawPage: (data) => {
+            if (data.pageNumber > 1) {
+              drawHeaderAndFooter(data);
+            }
+          },
+          margin: { top: 30, bottom: 15 },
+        });
+
+        finalY = doc.autoTable.previous.finalY;
+
+        const obsText = `Transporte: ${
+          inputsCliente.transporte.value || "A combinar"
+        }\nPrazo: ${
+          inputsCliente.prazo.value || "A combinar"
+        }\n\nObservações:\n${inputsCliente.obs.value || "Nenhuma."}`;
+
+        const summaryData = [];
+        summaryData.push(["Subtotal:", `R$ ${subtotalPedido.toFixed(2)}`]);
+        if (descontoPrazoPercentual > 0) {
+          summaryData.push([
+            `Desconto Prazo (${descontoPrazoPercentual}%):`,
+            `- R$ ${((subtotalPedido * descontoPrazoPercentual) / 100).toFixed(
+              2
+            )}`,
+          ]);
+        }
+        if (descontoVolumePercentual > 0) {
+          const baseDescontoVol =
+            subtotalPedido * (1 - descontoPrazoPercentual / 100);
+          summaryData.push([
+            `Desconto Volume (${descontoVolumePercentual}%):`,
+            `- R$ ${(
+              (baseDescontoVol * descontoVolumePercentual) /
+              100
+            ).toFixed(2)}`,
+          ]);
+        }
+        summaryData.push(["", ""]);
+        summaryData.push([
+          {
+            content: "Total do Pedido:",
+            styles: { fontStyle: "bold", fontSize: 10 },
+          },
+          {
+            content: `R$ ${totalPedidoComDesconto.toFixed(2)}`,
+            styles: { fontStyle: "bold", fontSize: 10 },
+          },
+        ]);
+
+        const finalTableBody = [];
+        const leftColumn = {
+          content: obsText,
+          rowSpan: summaryData.length,
+          styles: { valign: "top", fontSize: 9 },
+        };
+
+        for (let i = 0; i < summaryData.length; i++) {
+          const row = [];
+          if (i === 0) row.push(leftColumn);
+          row.push(summaryData[i][0]);
+          row.push(summaryData[i][1]);
+          finalTableBody.push(row);
+        }
+
+        doc.autoTable({
+          startY: finalY + 8,
+          theme: "plain",
+          body: finalTableBody,
+          margin: { left: margin, right: margin },
+          columnStyles: {
+            0: { cellWidth: pageWidth / 2 - margin },
+            1: { halign: "right", fontStyle: "bold" },
+            2: { halign: "right" },
+          },
+        });
+
+        const nomeArquivo = `G8 Pedido Pantaneiro - ${inputsCliente.razao.value.replace(
+          /[\s\/]/g,
+          "_"
+        )} - ${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`;
+        doc.save(nomeArquivo);
+      }
+
+      // SCRIPT DE USUÁRIO ADICIONADO AQUI
+      document.addEventListener("DOMContentLoaded", async () => {
+        // --- Início da lógica de autenticação ---
+        const loggedInUser = sessionStorage.getItem("loggedInUser");
+
+        if (loggedInUser) {
+          document.getElementById(
+            "user-info"
+          ).textContent = `Bem-vindo(a), ${loggedInUser}!`;
+        } else {
+          alert("Acesso negado. Por favor, realize o login.");
+          window.location.href = "index.html"; // Mude "index.html" se sua página de login tiver outro nome
+        }
+
+        document
+          .getElementById("logout-button")
+          .addEventListener("click", function () {
+            sessionStorage.removeItem("loggedInUser");
+            alert("Você saiu da sua conta.");
+            window.location.href = "index.html"; // Mude "index.html" se sua página de login tiver outro nome
+          });
+        // --- Fim da lógica de autenticação ---
+
+        // Lógica original da página de pedidos
+        // Mostrar produtos imediatamente
+        renderizarProdutosPorCategoria();
+
+        // Carregar clientes e só então ativar eventos relacionados a clientes
+        await popularClientes().then(() => {
+          selectCliente.addEventListener("change", (e) =>
+            preencherFormularioCliente(e.target.value)
+          );
+          gerarPedidoBtn.addEventListener("click", gerarPedidoPDF);
+          const buscaInput = document.getElementById("busca-cliente");
+          buscaInput.addEventListener("input", (e) => {
+            popularClientes(e.target.value);
+            mostrarSugestoesClientes(e.target.value);
+          });
+          document.addEventListener("mousedown", (event) => {
+            const sugestoesDiv = document.getElementById("sugestoes-clientes");
+            const buscaInput = document.getElementById("busca-cliente");
+            if (!sugestoesDiv.contains(event.target) && event.target !== buscaInput) {
+              sugestoesDiv.style.display = "none";
+            }
+          });
+        });
+      });
+
+      // Função para mostrar sugestões de clientes
+      function mostrarSugestoesClientes(filtro) {
+        const sugestoesDiv = document.getElementById("sugestoes-clientes");
+        sugestoesDiv.innerHTML = "";
+        if (!filtro || filtro.length < 2) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        const filtroLower = filtro.toLowerCase();
+        const clientesFiltrados = clientesCadastrados.filter((cliente) => {
+          return (
+            (cliente.razao && String(cliente.razao).toLowerCase().includes(filtroLower)) ||
+            (cliente.cnpj && String(cliente.cnpj).toLowerCase().includes(filtroLower)) ||
+            (cliente.cidade && String(cliente.cidade).toLowerCase().includes(filtroLower)) ||
+            (cliente.email && String(cliente.email).toLowerCase().includes(filtroLower)) ||
+            (cliente.telefone && String(cliente.telefone).toLowerCase().includes(filtroLower))
+          );
+        });
+        if (clientesFiltrados.length === 0) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        sugestoesDiv.style.display = "block";
+        clientesFiltrados.slice(0, 5).forEach((cliente) => {
+          const item = document.createElement("div");
+          item.className = "sugestao-cliente-item";
+          item.innerHTML = `<strong>${cliente.razao}</strong><br><small>${cliente.cidade || ""} | CNPJ: ${cliente.cnpj || ""} | Tel: ${cliente.telefone || ""}</small>`;
+          item.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            selectCliente.value = cliente.id;
+            preencherFormularioCliente(cliente.id);
+            document.getElementById("busca-cliente").value = cliente.razao;
+            sugestoesDiv.style.display = "none";
+          });
+          sugestoesDiv.appendChild(item);
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Clientes</title>
+  <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary-color: #212529;
+      --primary-hover: #343a40;
+      --secondary-color: #6c757d;
+      --success-color: #28a745;
+      --danger-color: #dc3545;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+      --text-color: #495057;
+      --bg-color: #eef2f5;
+      --card-bg: #ffffff;
+      --border-color: #dee2e6;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --border-radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Poppins", sans-serif;
+      font-size: 14px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 100px 20px 20px 20px;
+    }
+    .header-top {
+      width: 100%; position: absolute; top: 0; left: 0;
+      display: flex; justify-content: flex-end; align-items: center;
+      padding: 15px 30px; background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); gap: 20px; z-index: 1000;
+    }
+    #user-info { font-family: "Roboto Slab", serif; font-size: 1rem; color: #333; font-weight: 700; text-transform: capitalize; }
+    #logout-button {
+      font-family: "Roboto Slab", serif; background-color: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: background-color 0.3s;
+    }
+    #logout-button:hover { background-color: #c82333; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    #logo-container { text-align: center; margin-bottom: 25px; }
+    #logo { max-width: 100%; height: auto; max-height: 120px; }
+    .card { background-color: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 25px; margin-bottom: 25px; border: 1px solid var(--border-color); }
+    .card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+    .card-header h2 { font-size: 1.5em; color: var(--dark-color); font-weight: 600; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: var(--border-radius); border: none; font-family: "Poppins", sans-serif; font-weight: 500; font-size: 0.95em; cursor: pointer; transition: all 0.3s ease; text-decoration: none; }
+    .btn-primary { background-color: var(--primary-color); color: white; }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+    .btn-success { background-color: var(--success-color); color: white; }
+    .btn-success:hover { background-color: var(--success-hover); }
+    .btn-danger { background-color: var(--danger-color); color: white; }
+    .btn-danger:hover { background-color: #c82333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    thead th { background-color: var(--light-color); font-weight: 600; color: var(--dark-color); white-space: nowrap; }
+    tbody tr:hover { background-color: #f5f5f5; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-weight: 500; margin-bottom: 8px; color: var(--dark-color); }
+    input[type="text"], input[type="email"] { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); font-family: "Poppins", sans-serif; font-size: 0.95em; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+    input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); }
+    .actions { display: flex; gap: 10px; margin-top: 10px; }
+    @media (max-width: 768px) {
+      body { padding: 90px 10px 10px 10px; }
+      .card { padding: 15px; }
+      .card-header h2 { font-size: 1.2em; }
+      th, td { padding: 8px 10px; font-size: 0.9em; }
+      .header-top { padding: 10px 15px; gap: 10px; }
+      #user-info { font-size: 0.9rem; }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <header class="header-top">
+    <div id="user-info"></div>
+    <button id="logout-button">Sair</button>
+    <a href="painel.html" class="btn" style="height: 35px; background-color: black; color: white">⬅️ Voltar ao Painel</a>
+  </header>
+  <main class="container">
+    <div id="logo-container">
+      <img id="logo" src="https://i.imgur.com/vjq26ym.png" alt="Logo G8 Pantaneiro" />
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Painel de Clientes</h2>
+        <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
+        <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Razão Social</th>
+              <th>CNPJ</th>
+              <th>Cidade/UF</th>
+              <th>Telefone</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody id="clientes-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script>
+    let clientes = [];
+    async function carregarClientes() {
+      try {
+        const resp = await fetch('clientes.json');
+        if (!resp.ok) throw new Error('Erro ao buscar clientes.json');
+        clientes = await resp.json();
+        renderTabela();
+      } catch (e) {
+        alert('Erro ao carregar os dados dos clientes. Verifique se o arquivo clientes.json está disponível.');
+      }
+    }
+    function renderTabela() {
+      const tbody = document.getElementById('clientes-tbody');
+      tbody.innerHTML = '';
+      clientes.forEach(cli => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${cli.razao}</td>
+          <td>${cli.cnpj}</td>
+          <td>${cli.cidade} / ${cli.estado}</td>
+          <td>${cli.telefone}</td>
+          <td>${cli.email}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    document.getElementById('logout-button').onclick = function () {
+      sessionStorage.removeItem('loggedInUser');
+      alert('Você saiu da sua conta.');
+      window.location.href = 'index.html';
+    };
+    document.addEventListener('DOMContentLoaded', () => {
+      const loggedInUser = sessionStorage.getItem('loggedInUser');
+      if (loggedInUser) {
+        document.getElementById('user-info').textContent = `Bem-vindo(a), ${loggedInUser}!`;
+      } else {
+        alert('Acesso negado. Por favor, realize o login.');
+        window.location.href = 'index.html';
+      }
+      carregarClientes();
+      document.getElementById('btn-exportar-pdf').onclick = exportarClientesPDF;
+      document.getElementById('btn-exportar-excel').onclick = exportarClientesExcel;
+    });
+
+    function exportarClientesPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 15;
+      // Logo e título
+      const logoImg = new Image();
+      logoImg.src = 'https://i.imgur.com/vjq26ym.png';
+      doc.addImage(logoImg, 'PNG', margin, 10, 35, 12);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Carteira de Clientes', pageWidth - margin, 18, { align: 'right' });
+      const hoje = new Date();
+      const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Data: ${dataAtual}`, pageWidth - margin, 24, { align: 'right' });
+      // Tabela
+      const head = [[
+        'Razão Social', 'CNPJ', 'Cidade/UF', 'Telefone', 'Email'
+      ]];
+      const body = clientes.map(cli => [
+        cli.razao,
+        cli.cnpj,
+        `${cli.cidade} / ${cli.estado}`,
+        cli.telefone,
+        cli.email
+      ]);
+      doc.autoTable({
+        head: head,
+        body: body,
+        startY: 30,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [44, 62, 80], textColor: [255,255,255], fontStyle: 'bold', halign: 'center' },
+        margin: { left: margin, right: margin },
+      });
+      doc.save(`Carteira_Clientes_${dataAtual.replace(/\//g, '-')}.pdf`);
+    }
+
+    function exportarClientesExcel() {
+      const ws_data = [
+        ['Razão Social', 'CNPJ', 'Cidade/UF', 'Telefone', 'Email'],
+        ...clientes.map(cli => [
+          cli.razao,
+          cli.cnpj,
+          `${cli.cidade} / ${cli.estado}`,
+          cli.telefone,
+          cli.email
+        ])
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
+      const hoje = new Date();
+      const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}-${(hoje.getMonth() + 1).toString().padStart(2, '0')}-${hoje.getFullYear()}`;
+      XLSX.writeFile(wb, `Carteira_Clientes_${dataAtual}.xlsx`);
+    }
+  </script>
+</body>
+</html> 

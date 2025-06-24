@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel do Usuário</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Slab:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #007bff;
+        --primary-hover: #0056b3;
+        --secondary-color: #6c757d;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+        --text-color: #495057;
+        --bg-color: #eef2f5;
+        --card-bg: #ffffff;
+        --border-color: #dee2e6;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --border-radius: 8px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        font-size: 15px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        padding: 100px 20px 40px 20px;
+        min-height: 100vh;
+      }
+      .header-top {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 15px 30px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        gap: 20px;
+        z-index: 1000;
+      }
+      #user-info {
+        font-family: "Roboto Slab", serif;
+        font-size: 1rem;
+        color: #333;
+        font-weight: 700;
+        text-transform: capitalize;
+      }
+      #logout-button {
+        font-family: "Roboto Slab", serif;
+        background-color: #d9534f;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: bold;
+        transition: background-color 0.3s;
+      }
+      #logout-button:hover {
+        background-color: #c9302c;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      #logo-container {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+      #logo {
+        max-width: 100%;
+        height: auto;
+        max-height: 120px;
+      }
+      .card {
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        padding: 30px 25px;
+        margin-bottom: 30px;
+        border: 1px solid var(--border-color);
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .card-header h2 {
+        font-family: "Roboto Slab", serif;
+        font-size: 1.3em;
+        color: var(--dark-color);
+        font-weight: 600;
+      }
+      .instruction-text {
+        font-family: "Roboto Slab", serif;
+        font-size: 1.2em;
+        color: #000000;
+        margin-bottom: 30px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        justify-content: center;
+      }
+      .instruction-text.pulse {
+        animation: pulse 2s infinite alternate;
+      }
+      @keyframes pulse {
+        from { transform: scale(1); }
+        to { transform: scale(1.05); }
+      }
+      .options-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+      }
+      .option-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        padding: 30px 20px;
+        text-align: center;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .option-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+      .option-card a {
+        text-decoration: none;
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .option-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+      }
+      .option-title {
+        font-family: "Roboto Slab", serif;
+        font-size: 1.3em;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .option-description {
+        color: var(--secondary-color);
+      }
+      .management-section {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 60px;
+        border-top: 2px solid #ddd;
+        padding-top: 40px;
+      }
+      .management-section .options-container {
+        margin-top: 0;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: var(--border-radius);
+        border: none;
+        font-family: "Poppins", sans-serif;
+        font-weight: 500;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+      }
+      .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+      }
+      .btn-primary:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+      }
+      footer {
+        width: 100%;
+        text-align: center;
+        padding: 18px 0 10px 0;
+        background-color: #333;
+        color: white;
+        font-size: 0.9em;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+      }
+      @media (max-width: 768px) {
+        body {
+          padding: 90px 5px 10px 5px;
+        }
+        .container {
+          padding: 0;
+        }
+        .card {
+          padding: 15px 8px;
+        }
+        .option-card {
+          width: 95vw;
+          min-width: 0;
+          padding: 18px 5px;
+        }
+        .header-top {
+          padding: 10px 10px;
+          gap: 10px;
+        }
+        #user-info {
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header-top">
+      <div id="user-info"></div>
+      <button id="logout-button">Sair</button>
+    </header>
+    <main class="container">
+      <div id="logo-container">
+        <img
+          id="logo"
+          src="https://i.imgur.com/vjq26ym.png"
+          alt="Logo G8"
+        />
+      </div>
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Opções" style="font-size: 1.5em">🗒️</span>
+          <h2>Escolha qual tabela usar</h2>
+        </div>
+        <div class="options-container">
+          <div class="option-card">
+            <a href="pantaneiro5.html">
+              <span class="option-icon">⛈️</span>
+              <div class="option-title">Pantaneiro 5</div>
+              <div class="option-description">
+                Acesse a tabela Pantaneiro com comissão de 5%.
+              </div>
+            </a>
+          </div>
+          <div class="option-card">
+            <a href="pantaneiro7.html">
+              <span class="option-icon">⛈️</span>
+              <div class="option-title">Pantaneiro 7</div>
+              <div class="option-description">
+                Acesse a tabela Pantaneiro com comissão de 7%.
+              </div>
+            </a>
+          </div>
+          <div class="option-card">
+            <a href="steitz.html">
+              <span class="option-icon">🥾</span>
+              <div class="option-title">Steitz</div>
+              <div class="option-description">
+                Acesse a tabela da representada Steitz.
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+      <section class="card management-section">
+        <div class="card-header">
+          <span role="img" aria-label="Opções" style="font-size: 1.5em">📝</span>
+          <h2>Informações</h2>
+        </div>
+        <div class="options-container">
+          <div class="option-card">
+            <a href="painel-clientes.html">
+              <span class="option-icon">👥</span>
+              <div class="option-title">Clientes</div>
+              <div class="option-description">
+                Visualize e filtre sua base de clientes.
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer>
+      &copy; 2024 G8 Representações. Todos os direitos reservados.
+    </footer>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // 1. Pega o nome do usuário que foi salvo no sessionStorage
+        const loggedInUser = sessionStorage.getItem("loggedInUser");
+        // 2. Verifica se existe um usuário logado
+        if (loggedInUser) {
+          // Se sim, mostra a mensagem de boas-vindas
+          document.getElementById(
+            "user-info"
+          ).textContent = `Bem-vindo(a), ${loggedInUser}!`;
+        } else {
+          // Se não, impede o acesso e volta para a página de login
+          alert("Acesso negado. Por favor, realize o login.");
+          window.location.href = "index.html";
+        }
+        // 3. Adiciona a função de sair ao botão
+        document
+          .getElementById("logout-button")
+          .addEventListener("click", function () {
+            // Limpa o usuário da memória da sessão
+            sessionStorage.removeItem("loggedInUser");
+            // Redireciona para a página de login
+            window.location.href = "index.html";
+          });
+      });
+    </script>
+  </body>
+</html>
