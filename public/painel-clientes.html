@@ -73,6 +73,48 @@
       .header-top { padding: 10px 15px; gap: 10px; }
       #user-info { font-size: 0.9rem; }
     }
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: 400px;
+      background: #fff;
+      border-radius: 24px;
+      border: 1.5px solid var(--border-color);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+      padding: 4px 16px 4px 14px;
+      margin: 0 auto 24px auto;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .search-box:focus-within {
+      border-color: var(--primary-color);
+      box-shadow: 0 6px 20px rgba(0,123,255,0.10);
+    }
+    .search-icon {
+      font-size: 1.35em;
+      color: var(--primary-color);
+      margin-right: 10px;
+      opacity: 0.85;
+      transition: color 0.2s;
+    }
+    #busca-cliente {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 1.13em;
+      font-family: "Poppins", sans-serif;
+      width: 100%;
+      padding: 10px 0 10px 0;
+      color: var(--text-color);
+      letter-spacing: 0.01em;
+    }
+    #busca-cliente::placeholder {
+      color: #b0b0b0;
+      opacity: 1;
+      font-size: 1em;
+      letter-spacing: 0.01em;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
@@ -94,6 +136,12 @@
         <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
         <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
       </div>
+      <div style="display: flex; justify-content: center;">
+        <div class="search-box">
+          <span class="search-icon">&#128269;</span>
+          <input type="text" id="busca-cliente" placeholder="Buscar cliente..." autocomplete="off" />
+        </div>
+      </div>
       <div class="table-responsive">
         <table>
           <thead>
@@ -112,11 +160,13 @@
   </main>
   <script>
     let clientes = [];
+    let clientesFiltrados = [];
     async function carregarClientes() {
       try {
         const resp = await fetch('clientes.json');
         if (!resp.ok) throw new Error('Erro ao buscar clientes.json');
         clientes = await resp.json();
+        clientesFiltrados = clientes;
         renderTabela();
       } catch (e) {
         alert('Erro ao carregar os dados dos clientes. Verifique se o arquivo clientes.json está disponível.');
@@ -125,7 +175,7 @@
     function renderTabela() {
       const tbody = document.getElementById('clientes-tbody');
       tbody.innerHTML = '';
-      clientes.forEach(cli => {
+      (clientesFiltrados || []).forEach(cli => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${cli.razao}</td>
@@ -136,6 +186,22 @@
         `;
         tbody.appendChild(tr);
       });
+    }
+    function filtrarClientes(texto) {
+      const termo = texto.trim().toLowerCase();
+      if (!termo) {
+        clientesFiltrados = clientes;
+      } else {
+        clientesFiltrados = clientes.filter(cli =>
+          (cli.razao && cli.razao.toLowerCase().includes(termo)) ||
+          (cli.cnpj && cli.cnpj.toLowerCase().includes(termo)) ||
+          (cli.cidade && cli.cidade.toLowerCase().includes(termo)) ||
+          (cli.estado && cli.estado.toLowerCase().includes(termo)) ||
+          (cli.telefone && cli.telefone.toLowerCase().includes(termo)) ||
+          (cli.email && cli.email.toLowerCase().includes(termo))
+        );
+      }
+      renderTabela();
     }
     document.getElementById('logout-button').onclick = function () {
       sessionStorage.removeItem('loggedInUser');
@@ -153,6 +219,10 @@
       carregarClientes();
       document.getElementById('btn-exportar-pdf').onclick = exportarClientesPDF;
       document.getElementById('btn-exportar-excel').onclick = exportarClientesExcel;
+      // Busca em tempo real
+      document.getElementById('busca-cliente').addEventListener('input', function() {
+        filtrarClientes(this.value);
+      });
     });
 
     function exportarClientesPDF() {
