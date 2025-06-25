@@ -16,26 +16,6 @@ Sistema de pedidos para a G8, com integração de dados de clientes centralizado
 1. As páginas de pedidos carregam automaticamente os dados dos clientes do arquivo `clientes.html`
 2. Mantém todas as listas de produtos individuais de cada página
 3. Preserva todo o padrão de código e formatação CSS existente
-
-### 📁 Estrutura dos Arquivos
-```
-g8pedidos-main/
-├── clientes.html          # Dados centralizados dos clientes
-├── pantaneiro5.html       # Página de pedidos Pantaneiro 5
-├── pantaneiro7.html       # Página de pedidos Pantaneiro 7
-├── steitz.html           # Página de pedidos Steitz
-├── index.html            # Página de login
-├── painel.html           # Painel principal
-├── vercel.json           # Configuração do Vercel
-└── README.md             # Este arquivo
-```
-
-### 🚀 Deploy no Vercel
-O projeto está configurado para deploy no Vercel com:
-- Configuração de rotas estáticas
-- Headers de segurança
-- Suporte a arquivos HTML
-
 ### 🔧 Tecnologias Utilizadas
 - HTML5
 - CSS3 (com variáveis CSS personalizadas)
@@ -70,9 +50,3 @@ O projeto está configurado para deploy no Vercel com:
 3. Selecione um cliente da lista (carregada automaticamente)
 4. Adicione produtos ao pedido
 5. Gere o PDF do pedido
-
-## Deploy
-Para fazer deploy no Vercel:
-1. Conecte seu repositório ao Vercel
-2. O arquivo `vercel.json` já está configurado
-3. Deploy automático a cada push 
