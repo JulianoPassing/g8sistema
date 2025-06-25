@@ -55,7 +55,6 @@
       input[type="text"],
       input[type="password"] {
         width: 100%;
-        /* Padding ajustado para dar espaço para o ícone da direita também */
         padding: 15px 45px;
         border: 1px solid #ddd;
         border-radius: 8px;
@@ -75,7 +74,6 @@
         color: #999;
         font-size: 1.1rem;
       }
-      /* --- NOVO ESTILO PARA O ÍCONE DE EXIBIR SENHA --- */
       .toggle-password-icon {
         position: absolute;
         right: 15px;
@@ -148,32 +146,10 @@
       </form>
     </div>
 
+    <script src="config.js"></script>
+
     <script>
-      // Função para gerar hash SHA-256
-      async function sha256(text) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(text);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      }
-
-      let validUserHashes = {};
-
-      // Carrega os hashes do arquivo externo ao iniciar
-      async function loadUserHashes() {
-        try {
-          const response = await fetch('users.json');
-          validUserHashes = await response.json();
-        } catch (e) {
-          validUserHashes = {};
-        }
-      }
-
-      // Carrega hashes ao iniciar
-      loadUserHashes();
-
-      document.addEventListener("DOMContentLoaded", async () => {
+      document.addEventListener("DOMContentLoaded", () => {
         const usernameField = document.getElementById("username");
         const passwordField = document.getElementById("password");
         const rememberMeCheckbox = document.getElementById("remember-me");
@@ -188,16 +164,19 @@
           this.classList.toggle("fa-eye-slash");
         });
 
-        const savedUsernameHash = localStorage.getItem("savedUsernameHash");
-        const savedPasswordHash = localStorage.getItem("savedPasswordHash");
-        if (savedUsernameHash && savedPasswordHash) {
+        const savedUsername = localStorage.getItem("savedUsername");
+        const savedPassword = localStorage.getItem("savedPassword");
+
+        if (savedUsername && savedPassword) {
+          usernameField.value = savedUsername;
+          passwordField.value = savedPassword;
           rememberMeCheckbox.checked = true;
         }
       });
 
       document
         .getElementById("login-form")
-        .addEventListener("submit", async function (event) {
+        .addEventListener("submit", function (event) {
           event.preventDefault();
 
           const usernameInput = document.getElementById("username").value;
@@ -205,28 +184,19 @@
           const rememberMe = document.getElementById("remember-me").checked;
           const errorMessageElement = document.getElementById("error-message");
 
-          // Aguarda os hashes serem carregados
-          if (Object.keys(validUserHashes).length === 0) {
-            errorMessageElement.textContent = "Erro ao carregar dados de login.";
-            return;
-          }
-
-          // Gera hash do usuário e senha digitados
-          const usernameHash = await sha256(usernameInput);
-          const passwordHash = await sha256(passwordInput);
-
+          // Agora, 'validUsers' vem do arquivo config.js
           if (
-            validUserHashes[usernameHash] &&
-            validUserHashes[usernameHash] === passwordHash
+            validUsers[usernameInput] &&
+            validUsers[usernameInput] === passwordInput
           ) {
             if (rememberMe) {
-              localStorage.setItem("savedUsernameHash", usernameHash);
-              localStorage.setItem("savedPasswordHash", passwordHash);
+              localStorage.setItem("savedUsername", usernameInput);
+              localStorage.setItem("savedPassword", passwordInput);
             } else {
-              localStorage.removeItem("savedUsernameHash");
-              localStorage.removeItem("savedPasswordHash");
+              localStorage.removeItem("savedUsername");
+              localStorage.removeItem("savedPassword");
             }
-            sessionStorage.setItem("loggedInUser", usernameHash);
+            sessionStorage.setItem("loggedInUser", usernameInput);
             window.location.href = "painel.html";
           } else {
             errorMessageElement.textContent = "Usuário ou senha inválidos.";
