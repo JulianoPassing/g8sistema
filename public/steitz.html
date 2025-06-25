@@ -449,6 +449,11 @@
       .form-group {
         position: relative;
       }
+
+      /* Oculta o label e o select de cliente, mantendo funcionalidade */
+      label[for="cliente-selecionado"], #cliente-selecionado {
+        display: none !important;
+      }
     </style>
   </head>
 
@@ -785,7 +790,7 @@
       function renderizarProdutos() {
         const tabelaSelecionada = tabelaPrecosSelect.value;
         const table = document.createElement("table");
-        table.innerHTML = `<thead><tr><th>REF.</th><th>MODELO</th><th>PREÇO UNIT.</th><th>TAMANHOS</th><th>COR</th><th>AÇÃO</th></tr></thead>`;
+        table.innerHTML = `<thead><tr><th>REF.</th><th>MODELO</th><th>PREÇO UNIT.</th><th>Desc. Extra</th><th>TAMANHOS</th><th>COR</th><th>AÇÃO</th></tr></thead>`;
         const tbody = document.createElement("tbody");
         produtosData.forEach((produto) => {
           const preco = produto.PRECOS[tabelaSelecionada];
@@ -803,9 +808,9 @@
           }
           row.innerHTML = `<td>${produto.REF}</td><td>${
             produto.MODELO
-          }</td><td>R$ ${preco.toFixed(
-            2
-          )}</td><td style="width: 40%;">${tamanhosHtml}</td><td style="width: 15%;"><input type="text" class="manual-input" id="cor-${
+          }</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${
+            produto.REF
+          }" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td style="width: 15%;"><input type="text" class="manual-input" id="cor-${
             produto.REF
           }" placeholder="Opcional"></td><td><button data-ref="${
             produto.REF
@@ -822,7 +827,8 @@
         if (!produto) return;
         const cor = document.getElementById(`cor-${ref}`).value.trim();
         const tabelaSelecionada = tabelaPrecosSelect.value;
-        const precoUnitario = produto.PRECOS[tabelaSelecionada];
+        const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
+        const descontoExtra = parseFloat(document.getElementById(`desconto-${ref}`).value) || 0;
         let itensAdicionados = 0;
         const tamanhosRange = parseTamanhoRange(produto.TAM);
         if (tamanhosRange) {
@@ -832,12 +838,14 @@
             );
             const quantidade = parseInt(input.value, 10);
             if (quantidade > 0) {
+              const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
               const itemExistente = pedidoItens.find(
                 (item) =>
                   item.REF === ref &&
                   item.tamanho === tamanho &&
-                  item.preco === precoUnitario &&
-                  item.cor.toLowerCase() === cor.toLowerCase()
+                  item.preco === precoFinal &&
+                  item.cor.toLowerCase() === cor.toLowerCase() &&
+                  item.descontoExtra === descontoExtra
               );
               if (itemExistente) {
                 itemExistente.quantidade += quantidade;
@@ -848,7 +856,8 @@
                   tamanho: tamanho,
                   quantidade: quantidade,
                   cor: cor || "-",
-                  preco: precoUnitario,
+                  preco: precoFinal,
+                  descontoExtra: descontoExtra,
                 });
               }
               input.value = "";
@@ -860,12 +869,14 @@
           const grade = parseTamanhosInput(manualInput.value);
           if (grade && grade.length > 0) {
             grade.forEach((itemGrade) => {
+              const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
               const itemExistente = pedidoItens.find(
                 (item) =>
                   item.REF === ref &&
                   item.tamanho === itemGrade.tamanho &&
-                  item.preco === precoUnitario &&
-                  item.cor.toLowerCase() === cor.toLowerCase()
+                  item.preco === precoFinal &&
+                  item.cor.toLowerCase() === cor.toLowerCase() &&
+                  item.descontoExtra === descontoExtra
               );
               if (itemExistente) {
                 itemExistente.quantidade += itemGrade.quantidade;
@@ -876,7 +887,8 @@
                   tamanho: itemGrade.tamanho,
                   quantidade: itemGrade.quantidade,
                   cor: cor || "-",
-                  preco: precoUnitario,
+                  preco: precoFinal,
+                  descontoExtra: descontoExtra,
                 });
               }
               itensAdicionados++;
@@ -886,6 +898,7 @@
         }
         if (itensAdicionados > 0) {
           document.getElementById(`cor-${ref}`).value = "";
+          document.getElementById(`desconto-${ref}`).value = 0;
           atualizarVisualizacaoPedido();
         } else {
           alert("Nenhuma quantidade foi preenchida para este produto.");
@@ -932,7 +945,9 @@
               item.tamanho
             }</strong> | Cor: <strong>${item.cor}</strong> | Qtd: <strong>${
               item.quantidade
-            }</strong> | Total: <strong>R$ ${precoTotalItem.toFixed(
+            }</strong> | Unit: R$ ${item.preco.toFixed(2)}${
+              item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
+            } | Total: <strong>R$ ${precoTotalItem.toFixed(
               2
             )}</strong></small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
             pedidoContainer.appendChild(itemDiv);
@@ -971,7 +986,7 @@
         const drawHeaderAndFooter = (data) => {
           const logoImg = new Image();
           logoImg.src = "https://i.imgur.com/vjq26ym.png";
-          doc.addImage(logoImg, "PNG", margin, 10, 35, 12);
+          doc.addImage(logoImg, "PNG", margin, 10, 90, 15);
           doc.setFontSize(16);
           doc.setFont("helvetica", "bold");
           doc.text("Pedido de Venda - Steitz", pageWidth - margin, 18, {
@@ -1087,6 +1102,7 @@
 
         let startY = doc.autoTable.previous.finalY + 7;
 
+        const descontoGeral = (typeof descontoPrazoPercentual !== 'undefined' && typeof descontoVolumePercentual !== 'undefined') ? (1 - descontoPrazoPercentual / 100) * (1 - descontoVolumePercentual / 100) : 1;
         const head = [
           [
             "Ref.",
@@ -1095,18 +1111,23 @@
             "Tamanho",
             "Qtd.",
             "Vlr. Unit.",
+            "Desc.%",
             "Subtotal",
           ],
         ];
-        const body = pedidoItens.map((item) => [
-          item.REF,
-          item.MODELO,
-          item.cor,
-          item.tamanho,
-          item.quantidade,
-          `R$ ${item.preco.toFixed(2)}`,
-          `R$ ${(item.preco * item.quantidade).toFixed(2)}`,
-        ]);
+        const body = pedidoItens.map((item) => {
+          const precoUnitarioComDesconto = item.preco * descontoGeral;
+          return [
+            item.REF,
+            item.MODELO,
+            item.cor,
+            item.tamanho,
+            item.quantidade,
+            `R$ ${precoUnitarioComDesconto.toFixed(2)}`,
+            `${item.descontoExtra || 0}%`,
+            `R$ ${(precoUnitarioComDesconto * item.quantidade).toFixed(2)}`,
+          ];
+        });
 
         doc.autoTable({
           head: head,
@@ -1180,7 +1201,7 @@
         const totalFinalComDesconto = subtotalGeral - valorDesconto;
 
         const summaryData = [];
-        summaryData.push(["Subtotal:", `R$ ${subtotalGeral.toFixed(2)}`]);
+        summaryData.push(["Subtotal sem Desconto:", `R$ ${subtotalGeral.toFixed(2)}`]);
         if (descontoExtraTotalPercentual > 0) {
           summaryData.push([
             `Desconto Extra (${descontoExtraTotalPercentual}%):`,
