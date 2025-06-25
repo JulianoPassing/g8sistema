@@ -149,39 +149,55 @@
     </div>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
+      // Função para gerar hash SHA-256
+      async function sha256(text) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(text);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      let validUserHashes = {};
+
+      // Carrega os hashes do arquivo externo ao iniciar
+      async function loadUserHashes() {
+        try {
+          const response = await fetch('users.json');
+          validUserHashes = await response.json();
+        } catch (e) {
+          validUserHashes = {};
+        }
+      }
+
+      // Carrega hashes ao iniciar
+      loadUserHashes();
+
+      document.addEventListener("DOMContentLoaded", async () => {
         const usernameField = document.getElementById("username");
         const passwordField = document.getElementById("password");
         const rememberMeCheckbox = document.getElementById("remember-me");
-        // --- NOVO: Seletor para o ícone de exibir senha ---
         const togglePassword = document.getElementById("toggle-password");
 
-        // --- NOVO: Lógica para exibir/ocultar senha ---
         togglePassword.addEventListener("click", function () {
-          // Alterna o tipo do input
           const type =
             passwordField.getAttribute("type") === "password"
               ? "text"
               : "password";
           passwordField.setAttribute("type", type);
-
-          // Alterna a classe do ícone (olho aberto/fechado)
           this.classList.toggle("fa-eye-slash");
         });
 
-        const savedUsername = localStorage.getItem("savedUsername");
-        const savedPassword = localStorage.getItem("savedPassword");
-
-        if (savedUsername && savedPassword) {
-          usernameField.value = savedUsername;
-          passwordField.value = savedPassword;
+        const savedUsernameHash = localStorage.getItem("savedUsernameHash");
+        const savedPasswordHash = localStorage.getItem("savedPasswordHash");
+        if (savedUsernameHash && savedPasswordHash) {
           rememberMeCheckbox.checked = true;
         }
       });
 
       document
         .getElementById("login-form")
-        .addEventListener("submit", function (event) {
+        .addEventListener("submit", async function (event) {
           event.preventDefault();
 
           const usernameInput = document.getElementById("username").value;
@@ -189,30 +205,28 @@
           const rememberMe = document.getElementById("remember-me").checked;
           const errorMessageElement = document.getElementById("error-message");
 
-          const validUsers = {
-            g8: "repres",
-            juliano: "123456",
-            gustavo: "123456",
-            lidiane: "123456",
-            escritorio: "123456",
-          };
+          // Aguarda os hashes serem carregados
+          if (Object.keys(validUserHashes).length === 0) {
+            errorMessageElement.textContent = "Erro ao carregar dados de login.";
+            return;
+          }
+
+          // Gera hash do usuário e senha digitados
+          const usernameHash = await sha256(usernameInput);
+          const passwordHash = await sha256(passwordInput);
 
           if (
-            validUsers[usernameInput] &&
-            validUsers[usernameInput] === passwordInput
+            validUserHashes[usernameHash] &&
+            validUserHashes[usernameHash] === passwordHash
           ) {
             if (rememberMe) {
-              localStorage.setItem("savedUsername", usernameInput);
-              localStorage.setItem("savedPassword", passwordInput);
+              localStorage.setItem("savedUsernameHash", usernameHash);
+              localStorage.setItem("savedPasswordHash", passwordHash);
             } else {
-              localStorage.removeItem("savedUsername");
-              localStorage.removeItem("savedPassword");
+              localStorage.removeItem("savedUsernameHash");
+              localStorage.removeItem("savedPasswordHash");
             }
-
-            // <<< ALTERAÇÃO ESSENCIAL E INVISÍVEL >>>
-            // Guarda o usuário que acabou de logar na memória da sessão
-            sessionStorage.setItem("loggedInUser", usernameInput);
-
+            sessionStorage.setItem("loggedInUser", usernameHash);
             window.location.href = "painel.html";
           } else {
             errorMessageElement.textContent = "Usuário ou senha inválidos.";
