@@ -299,7 +299,7 @@
     function renderTabela() {
       const tbody = document.getElementById('clientes-tbody');
       tbody.innerHTML = '';
-      (clientesFiltrados || []).slice(0, 10).forEach(cli => {
+      (clientesFiltrados || []).forEach(cli => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${cli.id ?? ''}</td>
