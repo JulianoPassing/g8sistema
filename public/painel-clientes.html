@@ -197,19 +197,86 @@
         </table>
       </div>
     </div>
+    <div class="card" id="form-card">
+      <div class="card-header">
+        <h2 id="form-title">Cadastrar Novo Cliente</h2>
+      </div>
+      <form id="cliente-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="razao">Razão Social</label>
+            <input type="text" id="razao" name="razao" required />
+          </div>
+          <div class="form-group">
+            <label for="cnpj">CNPJ</label>
+            <input type="text" id="cnpj" name="cnpj" required />
+          </div>
+          <div class="form-group">
+            <label for="ie">IE</label>
+            <input type="text" id="ie" name="ie" />
+          </div>
+          <div class="form-group">
+            <label for="endereco">Endereço</label>
+            <input type="text" id="endereco" name="endereco" />
+          </div>
+          <div class="form-group">
+            <label for="bairro">Bairro</label>
+            <input type="text" id="bairro" name="bairro" />
+          </div>
+          <div class="form-group">
+            <label for="cidade">Cidade</label>
+            <input type="text" id="cidade" name="cidade" required />
+          </div>
+          <div class="form-group">
+            <label for="estado">Estado</label>
+            <input type="text" id="estado" name="estado" required />
+          </div>
+          <div class="form-group">
+            <label for="cep">CEP</label>
+            <input type="text" id="cep" name="cep" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label for="telefone">Telefone</label>
+            <input type="text" id="telefone" name="telefone" required />
+          </div>
+          <div class="form-group">
+            <label for="transporte">Transporte</label>
+            <input type="text" id="transporte" name="transporte" />
+          </div>
+          <div class="form-group">
+            <label for="prazo">Prazo</label>
+            <input type="text" id="prazo" name="prazo" />
+          </div>
+          <div class="form-group" style="grid-column: 1/3;">
+            <label for="obs">Observações</label>
+            <input type="text" id="obs" name="obs" />
+          </div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn btn-success" id="btn-salvar">Salvar</button>
+          <button type="button" class="btn btn-danger" id="btn-cancelar" style="display:none;">Cancelar</button>
+        </div>
+        <input type="hidden" id="cliente-id" />
+      </form>
+    </div>
   </main>
   <script>
+    const API_URL = 'https://sistemajuliano.vercel.app/api/clientes';
     let clientes = [];
     let clientesFiltrados = [];
     async function carregarClientes() {
       try {
-        const resp = await fetch('clientes.json');
-        if (!resp.ok) throw new Error('Erro ao buscar clientes.json');
+        const resp = await fetch(API_URL);
+        if (!resp.ok) throw new Error('Erro ao buscar clientes na API');
         clientes = await resp.json();
         clientesFiltrados = clientes;
         renderTabela();
       } catch (e) {
-        alert('Erro ao carregar os dados dos clientes. Verifique se o arquivo clientes.json está disponível.');
+        alert('Erro ao carregar os dados dos clientes. Verifique se a API está disponível.');
       }
     }
     function renderTabela() {
@@ -222,7 +289,10 @@
           <td>${cli.razao ?? ''}</td>
           <td>${cli.cnpj ?? ''}</td>
           <td>${cli.cidade ?? ''} / ${cli.estado ?? ''}</td>
-          <td><button class="btn btn-primary btn-ver-mais" data-id="${cli.id}">Ver Mais</button></td>
+          <td>
+            <button class="btn btn-primary btn-ver-mais" data-id="${cli.id}">Ver Mais</button>
+            <button class="btn btn-success btn-editar" data-id="${cli.id}">Editar</button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -231,6 +301,13 @@
           const id = this.getAttribute('data-id');
           const cliente = clientes.find(c => String(c.id) === String(id));
           if (cliente) mostrarModalCliente(cliente);
+        };
+      });
+      document.querySelectorAll('.btn-editar').forEach(btn => {
+        btn.onclick = function() {
+          const id = this.getAttribute('data-id');
+          const cliente = clientes.find(c => String(c.id) === String(id));
+          if (cliente) preencherFormularioEdicao(cliente);
         };
       });
     }
@@ -410,6 +487,79 @@
       document.getElementById('modal-cliente-conteudo').innerHTML = conteudo;
       document.getElementById('modal-cliente').style.display = 'block';
     }
+
+    function preencherFormularioEdicao(cli) {
+      document.getElementById('form-title').textContent = 'Editar Cliente';
+      document.getElementById('razao').value = cli.razao || '';
+      document.getElementById('cnpj').value = cli.cnpj || '';
+      document.getElementById('ie').value = cli.ie || '';
+      document.getElementById('endereco').value = cli.endereco || '';
+      document.getElementById('bairro').value = cli.bairro || '';
+      document.getElementById('cidade').value = cli.cidade || '';
+      document.getElementById('estado').value = cli.estado || '';
+      document.getElementById('cep').value = cli.cep || '';
+      document.getElementById('email').value = cli.email || '';
+      document.getElementById('telefone').value = cli.telefone || '';
+      document.getElementById('transporte').value = cli.transporte || '';
+      document.getElementById('prazo').value = cli.prazo || '';
+      document.getElementById('obs').value = cli.obs || '';
+      document.getElementById('cliente-id').value = cli.id;
+      document.getElementById('btn-cancelar').style.display = '';
+    }
+
+    document.getElementById('btn-cancelar').onclick = function() {
+      limparFormulario();
+    };
+
+    function limparFormulario() {
+      document.getElementById('form-title').textContent = 'Cadastrar Novo Cliente';
+      document.getElementById('cliente-form').reset();
+      document.getElementById('cliente-id').value = '';
+      document.getElementById('btn-cancelar').style.display = 'none';
+    }
+
+    document.getElementById('cliente-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const cliente = {
+        razao: document.getElementById('razao').value,
+        cnpj: document.getElementById('cnpj').value,
+        ie: document.getElementById('ie').value,
+        endereco: document.getElementById('endereco').value,
+        bairro: document.getElementById('bairro').value,
+        cidade: document.getElementById('cidade').value,
+        estado: document.getElementById('estado').value,
+        cep: document.getElementById('cep').value,
+        email: document.getElementById('email').value,
+        telefone: document.getElementById('telefone').value,
+        transporte: document.getElementById('transporte').value,
+        prazo: document.getElementById('prazo').value,
+        obs: document.getElementById('obs').value
+      };
+      const id = document.getElementById('cliente-id').value;
+      try {
+        if (id) {
+          // Editar
+          await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cliente)
+          });
+          alert('Cliente atualizado com sucesso!');
+        } else {
+          // Adicionar
+          await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cliente)
+          });
+          alert('Cliente cadastrado com sucesso!');
+        }
+        limparFormulario();
+        await carregarClientes();
+      } catch (err) {
+        alert('Erro ao salvar cliente.');
+      }
+    };
   </script>
 </body>
 </html> 
