@@ -46,7 +46,21 @@
     #logo-container { text-align: center; margin-bottom: 25px; }
     #logo { max-width: 100%; height: auto; max-height: 120px; }
     .card { background-color: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 25px; margin-bottom: 25px; border: 1px solid var(--border-color); }
-    .card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .card-header .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+    }
     .card-header h2 { font-size: 1.5em; color: var(--dark-color); font-weight: 600; }
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: var(--border-radius); border: none; font-family: "Poppins", sans-serif; font-weight: 500; font-size: 0.95em; cursor: pointer; transition: all 0.3s ease; text-decoration: none; }
     .btn-primary { background-color: var(--primary-color); color: white; }
@@ -170,34 +184,6 @@
     <div id="logo-container">
       <img id="logo" src="https://i.imgur.com/vjq26ym.png" alt="Logo G8 Pantaneiro" />
     </div>
-    <div class="card">
-      <div class="card-header">
-        <h2>Painel de Clientes</h2>
-        <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
-        <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
-      </div>
-      <div style="display: flex; justify-content: center; position: relative;">
-        <div class="search-box" style="width:100%;">
-          <span class="search-icon">&#128269;</span>
-          <input type="text" id="busca-cliente" placeholder="Buscar cliente..." autocomplete="off" />
-        </div>
-        <ul id="sugestoes-clientes" class="sugestoes-clientes"></ul>
-      </div>
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Razão Social</th>
-              <th>CNPJ</th>
-              <th>Cidade/UF</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="clientes-tbody"></tbody>
-        </table>
-      </div>
-    </div>
     <div class="card" id="form-card">
       <div class="card-header">
         <h2 id="form-title">Cadastrar Novo Cliente</h2>
@@ -264,6 +250,36 @@
         <input type="hidden" id="cliente-id" />
       </form>
     </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Painel de Clientes</h2>
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
+          <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: center; position: relative;">
+        <div class="search-box" style="width:100%;">
+          <span class="search-icon">&#128269;</span>
+          <input type="text" id="busca-cliente" placeholder="Buscar cliente..." autocomplete="off" />
+        </div>
+        <ul id="sugestoes-clientes" class="sugestoes-clientes"></ul>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Razão Social</th>
+              <th>CNPJ</th>
+              <th>Cidade/UF</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="clientes-tbody"></tbody>
+        </table>
+      </div>
+    </div>
   </main>
   <script>
     const API_URL = '/api/clientes';
@@ -310,27 +326,6 @@
           const id = this.getAttribute('data-id');
           const cliente = clientes.find(c => String(c.id) === String(id));
           if (cliente) preencherFormularioEdicao(cliente);
-        };
-      });
-      document.querySelectorAll('.btn-remover').forEach(btn => {
-        btn.onclick = async function() {
-          const id = this.getAttribute('data-id');
-          const cliente = clientes.find(c => String(c.id) === String(id));
-          if (!cliente) return;
-          const senha = prompt('Digite a senha para confirmar a exclusão:');
-          if (senha !== 'excluir@95') {
-            alert('Senha incorreta. Exclusão cancelada.');
-            return;
-          }
-          if (confirm(`Tem certeza que deseja remover o cliente "${cliente.razao}"?`)) {
-            try {
-              await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-              alert('Cliente removido com sucesso!');
-              await carregarClientes();
-            } catch (err) {
-              alert('Erro ao remover cliente.');
-            }
-          }
         };
       });
     }
