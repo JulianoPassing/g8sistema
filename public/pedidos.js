@@ -488,8 +488,20 @@ function preencherProduto(input, produto, empresa) {
 // Função utilitária para exibir data/hora no horário de Brasília
 function formatarDataBrasilia(data) {
   if (!data) return '';
-  // Garante que a string seja tratada como UTC
-  return new Date(data + ' UTC').toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  // Se já for objeto Date
+  if (data instanceof Date) {
+    return data.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  }
+  // Se for string no formato 'YYYY-MM-DD HH:mm:ss'
+  // Substitui espaço por 'T' para formato ISO e adiciona 'Z' para UTC
+  let dataISO = data.replace(' ', 'T') + 'Z';
+  let d = new Date(dataISO);
+  if (isNaN(d.getTime())) {
+    // fallback: tenta só new Date(data)
+    d = new Date(data);
+    if (isNaN(d.getTime())) return '';
+  }
+  return d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 }
 
 // Exemplo de uso (caso queira reativar a coluna de data):
