@@ -80,6 +80,54 @@ window.editarPedido = function(id) {
     });
 };
 
+// Dados de produtos das diferentes páginas
+const produtosPantaneiro5 = [
+  { REFERENCIA: "201", DESCRIÇÃO: "JARDINEIRA PVC COM BOTA", PRECO: 140.63 },
+  { REFERENCIA: "203", DESCRIÇÃO: "PERNEIRA PVC VIRILHA COM BOTA", PRECO: 108.83 },
+  { REFERENCIA: "204", DESCRIÇÃO: "PERNEIRA PVC JOELHO COM BOTA", PRECO: 95.87 },
+  { REFERENCIA: "209", DESCRIÇÃO: "JAQUETA PVC PESCADOR", PRECO: 44.15 },
+  { REFERENCIA: "210", DESCRIÇÃO: "CALÇA PVC PESCADOR", PRECO: 30.25 },
+  { REFERENCIA: "213", DESCRIÇÃO: "JAQUETA NYLON PESCADOR", PRECO: 73.58 },
+  { REFERENCIA: "214", DESCRIÇÃO: "CALÇA NYLON PESCADOR", PRECO: 50.02 },
+  { REFERENCIA: "234", DESCRIÇÃO: "CONJUNTO PVC PESCADOR COM CAPUZ", PRECO: 66.9 },
+  { REFERENCIA: "238", DESCRIÇÃO: "CONJUNTO NYLON PESCADOR COM CAPUZ", PRECO: 122.47 },
+  { REFERENCIA: "222", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA SIMPLES COM VELCRO", PRECO: 50.46 },
+  { REFERENCIA: "222.1", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA INTERNA", PRECO: 48.76 },
+  { REFERENCIA: "225", DESCRIÇÃO: "CAPA LONGA NYLON PADRÃO ELÁSTICO NOS PUNHOS", PRECO: 104.79 }
+];
+
+const produtosPantaneiro7 = [
+  { REFERENCIA: "201", DESCRIÇÃO: "JARDINEIRA PVC COM BOTA", PRECO: 140.63 },
+  { REFERENCIA: "203", DESCRIÇÃO: "PERNEIRA PVC VIRILHA COM BOTA", PRECO: 108.83 },
+  { REFERENCIA: "204", DESCRIÇÃO: "PERNEIRA PVC JOELHO COM BOTA", PRECO: 95.87 },
+  { REFERENCIA: "209", DESCRIÇÃO: "JAQUETA PVC PESCADOR", PRECO: 44.15 },
+  { REFERENCIA: "210", DESCRIÇÃO: "CALÇA PVC PESCADOR", PRECO: 30.25 },
+  { REFERENCIA: "213", DESCRIÇÃO: "JAQUETA NYLON PESCADOR", PRECO: 73.58 },
+  { REFERENCIA: "214", DESCRIÇÃO: "CALÇA NYLON PESCADOR", PRECO: 50.02 },
+  { REFERENCIA: "234", DESCRIÇÃO: "CONJUNTO PVC PESCADOR COM CAPUZ", PRECO: 66.9 },
+  { REFERENCIA: "238", DESCRIÇÃO: "CONJUNTO NYLON PESCADOR COM CAPUZ", PRECO: 122.47 },
+  { REFERENCIA: "222", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA SIMPLES COM VELCRO", PRECO: 50.46 },
+  { REFERENCIA: "222.1", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA INTERNA", PRECO: 48.76 },
+  { REFERENCIA: "225", DESCRIÇÃO: "CAPA LONGA NYLON PADRÃO ELÁSTICO NOS PUNHOS", PRECO: 104.79 }
+];
+
+const produtosSteitz = [
+  { REF: "001", MODELO: "BOTA DE SEGURANÇA", PRECOS: { a_vista: 45.00, p_30_45_60: 48.00, p_30_60_90: 50.00 } },
+  { REF: "002", MODELO: "CALÇADO DE SEGURANÇA", PRECOS: { a_vista: 55.00, p_30_45_60: 58.00, p_30_60_90: 60.00 } },
+  { REF: "003", MODELO: "TÊNIS DE SEGURANÇA", PRECOS: { a_vista: 65.00, p_30_45_60: 68.00, p_30_60_90: 70.00 } },
+  { REF: "004", MODELO: "SAPATO DE SEGURANÇA", PRECOS: { a_vista: 75.00, p_30_45_60: 78.00, p_30_60_90: 80.00 } },
+  { REF: "005", MODELO: "BOTA IMPERMEÁVEL", PRECOS: { a_vista: 85.00, p_30_45_60: 88.00, p_30_60_90: 90.00 } }
+];
+
+function getProdutosByEmpresa(empresa) {
+  switch(empresa) {
+    case 'pantaneiro5': return produtosPantaneiro5;
+    case 'pantaneiro7': return produtosPantaneiro7;
+    case 'steitz': return produtosSteitz;
+    default: return [...produtosPantaneiro5, ...produtosPantaneiro7, ...produtosSteitz];
+  }
+}
+
 function renderizarFormularioEdicao(pedido) {
   const campos = pedido.dados || {};
   const form = document.getElementById('form-editar-campos');
@@ -98,8 +146,8 @@ function renderizarFormularioEdicao(pedido) {
   html += '<thead><tr style="background:#f8f9fa;"><th>Referência</th><th>Descrição</th><th>Tamanho</th><th>Cor</th><th>Qtd</th><th>Unitário</th><th>Desc. Extra</th><th>Ação</th></tr></thead><tbody id="edit-itens-lista">';
   (campos.itens || []).forEach((item, idx) => {
     html += `<tr>`;
-    html += `<td><input type='text' id='edit-item-${idx}-REFERENCIA' value='${item.REFERENCIA || item.REF || ''}' style='width:90px;'/></td>`;
-    html += `<td><input type='text' id='edit-item-${idx}-DESCRIÇÃO' value='${item.DESCRIÇÃO || item.MODELO || ''}' style='width:180px;'/></td>`;
+    html += `<td><input type='text' id='edit-item-${idx}-REFERENCIA' value='${item.REFERENCIA || item.REF || ''}' style='width:90px;' class='busca-produto'/></td>`;
+    html += `<td><input type='text' id='edit-item-${idx}-DESCRIÇÃO' value='${item.DESCRIÇÃO || item.MODELO || ''}' style='width:180px;' readonly/></td>`;
     html += `<td><input type='text' id='edit-item-${idx}-tamanho' value='${item.tamanho || ''}' style='width:70px;'/></td>`;
     html += `<td><input type='text' id='edit-item-${idx}-cor' value='${item.cor || ''}' style='width:70px;'/></td>`;
     html += `<td><input type='number' id='edit-item-${idx}-quantidade' value='${item.quantidade || 1}' min='1' style='width:60px;' class='auto-total'/></td>`;
@@ -128,6 +176,10 @@ function renderizarFormularioEdicao(pedido) {
   setTimeout(() => {
     document.querySelectorAll('.auto-total').forEach(input => {
       input.addEventListener('input', atualizarTotalEdicao);
+    });
+    // Adiciona listeners para busca de produtos
+    document.querySelectorAll('.busca-produto').forEach(input => {
+      input.addEventListener('input', (e) => buscarProduto(e.target, pedido.empresa));
     });
   }, 10);
 }
@@ -348,4 +400,81 @@ document.getElementById('form-editar-pedido').addEventListener('click', function
   if (e.target && e.target.id === 'excluir-pedido-btn') {
     excluirPedido();
   }
-}); 
+});
+
+function buscarProduto(input, empresa) {
+  const valor = input.value.trim();
+  if (valor.length < 2) return;
+  
+  const produtos = getProdutosByEmpresa(empresa);
+  const sugestoes = produtos.filter(produto => {
+    const ref = produto.REFERENCIA || produto.REF;
+    const desc = produto.DESCRIÇÃO || produto.MODELO;
+    return ref.toLowerCase().includes(valor.toLowerCase()) || 
+           desc.toLowerCase().includes(valor.toLowerCase());
+  }).slice(0, 5);
+  
+  if (sugestoes.length === 0) return;
+  
+  // Criar dropdown de sugestões
+  let dropdown = document.getElementById('sugestoes-produtos');
+  if (!dropdown) {
+    dropdown = document.createElement('div');
+    dropdown.id = 'sugestoes-produtos';
+    dropdown.style.cssText = 'position:absolute;background:#fff;border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:1000;max-height:200px;overflow-y:auto;';
+    document.body.appendChild(dropdown);
+  }
+  
+  dropdown.innerHTML = '';
+  sugestoes.forEach(produto => {
+    const item = document.createElement('div');
+    item.style.cssText = 'padding:8px 12px;cursor:pointer;border-bottom:1px solid #eee;';
+    item.textContent = `${produto.REFERENCIA || produto.REF} - ${produto.DESCRIÇÃO || produto.MODELO}`;
+    item.addEventListener('click', () => {
+      preencherProduto(input, produto, empresa);
+      dropdown.remove();
+    });
+    dropdown.appendChild(item);
+  });
+  
+  // Posicionar dropdown
+  const rect = input.getBoundingClientRect();
+  dropdown.style.left = rect.left + 'px';
+  dropdown.style.top = (rect.bottom + 5) + 'px';
+  dropdown.style.width = rect.width + 'px';
+  
+  // Remover dropdown ao clicar fora
+  setTimeout(() => {
+    document.addEventListener('click', function removerDropdown(e) {
+      if (!dropdown.contains(e.target) && e.target !== input) {
+        dropdown.remove();
+        document.removeEventListener('click', removerDropdown);
+      }
+    });
+  }, 100);
+}
+
+function preencherProduto(input, produto, empresa) {
+  const row = input.closest('tr');
+  const idx = Array.from(row.parentNode.children).indexOf(row);
+  
+  // Preencher referência
+  input.value = produto.REFERENCIA || produto.REF;
+  
+  // Preencher descrição
+  const descInput = document.getElementById(`edit-item-${idx}-DESCRIÇÃO`);
+  if (descInput) descInput.value = produto.DESCRIÇÃO || produto.MODELO;
+  
+  // Preencher preço
+  const precoInput = document.getElementById(`edit-item-${idx}-preco`);
+  if (precoInput) {
+    if (empresa === 'steitz') {
+      precoInput.value = produto.PRECOS.a_vista || 0;
+    } else {
+      precoInput.value = produto.PRECO || 0;
+    }
+  }
+  
+  // Atualizar total
+  atualizarTotalEdicao();
+} 
