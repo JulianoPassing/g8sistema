@@ -493,8 +493,8 @@ function formatarDataBrasilia(data) {
     return data.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   }
   // Se for string no formato 'YYYY-MM-DD HH:mm:ss'
-  // Substitui espaço por 'T' para formato ISO e adiciona 'Z' para UTC
-  let dataISO = data.replace(' ', 'T') + 'Z';
+  // Substitui espaço por 'T' para formato ISO, mas NÃO adiciona 'Z'
+  let dataISO = data.replace(' ', 'T');
   let d = new Date(dataISO);
   if (isNaN(d.getTime())) {
     // fallback: tenta só new Date(data)
