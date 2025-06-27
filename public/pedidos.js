@@ -44,13 +44,12 @@ async function carregarPedidos() {
       lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       return;
     }
-    let html = '<table><thead><tr><th>ID</th><th>Empresa</th><th>Descrição</th><th>Data</th><th>Ações</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>ID</th><th>Empresa</th><th>Descrição</th><th>Ações</th></tr></thead><tbody>';
     for (const pedido of pedidos) {
       html += `<tr>
         <td>${pedido.id}</td>
         <td>${pedido.empresa}</td>
         <td>${pedido.descricao}</td>
-        <td>${pedido.data_pedido ? formatarDataBrasilia(pedido.data_pedido) : ''}</td>
         <td><button class="edit-btn" onclick="editarPedido(${pedido.id})">Editar</button></td>
       </tr>`;
     }
