@@ -27,6 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cancelar-edicao').addEventListener('click', function() {
     document.getElementById('editar-pedido-card').style.display = 'none';
   });
+
+  // Adicionar botão de exclusão no painel de edição
+  document.getElementById('form-editar-pedido').insertAdjacentHTML('beforeend', `
+    <button type="button" id="excluir-pedido-btn" style="margin-left:10px;background:#dc3545;color:white;">Excluir Pedido</button>
+  `);
 });
 
 async function carregarPedidos() {
@@ -80,32 +85,43 @@ function renderizarFormularioEdicao(pedido) {
   const form = document.getElementById('form-editar-campos');
   let html = '';
   // Cliente
-  html += '<h3>Cliente</h3>';
+  html += '<h3 style="margin-top:0;margin-bottom:10px;color:#007bff;border-bottom:1px solid #dee2e6;padding-bottom:4px;">Dados do Cliente</h3>';
+  html += '<div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px 24px;margin-bottom:18px;">';
   for (const campo in (campos.cliente || {})) {
-    html += `<div class='form-group'><label>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='text' id='edit-cliente-${campo}' value='${campos.cliente[campo] || ''}' /></div>`;
+    html += `<div class='form-group'><label style='font-weight:600;'>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='text' id='edit-cliente-${campo}' value='${campos.cliente[campo] || ''}' /></div>`;
   }
-  // Itens
-  html += '<h3>Itens do Pedido</h3>';
-  html += '<div id="edit-itens-lista">';
-  (campos.itens || []).forEach((item, idx) => {
-    html += `<div class='form-group' style='border:1px solid #ccc; padding:8px; margin-bottom:8px;'>`;
-    for (const key in item) {
-      html += `<label>${key.charAt(0).toUpperCase() + key.slice(1)}</label><input type='text' id='edit-item-${idx}-${key}' value='${item[key]}' />`;
-    }
-    html += `<button type='button' onclick='removerItemEdicao(${idx})' style='background:#dc3545;color:white;margin-top:5px;'>Remover</button>`;
-    html += '</div>';
-  });
   html += '</div>';
-  html += `<button type='button' onclick='adicionarItemEdicao()' style='background:#28a745;color:white;margin-bottom:10px;'>Adicionar Item</button>`;
+  // Itens
+  html += '<h3 style="margin-top:18px;margin-bottom:10px;color:#007bff;border-bottom:1px solid #dee2e6;padding-bottom:4px;">Itens do Pedido</h3>';
+  html += '<div style="overflow-x:auto;margin-bottom:10px;">';
+  html += '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;">';
+  html += '<thead><tr style="background:#f8f9fa;"><th>Referência</th><th>Descrição</th><th>Tamanho</th><th>Cor</th><th>Qtd</th><th>Unitário</th><th>Desc. Extra</th><th>Ação</th></tr></thead><tbody id="edit-itens-lista">';
+  (campos.itens || []).forEach((item, idx) => {
+    html += `<tr>`;
+    html += `<td><input type='text' id='edit-item-${idx}-REFERENCIA' value='${item.REFERENCIA || item.REF || ''}' style='width:90px;'/></td>`;
+    html += `<td><input type='text' id='edit-item-${idx}-DESCRIÇÃO' value='${item.DESCRIÇÃO || item.MODELO || ''}' style='width:180px;'/></td>`;
+    html += `<td><input type='text' id='edit-item-${idx}-tamanho' value='${item.tamanho || ''}' style='width:70px;'/></td>`;
+    html += `<td><input type='text' id='edit-item-${idx}-cor' value='${item.cor || ''}' style='width:70px;'/></td>`;
+    html += `<td><input type='number' id='edit-item-${idx}-quantidade' value='${item.quantidade || 1}' min='1' style='width:60px;'/></td>`;
+    html += `<td><input type='number' id='edit-item-${idx}-preco' value='${item.preco || 0}' min='0' step='0.01' style='width:80px;'/></td>`;
+    html += `<td><input type='number' id='edit-item-${idx}-descontoExtra' value='${item.descontoExtra || 0}' min='0' max='100' step='0.01' style='width:60px;'/></td>`;
+    html += `<td><button type='button' onclick='removerItemEdicao(${idx})' style='background:#dc3545;color:white;padding:4px 10px;border:none;border-radius:4px;cursor:pointer;'>Remover</button></td>`;
+    html += `</tr>`;
+  });
+  html += '</tbody></table>';
+  html += '</div>';
+  html += `<button type='button' onclick='adicionarItemEdicao()' style='background:#28a745;color:white;margin-bottom:10px;padding:7px 18px;border:none;border-radius:4px;font-weight:600;cursor:pointer;'>Adicionar Item</button>`;
   // Descontos
-  html += '<h3>Descontos</h3>';
+  html += '<h3 style="margin-top:18px;margin-bottom:10px;color:#007bff;border-bottom:1px solid #dee2e6;padding-bottom:4px;">Descontos</h3>';
+  html += '<div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px 24px;margin-bottom:18px;">';
   for (const campo in (campos.descontos || {})) {
-    html += `<div class='form-group'><label>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='number' id='edit-desconto-${campo}' value='${campos.descontos[campo] || 0}' /></div>`;
+    html += `<div class='form-group'><label style='font-weight:600;'>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='number' id='edit-desconto-${campo}' value='${campos.descontos[campo] || 0}' /></div>`;
   }
+  html += '</div>';
   // Total
-  html += `<div class='form-group'><label>Total</label><input type='number' id='edit-total' value='${campos.total || 0}' /></div>`;
+  html += `<div class='form-group'><label style='font-weight:600;'>Total</label><input type='number' id='edit-total' value='${campos.total || 0}' style='width:180px;'/></div>`;
   // Observações
-  html += `<div class='form-group'><label>Observações</label><input type='text' id='edit-obs' value='${(campos.cliente && campos.cliente.obs) || ''}' /></div>`;
+  html += `<div class='form-group'><label style='font-weight:600;'>Observações</label><input type='text' id='edit-obs' value='${(campos.cliente && campos.cliente.obs) || ''}' /></div>`;
   form.innerHTML = html;
 }
 
@@ -267,4 +283,31 @@ window.cancelarPedido = async function(id) {
   } catch (err) {
     alert('Erro ao cancelar pedido.');
   }
-}; 
+};
+
+// Função para excluir o pedido
+function excluirPedido() {
+  if (!pedidoEditando || !pedidoEditando.id) return;
+  if (!confirm('Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.')) return;
+  fetch('/api/pedidos', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: pedidoEditando.id })
+  })
+    .then(resp => {
+      if (resp.ok) {
+        alert('Pedido excluído com sucesso!');
+        document.getElementById('editar-pedido-card').style.display = 'none';
+        carregarPedidos();
+      } else {
+        alert('Erro ao excluir pedido.');
+      }
+    })
+    .catch(() => alert('Erro ao excluir pedido.'));
+}
+
+document.getElementById('form-editar-pedido').addEventListener('click', function(e) {
+  if (e.target && e.target.id === 'excluir-pedido-btn') {
+    excluirPedido();
+  }
+}); 
