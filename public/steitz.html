@@ -1268,12 +1268,22 @@
 
         // Enviar pedido para o backend
         const descricaoPedido = `Cliente: ${inputsCliente.razao.value}\nItens: ${pedidoItens.map(item => (item.REF || item.REFERENCIA) + ' x' + item.quantidade).join(', ')}\nTotal: R$ ${(typeof totalFinalComDesconto !== 'undefined' ? totalFinalComDesconto : 0).toFixed(2)}`;
+        const dadosPedido = {
+          cliente: Object.fromEntries(Object.entries(inputsCliente).map(([k, v]) => [k, v.value])),
+          itens: pedidoItens,
+          descontos: {
+            extra: descontoExtraTotalPercentual || 0
+          },
+          total: typeof totalFinalComDesconto !== 'undefined' ? totalFinalComDesconto : 0,
+          data: new Date().toISOString()
+        };
         fetch('/api/pedidos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             empresa: 'steitz',
-            descricao: descricaoPedido
+            descricao: descricaoPedido,
+            dados: dadosPedido
           })
         })
         .then(resp => {

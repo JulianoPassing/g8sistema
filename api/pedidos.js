@@ -10,20 +10,20 @@ module.exports = async (req, res) => {
 
   try {
     if (req.method === 'POST') {
-      const { empresa, descricao } = req.body;
+      const { empresa, descricao, dados } = req.body;
       const [result] = await connection.execute(
-        `INSERT INTO pedidos (empresa, descricao) VALUES (?, ?)` ,
-        [empresa, descricao]
+        `INSERT INTO pedidos (empresa, descricao, dados) VALUES (?, ?, ?)` ,
+        [empresa, descricao, JSON.stringify(dados || {})]
       );
       res.status(201).json({ id: result.insertId, message: 'Pedido cadastrado com sucesso!' });
       return;
     }
 
     if (req.method === 'PUT') {
-      const { id, empresa, descricao } = req.body;
+      const { id, empresa, descricao, dados } = req.body;
       const [result] = await connection.execute(
-        `UPDATE pedidos SET empresa = ?, descricao = ? WHERE id = ?`,
-        [empresa, descricao, id]
+        `UPDATE pedidos SET empresa = ?, descricao = ?, dados = ? WHERE id = ?`,
+        [empresa, descricao, JSON.stringify(dados || {}), id]
       );
       res.status(200).json({ message: 'Pedido atualizado com sucesso!' });
       return;
@@ -42,7 +42,12 @@ module.exports = async (req, res) => {
 
     // GET - listar todos os pedidos
     const [rows] = await connection.execute('SELECT * FROM pedidos ORDER BY data_pedido DESC');
-    res.status(200).json(rows);
+    // Parse o campo dados para JSON, se existir
+    const pedidos = rows.map(row => ({
+      ...row,
+      dados: row.dados ? JSON.parse(row.dados) : null
+    }));
+    res.status(200).json(pedidos);
   } catch (err) {
     res.status(500).json({ error: err.message });
   } finally {

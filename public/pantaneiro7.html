@@ -2823,12 +2823,23 @@ window.produtosData = [
 
         // Enviar pedido para o backend
         const descricaoPedido = `Cliente: ${inputsCliente.razao.value}\nItens: ${pedidoItens.map(item => item.REFERENCIA + ' x' + item.quantidade).join(', ')}\nTotal: R$ ${totalPedidoComDesconto.toFixed(2)}`;
+        const dadosPedido = {
+          cliente: Object.fromEntries(Object.entries(inputsCliente).map(([k, v]) => [k, v.value])),
+          itens: pedidoItens,
+          descontos: {
+            prazo: parseFloat(document.getElementById('desconto-prazo').value) || 0,
+            volume: parseFloat(document.getElementById('desconto-volume').value) || 0
+          },
+          total: totalPedidoComDesconto,
+          data: new Date().toISOString()
+        };
         fetch('/api/pedidos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             empresa: 'pantaneiro7',
-            descricao: descricaoPedido
+            descricao: descricaoPedido,
+            dados: dadosPedido
           })
         })
         .then(resp => {
