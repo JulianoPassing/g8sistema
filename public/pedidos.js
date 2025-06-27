@@ -102,9 +102,9 @@ function renderizarFormularioEdicao(pedido) {
     html += `<td><input type='text' id='edit-item-${idx}-DESCRIÇÃO' value='${item.DESCRIÇÃO || item.MODELO || ''}' style='width:180px;'/></td>`;
     html += `<td><input type='text' id='edit-item-${idx}-tamanho' value='${item.tamanho || ''}' style='width:70px;'/></td>`;
     html += `<td><input type='text' id='edit-item-${idx}-cor' value='${item.cor || ''}' style='width:70px;'/></td>`;
-    html += `<td><input type='number' id='edit-item-${idx}-quantidade' value='${item.quantidade || 1}' min='1' style='width:60px;'/></td>`;
-    html += `<td><input type='number' id='edit-item-${idx}-preco' value='${item.preco || 0}' min='0' step='0.01' style='width:80px;'/></td>`;
-    html += `<td><input type='number' id='edit-item-${idx}-descontoExtra' value='${item.descontoExtra || 0}' min='0' max='100' step='0.01' style='width:60px;'/></td>`;
+    html += `<td><input type='number' id='edit-item-${idx}-quantidade' value='${item.quantidade || 1}' min='1' style='width:60px;' class='auto-total'/></td>`;
+    html += `<td><input type='number' id='edit-item-${idx}-preco' value='${item.preco || 0}' min='0' step='0.01' style='width:80px;' class='auto-total'/></td>`;
+    html += `<td><input type='number' id='edit-item-${idx}-descontoExtra' value='${item.descontoExtra || 0}' min='0' max='100' step='0.01' style='width:60px;' class='auto-total'/></td>`;
     html += `<td><button type='button' onclick='removerItemEdicao(${idx})' style='background:#dc3545;color:white;padding:4px 10px;border:none;border-radius:4px;cursor:pointer;'>Remover</button></td>`;
     html += `</tr>`;
   });
@@ -115,14 +115,52 @@ function renderizarFormularioEdicao(pedido) {
   html += '<h3 style="margin-top:18px;margin-bottom:10px;color:#007bff;border-bottom:1px solid #dee2e6;padding-bottom:4px;">Descontos</h3>';
   html += '<div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px 24px;margin-bottom:18px;">';
   for (const campo in (campos.descontos || {})) {
-    html += `<div class='form-group'><label style='font-weight:600;'>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='number' id='edit-desconto-${campo}' value='${campos.descontos[campo] || 0}' /></div>`;
+    html += `<div class='form-group'><label style='font-weight:600;'>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='number' id='edit-desconto-${campo}' value='${campos.descontos[campo] || 0}' class='auto-total'/></div>`;
   }
   html += '</div>';
   // Total
-  html += `<div class='form-group'><label style='font-weight:600;'>Total</label><input type='number' id='edit-total' value='${campos.total || 0}' style='width:180px;'/></div>`;
+  html += `<div class='form-group'><label style='font-weight:600;'>Total</label><input type='number' id='edit-total' value='${campos.total || 0}' style='width:180px;background:#f8f9fa;font-weight:bold;' readonly/></div>`;
   // Observações
   html += `<div class='form-group'><label style='font-weight:600;'>Observações</label><input type='text' id='edit-obs' value='${(campos.cliente && campos.cliente.obs) || ''}' /></div>`;
   form.innerHTML = html;
+
+  // Adiciona listeners para atualizar o total automaticamente
+  setTimeout(() => {
+    document.querySelectorAll('.auto-total').forEach(input => {
+      input.addEventListener('input', atualizarTotalEdicao);
+    });
+  }, 10);
+}
+
+function atualizarTotalEdicao() {
+  // Soma todos os itens considerando descontos
+  let subtotal = 0;
+  let descontos = {};
+  let total = 0;
+  // Itens
+  const itens = [];
+  let idx = 0;
+  while (document.getElementById(`edit-item-${idx}-REFERENCIA`)) {
+    const quantidade = parseInt(document.getElementById(`edit-item-${idx}-quantidade`).value) || 0;
+    const preco = parseFloat(document.getElementById(`edit-item-${idx}-preco`).value) || 0;
+    const descontoExtra = parseFloat(document.getElementById(`edit-item-${idx}-descontoExtra`).value) || 0;
+    let valorItem = quantidade * preco;
+    if (descontoExtra > 0) valorItem *= (1 - descontoExtra / 100);
+    subtotal += valorItem;
+    itens.push({ quantidade, preco, descontoExtra });
+    idx++;
+  }
+  // Descontos gerais
+  document.querySelectorAll('[id^=edit-desconto-]').forEach(input => {
+    const campo = input.id.replace('edit-desconto-', '');
+    descontos[campo] = parseFloat(input.value) || 0;
+  });
+  // Aplicar descontos gerais (prazo, volume, extra, etc)
+  total = subtotal;
+  if (descontos.prazo) total *= (1 - descontos.prazo / 100);
+  if (descontos.volume) total *= (1 - descontos.volume / 100);
+  if (descontos.extra) total *= (1 - descontos.extra / 100);
+  document.getElementById('edit-total').value = total.toFixed(2);
 }
 
 window.removerItemEdicao = function(idx) {
