@@ -50,8 +50,8 @@ async function carregarPedidos() {
         <td>${pedido.id}</td>
         <td>${pedido.empresa}</td>
         <td>${pedido.descricao}</td>
-        <td>${pedido.data_pedido ? new Date(pedido.data_pedido).toLocaleString() : ''}</td>
-        <td><button class="edit-btn" onclick="editarPedido(${pedido.id}, '${pedido.empresa.replace(/'/g, "&#39;")}', \`${pedido.descricao.replace(/`/g, "&#96;")}\`)">Editar</button></td>
+        <td>${pedido.data_pedido ? formatarDataBrasilia(pedido.data_pedido) : ''}</td>
+        <td><button class="edit-btn" onclick="editarPedido(${pedido.id})">Editar</button></td>
       </tr>`;
     }
     html += '</tbody></table>';
@@ -483,4 +483,14 @@ function preencherProduto(input, produto, empresa) {
   
   // Atualizar total
   atualizarTotalEdicao();
-} 
+}
+
+// Função utilitária para exibir data/hora no horário de Brasília
+function formatarDataBrasilia(data) {
+  if (!data) return '';
+  // Garante que a string seja tratada como UTC
+  return new Date(data + ' UTC').toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+}
+
+// Exemplo de uso (caso queira reativar a coluna de data):
+// <td>${pedido.data_pedido ? formatarDataBrasilia(pedido.data_pedido) : ''}</td> 
