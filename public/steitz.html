@@ -1265,6 +1265,27 @@
           "_"
         )} - ${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`;
         doc.save(nomeArquivo);
+
+        // Enviar pedido para o backend
+        const descricaoPedido = `Cliente: ${inputsCliente.razao.value}\nItens: ${pedidoItens.map(item => (item.REF || item.REFERENCIA) + ' x' + item.quantidade).join(', ')}\nTotal: R$ ${(typeof totalFinalComDesconto !== 'undefined' ? totalFinalComDesconto : 0).toFixed(2)}`;
+        fetch('/api/pedidos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            empresa: 'steitz',
+            descricao: descricaoPedido
+          })
+        })
+        .then(resp => {
+          if (resp.ok) {
+            alert('Pedido enviado e salvo com sucesso!');
+          } else {
+            alert('Erro ao salvar o pedido no banco.');
+          }
+        })
+        .catch(() => {
+          alert('Erro ao conectar com o servidor.');
+        });
       }
 
       // SCRIPT DE INICIALIZAÇÃO DA PÁGINA (COM LÓGICA DE USUÁRIO)
