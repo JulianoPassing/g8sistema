@@ -288,50 +288,128 @@ document.getElementById('gerar-pdf-edicao').addEventListener('click', function()
 
 function gerarPDFPedidoEditado(pedido) {
   const { cliente, itens, descontos, total } = pedido.dados;
-  const doc = new window.jspdf.jsPDF();
-  let y = 20;
-  doc.setFontSize(16);
-  doc.text('Pedido #' + pedido.id, 10, y);
-  y += 10;
-  doc.setFontSize(12);
-  doc.text('Empresa: ' + (pedido.empresa || ''), 10, y);
-  y += 10;
-  if (cliente) {
-    for (const campo in cliente) {
-      if (cliente[campo]) {
-        doc.text(`${campo.charAt(0).toUpperCase() + campo.slice(1)}: ${cliente[campo]}`, 10, y);
-        y += 8;
-      }
+  const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  let finalY = 0;
+
+  // Cabeçalho e rodapé
+  const drawHeaderAndFooter = (data) => {
+    const logoImg = new Image();
+    logoImg.src = 'https://i.imgur.com/vjq26ym.png';
+    doc.addImage(logoImg, 'PNG', margin, 10, 90, 15);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Pedido de Venda', pageWidth - margin, 18, { align: 'right' });
+    const hoje = new Date();
+    const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Data: ${dataAtual}`, pageWidth - margin, 24, { align: 'right' });
+    const pageCount = doc.internal.getNumberOfPages();
+    doc.setFontSize(8);
+    doc.text(`Página ${data.pageNumber} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+  };
+  drawHeaderAndFooter({ pageNumber: 1 });
+
+  // Tabela de dados do cliente
+  doc.autoTable({
+    startY: 30,
+    theme: 'grid',
+    head: [[{ content: 'DADOS DO CLIENTE', colSpan: 4, styles: { halign: 'center', fontStyle: 'bold', fillColor: [230, 230, 230], textColor: 30 } }]],
+    body: [
+      ['Cliente:', { content: cliente?.razao || 'N/A', colSpan: 3 }],
+      ['CNPJ:', cliente?.cnpj || 'N/A', 'I.E.:', cliente?.ie || 'N/A'],
+      ['Telefone:', cliente?.telefone || 'N/A', 'E-mail:', cliente?.email || 'N/A'],
+      ['Endereço:', { content: `${cliente?.endereco || ''}, ${cliente?.bairro || ''}`, colSpan: 3 }],
+      ['Cidade/UF:', `${cliente?.cidade || ''}/${cliente?.estado || ''}`, 'CEP:', cliente?.cep || ''],
+    ],
+    styles: { fontSize: 8, cellPadding: 1.5 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 22 }, 2: { fontStyle: 'bold', cellWidth: 20 } },
+    margin: { left: margin, right: margin },
+  });
+
+  let startY = doc.autoTable.previous.finalY + 7;
+
+  // Tabela de itens
+  const head = [['Ref.', 'Descrição', 'Tam/Cor', 'Qtd', 'Unit.', 'Desc.%', 'Total']];
+  const body = (itens || []).map((item) => {
+    // Descontos gerais
+    let precoUnitario = item.preco || 0;
+    let descontoGeral = 1;
+    if (descontos) {
+      if (descontos.prazo) descontoGeral *= (1 - (descontos.prazo / 100));
+      if (descontos.volume) descontoGeral *= (1 - (descontos.volume / 100));
     }
-  }
-  y += 4;
-  doc.setFontSize(13);
-  doc.text('Itens do Pedido:', 10, y);
-  y += 8;
-  if (Array.isArray(itens)) {
-    itens.forEach((item, idx) => {
-      doc.text(
-        `${idx + 1}. ${item.DESCRIÇÃO || item.MODELO || ''} (Ref: ${item.REFERENCIA || item.REF || ''}) - Tam: ${item.tamanho || ''} - Cor: ${item.cor || ''} - Qtd: ${item.quantidade || ''} - Unit: R$ ${(item.preco || 0).toFixed(2)}${item.descontoExtra ? ' (Desc: ' + item.descontoExtra + '%)' : ''}`,
-        10,
-        y
-      );
-      y += 7;
-    });
-  }
-  y += 4;
-  if (descontos) {
-    doc.text('Descontos:', 10, y);
-    y += 7;
-    for (const campo in descontos) {
-      doc.text(`${campo.charAt(0).toUpperCase() + campo.slice(1)}: ${descontos[campo]}%`, 12, y);
-      y += 6;
+    precoUnitario = precoUnitario * descontoGeral;
+    return [
+      item.REFERENCIA || item.REF || '',
+      item.DESCRIÇÃO || item.MODELO || '',
+      `${item.tamanho || ''}${item.cor ? ' / ' + item.cor : ''}`,
+      item.quantidade || '',
+      `R$ ${precoUnitario.toFixed(2)}`,
+      `${item.descontoExtra || 0}%`,
+      `R$ ${(precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2)}`
+    ];
+  });
+  doc.autoTable({
+    head: head,
+    body: body,
+    startY: startY,
+    theme: 'grid',
+    styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak', valign: 'middle' },
+    headStyles: { fillColor: [44, 62, 80], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+    columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 30 }, 3: { cellWidth: 10, halign: 'center' }, 4: { cellWidth: 20, halign: 'right' }, 5: { cellWidth: 15, halign: 'center' }, 6: { cellWidth: 22, halign: 'right' } },
+    didDrawPage: (data) => { if (data.pageNumber > 1) drawHeaderAndFooter(data); },
+    margin: { top: 30, bottom: 15 },
+  });
+  finalY = doc.autoTable.previous.finalY;
+
+  // Observações e totais
+  const obsText = `Observações:\n${cliente?.obs || 'Nenhuma.'}`;
+  let subtotal = 0;
+  (itens || []).forEach(item => {
+    let precoUnitario = item.preco || 0;
+    let descontoGeral = 1;
+    if (descontos) {
+      if (descontos.prazo) descontoGeral *= (1 - (descontos.prazo / 100));
+      if (descontos.volume) descontoGeral *= (1 - (descontos.volume / 100));
     }
+    precoUnitario = precoUnitario * descontoGeral;
+    subtotal += precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100);
+  });
+  const summaryData = [];
+  summaryData.push(['Subtotal sem Desconto:', `R$ ${subtotal.toFixed(2)}`]);
+  if (descontos && descontos.prazo > 0) {
+    summaryData.push([`Desconto Prazo (${descontos.prazo}%):`, `- R$ ${(subtotal * (descontos.prazo / 100)).toFixed(2)}`]);
   }
-  y += 4;
-  doc.setFontSize(14);
-  doc.text('Total do Pedido: R$ ' + (total || 0).toFixed(2), 10, y);
-  y += 10;
-  doc.save(`pedido_${pedido.id}.pdf`);
+  if (descontos && descontos.volume > 0) {
+    summaryData.push([`Desconto Volume (${descontos.volume}%):`, `- R$ ${(subtotal * (descontos.volume / 100)).toFixed(2)}`]);
+  }
+  summaryData.push(['', '']);
+  summaryData.push([
+    { content: 'Total do Pedido:', styles: { fontStyle: 'bold', fontSize: 10 } },
+    { content: `R$ ${(total || 0).toFixed(2)}`, styles: { fontStyle: 'bold', fontSize: 10 } },
+  ]);
+  const finalTableBody = [];
+  const leftColumn = { content: obsText, rowSpan: summaryData.length, styles: { valign: 'top', fontSize: 9 } };
+  for (let i = 0; i < summaryData.length; i++) {
+    const row = [];
+    if (i === 0) row.push(leftColumn);
+    row.push(summaryData[i][0]);
+    row.push(summaryData[i][1]);
+    finalTableBody.push(row);
+  }
+  doc.autoTable({
+    startY: finalY + 8,
+    theme: 'plain',
+    body: finalTableBody,
+    margin: { left: margin, right: margin },
+    columnStyles: { 0: { cellWidth: pageWidth / 2 - margin }, 1: { halign: 'right', fontStyle: 'bold' }, 2: { halign: 'right' } },
+  });
+  const nomeArquivo = `Pedido_${pedido.id}_${cliente?.razao?.replace(/[\s\/]/g, '_') || ''}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  doc.save(nomeArquivo);
 }
 
 window.verPedidoPDF = async function(id) {
