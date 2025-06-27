@@ -172,6 +172,10 @@ function renderizarFormularioEdicao(pedido) {
   html += `<div class='form-group'><label style='font-weight:600;'>Observações</label><input type='text' id='edit-obs' value='${(campos.cliente && campos.cliente.obs) || ''}' /></div>`;
   form.innerHTML = html;
 
+  // Remove dropdown de sugestões se existir
+  const oldDropdown = document.getElementById('sugestoes-produtos');
+  if (oldDropdown) oldDropdown.remove();
+
   // Adiciona listeners para atualizar o total automaticamente
   setTimeout(() => {
     document.querySelectorAll('.auto-total').forEach(input => {
@@ -180,6 +184,8 @@ function renderizarFormularioEdicao(pedido) {
     // Adiciona listeners para busca de produtos
     document.querySelectorAll('.busca-produto').forEach(input => {
       input.addEventListener('input', (e) => buscarProduto(e.target, pedido.empresa));
+      // Sugestão ao focar também
+      input.addEventListener('focus', (e) => buscarProduto(e.target, pedido.empresa));
     });
   }, 10);
 }
