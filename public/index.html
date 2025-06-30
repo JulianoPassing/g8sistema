@@ -19,16 +19,22 @@
       referrerpolicy="no-referrer"
     />
     <style>
-      body {
-        font-family: "Roboto", sans-serif;
+      html, body {
+        height: 100%;
         margin: 0;
-        background-color: #f0f2f5;
+        padding: 0;
+      }
+      body {
+        min-height: 100vh;
         display: flex;
+        flex-direction: column;
+        font-family: "Roboto", sans-serif;
+        background-color: #f0f2f5;
         justify-content: center;
         align-items: center;
-        height: 100vh;
-        min-height: 100vh;
-        flex-direction: column;
+      }
+      .login-container, main, .container {
+        flex: 1 0 auto;
       }
       .login-container {
         background-color: white;
@@ -148,15 +154,15 @@
         background-color: #333;
         color: white;
         font-size: 0.9em;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        z-index: 100;
+        position: static;
       }
       footer a {
         color: #388e3c;
         text-decoration: none;
         font-weight: 500;
+      }
+      footer a:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
