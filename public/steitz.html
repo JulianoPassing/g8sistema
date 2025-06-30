@@ -454,6 +454,28 @@
       label[for="cliente-selecionado"], #cliente-selecionado {
         display: none !important;
       }
+
+      footer {
+        width: 100%;
+        text-align: center;
+        padding: 18px 0 10px 0;
+        background-color: #333;
+        color: white;
+        font-size: 0.9em;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+      }
+
+      footer a {
+        color: #388e3c;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      footer a:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
 
@@ -548,12 +570,12 @@
             <input type="text" id="telefone" />
           </div>
           <div class="form-group">
-            <label for="transporte"><span>🚚</span>Transporte:</label>
-            <input type="text" id="transporte" placeholder="CIF" />
+            <label for="transporte"><span>🚚</span>Transporte: <span style="color: red">*</span></label>
+            <input type="text" id="transporte" placeholder="CIF" required />
           </div>
           <div class="form-group">
-            <label for="prazo"><span>💰</span>Prazo Pagamento:</label>
-            <input type="text" id="prazo" placeholder="Ex: 30/60/90" />
+            <label for="prazo"><span>💰</span>Prazo Pagamento: <span style="color: red">*</span></label>
+            <input type="text" id="prazo" placeholder="Ex: 30/60/90" required />
           </div>
           <div class="form-group full-width">
             <label for="obs"><span>💬</span>Observações:</label>
@@ -611,6 +633,11 @@
         </button>
       </div>
     </main>
+
+    <footer>
+      © 2025 J.P Sistemas. Todos os direitos reservados. 
+      <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">Fale conosco no WhatsApp</a>
+    </footer>
 
     <script>
       // Script para carregar dados dos clientes do arquivo clientes.json
@@ -970,6 +997,17 @@
       function gerarPedidoPDF() {
         if (!inputsCliente.razao.value) {
           alert("Por favor, preencha as informações do cliente.");
+          return;
+        }
+        // Validação dos campos obrigatórios
+        if (!inputsCliente.transporte.value.trim()) {
+          alert("O campo Transporte é obrigatório.");
+          inputsCliente.transporte.focus();
+          return;
+        }
+        if (!inputsCliente.prazo.value.trim()) {
+          alert("O campo Prazo de Pagamento é obrigatório.");
+          inputsCliente.prazo.focus();
           return;
         }
         if (pedidoItens.length === 0) {

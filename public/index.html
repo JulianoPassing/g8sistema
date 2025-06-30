@@ -27,6 +27,8 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
+        min-height: 100vh;
+        flex-direction: column;
       }
       .login-container {
         background-color: white;
@@ -111,15 +113,50 @@
         font-weight: bold;
         cursor: pointer;
         transition: background-color 0.3s ease;
+        position: relative;
+        overflow: hidden;
       }
-      button:hover {
-        background-color: #555;
+      button:disabled {
+        background-color: #888;
+        cursor: not-allowed;
+      }
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #fff;
+        border-top: 3px solid #333;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        vertical-align: middle;
+        margin-left: 10px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
       #error-message {
         color: #d32f2f;
         margin-top: 15px;
         font-weight: 500;
         height: 20px;
+      }
+      footer {
+        width: 100%;
+        text-align: center;
+        padding: 18px 0 10px 0;
+        background-color: #333;
+        color: white;
+        font-size: 0.9em;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+      }
+      footer a {
+        color: #388e3c;
+        text-decoration: none;
+        font-weight: 500;
       }
     </style>
   </head>
@@ -141,10 +178,15 @@
           <input type="checkbox" id="remember-me" />
           <label for="remember-me">Lembrar usuário e senha</label>
         </div>
-        <button type="submit">Entrar</button>
+        <button type="submit" id="login-btn">Entrar</button>
         <p id="error-message"></p>
       </form>
     </div>
+
+    <footer>
+      © 2025 J.P Sistemas. Todos os direitos reservados. 
+      <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">Fale conosco no WhatsApp</a>
+    </footer>
 
     <script src="config.js"></script>
 
@@ -183,12 +225,18 @@
           const passwordInput = document.getElementById("password").value;
           const rememberMe = document.getElementById("remember-me").checked;
           const errorMessageElement = document.getElementById("error-message");
+          const loginBtn = document.getElementById("login-btn");
 
           // Agora, 'validUsers' vem do arquivo config.js
           if (
             validUsers[usernameInput] &&
             validUsers[usernameInput] === passwordInput
           ) {
+            // Animação de loading
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = 'Entrando... <span class="spinner"></span>';
+            errorMessageElement.style.color = '#388e3c';
+            errorMessageElement.textContent = 'Login realizado com sucesso! Redirecionando...';
             if (rememberMe) {
               localStorage.setItem("savedUsername", usernameInput);
               localStorage.setItem("savedPassword", passwordInput);
@@ -197,8 +245,11 @@
               localStorage.removeItem("savedPassword");
             }
             sessionStorage.setItem("loggedInUser", usernameInput);
-            window.location.href = "painel.html";
+            setTimeout(() => {
+              window.location.href = "painel.html";
+            }, 1200);
           } else {
+            errorMessageElement.style.color = '#d32f2f';
             errorMessageElement.textContent = "Usuário ou senha inválidos.";
           }
         });
