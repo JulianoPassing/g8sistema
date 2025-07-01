@@ -112,8 +112,9 @@
       .pedidos-cards-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 24px;
+        gap: 32px 24px;
         justify-content: flex-start;
+        margin-top: 18px;
       }
       .pedido-card {
         background: #fff;
@@ -172,15 +173,81 @@
         display: flex;
         justify-content: flex-end;
       }
+      .pedido-card.melhor-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+        border: 1.5px solid #e0e0e0;
+        padding: 26px 24px 18px 24px;
+        min-width: 290px;
+        max-width: 410px;
+        flex: 1 1 340px;
+        display: flex;
+        flex-direction: column;
+        transition: box-shadow 0.2s, border-color 0.2s;
+        position: relative;
+        margin-bottom: 18px;
+      }
+      .pedido-card.melhor-card:hover {
+        box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+        border-color: #007bff55;
+      }
+      .melhor-body {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-bottom: 10px;
+      }
+      .melhor-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 2px;
+      }
+      .melhor-row-top {
+        margin-bottom: 7px;
+      }
+      .melhor-label {
+        min-width: 110px;
+        font-weight: 500;
+        color: #555;
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .melhor-label-strong {
+        color: #007bff;
+        font-weight: 600;
+      }
+      .melhor-value {
+        color: #222;
+        font-weight: 500;
+        word-break: break-word;
+        flex: 1;
+      }
+      .melhor-total {
+        color: #28a745;
+        font-weight: 700;
+      }
+      .melhor-row-obs {
+        margin-top: 8px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 7px 10px;
+        color: #444;
+        font-size: 0.98em;
+      }
       @media (max-width: 700px) {
         .pedidos-cards-list {
           flex-direction: column;
-          gap: 16px;
+          gap: 18px;
         }
         .pedido-card {
           max-width: 100%;
           min-width: 0;
           width: 100%;
+        }
+        .melhor-label {
+          min-width: 80px;
         }
       }
     </style>

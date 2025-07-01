@@ -46,16 +46,30 @@ async function carregarPedidos() {
     }
     let html = '<div class="pedidos-cards-list">';
     for (const pedido of pedidos) {
-      html += `<div class="pedido-card">
+      const dados = pedido.dados || {};
+      const cliente = dados.cliente || {};
+      const descontos = dados.descontos || {};
+      html += `<div class="pedido-card melhor-card">
         <div class="pedido-card-header">
           <span class="pedido-empresa"><b>🏢 ${pedido.empresa || '-'}</b></span>
           <span class="pedido-id">#${pedido.id}</span>
         </div>
-        <div class="pedido-card-body">
-          <div class="pedido-descricao"><b>📝</b> ${pedido.descricao || '-'}</div>
-          ${pedido.dados && pedido.dados.cliente && pedido.dados.cliente.nome ? `<div class='pedido-cliente'><b>👤</b> ${pedido.dados.cliente.nome}</div>` : ''}
-          ${pedido.dados && pedido.dados.total ? `<div class='pedido-total'><b>💰</b> R$ ${Number(pedido.dados.total).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>` : ''}
-          ${pedido.data ? `<div class='pedido-data'><b>📅</b> ${pedido.data}</div>` : ''}
+        <div class="pedido-card-body melhor-body">
+          <div class="melhor-row melhor-row-top">
+            <div class="melhor-label melhor-label-strong">Cliente:</div>
+            <div class="melhor-value">${cliente.nome || cliente.razao || '-'}</div>
+          </div>
+          <div class="melhor-row">
+            <div class="melhor-label">Itens:</div>
+            <div class="melhor-value">${(dados.itens||[]).map(item => (item.REFERENCIA||item.REF)+ ' x' + item.quantidade).join(', ') || '-'}</div>
+          </div>
+          <div class="melhor-row">
+            <div class="melhor-label">Valor Total:</div>
+            <div class="melhor-value melhor-total">R$ ${Number(dados.total||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+          </div>
+          ${dados.transporte ? `<div class='melhor-row'><div class='melhor-label'>Transporte:</div><div class='melhor-value'>${dados.transporte}</div></div>` : ''}
+          ${descontos.prazo ? `<div class='melhor-row'><div class='melhor-label'>Prazo de Pagamento:</div><div class='melhor-value'>${descontos.prazo} dias</div></div>` : ''}
+          ${cliente.obs || dados.observacoes ? `<div class='melhor-row melhor-row-obs'><div class='melhor-label'>Informações adicionais:</div><div class='melhor-value'>${cliente.obs || dados.observacoes}</div></div>` : ''}
         </div>
         <div class="pedido-card-footer">
           <button class="edit-btn" onclick="editarPedido(${pedido.id})">✏️ Editar</button>
