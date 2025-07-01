@@ -44,40 +44,16 @@ async function carregarPedidos() {
       lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       return;
     }
-    let html = '<div class="pedidos-cards-list">';
+    let html = '<table><thead><tr><th>ID</th><th>Empresa</th><th>Descrição</th><th>Ações</th></tr></thead><tbody>';
     for (const pedido of pedidos) {
-      const dados = pedido.dados || {};
-      const cliente = dados.cliente || {};
-      const descontos = dados.descontos || {};
-      html += `<div class="pedido-card melhor-card">
-        <div class="pedido-card-body melhor-body">
-          <div class="melhor-row melhor-row-top">
-            <div class="melhor-label melhor-label-strong">Cliente:</div>
-            <div class="melhor-value melhor-cliente">${cliente.nome || cliente.razao || '-'}</div>
-          </div>
-          <div class="melhor-row">
-            <div class="melhor-label">Empresa:</div>
-            <div class="melhor-value">${pedido.empresa || '-'}</div>
-          </div>
-          <div class="melhor-row">
-            <div class="melhor-label">Produtos:</div>
-            <div class="melhor-value">${(dados.itens||[]).map(item => (item.REFERENCIA||item.REF)+ ' x' + item.quantidade).join(', ') || '-'}</div>
-          </div>
-          ${dados.transporte ? `<div class='melhor-row'><div class='melhor-label'>🚚Transporte:</div><div class='melhor-value'>${dados.transporte}</div></div>` : ''}
-          ${dados.prazo_pagamento ? `<div class='melhor-row'><div class='melhor-label'>💰Prazo Pagamento:</div><div class='melhor-value'>${dados.prazo_pagamento}</div></div>` : ''}
-          <div class="melhor-row">
-            <div class="melhor-label">Valor Total:</div>
-            <div class="melhor-value melhor-total">R$ ${Number(dados.total||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
-          </div>
-          ${dados.observacoes ? `<div class='melhor-row melhor-row-obs'><div class='melhor-label'>💬Observações:</div><div class='melhor-value'>${dados.observacoes}</div></div>` : ''}
-          ${cliente.obs && !dados.observacoes ? `<div class='melhor-row melhor-row-obs'><div class='melhor-label'>Informações adicionais:</div><div class='melhor-value'>${cliente.obs}</div></div>` : ''}
-        </div>
-        <div class="pedido-card-footer">
-          <button class="edit-btn" onclick="editarPedido(${pedido.id})">✏️ Editar</button>
-        </div>
-      </div>`;
+      html += `<tr>
+        <td>${pedido.id}</td>
+        <td>${pedido.empresa}</td>
+        <td>${pedido.descricao}</td>
+        <td><button class="edit-btn" onclick="editarPedido(${pedido.id})">Editar</button></td>
+      </tr>`;
     }
-    html += '</div>';
+    html += '</tbody></table>';
     lista.innerHTML = html;
   } catch (err) {
     lista.innerHTML = '<p>Erro ao carregar pedidos.</p>';
