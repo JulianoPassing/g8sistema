@@ -44,16 +44,25 @@ async function carregarPedidos() {
       lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       return;
     }
-    let html = '<table><thead><tr><th>ID</th><th>Empresa</th><th>Descrição</th><th>Ações</th></tr></thead><tbody>';
+    let html = '<div class="pedidos-cards-list">';
     for (const pedido of pedidos) {
-      html += `<tr>
-        <td>${pedido.id}</td>
-        <td>${pedido.empresa}</td>
-        <td>${pedido.descricao}</td>
-        <td><button class="edit-btn" onclick="editarPedido(${pedido.id})">Editar</button></td>
-      </tr>`;
+      html += `<div class="pedido-card">
+        <div class="pedido-card-header">
+          <span class="pedido-empresa"><b>🏢 ${pedido.empresa || '-'}</b></span>
+          <span class="pedido-id">#${pedido.id}</span>
+        </div>
+        <div class="pedido-card-body">
+          <div class="pedido-descricao"><b>📝</b> ${pedido.descricao || '-'}</div>
+          ${pedido.dados && pedido.dados.cliente && pedido.dados.cliente.nome ? `<div class='pedido-cliente'><b>👤</b> ${pedido.dados.cliente.nome}</div>` : ''}
+          ${pedido.dados && pedido.dados.total ? `<div class='pedido-total'><b>💰</b> R$ ${Number(pedido.dados.total).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>` : ''}
+          ${pedido.data ? `<div class='pedido-data'><b>📅</b> ${pedido.data}</div>` : ''}
+        </div>
+        <div class="pedido-card-footer">
+          <button class="edit-btn" onclick="editarPedido(${pedido.id})">✏️ Editar</button>
+        </div>
+      </div>`;
     }
-    html += '</tbody></table>';
+    html += '</div>';
     lista.innerHTML = html;
   } catch (err) {
     lista.innerHTML = '<p>Erro ao carregar pedidos.</p>';

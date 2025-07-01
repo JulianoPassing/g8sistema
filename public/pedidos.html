@@ -41,7 +41,7 @@
         font-size: 14px;
         background-color: var(--bg-color);
         color: var(--text-color);
-        padding: 100px 20px 20px 20px;
+        padding: 100px 20px 0 20px;
       }
       .header-top {
         width: 100%; position: absolute; top: 0; left: 0;
@@ -87,8 +87,10 @@
       .btn.voltar-btn .icon {
         /* removido para padronizar com as outras páginas */
       }
-      main, .container {
+      main.container {
         flex: 1 0 auto;
+        display: flex;
+        flex-direction: column;
       }
       footer {
         width: 100%;
@@ -97,7 +99,7 @@
         background-color: #333;
         color: white;
         font-size: 0.9em;
-        position: static;
+        margin-top: auto;
       }
       footer a {
         color: #388e3c;
@@ -106,6 +108,80 @@
       }
       footer a:hover {
         text-decoration: underline;
+      }
+      .pedidos-cards-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        justify-content: flex-start;
+      }
+      .pedido-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        border: 1px solid #e0e0e0;
+        padding: 22px 20px 16px 20px;
+        min-width: 260px;
+        max-width: 340px;
+        flex: 1 1 300px;
+        display: flex;
+        flex-direction: column;
+        transition: box-shadow 0.2s;
+        position: relative;
+      }
+      .pedido-card:hover {
+        box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+        border-color: #007bff33;
+      }
+      .pedido-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .pedido-empresa {
+        font-size: 1.1em;
+        color: #007bff;
+        font-weight: 600;
+      }
+      .pedido-id {
+        background: #f1f3f7;
+        color: #333;
+        border-radius: 6px;
+        padding: 2px 10px;
+        font-size: 0.98em;
+        font-weight: 500;
+      }
+      .pedido-card-body {
+        margin-bottom: 12px;
+      }
+      .pedido-descricao {
+        font-size: 1.08em;
+        margin-bottom: 6px;
+        color: #222;
+      }
+      .pedido-cliente, .pedido-total, .pedido-data {
+        font-size: 0.98em;
+        margin-bottom: 3px;
+        color: #444;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .pedido-card-footer {
+        display: flex;
+        justify-content: flex-end;
+      }
+      @media (max-width: 700px) {
+        .pedidos-cards-list {
+          flex-direction: column;
+          gap: 16px;
+        }
+        .pedido-card {
+          max-width: 100%;
+          min-width: 0;
+          width: 100%;
+        }
       }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
