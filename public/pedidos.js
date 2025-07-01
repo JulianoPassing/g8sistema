@@ -63,13 +63,14 @@ async function carregarPedidos() {
             <div class="melhor-label">Produtos:</div>
             <div class="melhor-value">${(dados.itens||[]).map(item => (item.REFERENCIA||item.REF)+ ' x' + item.quantidade).join(', ') || '-'}</div>
           </div>
-          ${dados.transporte ? `<div class='melhor-row'><div class='melhor-label'>Transporte:</div><div class='melhor-value'>${dados.transporte}</div></div>` : ''}
-          ${descontos.prazo ? `<div class='melhor-row'><div class='melhor-label'>Prazo de Pagamento:</div><div class='melhor-value'>${descontos.prazo} dias</div></div>` : ''}
+          ${dados.transporte ? `<div class='melhor-row'><div class='melhor-label'>🚚Transporte:</div><div class='melhor-value'>${dados.transporte}</div></div>` : ''}
+          ${dados.prazo_pagamento ? `<div class='melhor-row'><div class='melhor-label'>💰Prazo Pagamento:</div><div class='melhor-value'>${dados.prazo_pagamento}</div></div>` : ''}
           <div class="melhor-row">
             <div class="melhor-label">Valor Total:</div>
             <div class="melhor-value melhor-total">R$ ${Number(dados.total||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
           </div>
-          ${cliente.obs || dados.observacoes ? `<div class='melhor-row melhor-row-obs'><div class='melhor-label'>Informações adicionais:</div><div class='melhor-value'>${cliente.obs || dados.observacoes}</div></div>` : ''}
+          ${dados.observacoes ? `<div class='melhor-row melhor-row-obs'><div class='melhor-label'>💬Observações:</div><div class='melhor-value'>${dados.observacoes}</div></div>` : ''}
+          ${cliente.obs && !dados.observacoes ? `<div class='melhor-row melhor-row-obs'><div class='melhor-label'>Informações adicionais:</div><div class='melhor-value'>${cliente.obs}</div></div>` : ''}
         </div>
         <div class="pedido-card-footer">
           <button class="edit-btn" onclick="editarPedido(${pedido.id})">✏️ Editar</button>

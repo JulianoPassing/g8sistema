@@ -174,33 +174,49 @@
         width: 100%;
         max-width: 700px;
         min-width: 0;
-        margin-bottom: 0;
         border-radius: 16px;
         box-shadow: 0 4px 18px rgba(0,0,0,0.10);
         border: 1.5px solid #e0e0e0;
         padding: 30px 32px 20px 32px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
+      }
+      .melhor-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin-bottom: 10px;
       }
       .melhor-row {
         display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 7px;
+        align-items: center;
+        gap: 0;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 6px;
       }
       .melhor-row-top {
-        margin-bottom: 14px;
+        margin-bottom: 18px;
+        border-bottom: none;
+        padding-bottom: 0;
       }
       .melhor-label {
-        min-width: 120px;
+        min-width: 160px;
         font-weight: 500;
         color: #888;
         text-align: right;
         flex-shrink: 0;
+        padding-right: 18px;
+        font-size: 1.04em;
       }
       .melhor-label-strong {
         color: #007bff;
         font-weight: 700;
-        font-size: 1.18em;
+        font-size: 1.22em;
         letter-spacing: 0.5px;
+        padding-right: 18px;
       }
       .melhor-value {
         color: #222;
@@ -208,6 +224,7 @@
         font-size: 1.13em;
         word-break: break-word;
         flex: 1;
+        text-align: left;
       }
       .melhor-total {
         color: #28a745;
@@ -221,14 +238,21 @@
         padding: 7px 10px;
         color: #444;
         font-size: 0.98em;
+        border-bottom: none;
+      }
+      .pedido-card-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
       }
       @media (max-width: 800px) {
         .pedido-card.melhor-card {
           max-width: 98vw;
           padding: 18px 6vw 14px 6vw;
         }
-        .melhor-label {
-          min-width: 80px;
+        .melhor-label, .melhor-label-strong {
+          min-width: 90px;
+          padding-right: 8px;
         }
       }
     </style>
