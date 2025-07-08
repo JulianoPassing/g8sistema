@@ -138,6 +138,14 @@ function renderizarFormularioEdicao(pedido) {
     html += `<div class='form-group'><label style='font-weight:600;'>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='text' id='edit-cliente-${campo}' value='${campos.cliente[campo] || ''}' /></div>`;
   }
   html += '</div>';
+  
+  // Transporte e Prazo (campos importantes para o PDF)
+  html += '<h3 style="margin-top:18px;margin-bottom:10px;color:#007bff;border-bottom:1px solid #dee2e6;padding-bottom:4px;">Transporte e Prazo</h3>';
+  html += '<div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px 24px;margin-bottom:18px;">';
+  html += `<div class='form-group'><label style='font-weight:600;'><span>🚚</span> Transporte</label><input type='text' id='edit-transporte' value='${campos.transporte || ''}' /></div>`;
+  html += `<div class='form-group'><label style='font-weight:600;'><span>💰</span> Prazo Pagamento</label><input type='text' id='edit-prazo' value='${campos.prazo || ''}' /></div>`;
+  html += '</div>';
+  
   // Itens
   html += '<h3 style="margin-top:18px;margin-bottom:10px;color:#007bff;border-bottom:1px solid #dee2e6;padding-bottom:4px;">Itens do Pedido</h3>';
   html += '<div style="overflow-x:auto;margin-bottom:10px;">';
@@ -182,10 +190,16 @@ function renderizarFormularioEdicao(pedido) {
     });
     // Adiciona listeners para busca de produtos
     document.querySelectorAll('.busca-produto').forEach(input => {
-      input.addEventListener('input', (e) => buscarProduto(e.target, pedido.empresa));
+      input.addEventListener('input', (e) => {
+        buscarProduto(e.target, pedido.empresa);
+        // Pequeno delay para permitir que o produto seja preenchido antes de calcular o total
+        setTimeout(() => atualizarTotalEdicao(), 100);
+      });
       // Sugestão ao focar também
       input.addEventListener('focus', (e) => buscarProduto(e.target, pedido.empresa));
     });
+    // Atualizar total inicial
+    atualizarTotalEdicao();
   }, 10);
 }
 
@@ -224,21 +238,35 @@ window.removerItemEdicao = function(idx) {
   if (!pedidoEditando || !pedidoEditando.dados) return;
   pedidoEditando.dados.itens.splice(idx, 1);
   renderizarFormularioEdicao(pedidoEditando);
+  // Atualizar total após remover item
+  setTimeout(() => {
+    atualizarTotalEdicao();
+  }, 50);
 };
 
 window.adicionarItemEdicao = function() {
   if (!pedidoEditando || !pedidoEditando.dados) return;
   pedidoEditando.dados.itens.push({ REFERENCIA: '', DESCRIÇÃO: '', tamanho: '', cor: '', quantidade: 1, preco: 0, descontoExtra: 0 });
   renderizarFormularioEdicao(pedidoEditando);
+  // Atualizar total após adicionar item
+  setTimeout(() => {
+    atualizarTotalEdicao();
+  }, 50);
 };
 
 async function salvarAlteracoes() {
   const id = document.getElementById('pedido-id').value;
   if (!pedidoEditando) return;
+  
   // Atualizar cliente
   for (const campo in (pedidoEditando.dados.cliente || {})) {
     pedidoEditando.dados.cliente[campo] = document.getElementById('edit-cliente-' + campo).value;
   }
+  
+  // Atualizar transporte e prazo
+  pedidoEditando.dados.transporte = document.getElementById('edit-transporte').value;
+  pedidoEditando.dados.prazo = document.getElementById('edit-prazo').value;
+  
   // Atualizar itens
   pedidoEditando.dados.itens = pedidoEditando.dados.itens.map((item, idx) => {
     const novo = {};
@@ -251,16 +279,21 @@ async function salvarAlteracoes() {
     if (novo.descontoExtra) novo.descontoExtra = parseFloat(novo.descontoExtra);
     return novo;
   });
+  
   // Atualizar descontos
   for (const campo in (pedidoEditando.dados.descontos || {})) {
     pedidoEditando.dados.descontos[campo] = parseFloat(document.getElementById('edit-desconto-' + campo).value) || 0;
   }
+  
   // Total
   pedidoEditando.dados.total = parseFloat(document.getElementById('edit-total').value) || 0;
+  
   // Observações
   if (pedidoEditando.dados.cliente) pedidoEditando.dados.cliente.obs = document.getElementById('edit-obs').value;
+  
   // Atualizar descricao
   const descricao = `Cliente: ${pedidoEditando.dados.cliente.razao}\nItens: ${pedidoEditando.dados.itens.map(item => (item.REFERENCIA || item.REF) + ' x' + item.quantidade).join(', ')}\nTotal: R$ ${pedidoEditando.dados.total.toFixed(2)}`;
+  
   try {
     const resp = await fetch('/api/pedidos', {
       method: 'PUT',
@@ -287,7 +320,7 @@ document.getElementById('gerar-pdf-edicao').addEventListener('click', function()
 });
 
 function gerarPDFPedidoEditado(pedido) {
-  const { cliente, itens, descontos, total } = pedido.dados;
+  const { cliente, itens, descontos, total, transporte, prazo } = pedido.dados;
   const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -324,6 +357,7 @@ function gerarPDFPedidoEditado(pedido) {
       ['Telefone:', cliente?.telefone || 'N/A', 'E-mail:', cliente?.email || 'N/A'],
       ['Endereço:', { content: `${cliente?.endereco || ''}, ${cliente?.bairro || ''}`, colSpan: 3 }],
       ['Cidade/UF:', `${cliente?.cidade || ''}/${cliente?.estado || ''}`, 'CEP:', cliente?.cep || ''],
+      ['TRANSPORTE:', transporte || 'A combinar', 'PRAZO:', prazo || 'A combinar'],
     ],
     styles: { fontSize: 8, cellPadding: 1.5 },
     columnStyles: { 0: { fontStyle: 'bold', cellWidth: 22 }, 2: { fontStyle: 'bold', cellWidth: 20 } },
@@ -367,7 +401,7 @@ function gerarPDFPedidoEditado(pedido) {
   finalY = doc.autoTable.previous.finalY;
 
   // Observações e totais
-  const obsText = `Observações:\n${cliente?.obs || 'Nenhuma.'}`;
+  const obsText = `Observações:\n${cliente?.obs || 'Nenhuma.'}\n\nTransporte: ${transporte || 'A combinar'}\nPrazo Pagamento: ${prazo || 'A combinar'}`;
   let subtotal = 0;
   (itens || []).forEach(item => {
     let precoUnitario = item.preco || 0;
@@ -490,6 +524,19 @@ function buscarProduto(input, empresa) {
   if (valor.length < 2) return;
   
   const produtos = getProdutosByEmpresa(empresa);
+  
+  // Buscar produto exato primeiro
+  const produtoExato = produtos.find(produto => {
+    const ref = produto.REFERENCIA || produto.REF;
+    return ref.toLowerCase() === valor.toLowerCase();
+  });
+  
+  // Se encontrar produto exato, preencher automaticamente
+  if (produtoExato) {
+    preencherProduto(input, produtoExato, empresa);
+    return;
+  }
+  
   const sugestoes = produtos.filter(produto => {
     const ref = produto.REFERENCIA || produto.REF;
     const desc = produto.DESCRIÇÃO || produto.MODELO;
@@ -556,6 +603,8 @@ function preencherProduto(input, produto, empresa) {
     } else {
       precoInput.value = produto.PRECO || 0;
     }
+    // Trigger o evento para atualizar o total
+    precoInput.dispatchEvent(new Event('input'));
   }
   
   // Atualizar total
