@@ -79,52 +79,100 @@ window.editarPedido = function(id) {
     });
 };
 
-// Dados de produtos das diferentes páginas
-const produtosPantaneiro5 = [
-  { REFERENCIA: "201", DESCRIÇÃO: "JARDINEIRA PVC COM BOTA", PRECO: 140.63 },
-  { REFERENCIA: "203", DESCRIÇÃO: "PERNEIRA PVC VIRILHA COM BOTA", PRECO: 108.83 },
-  { REFERENCIA: "204", DESCRIÇÃO: "PERNEIRA PVC JOELHO COM BOTA", PRECO: 95.87 },
-  { REFERENCIA: "209", DESCRIÇÃO: "JAQUETA PVC PESCADOR", PRECO: 44.15 },
-  { REFERENCIA: "210", DESCRIÇÃO: "CALÇA PVC PESCADOR", PRECO: 30.25 },
-  { REFERENCIA: "213", DESCRIÇÃO: "JAQUETA NYLON PESCADOR", PRECO: 73.58 },
-  { REFERENCIA: "214", DESCRIÇÃO: "CALÇA NYLON PESCADOR", PRECO: 50.02 },
-  { REFERENCIA: "234", DESCRIÇÃO: "CONJUNTO PVC PESCADOR COM CAPUZ", PRECO: 66.9 },
-  { REFERENCIA: "238", DESCRIÇÃO: "CONJUNTO NYLON PESCADOR COM CAPUZ", PRECO: 122.47 },
-  { REFERENCIA: "222", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA SIMPLES COM VELCRO", PRECO: 50.46 },
-  { REFERENCIA: "222.1", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA INTERNA", PRECO: 48.76 },
-  { REFERENCIA: "225", DESCRIÇÃO: "CAPA LONGA NYLON PADRÃO ELÁSTICO NOS PUNHOS", PRECO: 104.79 }
-];
-
-const produtosPantaneiro7 = [
-  { REFERENCIA: "201", DESCRIÇÃO: "JARDINEIRA PVC COM BOTA", PRECO: 140.63 },
-  { REFERENCIA: "203", DESCRIÇÃO: "PERNEIRA PVC VIRILHA COM BOTA", PRECO: 108.83 },
-  { REFERENCIA: "204", DESCRIÇÃO: "PERNEIRA PVC JOELHO COM BOTA", PRECO: 95.87 },
-  { REFERENCIA: "209", DESCRIÇÃO: "JAQUETA PVC PESCADOR", PRECO: 44.15 },
-  { REFERENCIA: "210", DESCRIÇÃO: "CALÇA PVC PESCADOR", PRECO: 30.25 },
-  { REFERENCIA: "213", DESCRIÇÃO: "JAQUETA NYLON PESCADOR", PRECO: 73.58 },
-  { REFERENCIA: "214", DESCRIÇÃO: "CALÇA NYLON PESCADOR", PRECO: 50.02 },
-  { REFERENCIA: "234", DESCRIÇÃO: "CONJUNTO PVC PESCADOR COM CAPUZ", PRECO: 66.9 },
-  { REFERENCIA: "238", DESCRIÇÃO: "CONJUNTO NYLON PESCADOR COM CAPUZ", PRECO: 122.47 },
-  { REFERENCIA: "222", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA SIMPLES COM VELCRO", PRECO: 50.46 },
-  { REFERENCIA: "222.1", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA INTERNA", PRECO: 48.76 },
-  { REFERENCIA: "225", DESCRIÇÃO: "CAPA LONGA NYLON PADRÃO ELÁSTICO NOS PUNHOS", PRECO: 104.79 }
-];
-
-const produtosSteitz = [
-  { REF: "001", MODELO: "BOTA DE SEGURANÇA", PRECOS: { a_vista: 45.00, p_30_45_60: 48.00, p_30_60_90: 50.00 } },
-  { REF: "002", MODELO: "CALÇADO DE SEGURANÇA", PRECOS: { a_vista: 55.00, p_30_45_60: 58.00, p_30_60_90: 60.00 } },
-  { REF: "003", MODELO: "TÊNIS DE SEGURANÇA", PRECOS: { a_vista: 65.00, p_30_45_60: 68.00, p_30_60_90: 70.00 } },
-  { REF: "004", MODELO: "SAPATO DE SEGURANÇA", PRECOS: { a_vista: 75.00, p_30_45_60: 78.00, p_30_60_90: 80.00 } },
-  { REF: "005", MODELO: "BOTA IMPERMEÁVEL", PRECOS: { a_vista: 85.00, p_30_45_60: 88.00, p_30_60_90: 90.00 } }
-];
-
-function getProdutosByEmpresa(empresa) {
-  switch(empresa) {
-    case 'pantaneiro5': return produtosPantaneiro5;
-    case 'pantaneiro7': return produtosPantaneiro7;
-    case 'steitz': return produtosSteitz;
-    default: return [...produtosPantaneiro5, ...produtosPantaneiro7, ...produtosSteitz];
+// Função para carregar produtos via AJAX
+async function carregarProdutosDaEmpresa(empresa) {
+  try {
+    let produtosUrl;
+    if (empresa === 'pantaneiro5') {
+      produtosUrl = '/prodpantaneiro5.html';
+    } else if (empresa === 'pantaneiro7') {
+      produtosUrl = '/prodpantaneiro7.html';
+    } else if (empresa === 'steitz') {
+      return produtosSteitzCompletos; // Steitz está definido diretamente
+    }
+    
+    if (produtosUrl) {
+      const response = await fetch(produtosUrl);
+      const text = await response.text();
+      
+      // Extrair window.produtosData do arquivo
+      const match = text.match(/window\.produtosData\s*=\s*(\[[\s\S]*?\]);/);
+      if (match) {
+        const produtosData = eval(match[1]);
+        return produtosData;
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar produtos:', error);
   }
+  
+  // Fallback para produtos básicos se não conseguir carregar
+  return getProdutosFallback(empresa);
+}
+
+// Produtos completos da Steitz
+const produtosSteitzCompletos = [
+  { REF: "1041", MODELO: "AUSTRAL-PRÓ WATER RESISTENT", TAM: "37 a 45", PRECOS: { p_30_60_90: 961.0, p_30_45_60: 921.0, a_vista: 898.0 } },
+  { REF: "1042", MODELO: "AUSTRAL WATER RESISTENT", TAM: "37 a 45", PRECOS: { p_30_60_90: 839.0, p_30_45_60: 808.0, a_vista: 789.0 } },
+  { REF: "1004", MODELO: "BOTA MOTOC. WATER RESISTENT", TAM: "34 a 44", PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 } },
+  { REF: "1020", MODELO: "BOTA MOTOC.WATER RESISTENT", TAM: "34 a 44", PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 } },
+  { REF: "1005", MODELO: "BOTA FEM.WATER RESISTENT", TAM: "34 a 39", PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 } },
+  { REF: "1007", MODELO: "BOTA FEM.WATER RESISTENT", TAM: "34 a 40", PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 } },
+  { REF: "1009", MODELO: "BOTA MOTOC. WATER RESISTENT", TAM: "33 a 39", PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 } },
+  { REF: "1010", MODELO: "BOTINA MOTOC.WATER RESISTENT", TAM: "35 a 44", PRECOS: { p_30_60_90: 414.0, p_30_45_60: 401.0, a_vista: 388.0 } },
+  { REF: "04-A", MODELO: "BOTA PRETA C/PROT.", TAM: "34 a 44", PRECOS: { p_30_60_90: 315.0, p_30_45_60: 299.0, a_vista: 284.0 } },
+  { REF: "04", MODELO: "BOTA PRETA C/PROT.", TAM: "35 a 45", PRECOS: { p_30_60_90: 315.0, p_30_45_60: 299.0, a_vista: 284.0 } },
+  { REF: "010", MODELO: "BOTINA MOTOC.", TAM: "35 a 44", PRECOS: { p_30_60_90: 299.0, p_30_45_60: 285.0, a_vista: 270.0 } },
+  { REF: "020", MODELO: "BOTA MOTOC.", TAM: "34 a 44", PRECOS: { p_30_60_90: 351.0, p_30_45_60: 333.0, a_vista: 316.0 } },
+  { REF: "4002", MODELO: "BOTA NYLON & PELO C/ BORDA", TAM: "35 a 39", PRECOS: { p_30_60_90: 196.0, p_30_45_60: 189.0, a_vista: 182.0 } }
+];
+
+// Produtos básicos como fallback
+const produtosPantaneiro5Basicos = [
+  { CATEGORIA: "Aventura", REFERENCIA: "201", DESCRIÇÃO: "JARDINEIRA PVC COM BOTA", TAMANHOS: ["P - EX / BOTAS 35 - 46"], PRECO: 135.39 },
+  { CATEGORIA: "Aventura", REFERENCIA: "203", DESCRIÇÃO: "PERNEIRA PVC VIRILHA COM BOTA", TAMANHOS: ["ÚNICO / BOTAS 35 - 46"], PRECO: 104.78 },
+  { CATEGORIA: "Aventura", REFERENCIA: "204", DESCRIÇÃO: "PERNEIRA PVC JOELHO COM BOTA", TAMANHOS: ["ÚNICO / BOTAS 35 - 46"], PRECO: 92.3 },
+  { CATEGORIA: "Aventura", REFERENCIA: "209", DESCRIÇÃO: "JAQUETA PVC PESCADOR", TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"], PRECO: 42.58 },
+  { CATEGORIA: "Aventura", REFERENCIA: "210", DESCRIÇÃO: "CALÇA PVC PESCADOR", TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"], PRECO: 29.17 },
+  { CATEGORIA: "Aventura", REFERENCIA: "213", DESCRIÇÃO: "JAQUETA NYLON PESCADOR", TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"], PRECO: 70.46 },
+  { CATEGORIA: "Aventura", REFERENCIA: "214", DESCRIÇÃO: "CALÇA NYLON PESCADOR", TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"], PRECO: 48.07 },
+  { CATEGORIA: "Aventura", REFERENCIA: "234", DESCRIÇÃO: "CONJUNTO PVC PESCADOR COM CAPUZ", TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"], PRECO: 64.52 },
+  { CATEGORIA: "Aventura", REFERENCIA: "238", DESCRIÇÃO: "CONJUNTO NYLON PESCADOR COM CAPUZ", TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"], PRECO: 117.69 },
+  { CATEGORIA: "PRO", REFERENCIA: "222", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA SIMPLES COM VELCRO", TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"], PRECO: 48.68 },
+  { CATEGORIA: "PRO", REFERENCIA: "222.1", DESCRIÇÃO: "CAPA LONGA PVC COM CAPUZ LAPA INTERNA", TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"], PRECO: 47.04 },
+  { CATEGORIA: "PRO", REFERENCIA: "225", DESCRIÇÃO: "CAPA LONGA NYLON PADRÃO ELÁSTICO NOS PUNHOS", TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"], PRECO: 100.7 }
+];
+
+const produtosPantaneiro7Basicos = [...produtosPantaneiro5Basicos]; // Mesmo catálogo
+
+function getProdutosFallback(empresa) {
+  switch(empresa) {
+    case 'pantaneiro5': return produtosPantaneiro5Basicos;
+    case 'pantaneiro7': return produtosPantaneiro7Basicos;
+    case 'steitz': return produtosSteitzCompletos;
+    default: return [...produtosPantaneiro5Basicos, ...produtosPantaneiro7Basicos, ...produtosSteitzCompletos];
+  }
+}
+
+// Cache de produtos
+let cachesProdutos = {};
+
+// Variável global para tabela de preços selecionada (Steitz)
+let tabelaPrecosSelecionada = 'a_vista';
+
+async function getProdutosByEmpresa(empresa) {
+  // Verificar se já está no cache
+  if (cachesProdutos[empresa]) {
+    return cachesProdutos[empresa];
+  }
+  
+  // Carregar produtos da empresa
+  const produtos = await carregarProdutosDaEmpresa(empresa);
+  
+  // Salvar no cache
+  cachesProdutos[empresa] = produtos;
+  
+  return produtos;
 }
 
 function renderizarFormularioEdicao(pedido) {
@@ -252,19 +300,23 @@ window.adicionarItemEdicao = function() {
   abrirModalProdutos();
 };
 
-function abrirModalProdutos() {
+async function abrirModalProdutos() {
   const modal = document.getElementById('modal-produtos');
   if (!modal) {
     criarModalProdutos();
   }
   
-  // Carregar produtos da empresa
-  const produtos = getProdutosByEmpresa(pedidoEditando.empresa);
-  renderizarProdutosModal(produtos);
-  
-  // Mostrar modal
+  // Mostrar modal primeiro
   document.getElementById('modal-produtos').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  
+  // Mostrar loading
+  const listaContainer = document.getElementById('lista-produtos-modal');
+  listaContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><div style="font-size: 2rem; margin-bottom: 10px;">⏳</div>Carregando produtos...</div>';
+  
+  // Carregar produtos da empresa
+  const produtos = await getProdutosByEmpresa(pedidoEditando.empresa);
+  renderizarProdutosModal(produtos);
 }
 
 function criarModalProdutos() {
@@ -283,6 +335,21 @@ function criarModalProdutos() {
     iconEmpresa = '👞';
   }
 
+  // Seletor de tabela de preços para Steitz
+  let seletorTabelaPrecos = '';
+  if (pedidoEditando.empresa === 'steitz') {
+    seletorTabelaPrecos = `
+      <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 8px; border: 1px solid #e2e8f0;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b;">💰 Tabela de Preços:</label>
+        <select id="tabela-precos-steitz" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 1rem; background: white; cursor: pointer;">
+          <option value="a_vista">À Vista</option>
+          <option value="p_30_45_60">30/45/60 dias</option>
+          <option value="p_30_60_90">30/60/90 dias</option>
+        </select>
+      </div>
+    `;
+  }
+
   const modalHtml = `
     <div id="modal-produtos" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
       <div style="background: white; border-radius: 12px; max-width: 900px; width: 90%; max-height: 80vh; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
@@ -297,6 +364,7 @@ function criarModalProdutos() {
           <button id="fechar-modal-produtos" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 4px; transition: all 0.2s;">✕</button>
         </div>
         <div style="padding: 20px;">
+          ${seletorTabelaPrecos}
           <div style="margin-bottom: 20px;">
             <input type="text" id="busca-modal-produtos" placeholder="🔍 Buscar produtos por referência ou descrição..." style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: all 0.3s;">
           </div>
@@ -316,6 +384,17 @@ function criarModalProdutos() {
     if (e.target === this) fecharModalProdutos();
   });
   
+  // Listener para mudança de tabela de preços (Steitz)
+  if (pedidoEditando.empresa === 'steitz') {
+    document.getElementById('tabela-precos-steitz').addEventListener('change', function(e) {
+      tabelaPrecosSelecionada = e.target.value;
+      // Recarregar produtos com a nova tabela
+      if (cachesProdutos[pedidoEditando.empresa]) {
+        renderizarProdutosModal(cachesProdutos[pedidoEditando.empresa]);
+      }
+    });
+  }
+  
   // Fechar modal com ESC
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && document.getElementById('modal-produtos').style.display === 'flex') {
@@ -327,9 +406,9 @@ function criarModalProdutos() {
   let timeoutBusca;
   document.getElementById('busca-modal-produtos').addEventListener('input', function(e) {
     clearTimeout(timeoutBusca);
-    timeoutBusca = setTimeout(() => {
+    timeoutBusca = setTimeout(async () => {
       const filtro = e.target.value.toLowerCase();
-      const produtos = getProdutosByEmpresa(pedidoEditando.empresa);
+      const produtos = await getProdutosByEmpresa(pedidoEditando.empresa);
       const produtosFiltrados = produtos.filter(produto => {
         const ref = produto.REFERENCIA || produto.REF || '';
         const desc = produto.DESCRIÇÃO || produto.MODELO || '';
@@ -362,12 +441,18 @@ function renderizarProdutosModal(produtos) {
   
   // Cabeçalho específico por empresa
   if (pedidoEditando.empresa === 'steitz') {
+    const tabelaNome = {
+      'a_vista': 'À Vista',
+      'p_30_45_60': '30/45/60 dias',
+      'p_30_60_90': '30/60/90 dias'
+    };
+    
     html += `
       <thead>
         <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
           <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ref.</th>
           <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Modelo</th>
-          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Preço À Vista</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Preço (${tabelaNome[tabelaPrecosSelecionada]})</th>
           <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ação</th>
         </tr>
       </thead>
@@ -391,7 +476,7 @@ function renderizarProdutosModal(produtos) {
     const ref = produto.REFERENCIA || produto.REF || '';
     const desc = produto.DESCRIÇÃO || produto.MODELO || '';
     const preco = pedidoEditando.empresa === 'steitz' ? 
-      (produto.PRECOS?.a_vista || 0) : 
+      (produto.PRECOS?.[tabelaPrecosSelecionada] || produto.PRECOS?.a_vista || 0) : 
       (produto.PRECO || 0);
     
     html += `
@@ -431,8 +516,8 @@ function renderizarProdutosModal(produtos) {
 
 let produtosModalCache = [];
 
-window.selecionarProdutoModal = function(index) {
-  const produtos = getProdutosByEmpresa(pedidoEditando.empresa);
+window.selecionarProdutoModal = async function(index) {
+  const produtos = await getProdutosByEmpresa(pedidoEditando.empresa);
   const produto = produtos[index];
   
   if (!produto) return;
@@ -457,7 +542,7 @@ window.selecionarProdutoModal = function(index) {
     cor: '',
     quantidade: 1,
     preco: pedidoEditando.empresa === 'steitz' ? 
-      (produto.PRECOS?.a_vista || 0) : 
+      (produto.PRECOS?.[tabelaPrecosSelecionada] || produto.PRECOS?.a_vista || 0) : 
       (produto.PRECO || 0),
     descontoExtra: 0
   };
@@ -914,11 +999,11 @@ document.getElementById('form-editar-pedido').addEventListener('click', function
   }
 });
 
-function buscarProduto(input, empresa) {
+async function buscarProduto(input, empresa) {
   const valor = input.value.trim();
   if (valor.length < 2) return;
   
-  const produtos = getProdutosByEmpresa(empresa);
+  const produtos = await getProdutosByEmpresa(empresa);
   
   // Buscar produto exato primeiro
   const produtoExato = produtos.find(produto => {
@@ -994,7 +1079,7 @@ function preencherProduto(input, produto, empresa) {
   const precoInput = document.getElementById(`edit-item-${idx}-preco`);
   if (precoInput) {
     if (empresa === 'steitz') {
-      precoInput.value = produto.PRECOS.a_vista || 0;
+      precoInput.value = produto.PRECOS[tabelaPrecosSelecionada] || produto.PRECOS.a_vista || 0;
     } else {
       precoInput.value = produto.PRECO || 0;
     }

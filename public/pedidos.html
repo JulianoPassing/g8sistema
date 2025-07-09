@@ -683,6 +683,66 @@
           padding: 8px 6px;
         }
       }
+
+      /* Estilos para o seletor de tabela de preços */
+      #tabela-precos-steitz {
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      #tabela-precos-steitz:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        background: white;
+      }
+
+      #tabela-precos-steitz:hover {
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+      }
+
+      /* Destaque para a seção de tabela de preços */
+      .tabela-precos-container {
+        animation: slideInFromTop 0.3s ease-out;
+      }
+
+      @keyframes slideInFromTop {
+        from {
+          transform: translateY(-10px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      /* Responsividade do modal */
+      @media (max-width: 768px) {
+        #modal-produtos > div {
+          width: 95%;
+          max-height: 85vh;
+          margin: 0 10px;
+        }
+        
+        #lista-produtos-modal {
+          max-height: 300px;
+        }
+        
+        #lista-produtos-modal table {
+          font-size: 0.8rem;
+        }
+        
+        #lista-produtos-modal table th,
+        #lista-produtos-modal table td {
+          padding: 8px 6px;
+        }
+      }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
