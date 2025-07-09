@@ -71,11 +71,29 @@ window.editarPedido = function(id) {
         alert('Pedido não encontrado.');
         return;
       }
-      pedidoEditando = pedido;
-      document.getElementById('pedido-id').value = pedido.id;
-      renderizarFormularioEdicao(pedido);
-      document.getElementById('editar-pedido-card').style.display = 'block';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Salvar dados do pedido no localStorage para edição
+      localStorage.setItem('pedidoParaEdicao', JSON.stringify(pedido));
+      
+      // Redirecionar para a página da empresa
+      let paginaEmpresa = '';
+      switch(pedido.empresa) {
+        case 'pantaneiro5':
+          paginaEmpresa = 'pantaneiro5.html';
+          break;
+        case 'pantaneiro7':
+          paginaEmpresa = 'pantaneiro7.html';
+          break;
+        case 'steitz':
+          paginaEmpresa = 'steitz.html';
+          break;
+        default:
+          alert('Empresa não reconhecida.');
+          return;
+      }
+      
+      // Redirecionar para a página da empresa
+      window.location.href = paginaEmpresa + '?modo=edicao&id=' + id;
     });
 };
 

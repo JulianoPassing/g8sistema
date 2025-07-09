@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
         `UPDATE pedidos SET empresa = ?, descricao = ?, dados = ?, data_pedido = NOW() WHERE id = ?`,
         [empresa, descricao, JSON.stringify(dados || {}), id]
       );
-      res.status(200).json({ message: 'Pedido atualizado com sucesso!' });
+      res.status(200).json({ success: true, message: 'Pedido atualizado com sucesso!' });
       return;
     }
 
