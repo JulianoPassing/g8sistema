@@ -249,13 +249,324 @@ window.removerItemEdicao = function(idx) {
 
 window.adicionarItemEdicao = function() {
   if (!pedidoEditando || !pedidoEditando.dados) return;
-  pedidoEditando.dados.itens.push({ REFERENCIA: '', DESCRIÇÃO: '', tamanho: '', cor: '', quantidade: 1, preco: 0, descontoExtra: 0 });
-  renderizarFormularioEdicao(pedidoEditando);
-  // Atualizar total após adicionar item
-  setTimeout(() => {
-    atualizarTotalEdicao();
-  }, 50);
+  abrirModalProdutos();
 };
+
+function abrirModalProdutos() {
+  const modal = document.getElementById('modal-produtos');
+  if (!modal) {
+    criarModalProdutos();
+  }
+  
+  // Carregar produtos da empresa
+  const produtos = getProdutosByEmpresa(pedidoEditando.empresa);
+  renderizarProdutosModal(produtos);
+  
+  // Mostrar modal
+  document.getElementById('modal-produtos').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function criarModalProdutos() {
+  // Determinar nome da empresa
+  let nomeEmpresa = 'Produtos';
+  let iconEmpresa = '📦';
+  
+  if (pedidoEditando.empresa === 'pantaneiro5') {
+    nomeEmpresa = 'Pantaneiro 5mm';
+    iconEmpresa = '🌊';
+  } else if (pedidoEditando.empresa === 'pantaneiro7') {
+    nomeEmpresa = 'Pantaneiro 7mm';
+    iconEmpresa = '🌊';
+  } else if (pedidoEditando.empresa === 'steitz') {
+    nomeEmpresa = 'Steitz';
+    iconEmpresa = '👞';
+  }
+
+  const modalHtml = `
+    <div id="modal-produtos" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+      <div style="background: white; border-radius: 12px; max-width: 900px; width: 90%; max-height: 80vh; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+        <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 1.8rem;">${iconEmpresa}</span>
+            <div>
+              <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700;">Selecionar Produto</h3>
+              <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">${nomeEmpresa}</p>
+            </div>
+          </div>
+          <button id="fechar-modal-produtos" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 4px; transition: all 0.2s;">✕</button>
+        </div>
+        <div style="padding: 20px;">
+          <div style="margin-bottom: 20px;">
+            <input type="text" id="busca-modal-produtos" placeholder="🔍 Buscar produtos por referência ou descrição..." style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: all 0.3s;">
+          </div>
+          <div id="lista-produtos-modal" style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <!-- Produtos serão inseridos aqui -->
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  
+  // Event listeners
+  document.getElementById('fechar-modal-produtos').addEventListener('click', fecharModalProdutos);
+  document.getElementById('modal-produtos').addEventListener('click', function(e) {
+    if (e.target === this) fecharModalProdutos();
+  });
+  
+  // Fechar modal com ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('modal-produtos').style.display === 'flex') {
+      fecharModalProdutos();
+    }
+  });
+  
+  // Busca de produtos com debounce
+  let timeoutBusca;
+  document.getElementById('busca-modal-produtos').addEventListener('input', function(e) {
+    clearTimeout(timeoutBusca);
+    timeoutBusca = setTimeout(() => {
+      const filtro = e.target.value.toLowerCase();
+      const produtos = getProdutosByEmpresa(pedidoEditando.empresa);
+      const produtosFiltrados = produtos.filter(produto => {
+        const ref = produto.REFERENCIA || produto.REF || '';
+        const desc = produto.DESCRIÇÃO || produto.MODELO || '';
+        return ref.toLowerCase().includes(filtro) || desc.toLowerCase().includes(filtro);
+      });
+      renderizarProdutosModal(produtosFiltrados);
+    }, 300);
+  });
+  
+  // Focar no campo de busca quando abrir
+  setTimeout(() => {
+    document.getElementById('busca-modal-produtos').focus();
+  }, 100);
+}
+
+function renderizarProdutosModal(produtos) {
+  const lista = document.getElementById('lista-produtos-modal');
+  if (!produtos || produtos.length === 0) {
+    lista.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b; font-size: 1.1rem;">❌ Nenhum produto encontrado</div>';
+    return;
+  }
+  
+  // Adicionar contador de produtos
+  let html = `
+    <div style="padding: 10px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; color: #64748b; text-align: center;">
+      📊 ${produtos.length} produto${produtos.length !== 1 ? 's' : ''} encontrado${produtos.length !== 1 ? 's' : ''}
+    </div>
+    <table style="width: 100%; border-collapse: collapse;">
+  `;
+  
+  // Cabeçalho específico por empresa
+  if (pedidoEditando.empresa === 'steitz') {
+    html += `
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ref.</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Modelo</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Preço À Vista</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ação</th>
+        </tr>
+      </thead>
+    `;
+  } else {
+    html += `
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ref.</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Descrição</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Preço</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ação</th>
+        </tr>
+      </thead>
+    `;
+  }
+  
+  html += '<tbody>';
+  
+  produtos.forEach((produto, index) => {
+    const ref = produto.REFERENCIA || produto.REF || '';
+    const desc = produto.DESCRIÇÃO || produto.MODELO || '';
+    const preco = pedidoEditando.empresa === 'steitz' ? 
+      (produto.PRECOS?.a_vista || 0) : 
+      (produto.PRECO || 0);
+    
+    html += `
+      <tr style="border-bottom: 1px solid #e2e8f0; transition: all 0.2s;" 
+          onmouseover="this.style.background='#f8fafc'; this.style.transform='translateX(2px)'" 
+          onmouseout="this.style.background='transparent'; this.style.transform='translateX(0)'">
+        <td style="padding: 12px; font-weight: 700; color: #2563eb; font-size: 0.95rem;">${ref}</td>
+        <td style="padding: 12px; color: #334155; line-height: 1.4;">${desc}</td>
+        <td style="padding: 12px; color: #059669; font-weight: 700; font-size: 1rem;">R$ ${preco.toFixed(2)}</td>
+        <td style="padding: 12px;">
+          <button onclick="selecionarProdutoModal(${index})" 
+                  style="background: linear-gradient(135deg, #059669 0%, #047857 100%); 
+                         color: white; 
+                         border: none; 
+                         padding: 10px 20px; 
+                         border-radius: 8px; 
+                         cursor: pointer; 
+                         font-weight: 600; 
+                         font-size: 0.9rem;
+                         transition: all 0.3s;
+                         box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
+                         position: relative;
+                         overflow: hidden;"
+                  onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(5, 150, 105, 0.4)'"
+                  onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 2px 6px rgba(5, 150, 105, 0.3)'"
+                  title="Clique para adicionar este produto ao pedido">
+            ✓ Selecionar
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  
+  html += '</tbody></table>';
+  lista.innerHTML = html;
+}
+
+let produtosModalCache = [];
+
+window.selecionarProdutoModal = function(index) {
+  const produtos = getProdutosByEmpresa(pedidoEditando.empresa);
+  const produto = produtos[index];
+  
+  if (!produto) return;
+  
+  // Feedback visual no botão
+  const botoes = document.querySelectorAll('#lista-produtos-modal button');
+  const botaoClicado = botoes[index];
+  if (botaoClicado) {
+    botaoClicado.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+    botaoClicado.innerHTML = '✅ Adicionado!';
+    botaoClicado.style.transform = 'scale(1.1)';
+    botaoClicado.disabled = true;
+  }
+  
+  // Adicionar item ao pedido
+  const novoItem = {
+    REFERENCIA: produto.REFERENCIA || produto.REF || '',
+    DESCRIÇÃO: produto.DESCRIÇÃO || produto.MODELO || '',
+    REF: produto.REF || produto.REFERENCIA || '',
+    MODELO: produto.MODELO || produto.DESCRIÇÃO || '',
+    tamanho: '',
+    cor: '',
+    quantidade: 1,
+    preco: pedidoEditando.empresa === 'steitz' ? 
+      (produto.PRECOS?.a_vista || 0) : 
+      (produto.PRECO || 0),
+    descontoExtra: 0
+  };
+  
+  pedidoEditando.dados.itens.push(novoItem);
+  
+  // Fechar modal após um breve delay para mostrar o feedback
+  setTimeout(() => {
+    fecharModalProdutos();
+    
+    // Mostrar notificação de sucesso
+    mostrarNotificacao('✅ Produto adicionado ao pedido!', 'sucesso');
+    
+    // Atualizar formulário
+    renderizarFormularioEdicao(pedidoEditando);
+    
+    // Atualizar total
+    setTimeout(() => {
+      atualizarTotalEdicao();
+    }, 50);
+  }, 800);
+};
+
+// Função para mostrar notificações
+function mostrarNotificacao(mensagem, tipo = 'info') {
+  // Remover notificação existente
+  const notificacaoExistente = document.getElementById('notificacao-temp');
+  if (notificacaoExistente) {
+    notificacaoExistente.remove();
+  }
+  
+  const cores = {
+    sucesso: { bg: '#10b981', icon: '✅' },
+    erro: { bg: '#ef4444', icon: '❌' },
+    info: { bg: '#3b82f6', icon: 'ℹ️' }
+  };
+  
+  const cor = cores[tipo] || cores.info;
+  
+  const notificacao = document.createElement('div');
+  notificacao.id = 'notificacao-temp';
+  notificacao.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${cor.bg};
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 20000;
+    font-weight: 600;
+    font-size: 0.9rem;
+    animation: slideInRight 0.3s ease-out;
+    max-width: 300px;
+  `;
+  
+  notificacao.innerHTML = `${cor.icon} ${mensagem}`;
+  
+  document.body.appendChild(notificacao);
+  
+  // Remover após 3 segundos
+  setTimeout(() => {
+    if (notificacao.parentNode) {
+      notificacao.style.animation = 'slideOutRight 0.3s ease-out';
+      setTimeout(() => {
+        notificacao.remove();
+      }, 300);
+    }
+  }, 3000);
+}
+
+// Adicionar keyframes CSS para animações da notificação
+if (!document.getElementById('notificacao-styles')) {
+  const style = document.createElement('style');
+  style.id = 'notificacao-styles';
+  style.textContent = `
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function fecharModalProdutos() {
+  const modal = document.getElementById('modal-produtos');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+}
 
 async function salvarAlteracoes() {
   const id = document.getElementById('pedido-id').value;

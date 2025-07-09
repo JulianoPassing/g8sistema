@@ -597,6 +597,92 @@
         margin-right: 8px;
         font-size: 1.1rem;
       }
+
+      /* Estilos para o modal de produtos */
+      #modal-produtos {
+        backdrop-filter: blur(4px);
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      #modal-produtos > div {
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(-30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      /* Estilos para o campo de busca do modal */
+      #busca-modal-produtos:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      /* Estilos para a tabela de produtos do modal */
+      #lista-produtos-modal table {
+        font-size: 0.9rem;
+      }
+
+      #lista-produtos-modal table th {
+        position: sticky;
+        top: 0;
+        background: #f8fafc;
+        z-index: 10;
+      }
+
+      #lista-produtos-modal::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      #lista-produtos-modal::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+      }
+
+      #lista-produtos-modal::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+
+      #lista-produtos-modal::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      /* Botão fechar modal */
+      #fechar-modal-produtos:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.1);
+      }
+
+      /* Responsividade do modal */
+      @media (max-width: 768px) {
+        #modal-produtos > div {
+          width: 95%;
+          max-height: 85vh;
+          margin: 0 10px;
+        }
+        
+        #lista-produtos-modal {
+          max-height: 300px;
+        }
+        
+        #lista-produtos-modal table {
+          font-size: 0.8rem;
+        }
+        
+        #lista-produtos-modal table th,
+        #lista-produtos-modal table td {
+          padding: 8px 6px;
+        }
+      }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
