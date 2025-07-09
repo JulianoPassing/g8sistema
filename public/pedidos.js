@@ -203,7 +203,7 @@ function renderizarFormularioEdicao(pedido) {
   for (const campo in (campos.cliente || {})) {
     // Evitar duplicação de transporte e prazo
     if (campo !== 'transporte' && campo !== 'prazo') {
-      html += `<div class='form-group'><label style='font-weight:600;'>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='text' id='edit-cliente-${campo}' value='${campos.cliente[campo] || ''}' /></div>`;
+    html += `<div class='form-group'><label style='font-weight:600;'>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='text' id='edit-cliente-${campo}' value='${campos.cliente[campo] || ''}' /></div>`;
     }
   }
   html += '</div>';
@@ -575,12 +575,12 @@ window.selecionarProdutoModal = async function(index) {
     mostrarNotificacao('✅ Produto adicionado ao pedido!', 'sucesso');
     
     // Atualizar formulário
-    renderizarFormularioEdicao(pedidoEditando);
+  renderizarFormularioEdicao(pedidoEditando);
     
     // Atualizar total
-    setTimeout(() => {
-      atualizarTotalEdicao();
-    }, 50);
+  setTimeout(() => {
+    atualizarTotalEdicao();
+  }, 50);
   }, 800);
 };
 
@@ -678,7 +678,7 @@ async function salvarAlteracoes() {
   // Atualizar cliente (exceto transporte e prazo para evitar duplicação)
   for (const campo in (pedidoEditando.dados.cliente || {})) {
     if (campo !== 'transporte' && campo !== 'prazo') {
-      pedidoEditando.dados.cliente[campo] = document.getElementById('edit-cliente-' + campo).value;
+    pedidoEditando.dados.cliente[campo] = document.getElementById('edit-cliente-' + campo).value;
     }
   }
   
@@ -821,24 +821,24 @@ function gerarPDFPedidoEditado(pedido) {
   } else {
     head = [['Ref.', 'Descrição', 'Tam/Cor', 'Qtd', 'Unit.', 'Desc.%', 'Total']];
     body = (itens || []).map((item) => {
-      // Descontos gerais
-      let precoUnitario = item.preco || 0;
-      let descontoGeral = 1;
-      if (descontos) {
-        if (descontos.prazo) descontoGeral *= (1 - (descontos.prazo / 100));
-        if (descontos.volume) descontoGeral *= (1 - (descontos.volume / 100));
-      }
-      precoUnitario = precoUnitario * descontoGeral;
-      return [
-        item.REFERENCIA || item.REF || '',
-        item.DESCRIÇÃO || item.MODELO || '',
-        `${item.tamanho || ''}${item.cor ? ' / ' + item.cor : ''}`,
-        item.quantidade || '',
-        `R$ ${precoUnitario.toFixed(2)}`,
-        `${item.descontoExtra || 0}%`,
-        `R$ ${(precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2)}`
-      ];
-    });
+    // Descontos gerais
+    let precoUnitario = item.preco || 0;
+    let descontoGeral = 1;
+    if (descontos) {
+      if (descontos.prazo) descontoGeral *= (1 - (descontos.prazo / 100));
+      if (descontos.volume) descontoGeral *= (1 - (descontos.volume / 100));
+    }
+    precoUnitario = precoUnitario * descontoGeral;
+    return [
+      item.REFERENCIA || item.REF || '',
+      item.DESCRIÇÃO || item.MODELO || '',
+      `${item.tamanho || ''}${item.cor ? ' / ' + item.cor : ''}`,
+      item.quantidade || '',
+      `R$ ${precoUnitario.toFixed(2)}`,
+      `${item.descontoExtra || 0}%`,
+      `R$ ${(precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2)}`
+    ];
+  });
   }
   // Configurações de colunas específicas para cada empresa
   let columnStyles;
@@ -899,15 +899,15 @@ function gerarPDFPedidoEditado(pedido) {
     }
   } else {
     // Para Pantaneiro, usa desconto prazo e volume
-    if (descontos && descontos.prazo > 0) {
+  if (descontos && descontos.prazo > 0) {
       const valorDescontoPrazo = subtotalSemDesconto * (descontos.prazo / 100);
       summaryData.push([`Desconto Prazo (${descontos.prazo}%):`, `- R$ ${valorDescontoPrazo.toFixed(2)}`]);
-    }
-    if (descontos && descontos.volume > 0) {
+  }
+  if (descontos && descontos.volume > 0) {
       const baseDescontoVolume = subtotalSemDesconto * (1 - (descontos.prazo || 0) / 100);
       const valorDescontoVolume = baseDescontoVolume * (descontos.volume / 100);
       summaryData.push([`Desconto Volume (${descontos.volume}%):`, `- R$ ${valorDescontoVolume.toFixed(2)}`]);
-    }
+  }
   }
   
   summaryData.push(['', '']);
