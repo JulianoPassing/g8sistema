@@ -135,15 +135,18 @@ function renderizarFormularioEdicao(pedido) {
   html += '<h3 style="margin-top:0;margin-bottom:10px;color:#007bff;border-bottom:1px solid #dee2e6;padding-bottom:4px;">Dados do Cliente</h3>';
   html += '<div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px 24px;margin-bottom:18px;">';
   for (const campo in (campos.cliente || {})) {
-    html += `<div class='form-group'><label style='font-weight:600;'>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='text' id='edit-cliente-${campo}' value='${campos.cliente[campo] || ''}' /></div>`;
+    // Evitar duplicação de transporte e prazo
+    if (campo !== 'transporte' && campo !== 'prazo') {
+      html += `<div class='form-group'><label style='font-weight:600;'>${campo.charAt(0).toUpperCase() + campo.slice(1)}</label><input type='text' id='edit-cliente-${campo}' value='${campos.cliente[campo] || ''}' /></div>`;
+    }
   }
   html += '</div>';
   
   // Transporte e Prazo (campos importantes para o PDF)
   html += '<h3 style="margin-top:18px;margin-bottom:10px;color:#007bff;border-bottom:1px solid #dee2e6;padding-bottom:4px;">Transporte e Prazo</h3>';
   html += '<div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px 24px;margin-bottom:18px;">';
-  html += `<div class='form-group'><label style='font-weight:600;'><span>🚚</span> Transporte</label><input type='text' id='edit-transporte' value='${campos.transporte || ''}' /></div>`;
-  html += `<div class='form-group'><label style='font-weight:600;'><span>💰</span> Prazo Pagamento</label><input type='text' id='edit-prazo' value='${campos.prazo || ''}' /></div>`;
+  html += `<div class='form-group'><label style='font-weight:600;'><span>🚚</span> Transporte</label><input type='text' id='edit-transporte' value='${campos.transporte || campos.cliente?.transporte || ''}' /></div>`;
+  html += `<div class='form-group'><label style='font-weight:600;'><span>💰</span> Prazo Pagamento</label><input type='text' id='edit-prazo' value='${campos.prazo || campos.cliente?.prazo || ''}' /></div>`;
   html += '</div>';
   
   // Itens
@@ -258,12 +261,14 @@ async function salvarAlteracoes() {
   const id = document.getElementById('pedido-id').value;
   if (!pedidoEditando) return;
   
-  // Atualizar cliente
+  // Atualizar cliente (exceto transporte e prazo para evitar duplicação)
   for (const campo in (pedidoEditando.dados.cliente || {})) {
-    pedidoEditando.dados.cliente[campo] = document.getElementById('edit-cliente-' + campo).value;
+    if (campo !== 'transporte' && campo !== 'prazo') {
+      pedidoEditando.dados.cliente[campo] = document.getElementById('edit-cliente-' + campo).value;
+    }
   }
   
-  // Atualizar transporte e prazo
+  // Atualizar transporte e prazo na estrutura principal
   pedidoEditando.dados.transporte = document.getElementById('edit-transporte').value;
   pedidoEditando.dados.prazo = document.getElementById('edit-prazo').value;
   
@@ -327,6 +332,14 @@ function gerarPDFPedidoEditado(pedido) {
   const margin = 15;
   let finalY = 0;
 
+  // Determinar título específico da empresa
+  let tituloEmpresa = 'Pedido de Venda';
+  if (pedido.empresa === 'pantaneiro5' || pedido.empresa === 'pantaneiro7') {
+    tituloEmpresa = 'Pedido de Venda - Pantaneiro';
+  } else if (pedido.empresa === 'steitz') {
+    tituloEmpresa = 'Pedido de Venda - Steitz';
+  }
+
   // Cabeçalho e rodapé
   const drawHeaderAndFooter = (data) => {
     const logoImg = new Image();
@@ -334,7 +347,7 @@ function gerarPDFPedidoEditado(pedido) {
     doc.addImage(logoImg, 'PNG', margin, 10, 90, 15);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('Pedido de Venda', pageWidth - margin, 18, { align: 'right' });
+    doc.text(tituloEmpresa, pageWidth - margin, 18, { align: 'right' });
     const hoje = new Date();
     const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
     doc.setFontSize(10);
@@ -346,7 +359,7 @@ function gerarPDFPedidoEditado(pedido) {
   };
   drawHeaderAndFooter({ pageNumber: 1 });
 
-  // Tabela de dados do cliente
+  // Tabela de dados do cliente (sem transporte e prazo - seguindo formato original)
   doc.autoTable({
     startY: 30,
     theme: 'grid',
@@ -357,7 +370,6 @@ function gerarPDFPedidoEditado(pedido) {
       ['Telefone:', cliente?.telefone || 'N/A', 'E-mail:', cliente?.email || 'N/A'],
       ['Endereço:', { content: `${cliente?.endereco || ''}, ${cliente?.bairro || ''}`, colSpan: 3 }],
       ['Cidade/UF:', `${cliente?.cidade || ''}/${cliente?.estado || ''}`, 'CEP:', cliente?.cep || ''],
-      ['TRANSPORTE:', transporte || 'A combinar', 'PRAZO:', prazo || 'A combinar'],
     ],
     styles: { fontSize: 8, cellPadding: 1.5 },
     columnStyles: { 0: { fontStyle: 'bold', cellWidth: 22 }, 2: { fontStyle: 'bold', cellWidth: 20 } },
@@ -366,27 +378,79 @@ function gerarPDFPedidoEditado(pedido) {
 
   let startY = doc.autoTable.previous.finalY + 7;
 
-  // Tabela de itens
-  const head = [['Ref.', 'Descrição', 'Tam/Cor', 'Qtd', 'Unit.', 'Desc.%', 'Total']];
-  const body = (itens || []).map((item) => {
-    // Descontos gerais
-    let precoUnitario = item.preco || 0;
-    let descontoGeral = 1;
-    if (descontos) {
-      if (descontos.prazo) descontoGeral *= (1 - (descontos.prazo / 100));
-      if (descontos.volume) descontoGeral *= (1 - (descontos.volume / 100));
-    }
-    precoUnitario = precoUnitario * descontoGeral;
-    return [
-      item.REFERENCIA || item.REF || '',
-      item.DESCRIÇÃO || item.MODELO || '',
-      `${item.tamanho || ''}${item.cor ? ' / ' + item.cor : ''}`,
-      item.quantidade || '',
-      `R$ ${precoUnitario.toFixed(2)}`,
-      `${item.descontoExtra || 0}%`,
-      `R$ ${(precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2)}`
-    ];
-  });
+  // Tabela de itens (ajustada para diferentes empresas)
+  let head, body;
+  
+  if (pedido.empresa === 'steitz') {
+    head = [['Ref.', 'Modelo', 'Cor', 'Tamanho', 'Qtd.', 'Vlr. Unit.', 'Desc.%', 'Subtotal']];
+    body = (itens || []).map((item) => {
+      // Descontos gerais
+      let precoUnitario = item.preco || 0;
+      let descontoGeral = 1;
+      if (descontos) {
+        if (descontos.prazo) descontoGeral *= (1 - (descontos.prazo / 100));
+        if (descontos.volume) descontoGeral *= (1 - (descontos.volume / 100));
+        if (descontos.extra) descontoGeral *= (1 - (descontos.extra / 100));
+      }
+      precoUnitario = precoUnitario * descontoGeral;
+      return [
+        item.REFERENCIA || item.REF || '',
+        item.DESCRIÇÃO || item.MODELO || '',
+        item.cor || '',
+        item.tamanho || '',
+        item.quantidade || '',
+        `R$ ${precoUnitario.toFixed(2)}`,
+        `${item.descontoExtra || 0}%`,
+        `R$ ${(precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2)}`
+      ];
+    });
+  } else {
+    head = [['Ref.', 'Descrição', 'Tam/Cor', 'Qtd', 'Unit.', 'Desc.%', 'Total']];
+    body = (itens || []).map((item) => {
+      // Descontos gerais
+      let precoUnitario = item.preco || 0;
+      let descontoGeral = 1;
+      if (descontos) {
+        if (descontos.prazo) descontoGeral *= (1 - (descontos.prazo / 100));
+        if (descontos.volume) descontoGeral *= (1 - (descontos.volume / 100));
+      }
+      precoUnitario = precoUnitario * descontoGeral;
+      return [
+        item.REFERENCIA || item.REF || '',
+        item.DESCRIÇÃO || item.MODELO || '',
+        `${item.tamanho || ''}${item.cor ? ' / ' + item.cor : ''}`,
+        item.quantidade || '',
+        `R$ ${precoUnitario.toFixed(2)}`,
+        `${item.descontoExtra || 0}%`,
+        `R$ ${(precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2)}`
+      ];
+    });
+  }
+  // Configurações de colunas específicas para cada empresa
+  let columnStyles;
+  if (pedido.empresa === 'steitz') {
+    columnStyles = {
+      0: { cellWidth: 15 },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 20 },
+      3: { cellWidth: 15, halign: 'center' },
+      4: { cellWidth: 15, halign: 'center' },
+      5: { cellWidth: 20, halign: 'right' },
+      6: { cellWidth: 15, halign: 'center' },
+      7: { cellWidth: 22, halign: 'right' }
+    };
+  } else {
+    columnStyles = {
+      0: { cellWidth: 15 },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 30 },
+      3: { cellWidth: 10, halign: 'center' },
+      4: { cellWidth: 20, halign: 'right' },
+      5: { cellWidth: 15, halign: 'center' },
+      6: { cellWidth: 22, halign: 'right' }
+    };
+  }
+
   doc.autoTable({
     head: head,
     body: body,
@@ -394,33 +458,44 @@ function gerarPDFPedidoEditado(pedido) {
     theme: 'grid',
     styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak', valign: 'middle' },
     headStyles: { fillColor: [44, 62, 80], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-    columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 30 }, 3: { cellWidth: 10, halign: 'center' }, 4: { cellWidth: 20, halign: 'right' }, 5: { cellWidth: 15, halign: 'center' }, 6: { cellWidth: 22, halign: 'right' } },
+    columnStyles: columnStyles,
     didDrawPage: (data) => { if (data.pageNumber > 1) drawHeaderAndFooter(data); },
     margin: { top: 30, bottom: 15 },
   });
   finalY = doc.autoTable.previous.finalY;
 
-  // Observações e totais
-  const obsText = `Observações:\n${cliente?.obs || 'Nenhuma.'}\n\nTransporte: ${transporte || 'A combinar'}\nPrazo Pagamento: ${prazo || 'A combinar'}`;
-  let subtotal = 0;
+  // Observações e totais (seguindo formato original)
+  const obsText = `Transporte: ${transporte || 'A combinar'}\nPrazo Pagamento: ${prazo || 'A combinar'}\n\nObservações:\n${cliente?.obs || 'Nenhuma.'}`;
+  
+  // Calcular subtotal sem desconto
+  let subtotalSemDesconto = 0;
   (itens || []).forEach(item => {
-    let precoUnitario = item.preco || 0;
-    let descontoGeral = 1;
-    if (descontos) {
-      if (descontos.prazo) descontoGeral *= (1 - (descontos.prazo / 100));
-      if (descontos.volume) descontoGeral *= (1 - (descontos.volume / 100));
-    }
-    precoUnitario = precoUnitario * descontoGeral;
-    subtotal += precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100);
+    subtotalSemDesconto += (item.preco || 0) * (item.quantidade || 0);
   });
+  
   const summaryData = [];
-  summaryData.push(['Subtotal sem Desconto:', `R$ ${subtotal.toFixed(2)}`]);
-  if (descontos && descontos.prazo > 0) {
-    summaryData.push([`Desconto Prazo (${descontos.prazo}%):`, `- R$ ${(subtotal * (descontos.prazo / 100)).toFixed(2)}`]);
+  summaryData.push(['Subtotal sem Desconto:', `R$ ${subtotalSemDesconto.toFixed(2)}`]);
+  
+  // Aplicar descontos conforme empresa
+  if (pedido.empresa === 'steitz') {
+    // Para Steitz, usa desconto "extra"
+    if (descontos && descontos.extra > 0) {
+      const valorDescontoExtra = subtotalSemDesconto * (descontos.extra / 100);
+      summaryData.push([`Desconto Extra (${descontos.extra}%):`, `- R$ ${valorDescontoExtra.toFixed(2)}`]);
+    }
+  } else {
+    // Para Pantaneiro, usa desconto prazo e volume
+    if (descontos && descontos.prazo > 0) {
+      const valorDescontoPrazo = subtotalSemDesconto * (descontos.prazo / 100);
+      summaryData.push([`Desconto Prazo (${descontos.prazo}%):`, `- R$ ${valorDescontoPrazo.toFixed(2)}`]);
+    }
+    if (descontos && descontos.volume > 0) {
+      const baseDescontoVolume = subtotalSemDesconto * (1 - (descontos.prazo || 0) / 100);
+      const valorDescontoVolume = baseDescontoVolume * (descontos.volume / 100);
+      summaryData.push([`Desconto Volume (${descontos.volume}%):`, `- R$ ${valorDescontoVolume.toFixed(2)}`]);
+    }
   }
-  if (descontos && descontos.volume > 0) {
-    summaryData.push([`Desconto Volume (${descontos.volume}%):`, `- R$ ${(subtotal * (descontos.volume / 100)).toFixed(2)}`]);
-  }
+  
   summaryData.push(['', '']);
   summaryData.push([
     { content: 'Total do Pedido:', styles: { fontStyle: 'bold', fontSize: 10 } },
@@ -442,7 +517,16 @@ function gerarPDFPedidoEditado(pedido) {
     margin: { left: margin, right: margin },
     columnStyles: { 0: { cellWidth: pageWidth / 2 - margin }, 1: { halign: 'right', fontStyle: 'bold' }, 2: { halign: 'right' } },
   });
-  const nomeArquivo = `Pedido_${pedido.id}_${cliente?.razao?.replace(/[\s\/]/g, '_') || ''}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  // Nome do arquivo específico por empresa
+  let nomeArquivo;
+  if (pedido.empresa === 'pantaneiro5' || pedido.empresa === 'pantaneiro7') {
+    nomeArquivo = `G8 Pedido Pantaneiro - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  } else if (pedido.empresa === 'steitz') {
+    nomeArquivo = `G8 Pedido Steitz - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  } else {
+    nomeArquivo = `Pedido_${pedido.id}_${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  }
+  
   doc.save(nomeArquivo);
 }
 
