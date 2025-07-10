@@ -137,18 +137,17 @@
 
   function carregarItensPedido(pedido) {
     const itens = pedido.dados?.itens || [];
-    
-    // Limpar pedido atual se existir
+    // Limpar itens atuais do pedido
     if (typeof window.pedidoItens !== 'undefined') {
+      window.pedidoItens.length = 0;
+    } else {
       window.pedidoItens = [];
     }
-    
-    // Aguardar um pouco para garantir que a página está carregada
+    // Aguarda a página carregar os elementos necessários
     setTimeout(() => {
-      // Adicionar cada item ao pedido
       itens.forEach((item, index) => {
         if (typeof window.adicionarAoPedido === 'function') {
-          // Para páginas que usam a função adicionarAoPedido
+          // Adiciona o item usando a função da página
           const produto = {
             REF: item.REFERENCIA || item.REF,
             MODELO: item.DESCRIÇÃO || item.MODELO,
@@ -157,34 +156,29 @@
             PRECO: item.preco,
             PRECOS: item.PRECOS || { a_vista: item.preco }
           };
-          
-          // Simular adição do produto com delay para evitar conflitos
           setTimeout(() => {
             window.adicionarAoPedido(produto, item.quantidade || 1, item.tamanho || '', item.cor || '');
           }, index * 100);
         } else {
-          // Adicionar diretamente ao array de itens
-          if (typeof window.pedidoItens !== 'undefined') {
-            window.pedidoItens.push({
-              produto: {
-                REF: item.REFERENCIA || item.REF,
-                MODELO: item.DESCRIÇÃO || item.MODELO,
-                REFERENCIA: item.REFERENCIA || item.REF,
-                DESCRIÇÃO: item.DESCRIÇÃO || item.MODELO,
-                PRECO: item.preco,
-                PRECOS: item.PRECOS || { a_vista: item.preco }
-              },
-              quantidade: item.quantidade || 1,
-              tamanho: item.tamanho || '',
-              cor: item.cor || '',
-              preco: item.preco,
-              descontoExtra: item.descontoExtra || 0
-            });
-          }
+          // Adiciona diretamente ao array de itens
+          window.pedidoItens.push({
+            produto: {
+              REF: item.REFERENCIA || item.REF,
+              MODELO: item.DESCRIÇÃO || item.MODELO,
+              REFERENCIA: item.REFERENCIA || item.REF,
+              DESCRIÇÃO: item.DESCRIÇÃO || item.MODELO,
+              PRECO: item.preco,
+              PRECOS: item.PRECOS || { a_vista: item.preco }
+            },
+            quantidade: item.quantidade || 1,
+            tamanho: item.tamanho || '',
+            cor: item.cor || '',
+            preco: item.preco,
+            descontoExtra: item.descontoExtra || 0
+          });
         }
       });
-      
-      // Atualizar exibição do pedido após todos os itens
+      // Atualiza a visualização do pedido
       setTimeout(() => {
         if (typeof window.atualizarPedido === 'function') {
           window.atualizarPedido();
@@ -194,15 +188,13 @@
         }
       }, itens.length * 100 + 200);
     }, 500);
-    
-    // Aplicar descontos se existirem
+    // Aplica descontos se existirem
     setTimeout(() => {
       if (pedido.dados?.descontos) {
         Object.entries(pedido.dados.descontos).forEach(([tipo, valor]) => {
           const input = document.getElementById(`desconto-${tipo}`);
           if (input) {
             input.value = valor;
-            // Trigger evento para atualizar cálculos
             input.dispatchEvent(new Event('input'));
           }
         });
