@@ -146,18 +146,12 @@
     // Adiciona todos os itens diretamente ao array, sem depender do DOM
     itens.forEach((item) => {
       window.pedidoItens.push({
-        produto: {
-          REF: (item.REFERENCIA || item.REF || '').toString(),
-          MODELO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
-          REFERENCIA: (item.REFERENCIA || item.REF || '').toString(),
-          DESCRIÇÃO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
-          PRECO: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0,
-          PRECOS: item.PRECOS || { a_vista: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0 }
-        },
-        quantidade: item.quantidade || 1,
+        REFERENCIA: (item.REFERENCIA || item.REF || '').toString(),
+        DESCRIÇÃO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
         tamanho: item.tamanho || '',
         cor: item.cor || '',
         preco: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0,
+        quantidade: item.quantidade || 1,
         descontoExtra: item.descontoExtra || 0
       });
     });
