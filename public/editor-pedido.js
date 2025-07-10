@@ -156,14 +156,9 @@
       });
     });
     // Atualiza a visualização do pedido
-    setTimeout(() => {
-      if (typeof window.atualizarPedido === 'function') {
-        window.atualizarPedido();
-      }
-      if (typeof window.atualizarVisualizacaoPedido === 'function') {
-        window.atualizarVisualizacaoPedido();
-      }
-    }, itens.length * 100 + 200);
+    if (typeof window.atualizarVisualizacaoPedido === 'function') {
+      window.atualizarVisualizacaoPedido();
+    }
     // Aplica descontos se existirem
     setTimeout(() => {
       if (pedido.dados?.descontos) {
