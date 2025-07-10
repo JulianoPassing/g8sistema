@@ -961,7 +961,7 @@
             const quantidade = parseInt(input.value, 10);
             if (quantidade > 0) {
               const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
-              const itemExistente = pedidoItens.find(
+              const itemExistente = window.pedidoItens.find(
                 (item) =>
                   item.REF === ref &&
                   item.tamanho === tamanho &&
@@ -972,7 +972,7 @@
               if (itemExistente) {
                 itemExistente.quantidade += quantidade;
               } else {
-                pedidoItens.push({
+                window.pedidoItens.push({
                   REF: produto.REF,
                   MODELO: produto.MODELO,
                   tamanho: tamanho,
@@ -992,7 +992,7 @@
           if (grade && grade.length > 0) {
             grade.forEach((itemGrade) => {
               const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
-              const itemExistente = pedidoItens.find(
+              const itemExistente = window.pedidoItens.find(
                 (item) =>
                   item.REF === ref &&
                   item.tamanho === itemGrade.tamanho &&
@@ -1003,7 +1003,7 @@
               if (itemExistente) {
                 itemExistente.quantidade += itemGrade.quantidade;
               } else {
-                pedidoItens.push({
+                window.pedidoItens.push({
                   REF: produto.REF,
                   MODELO: produto.MODELO,
                   tamanho: itemGrade.tamanho,
@@ -1054,9 +1054,9 @@
       function atualizarVisualizacaoPedido() {
         pedidoContainer.innerHTML = "";
         let subtotalPedido = 0;
-        if (pedidoItens.length > 0) {
+        if (window.pedidoItens.length > 0) {
           pedidoVazio.style.display = "none";
-          pedidoItens.forEach((item, index) => {
+          window.pedidoItens.forEach((item, index) => {
             const itemDiv = document.createElement("div");
             itemDiv.classList.add("pedido-item");
             const precoTotalItem = item.preco * item.quantidade;
@@ -1085,7 +1085,7 @@
       }
 
       window.removerDoPedido = (index) => {
-        pedidoItens.splice(index, 1);
+        window.pedidoItens.splice(index, 1);
         atualizarVisualizacaoPedido();
       };
 
@@ -1105,7 +1105,7 @@
           inputsCliente.prazo.focus();
           return;
         }
-        if (pedidoItens.length === 0) {
+        if (window.pedidoItens.length === 0) {
           alert("O pedido está vazio. Adicione itens antes de gerar o PDF.");
           return;
         }
@@ -1248,7 +1248,7 @@
             "Subtotal",
           ],
         ];
-        const body = pedidoItens.map((item) => {
+        const body = window.pedidoItens.map((item) => {
           const precoUnitarioComDesconto = item.preco * descontoGeral;
           return [
             item.REF,
@@ -1326,7 +1326,7 @@
         }\n\nObservações:\n${inputsCliente.obs.value || "Nenhuma."}`;
 
         let subtotalGeral = 0;
-        pedidoItens.forEach(
+        window.pedidoItens.forEach(
           (item) => (subtotalGeral += item.preco * item.quantidade)
         );
         const valorDesconto =
@@ -1400,10 +1400,10 @@
         doc.save(nomeArquivo);
 
         // Enviar pedido para o backend
-        const descricaoPedido = `Cliente: ${inputsCliente.razao.value}\nItens: ${pedidoItens.map(item => (item.REF || item.REFERENCIA) + ' x' + item.quantidade).join(', ')}\nTotal: R$ ${(typeof totalFinalComDesconto !== 'undefined' ? totalFinalComDesconto : 0).toFixed(2)}`;
+        const descricaoPedido = `Cliente: ${inputsCliente.razao.value}\nItens: ${window.pedidoItens.map(item => (item.REF || item.REFERENCIA) + ' x' + item.quantidade).join(', ')}\nTotal: R$ ${(typeof totalFinalComDesconto !== 'undefined' ? totalFinalComDesconto : 0).toFixed(2)}`;
         const dadosPedido = {
           cliente: Object.fromEntries(Object.entries(inputsCliente).map(([k, v]) => [k, v.value])),
-          itens: pedidoItens,
+          itens: window.pedidoItens,
           descontos: {
             extra: descontoExtraTotalPercentual || 0
           },

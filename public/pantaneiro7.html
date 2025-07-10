@@ -2729,15 +2729,15 @@ window.produtosData = [
         }
       }
       function removerDoPedido(index) {
-        pedidoItens.splice(index, 1);
+        window.pedidoItens.splice(index, 1);
         atualizarVisualizacaoPedido();
       }
       function atualizarVisualizacaoPedido() {
         pedidoContainer.innerHTML = "";
         subtotalPedido = 0;
-        if (pedidoItens.length > 0) {
+        if (window.pedidoItens.length > 0) {
           pedidoVazio.style.display = "none";
-          pedidoItens.forEach((item, index) => {
+          window.pedidoItens.forEach((item, index) => {
             const itemDiv = document.createElement("div");
             itemDiv.className = "pedido-item";
             const precoTotalItem = item.preco * item.quantidade;
@@ -2775,7 +2775,7 @@ window.produtosData = [
         aplicarDescontosGerais();
       }
       function gerarPedidoPDF() {
-        if (pedidoItens.length === 0) {
+        if (window.pedidoItens.length === 0) {
           alert("O pedido está vazio. Adicione itens antes de gerar o PDF.");
           return;
         }
