@@ -143,51 +143,33 @@
     } else {
       window.pedidoItens = [];
     }
-    // Aguarda a página carregar os elementos necessários
-    setTimeout(() => {
-      itens.forEach((item, index) => {
-        if (typeof window.adicionarAoPedido === 'function') {
-          // Adiciona o item usando a função da página
-          const produto = {
-            REF: (item.REFERENCIA || item.REF || '').toString(),
-            MODELO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
-            REFERENCIA: (item.REFERENCIA || item.REF || '').toString(),
-            DESCRIÇÃO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
-            PRECO: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0,
-            PRECOS: item.PRECOS || { a_vista: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0 }
-          };
-          setTimeout(() => {
-            window.adicionarAoPedido(produto, item.quantidade || 1, item.tamanho || '', item.cor || '');
-          }, index * 100);
-        } else {
-          // Adiciona diretamente ao array de itens
-          window.pedidoItens.push({
-            produto: {
-              REF: item.REFERENCIA || item.REF,
-              MODELO: item.DESCRIÇÃO || item.MODELO,
-              REFERENCIA: item.REFERENCIA || item.REF,
-              DESCRIÇÃO: item.DESCRIÇÃO || item.MODELO,
-              PRECO: item.preco,
-              PRECOS: item.PRECOS || { a_vista: item.preco }
-            },
-            quantidade: item.quantidade || 1,
-            tamanho: item.tamanho || '',
-            cor: item.cor || '',
-            preco: item.preco,
-            descontoExtra: item.descontoExtra || 0
-          });
-        }
+    // Adiciona todos os itens diretamente ao array, sem depender do DOM
+    itens.forEach((item) => {
+      window.pedidoItens.push({
+        produto: {
+          REF: (item.REFERENCIA || item.REF || '').toString(),
+          MODELO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
+          REFERENCIA: (item.REFERENCIA || item.REF || '').toString(),
+          DESCRIÇÃO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
+          PRECO: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0,
+          PRECOS: item.PRECOS || { a_vista: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0 }
+        },
+        quantidade: item.quantidade || 1,
+        tamanho: item.tamanho || '',
+        cor: item.cor || '',
+        preco: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0,
+        descontoExtra: item.descontoExtra || 0
       });
-      // Atualiza a visualização do pedido
-      setTimeout(() => {
-        if (typeof window.atualizarPedido === 'function') {
-          window.atualizarPedido();
-        }
-        if (typeof window.atualizarVisualizacaoPedido === 'function') {
-          window.atualizarVisualizacaoPedido();
-        }
-      }, itens.length * 100 + 200);
-    }, 500);
+    });
+    // Atualiza a visualização do pedido
+    setTimeout(() => {
+      if (typeof window.atualizarPedido === 'function') {
+        window.atualizarPedido();
+      }
+      if (typeof window.atualizarVisualizacaoPedido === 'function') {
+        window.atualizarVisualizacaoPedido();
+      }
+    }, itens.length * 100 + 200);
     // Aplica descontos se existirem
     setTimeout(() => {
       if (pedido.dados?.descontos) {
