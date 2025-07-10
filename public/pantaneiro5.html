@@ -2715,12 +2715,8 @@ window.produtosData = [
             : [produto.TAMANHOS];
           tamanhosProduto.forEach((tamanho) => {
             const tamanhoId = (typeof tamanho === 'string' ? tamanho : '').replace(/[^a-zA-Z0-9]/g, "");
-            const quantidade =
-              parseInt(
-                document.getElementById(
-                  `quantidade-${produto.REFERENCIA}-${tamanhoId}`
-                ).value
-              ) || 0;
+            const quantidadeInput = document.getElementById(`quantidade-${produto.REFERENCIA}-${tamanhoId}`);
+            const quantidade = quantidadeInput ? parseInt(quantidadeInput.value) || 0 : 0;
             handleItem(tamanho, quantidade);
           });
         }
