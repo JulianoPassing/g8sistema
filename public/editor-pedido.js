@@ -149,12 +149,12 @@
         if (typeof window.adicionarAoPedido === 'function') {
           // Adiciona o item usando a função da página
           const produto = {
-            REF: item.REFERENCIA || item.REF,
-            MODELO: item.DESCRIÇÃO || item.MODELO,
-            REFERENCIA: item.REFERENCIA || item.REF,
-            DESCRIÇÃO: item.DESCRIÇÃO || item.MODELO,
-            PRECO: item.preco,
-            PRECOS: item.PRECOS || { a_vista: item.preco }
+            REF: (item.REFERENCIA || item.REF || '').toString(),
+            MODELO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
+            REFERENCIA: (item.REFERENCIA || item.REF || '').toString(),
+            DESCRIÇÃO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
+            PRECO: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0,
+            PRECOS: item.PRECOS || { a_vista: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0 }
           };
           setTimeout(() => {
             window.adicionarAoPedido(produto, item.quantidade || 1, item.tamanho || '', item.cor || '');
