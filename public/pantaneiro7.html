@@ -2735,6 +2735,10 @@ window.produtosData = [
       function atualizarVisualizacaoPedido() {
         pedidoContainer.innerHTML = "";
         subtotalPedido = 0;
+        // Garante que window.pedidoItens sempre seja um array
+        if (!Array.isArray(window.pedidoItens)) {
+          window.pedidoItens = [];
+        }
         if (window.pedidoItens.length > 0) {
           pedidoVazio.style.display = "none";
           window.pedidoItens.forEach((item, index) => {
