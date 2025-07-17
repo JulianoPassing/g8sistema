@@ -893,7 +893,7 @@
       const pedidoContainer = document.getElementById("pedido-container");
       const pedidoVazio = document.getElementById("pedido-vazio");
       const gerarPedidoBtn = document.getElementById("gerar-pedido-btn");
-      let pedidoItens = [];
+      window.pedidoItens = [];
       let descontoExtraTotalPercentual = 0;
 
       function parseTamanhoRange(tamStr) {
