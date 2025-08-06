@@ -857,19 +857,31 @@
 
     async function sincronizarClientes() {
       try {
-        const response = await fetch(`${API_URL}/sync`, {
+        console.log('Iniciando sincronização...');
+        const response = await fetch('/api/sync-clientes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
         
-        if (!response.ok) throw new Error('Erro na sincronização');
+        console.log('Status da resposta:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Erro na sincronização: ${response.status} - ${errorText}`);
+        }
         
         const result = await response.json();
-        alert(result.message);
+        console.log('Resultado da sincronização:', result);
         
-        // Recarregar clientes após sincronização
-        await carregarClientes();
+        if (result.success) {
+          alert(result.message);
+          // Recarregar clientes após sincronização
+          await carregarClientes();
+        } else {
+          throw new Error(result.error || 'Erro desconhecido na sincronização');
+        }
       } catch (error) {
+        console.error('Erro na sincronização:', error);
         alert('Erro ao sincronizar clientes: ' + error.message);
       }
     }

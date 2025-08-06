@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
 
   try {
     // Rota para sincronizar clientes do banco para JSON
-    if (req.method === 'POST' && req.url.includes('/sync')) {
+    if (req.method === 'POST' && req.url.includes('sync=true')) {
       const [rows] = await connection.execute('SELECT * FROM clientes ORDER BY id');
       const clientesPath = path.join(__dirname, '../public/clientes.json');
       await fs.writeFile(clientesPath, JSON.stringify(rows, null, 2), 'utf8');
