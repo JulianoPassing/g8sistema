@@ -729,18 +729,27 @@
     </footer>
 
     <script>
-      // Script para carregar dados dos clientes do arquivo clientes.json
+      // Script para carregar dados dos clientes da API
       let clientesCadastrados = [];
 
       async function carregarClientes() {
         try {
-          const response = await fetch('clientes.json');
-          if (!response.ok) throw new Error('Erro ao buscar clientes.json');
+          const response = await fetch('/api/clientes');
+          if (!response.ok) throw new Error('Erro ao buscar clientes da API');
           const data = await response.json();
           clientesCadastrados = data;
           // Aqui você pode chamar funções para popular selects, etc.
         } catch (error) {
-          alert('Erro ao carregar os dados dos clientes. Verifique se o arquivo clientes.json está disponível.');
+          console.error('Erro ao carregar clientes da API:', error);
+          // Fallback para o arquivo JSON se a API falhar
+          try {
+            const response = await fetch('clientes.json');
+            if (!response.ok) throw new Error('Erro ao buscar clientes.json');
+            const data = await response.json();
+            clientesCadastrados = data;
+          } catch (fallbackError) {
+            alert('Erro ao carregar os dados dos clientes. Verifique se a API está disponível.');
+          }
         }
       }
 

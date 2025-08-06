@@ -648,7 +648,6 @@
         <div class="btn-group">
           <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
           <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
-          <button class="btn btn-warning" id="btn-sincronizar">🔄 Sincronizar</button>
         </div>
       </div>
       <div style="display: flex; justify-content: center; position: relative;">
@@ -773,7 +772,6 @@
       carregarClientes();
       document.getElementById('btn-exportar-pdf').onclick = exportarClientesPDF;
       document.getElementById('btn-exportar-excel').onclick = exportarClientesExcel;
-      document.getElementById('btn-sincronizar').onclick = sincronizarClientes;
       // Busca em tempo real
       document.getElementById('busca-cliente').addEventListener('input', function() {
         filtrarClientes(this.value);
@@ -855,36 +853,7 @@
       XLSX.writeFile(wb, `Carteira_Clientes_${dataAtual}.xlsx`);
     }
 
-    async function sincronizarClientes() {
-      try {
-        console.log('Iniciando sincronização...');
-        const response = await fetch('/api/sync-clientes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        
-        console.log('Status da resposta:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Erro na sincronização: ${response.status} - ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('Resultado da sincronização:', result);
-        
-        if (result.success) {
-          alert(result.message);
-          // Recarregar clientes após sincronização
-          await carregarClientes();
-        } else {
-          throw new Error(result.error || 'Erro desconhecido na sincronização');
-        }
-      } catch (error) {
-        console.error('Erro na sincronização:', error);
-        alert('Erro ao sincronizar clientes: ' + error.message);
-      }
-    }
+
 
     // Modal HTML
     if (!document.getElementById('modal-cliente')) {
