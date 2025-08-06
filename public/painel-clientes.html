@@ -241,6 +241,15 @@
       transform: translateY(-1px); 
       box-shadow: var(--shadow); 
     }
+    .btn-warning { 
+      background: var(--gradient-warning); 
+      color: white; 
+    }
+    .btn-warning:hover { 
+      background: var(--gradient-warning); 
+      transform: translateY(-1px); 
+      box-shadow: var(--shadow); 
+    }
     table { 
       width: 100%; 
       border-collapse: collapse; 
@@ -639,6 +648,7 @@
         <div class="btn-group">
           <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
           <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
+          <button class="btn btn-warning" id="btn-sincronizar">🔄 Sincronizar</button>
         </div>
       </div>
       <div style="display: flex; justify-content: center; position: relative;">
@@ -763,6 +773,7 @@
       carregarClientes();
       document.getElementById('btn-exportar-pdf').onclick = exportarClientesPDF;
       document.getElementById('btn-exportar-excel').onclick = exportarClientesExcel;
+      document.getElementById('btn-sincronizar').onclick = sincronizarClientes;
       // Busca em tempo real
       document.getElementById('busca-cliente').addEventListener('input', function() {
         filtrarClientes(this.value);
@@ -842,6 +853,25 @@
       const hoje = new Date();
       const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}-${(hoje.getMonth() + 1).toString().padStart(2, '0')}-${hoje.getFullYear()}`;
       XLSX.writeFile(wb, `Carteira_Clientes_${dataAtual}.xlsx`);
+    }
+
+    async function sincronizarClientes() {
+      try {
+        const response = await fetch(`${API_URL}/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) throw new Error('Erro na sincronização');
+        
+        const result = await response.json();
+        alert(result.message);
+        
+        // Recarregar clientes após sincronização
+        await carregarClientes();
+      } catch (error) {
+        alert('Erro ao sincronizar clientes: ' + error.message);
+      }
     }
 
     // Modal HTML
