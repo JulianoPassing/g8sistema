@@ -19,33 +19,23 @@ module.exports = async (req, res) => {
     // Extrair ID da URL de forma mais robusta
     let id = null;
     
-    // Tentar diferentes formas de extrair o ID
-    if (req.url) {
+    // No Vercel, usar o header x-vercel-path que contém o path completo
+    if (req.headers['x-vercel-path']) {
+      const pathParts = req.headers['x-vercel-path'].split('/');
+      const lastPart = pathParts[pathParts.length - 1];
+      if (lastPart && !isNaN(lastPart)) {
+        id = lastPart;
+        console.log('ID extraído do x-vercel-path:', id);
+      }
+    }
+    
+    // Fallback para req.url se x-vercel-path não estiver disponível
+    if (!id && req.url) {
       const urlParts = req.url.split('/');
       const lastPart = urlParts[urlParts.length - 1];
       if (lastPart && !isNaN(lastPart)) {
         id = lastPart;
         console.log('ID extraído da URL:', id);
-      }
-    }
-    
-    // Se não conseguiu extrair, tentar do path do Vercel
-    if (!id && req.headers['x-vercel-path']) {
-      const pathParts = req.headers['x-vercel-path'].split('/');
-      const lastPart = pathParts[pathParts.length - 1];
-      if (lastPart && !isNaN(lastPart)) {
-        id = lastPart;
-        console.log('ID extraído do path do Vercel:', id);
-      }
-    }
-    
-    // Se ainda não conseguiu, tentar do header x-vercel-original-url
-    if (!id && req.headers['x-vercel-original-url']) {
-      const urlParts = req.headers['x-vercel-original-url'].split('/');
-      const lastPart = urlParts[urlParts.length - 1];
-      if (lastPart && !isNaN(lastPart)) {
-        id = lastPart;
-        console.log('ID extraído do original URL:', id);
       }
     }
 
