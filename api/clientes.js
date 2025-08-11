@@ -31,11 +31,13 @@ module.exports = async (req, res) => {
     
     // Fallback para req.url se x-vercel-path não estiver disponível
     if (!id && req.url) {
-      const urlParts = req.url.split('/');
+      // Remover query parameters e extrair o ID do path
+      const urlWithoutQuery = req.url.split('?')[0];
+      const urlParts = urlWithoutQuery.split('/');
       const lastPart = urlParts[urlParts.length - 1];
       if (lastPart && !isNaN(lastPart)) {
         id = lastPart;
-        console.log('ID extraído da URL:', id);
+        console.log('ID extraído da URL (sem query):', id);
       }
     }
 
