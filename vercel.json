@@ -6,6 +6,24 @@
       "use": "@vercel/node"
     }
   ],
+  "routes": [
+    {
+      "src": "/api/clientes",
+      "dest": "/api/clientes.js"
+    },
+    {
+      "src": "/api/clientes/(.*)",
+      "dest": "/api/clientes.js"
+    },
+    {
+      "src": "/api/pedidos",
+      "dest": "/api/pedidos.js"
+    },
+    {
+      "src": "/api/pedidos/(.*)",
+      "dest": "/api/pedidos.js"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
