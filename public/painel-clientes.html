@@ -951,28 +951,48 @@
         obs: document.getElementById('obs').value
       };
       const id = document.getElementById('cliente-id').value;
+      console.log('Tentando salvar cliente:', { id, cliente, API_URL });
+      
       try {
         if (id) {
           // Editar
-          await fetch(`${API_URL}/${id}`, {
+          const url = `${API_URL}/${id}`;
+          console.log('Fazendo PUT para:', url);
+          const response = await fetch(url, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(cliente)
           });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const result = await response.json();
+          console.log('Resposta da API:', result);
           alert('Cliente atualizado com sucesso!');
         } else {
           // Adicionar
-          await fetch(API_URL, {
+          console.log('Fazendo POST para:', API_URL);
+          const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(cliente)
           });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const result = await response.json();
+          console.log('Resposta da API:', result);
           alert('Cliente cadastrado com sucesso!');
         }
         limparFormulario();
         await carregarClientes();
       } catch (err) {
-        alert('Erro ao salvar cliente.');
+        console.error('Erro ao salvar cliente:', err);
+        alert(`Erro ao salvar cliente: ${err.message}`);
       }
     };
   </script>
