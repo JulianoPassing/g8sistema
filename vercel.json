@@ -1,29 +1,9 @@
 {
   "version": 2,
-  "functions": {
-    "api/clientes.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/pedidos.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/clientes",
-      "destination": "/api/clientes.js"
-    },
-    {
-      "source": "/api/clientes/:id",
-      "destination": "/api/clientes.js"
-    },
-    {
-      "source": "/api/pedidos",
-      "destination": "/api/pedidos.js"
-    },
-    {
-      "source": "/api/pedidos/:id",
-      "destination": "/api/pedidos.js"
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
     }
   ],
   "headers": [
