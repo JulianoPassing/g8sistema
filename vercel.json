@@ -6,22 +6,34 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/clientes",
-      "dest": "/api/clientes.js"
+      "source": "/api/debug",
+      "destination": "/api/debug.js"
     },
     {
-      "src": "/api/clientes/(.*)",
-      "dest": "/api/clientes.js"
+      "source": "/api/test-clientes",
+      "destination": "/api/test-clientes.js"
     },
     {
-      "src": "/api/pedidos",
-      "dest": "/api/pedidos.js"
+      "source": "/api/test-clientes/:id",
+      "destination": "/api/test-clientes.js"
     },
     {
-      "src": "/api/pedidos/(.*)",
-      "dest": "/api/pedidos.js"
+      "source": "/api/clientes",
+      "destination": "/api/clientes.js"
+    },
+    {
+      "source": "/api/clientes/:id",
+      "destination": "/api/clientes.js"
+    },
+    {
+      "source": "/api/pedidos",
+      "destination": "/api/pedidos.js"
+    },
+    {
+      "source": "/api/pedidos/:id",
+      "destination": "/api/pedidos.js"
     }
   ],
   "headers": [
