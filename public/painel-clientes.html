@@ -806,41 +806,82 @@
 
     function exportarClientesPDF() {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('p', 'mm', 'a4');
+      const doc = new jsPDF('l', 'mm', 'a4'); // Orientação landscape para acomodar mais colunas
       const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 15;
+      const margin = 10;
+      
       // Logo e título
       const logoImg = new Image();
       logoImg.src = 'https://i.imgur.com/vjq26ym.png';
-      doc.addImage(logoImg, 'PNG', margin, 10, 35, 12);
-      doc.setFontSize(16);
+      doc.addImage(logoImg, 'PNG', margin, 10, 30, 10);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.text('Carteira de Clientes', pageWidth - margin, 18, { align: 'right' });
       const hoje = new Date();
       const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Data: ${dataAtual}`, pageWidth - margin, 24, { align: 'right' });
-      // Tabela
+      doc.text(`Data: ${dataAtual}`, pageWidth - margin, 22, { align: 'right' });
+      
+      // Tabela com todas as informações
       const head = [[
-        'Razão Social', 'CNPJ', 'Cidade/UF', 'Telefone', 'Email'
+        'ID', 'Razão Social', 'CNPJ', 'IE', 'Endereço', 'Bairro', 'Cidade', 'Estado', 'CEP', 'E-mail', 'Telefone', 'Transporte', 'Prazo', 'Observações'
       ]];
+      
       const body = clientes.map(cli => [
-        cli.razao,
-        cli.cnpj,
-        `${cli.cidade} / ${cli.estado}`,
-        cli.telefone,
-        cli.email
+        cli.id || '',
+        cli.razao || '',
+        cli.cnpj || '',
+        cli.ie || '',
+        cli.endereco || '',
+        cli.bairro || '',
+        cli.cidade || '',
+        cli.estado || '',
+        cli.cep || '',
+        cli.email || '',
+        cli.telefone || '',
+        cli.transporte || '',
+        cli.prazo || '',
+        cli.obs || ''
       ]);
+      
       doc.autoTable({
         head: head,
         body: body,
-        startY: 30,
+        startY: 25,
         theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 2 },
-        headStyles: { fillColor: [44, 62, 80], textColor: [255,255,255], fontStyle: 'bold', halign: 'center' },
+        styles: { fontSize: 7, cellPadding: 1.5 },
+        headStyles: { 
+          fillColor: [44, 62, 80], 
+          textColor: [255,255,255], 
+          fontStyle: 'bold', 
+          halign: 'center',
+          fontSize: 7
+        },
+        columnStyles: {
+          0: { cellWidth: 8 },   // ID
+          1: { cellWidth: 35 },  // Razão Social
+          2: { cellWidth: 20 },  // CNPJ
+          3: { cellWidth: 15 },  // IE
+          4: { cellWidth: 30 },  // Endereço
+          5: { cellWidth: 20 },  // Bairro
+          6: { cellWidth: 20 },  // Cidade
+          7: { cellWidth: 12 },  // Estado
+          8: { cellWidth: 15 },  // CEP
+          9: { cellWidth: 25 },  // E-mail
+          10: { cellWidth: 20 }, // Telefone
+          11: { cellWidth: 20 }, // Transporte
+          12: { cellWidth: 15 }, // Prazo
+          13: { cellWidth: 25 }  // Observações
+        },
         margin: { left: margin, right: margin },
+        didDrawPage: function (data) {
+          // Adicionar numeração de páginas
+          doc.setFontSize(8);
+          doc.text(`Página ${doc.internal.getNumberOfPages()}`, pageWidth - margin, doc.internal.pageSize.getHeight() - 10, { align: 'right' });
+        }
       });
+      
       doc.save(`Carteira_Clientes_${dataAtual.replace(/\//g, '-')}.pdf`);
     }
 
@@ -855,19 +896,48 @@
       }
       
       const ws_data = [
-        ['Razão Social', 'CNPJ', 'Cidade/UF', 'Telefone', 'Email'],
+        ['ID', 'Razão Social', 'CNPJ', 'IE', 'Endereço', 'Bairro', 'Cidade', 'Estado', 'CEP', 'E-mail', 'Telefone', 'Transporte', 'Prazo', 'Observações'],
         ...clientes.map(cli => [
+          cli.id || '',
           cli.razao || '',
           cli.cnpj || '',
-          `${cli.cidade || ''} / ${cli.estado || ''}`,
+          cli.ie || '',
+          cli.endereco || '',
+          cli.bairro || '',
+          cli.cidade || '',
+          cli.estado || '',
+          cli.cep || '',
+          cli.email || '',
           cli.telefone || '',
-          cli.email || ''
+          cli.transporte || '',
+          cli.prazo || '',
+          cli.obs || ''
         ])
       ];
       
       console.log('Dados para Excel:', ws_data);
       
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      
+      // Configurar largura das colunas
+      const colWidths = [
+        { wch: 5 },   // ID
+        { wch: 40 },  // Razão Social
+        { wch: 20 },  // CNPJ
+        { wch: 15 },  // IE
+        { wch: 35 },  // Endereço
+        { wch: 20 },  // Bairro
+        { wch: 20 },  // Cidade
+        { wch: 10 },  // Estado
+        { wch: 12 },  // CEP
+        { wch: 30 },  // E-mail
+        { wch: 15 },  // Telefone
+        { wch: 20 },  // Transporte
+        { wch: 15 },  // Prazo
+        { wch: 30 }   // Observações
+      ];
+      ws['!cols'] = colWidths;
+      
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
       const hoje = new Date();
