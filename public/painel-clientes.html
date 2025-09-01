@@ -682,12 +682,22 @@
     let clientesFiltrados = [];
     async function carregarClientes() {
       try {
+        console.log('Carregando clientes da API:', API_URL);
         const resp = await fetch(API_URL);
         if (!resp.ok) throw new Error('Erro ao buscar clientes na API');
         clientes = await resp.json();
+        console.log('Clientes carregados:', clientes);
         clientesFiltrados = clientes;
         renderTabela();
+        
+        // Verificar se há clientes
+        if (clientes.length === 0) {
+          console.log('Nenhum cliente encontrado na base de dados');
+        } else {
+          console.log(`Total de ${clientes.length} clientes carregados`);
+        }
       } catch (e) {
+        console.error('Erro ao carregar clientes:', e);
         alert('Erro ao carregar os dados dos clientes. Verifique se a API está disponível.');
       }
     }
@@ -835,22 +845,36 @@
     }
 
     function exportarClientesExcel() {
+      console.log('Exportando clientes para Excel...');
+      console.log('Total de clientes:', clientes.length);
+      console.log('Clientes:', clientes);
+      
+      if (!clientes || clientes.length === 0) {
+        alert('Nenhum cliente encontrado para exportar. Verifique se há clientes cadastrados.');
+        return;
+      }
+      
       const ws_data = [
         ['Razão Social', 'CNPJ', 'Cidade/UF', 'Telefone', 'Email'],
         ...clientes.map(cli => [
-          cli.razao,
-          cli.cnpj,
-          `${cli.cidade} / ${cli.estado}`,
-          cli.telefone,
-          cli.email
+          cli.razao || '',
+          cli.cnpj || '',
+          `${cli.cidade || ''} / ${cli.estado || ''}`,
+          cli.telefone || '',
+          cli.email || ''
         ])
       ];
+      
+      console.log('Dados para Excel:', ws_data);
+      
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
       const hoje = new Date();
       const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}-${(hoje.getMonth() + 1).toString().padStart(2, '0')}-${hoje.getFullYear()}`;
       XLSX.writeFile(wb, `Carteira_Clientes_${dataAtual}.xlsx`);
+      
+      console.log('Arquivo Excel gerado com sucesso!');
     }
 
 

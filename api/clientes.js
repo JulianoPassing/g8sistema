@@ -1,4 +1,6 @@
 const mysql = require('mysql2/promise');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = async (req, res) => {
   console.log('API de clientes chamada:', {
@@ -8,12 +10,32 @@ module.exports = async (req, res) => {
     body: req.body
   });
 
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'julianopassing',
-    password: process.env.DB_PASSWORD || 'Juliano@95',
-    database: process.env.DB_NAME || 'sistemajuliano'
-  });
+  // Função para carregar dados do arquivo JSON como fallback
+  const carregarClientesJSON = () => {
+    try {
+      const jsonPath = path.join(__dirname, '../public/clientes.json');
+      const data = fs.readFileSync(jsonPath, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('Erro ao carregar clientes.json:', error);
+      return [];
+    }
+  };
+
+  let connection = null;
+  let useJSON = false;
+
+  try {
+    connection = await mysql.createConnection({
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'julianopassing',
+      password: process.env.DB_PASSWORD || 'Juliano@95',
+      database: process.env.DB_NAME || 'sistemajuliano'
+    });
+  } catch (dbError) {
+    console.log('Erro ao conectar com MySQL, usando arquivo JSON:', dbError.message);
+    useJSON = true;
+  }
 
   try {
     // Extrair ID da URL de forma mais robusta
@@ -108,9 +130,16 @@ module.exports = async (req, res) => {
 
     // GET - listar todos os clientes (quando não há ID)
     if (req.method === 'GET') {
-      const [rows] = await connection.execute('SELECT * FROM clientes ORDER BY id');
-      res.status(200).json(rows);
-      return;
+      if (useJSON) {
+        const clientes = carregarClientesJSON();
+        console.log(`Retornando ${clientes.length} clientes do arquivo JSON`);
+        res.status(200).json(clientes);
+        return;
+      } else {
+        const [rows] = await connection.execute('SELECT * FROM clientes ORDER BY id');
+        res.status(200).json(rows);
+        return;
+      }
     }
 
     // Se chegou aqui, método não suportado
@@ -119,6 +148,8 @@ module.exports = async (req, res) => {
     console.error('Erro na API de clientes:', err);
     res.status(500).json({ error: err.message });
   } finally {
-    await connection.end();
+    if (connection) {
+      await connection.end();
+    }
   }
 }; 
