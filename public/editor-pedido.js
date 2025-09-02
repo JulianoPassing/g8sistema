@@ -211,7 +211,15 @@
       },
       body: JSON.stringify(dadosAtualizados)
     })
-    .then(response => response.json())
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        return response.json().then(errorData => {
+          throw new Error(errorData.error || 'Erro desconhecido');
+        });
+      }
+    })
     .then(result => {
       if (result.success) {
         // Limpar localStorage
@@ -226,7 +234,7 @@
     })
     .catch(error => {
       console.error('Erro ao salvar pedido:', error);
-      alert('❌ Erro ao salvar pedido. Tente novamente.');
+      alert('❌ Erro ao salvar pedido: ' + error.message);
     });
   };
 

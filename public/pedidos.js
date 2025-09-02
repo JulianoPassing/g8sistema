@@ -719,15 +719,20 @@ async function salvarAlteracoes() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, empresa: pedidoEditando.empresa, descricao, dados: pedidoEditando.dados })
     });
+    
     if (resp.ok) {
-      alert('Pedido atualizado com sucesso!');
+      const result = await resp.json();
+      alert('✅ Pedido atualizado com sucesso!');
       document.getElementById('editar-pedido-card').style.display = 'none';
       carregarPedidos();
     } else {
-      alert('Erro ao atualizar pedido.');
+      const errorData = await resp.json().catch(() => ({ error: 'Erro desconhecido' }));
+      console.error('Erro na resposta:', errorData);
+      alert(`❌ Erro ao salvar pedido: ${errorData.error || 'Erro desconhecido'}`);
     }
   } catch (err) {
-    alert('Erro ao atualizar pedido.');
+    console.error('Erro na requisição:', err);
+    alert('❌ Erro ao salvar pedido: Erro de conexão');
   }
 }
 

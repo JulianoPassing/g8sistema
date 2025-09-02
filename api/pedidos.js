@@ -49,8 +49,15 @@ module.exports = async (req, res) => {
     }));
     res.status(200).json(pedidos);
   } catch (err) {
+    console.error('Erro na API de pedidos:', err);
     res.status(500).json({ error: err.message });
   } finally {
-    await connection.end();
+    try {
+      if (connection) {
+        await connection.end();
+      }
+    } catch (closeErr) {
+      console.error('Erro ao fechar conexão:', closeErr);
+    }
   }
 }; 
