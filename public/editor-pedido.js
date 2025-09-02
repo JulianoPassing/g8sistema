@@ -234,8 +234,7 @@
         // Limpar localStorage
         localStorage.removeItem('pedidoParaEdicao');
         
-        // Mostrar sucesso e redirecionar
-        alert('✅ Pedido atualizado com sucesso!');
+        // Redirecionar sem mostrar mensagem (evitar duplicação)
         window.location.href = 'pedidos.html';
       } else {
         alert('❌ Erro ao salvar pedido: ' + (result.message || 'Erro desconhecido'));

@@ -722,7 +722,8 @@ async function salvarAlteracoes() {
     
     if (resp.ok) {
       const result = await resp.json();
-      alert('✅ Pedido atualizado com sucesso!');
+      // Mostrar notificação mais discreta
+      mostrarNotificacao('✅ Pedido atualizado com sucesso!', 'sucesso');
       document.getElementById('editar-pedido-card').style.display = 'none';
       carregarPedidos();
     } else {
