@@ -11,9 +11,15 @@ module.exports = async (req, res) => {
   try {
     if (req.method === 'POST') {
       const { empresa, descricao, dados } = req.body;
+      
+      // Garantir que não há valores undefined
+      const empresaFinal = empresa !== undefined ? empresa : null;
+      const descricaoFinal = descricao !== undefined ? descricao : null;
+      const dadosFinal = dados !== undefined ? JSON.stringify(dados) : JSON.stringify({});
+      
       const [result] = await connection.execute(
         `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())` ,
-        [empresa, descricao, JSON.stringify(dados || {})]
+        [empresaFinal, descricaoFinal, dadosFinal]
       );
       res.status(201).json({ id: result.insertId, message: 'Pedido cadastrado com sucesso!' });
       return;
@@ -21,10 +27,28 @@ module.exports = async (req, res) => {
 
     if (req.method === 'PUT') {
       const { id, empresa, descricao, dados } = req.body;
+      
+      // Validar parâmetros obrigatórios
+      if (!id) {
+        res.status(400).json({ error: 'ID do pedido é obrigatório.' });
+        return;
+      }
+      
+      // Garantir que não há valores undefined
+      const empresaFinal = empresa !== undefined ? empresa : null;
+      const descricaoFinal = descricao !== undefined ? descricao : null;
+      const dadosFinal = dados !== undefined ? JSON.stringify(dados) : JSON.stringify({});
+      
       const [result] = await connection.execute(
         `UPDATE pedidos SET empresa = ?, descricao = ?, dados = ?, data_pedido = NOW() WHERE id = ?`,
-        [empresa, descricao, JSON.stringify(dados || {}), id]
+        [empresaFinal, descricaoFinal, dadosFinal, id]
       );
+      
+      if (result.affectedRows === 0) {
+        res.status(404).json({ error: 'Pedido não encontrado.' });
+        return;
+      }
+      
       res.status(200).json({ success: true, message: 'Pedido atualizado com sucesso!' });
       return;
     }

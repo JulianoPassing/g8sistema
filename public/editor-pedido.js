@@ -201,7 +201,14 @@
     
     // Manter ID original e empresa
     dadosAtualizados.id = pedidoOriginal.id;
-    dadosAtualizados.empresa = pedidoOriginal.empresa;
+    dadosAtualizados.empresa = pedidoOriginal.empresa || null;
+    
+    // Gerar descrição se não existir
+    if (!dadosAtualizados.descricao) {
+      const clienteNome = dadosAtualizados.dados?.cliente?.razao || 'Cliente';
+      const totalItens = dadosAtualizados.dados?.itens?.length || 0;
+      dadosAtualizados.descricao = `Pedido - ${clienteNome} (${totalItens} itens)`;
+    }
     
     // Salvar no servidor
     fetch('/api/pedidos', {
@@ -241,6 +248,8 @@
   // Função para coletar dados do formulário
   function coletarDadosFormulario() {
     const dados = {
+      empresa: null,
+      descricao: null,
       dados: {
         cliente: {},
         itens: [],
@@ -253,20 +262,18 @@
     const camposCliente = ['razao', 'cnpj', 'ie', 'endereco', 'bairro', 'cidade', 'estado', 'cep', 'email', 'telefone', 'obs'];
     camposCliente.forEach(campo => {
       const input = document.getElementById(campo);
-      if (input && input.value.trim()) {
+      if (input && input.value && input.value.trim()) {
         dados.dados.cliente[campo] = input.value.trim();
+      } else {
+        dados.dados.cliente[campo] = null;
       }
     });
     
     // Coletar transporte e prazo
     const transporte = document.getElementById('transporte');
     const prazo = document.getElementById('prazo');
-    if (transporte && transporte.value.trim()) {
-      dados.dados.transporte = transporte.value.trim();
-    }
-    if (prazo && prazo.value.trim()) {
-      dados.dados.prazo = prazo.value.trim();
-    }
+    dados.dados.transporte = (transporte && transporte.value && transporte.value.trim()) ? transporte.value.trim() : null;
+    dados.dados.prazo = (prazo && prazo.value && prazo.value.trim()) ? prazo.value.trim() : null;
     
     // Coletar itens do pedido
     if (typeof window.pedidoItens !== 'undefined' && window.pedidoItens.length > 0) {
