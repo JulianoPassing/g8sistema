@@ -203,12 +203,14 @@
     dadosAtualizados.id = pedidoOriginal.id;
     dadosAtualizados.empresa = pedidoOriginal.empresa || null;
     
-    // Gerar descrição se não existir
-    if (!dadosAtualizados.descricao) {
-      const clienteNome = dadosAtualizados.dados?.cliente?.razao || 'Cliente';
-      const totalItens = dadosAtualizados.dados?.itens?.length || 0;
-      dadosAtualizados.descricao = `Pedido - ${clienteNome} (${totalItens} itens)`;
-    }
+    // Gerar descrição no formato padrão do sistema
+    const clienteNome = dadosAtualizados.dados?.cliente?.razao || 'Cliente';
+    const itensDescricao = dadosAtualizados.dados?.itens?.map(item => 
+      (item.REFERENCIA || item.REF || 'Item') + ' x' + (item.quantidade || 1)
+    ).join(', ') || 'Sem itens';
+    const total = dadosAtualizados.dados?.total || 0;
+    
+    dadosAtualizados.descricao = `Cliente: ${clienteNome} Itens: ${itensDescricao} Total: R$ ${total.toFixed(2)}`;
     
     // Salvar no servidor
     fetch('/api/pedidos', {

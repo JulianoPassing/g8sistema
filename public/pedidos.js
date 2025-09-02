@@ -710,8 +710,8 @@ async function salvarAlteracoes() {
   // Observações
   if (pedidoEditando.dados.cliente) pedidoEditando.dados.cliente.obs = document.getElementById('edit-obs').value;
   
-  // Atualizar descricao
-  const descricao = `Cliente: ${pedidoEditando.dados.cliente.razao}\nItens: ${pedidoEditando.dados.itens.map(item => (item.REFERENCIA || item.REF) + ' x' + item.quantidade).join(', ')}\nTotal: R$ ${pedidoEditando.dados.total.toFixed(2)}`;
+  // Atualizar descricao no formato padrão (inline)
+  const descricao = `Cliente: ${pedidoEditando.dados.cliente.razao} Itens: ${pedidoEditando.dados.itens.map(item => (item.REFERENCIA || item.REF) + ' x' + item.quantidade).join(', ')} Total: R$ ${pedidoEditando.dados.total.toFixed(2)}`;
   
   try {
     const resp = await fetch('/api/pedidos', {
