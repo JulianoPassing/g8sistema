@@ -1078,9 +1078,10 @@
               item.MODELO
             }</strong> (Ref: ${item.REF})<br><small>Tam: <strong>${
               item.tamanho
-            }</strong> | Cor: <strong>${item.cor}</strong> | Qtd: <strong>${
-              item.quantidade
-            }</strong> | Unit: R$ ${item.preco.toFixed(2)}${
+            }</strong> | Cor: <strong>${item.cor}</strong> | Qtd: <input type="number" min="1" value="${item.quantidade}" 
+            onchange="alterarQuantidadeItem(${index}, this.value)" 
+            style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> 
+            | Unit: R$ ${item.preco.toFixed(2)}${
               item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
             } | Total: <strong>R$ ${precoTotalItem.toFixed(
               2
@@ -1100,6 +1101,18 @@
       window.removerDoPedido = (index) => {
         window.pedidoItens.splice(index, 1);
         atualizarVisualizacaoPedido();
+      };
+      
+      window.alterarQuantidadeItem = (index, novaQuantidade) => {
+        const quantidade = parseInt(novaQuantidade);
+        if (quantidade < 1) {
+          alert('A quantidade deve ser pelo menos 1.');
+          return;
+        }
+        if (window.pedidoItens[index]) {
+          window.pedidoItens[index].quantidade = quantidade;
+          atualizarVisualizacaoPedido();
+        }
       };
 
       function gerarPedidoPDF() {

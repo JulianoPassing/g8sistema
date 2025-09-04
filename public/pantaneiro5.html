@@ -2741,6 +2741,18 @@ window.produtosData = [
         window.pedidoItens.splice(index, 1);
         atualizarVisualizacaoPedido();
       }
+      
+      function alterarQuantidadeItem(index, novaQuantidade) {
+        const quantidade = parseInt(novaQuantidade);
+        if (quantidade < 1) {
+          alert('A quantidade deve ser pelo menos 1.');
+          return;
+        }
+        if (window.pedidoItens[index]) {
+          window.pedidoItens[index].quantidade = quantidade;
+          atualizarVisualizacaoPedido();
+        }
+      }
       function atualizarVisualizacaoPedido() {
         pedidoContainer.innerHTML = "";
         subtotalPedido = 0;
@@ -2759,7 +2771,10 @@ window.produtosData = [
               item.DESCRIÇÃO
             } (Ref: ${item.REFERENCIA})</strong><br><small>Tamanho/Cor: ${
               item.tamanho
-            } | Qtd: ${item.quantidade} | Unit: R$ ${item.preco.toFixed(2)}${
+            } | Qtd: <input type="number" min="1" value="${item.quantidade}" 
+            onchange="alterarQuantidadeItem(${index}, this.value)" 
+            style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> 
+            | Unit: R$ ${item.preco.toFixed(2)}${
               item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
             } | Total: R$ ${precoTotalItem.toFixed(
               2
