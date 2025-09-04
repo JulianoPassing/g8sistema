@@ -226,7 +226,7 @@ function renderizarFormularioEdicao(pedido) {
     html += `<td><input type='text' id='edit-item-${idx}-DESCRIÇÃO' value='${item.DESCRIÇÃO || item.MODELO || ''}' style='width:180px;' readonly/></td>`;
     html += `<td><input type='text' id='edit-item-${idx}-tamanho' value='${item.tamanho || ''}' style='width:70px;'/></td>`;
     html += `<td><input type='text' id='edit-item-${idx}-cor' value='${item.cor || ''}' style='width:70px;'/></td>`;
-    html += `<td><input type='number' id='edit-item-${idx}-quantidade' value='${item.quantidade || 1}' min='1' style='width:60px;' class='auto-total'/></td>`;
+    html += `<td><input type='number' id='edit-item-${idx}-quantidade' value='${item.quantidade || 1}' min='1' step='1' style='width:60px; text-align: center; font-weight: 600;' class='auto-total quantidade-input' title='Altere a quantidade do item'/></td>`;
     html += `<td><input type='number' id='edit-item-${idx}-preco' value='${item.preco || 0}' min='0' step='0.01' style='width:80px;' class='auto-total'/></td>`;
     html += `<td><input type='number' id='edit-item-${idx}-descontoExtra' value='${item.descontoExtra || 0}' min='0' max='100' step='0.01' style='width:60px;' class='auto-total'/></td>`;
     html += `<td><button type='button' onclick='removerItemEdicao(${idx})' style='background:#dc3545;color:white;padding:4px 10px;border:none;border-radius:4px;cursor:pointer;'>Remover</button></td>`;
@@ -257,6 +257,49 @@ function renderizarFormularioEdicao(pedido) {
     document.querySelectorAll('.auto-total').forEach(input => {
       input.addEventListener('input', atualizarTotalEdicao);
     });
+    
+    // Listeners específicos para inputs de quantidade
+    document.querySelectorAll('input[id*="-quantidade"]').forEach(input => {
+      input.addEventListener('blur', function() {
+        const valor = parseInt(this.value) || 0;
+        if (valor < 1) {
+          this.value = 1;
+          this.style.borderColor = '#ef4444';
+          this.style.backgroundColor = '#fef2f2';
+          setTimeout(() => {
+            this.style.borderColor = '';
+            this.style.backgroundColor = '';
+          }, 2000);
+          atualizarTotalEdicao();
+        }
+      });
+      
+      input.addEventListener('input', function() {
+        // Efeito visual quando a quantidade muda
+        this.style.backgroundColor = '#f0f9ff';
+        this.style.borderColor = '#3b82f6';
+        this.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+          this.style.backgroundColor = '';
+          this.style.borderColor = '';
+          this.style.transform = 'scale(1)';
+        }, 300);
+        
+        // Mostrar notificação discreta
+        const valor = parseInt(this.value) || 0;
+        if (valor > 0) {
+          mostrarNotificacao(`Quantidade alterada para ${valor}`, 'info');
+        }
+      });
+      
+      input.addEventListener('keypress', function(e) {
+        // Permitir apenas números e teclas de controle
+        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+          e.preventDefault();
+        }
+      });
+    });
+    
     // Adiciona listeners para busca de produtos
     document.querySelectorAll('.busca-produto').forEach(input => {
       input.addEventListener('input', (e) => {
@@ -281,9 +324,22 @@ function atualizarTotalEdicao() {
   const itens = [];
   let idx = 0;
   while (document.getElementById(`edit-item-${idx}-REFERENCIA`)) {
-    const quantidade = parseInt(document.getElementById(`edit-item-${idx}-quantidade`).value) || 0;
+    const quantidadeInput = document.getElementById(`edit-item-${idx}-quantidade`);
+    const quantidade = parseInt(quantidadeInput.value) || 0;
     const preco = parseFloat(document.getElementById(`edit-item-${idx}-preco`).value) || 0;
     const descontoExtra = parseFloat(document.getElementById(`edit-item-${idx}-descontoExtra`).value) || 0;
+    
+    // Validação de quantidade mínima
+    if (quantidade < 1) {
+      quantidadeInput.value = 1;
+      quantidadeInput.style.borderColor = '#ef4444';
+      quantidadeInput.style.backgroundColor = '#fef2f2';
+      setTimeout(() => {
+        quantidadeInput.style.borderColor = '';
+        quantidadeInput.style.backgroundColor = '';
+      }, 2000);
+    }
+    
     let valorItem = quantidade * preco;
     if (descontoExtra > 0) valorItem *= (1 - descontoExtra / 100);
     subtotal += valorItem;
@@ -300,7 +356,19 @@ function atualizarTotalEdicao() {
   if (descontos.prazo) total *= (1 - descontos.prazo / 100);
   if (descontos.volume) total *= (1 - descontos.volume / 100);
   if (descontos.extra) total *= (1 - descontos.extra / 100);
-  document.getElementById('edit-total').value = total.toFixed(2);
+  
+  // Atualizar total com formatação
+  const totalInput = document.getElementById('edit-total');
+  if (totalInput) {
+    totalInput.value = total.toFixed(2);
+    // Destaque visual quando o total muda
+    totalInput.style.backgroundColor = '#f0f9ff';
+    totalInput.style.borderColor = '#3b82f6';
+    setTimeout(() => {
+      totalInput.style.backgroundColor = '';
+      totalInput.style.borderColor = '';
+    }, 1000);
+  }
 }
 
 window.removerItemEdicao = function(idx) {
