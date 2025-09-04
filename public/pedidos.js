@@ -219,15 +219,17 @@ function renderizarFormularioEdicao(pedido) {
   html += '<h3 style="margin-top:18px;margin-bottom:10px;color:#007bff;border-bottom:1px solid #dee2e6;padding-bottom:4px;">Itens do Pedido</h3>';
   html += '<div style="overflow-x:auto;margin-bottom:10px;">';
   html += '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;">';
-  html += '<thead><tr style="background:#f8f9fa;"><th>Referência</th><th>Descrição</th><th>Tamanho</th><th>Cor</th><th>Qtd</th><th>Unitário</th><th>Desc. Extra</th><th>Ação</th></tr></thead><tbody id="edit-itens-lista">';
+  html += '<thead><tr style="background:#f8f9fa;"><th>Referência</th><th>Descrição</th><th>Tamanho</th><th>Cor</th><th>Qtd</th><th>Unitário</th><th>Total</th><th>Desc. Extra</th><th>Ação</th></tr></thead><tbody id="edit-itens-lista">';
   (campos.itens || []).forEach((item, idx) => {
+    const totalItem = ((item.quantidade || 1) * (item.preco || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2);
     html += `<tr>`;
     html += `<td><input type='text' id='edit-item-${idx}-REFERENCIA' value='${item.REFERENCIA || item.REF || ''}' style='width:90px;' class='busca-produto'/></td>`;
     html += `<td><input type='text' id='edit-item-${idx}-DESCRIÇÃO' value='${item.DESCRIÇÃO || item.MODELO || ''}' style='width:180px;' readonly/></td>`;
     html += `<td><input type='text' id='edit-item-${idx}-tamanho' value='${item.tamanho || ''}' style='width:70px;'/></td>`;
     html += `<td><input type='text' id='edit-item-${idx}-cor' value='${item.cor || ''}' style='width:70px;'/></td>`;
-    html += `<td><input type='number' id='edit-item-${idx}-quantidade' value='${item.quantidade || 1}' min='1' step='1' style='width:60px; text-align: center; font-weight: 600;' class='auto-total quantidade-input' title='Altere a quantidade do item'/></td>`;
+    html += `<td><input type='number' id='edit-item-${idx}-quantidade' value='${item.quantidade || 1}' min='1' style='width:60px;' class='auto-total quantidade-input' onchange='validarQuantidade(this)'/></td>`;
     html += `<td><input type='number' id='edit-item-${idx}-preco' value='${item.preco || 0}' min='0' step='0.01' style='width:80px;' class='auto-total'/></td>`;
+    html += `<td><span id='edit-item-${idx}-total' class='total-item'>R$ ${totalItem}</span></td>`;
     html += `<td><input type='number' id='edit-item-${idx}-descontoExtra' value='${item.descontoExtra || 0}' min='0' max='100' step='0.01' style='width:60px;' class='auto-total'/></td>`;
     html += `<td><button type='button' onclick='removerItemEdicao(${idx})' style='background:#dc3545;color:white;padding:4px 10px;border:none;border-radius:4px;cursor:pointer;'>Remover</button></td>`;
     html += `</tr>`;
@@ -256,47 +258,21 @@ function renderizarFormularioEdicao(pedido) {
   setTimeout(() => {
     document.querySelectorAll('.auto-total').forEach(input => {
       input.addEventListener('input', atualizarTotalEdicao);
+      input.addEventListener('change', atualizarTotalEdicao);
     });
     
-    // Listeners específicos para inputs de quantidade
-    document.querySelectorAll('input[id*="-quantidade"]').forEach(input => {
-      input.addEventListener('blur', function() {
-        const valor = parseInt(this.value) || 0;
-        if (valor < 1) {
-          this.value = 1;
-          this.style.borderColor = '#ef4444';
-          this.style.backgroundColor = '#fef2f2';
-          setTimeout(() => {
-            this.style.borderColor = '';
-            this.style.backgroundColor = '';
-          }, 2000);
-          atualizarTotalEdicao();
-        }
-      });
-      
+    // Adiciona listeners específicos para campos de quantidade
+    document.querySelectorAll('.quantidade-input').forEach(input => {
       input.addEventListener('input', function() {
-        // Efeito visual quando a quantidade muda
-        this.style.backgroundColor = '#f0f9ff';
-        this.style.borderColor = '#3b82f6';
-        this.style.transform = 'scale(1.05)';
-        setTimeout(() => {
-          this.style.backgroundColor = '';
-          this.style.borderColor = '';
-          this.style.transform = 'scale(1)';
-        }, 300);
-        
-        // Mostrar notificação discreta
-        const valor = parseInt(this.value) || 0;
-        if (valor > 0) {
-          mostrarNotificacao(`Quantidade alterada para ${valor}`, 'info');
+        // Validar quantidade em tempo real
+        if (this.value < 1) {
+          this.value = 1;
         }
+        atualizarTotalEdicao();
       });
-      
-      input.addEventListener('keypress', function(e) {
-        // Permitir apenas números e teclas de controle
-        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-          e.preventDefault();
-        }
+      input.addEventListener('change', function() {
+        validarQuantidade(this);
+        atualizarTotalEdicao();
       });
     });
     
@@ -324,26 +300,20 @@ function atualizarTotalEdicao() {
   const itens = [];
   let idx = 0;
   while (document.getElementById(`edit-item-${idx}-REFERENCIA`)) {
-    const quantidadeInput = document.getElementById(`edit-item-${idx}-quantidade`);
-    const quantidade = parseInt(quantidadeInput.value) || 0;
+    const quantidade = parseInt(document.getElementById(`edit-item-${idx}-quantidade`).value) || 0;
     const preco = parseFloat(document.getElementById(`edit-item-${idx}-preco`).value) || 0;
     const descontoExtra = parseFloat(document.getElementById(`edit-item-${idx}-descontoExtra`).value) || 0;
-    
-    // Validação de quantidade mínima
-    if (quantidade < 1) {
-      quantidadeInput.value = 1;
-      quantidadeInput.style.borderColor = '#ef4444';
-      quantidadeInput.style.backgroundColor = '#fef2f2';
-      setTimeout(() => {
-        quantidadeInput.style.borderColor = '';
-        quantidadeInput.style.backgroundColor = '';
-      }, 2000);
-    }
-    
     let valorItem = quantidade * preco;
     if (descontoExtra > 0) valorItem *= (1 - descontoExtra / 100);
     subtotal += valorItem;
     itens.push({ quantidade, preco, descontoExtra });
+    
+    // Atualizar total individual do item
+    const totalItemElement = document.getElementById(`edit-item-${idx}-total`);
+    if (totalItemElement) {
+      totalItemElement.textContent = `R$ ${valorItem.toFixed(2)}`;
+    }
+    
     idx++;
   }
   // Descontos gerais
@@ -356,17 +326,33 @@ function atualizarTotalEdicao() {
   if (descontos.prazo) total *= (1 - descontos.prazo / 100);
   if (descontos.volume) total *= (1 - descontos.volume / 100);
   if (descontos.extra) total *= (1 - descontos.extra / 100);
-  
-  // Atualizar total com formatação
-  const totalInput = document.getElementById('edit-total');
-  if (totalInput) {
-    totalInput.value = total.toFixed(2);
-    // Destaque visual quando o total muda
-    totalInput.style.backgroundColor = '#f0f9ff';
-    totalInput.style.borderColor = '#3b82f6';
+  document.getElementById('edit-total').value = total.toFixed(2);
+}
+
+// Função para validar quantidade
+window.validarQuantidade = function(input) {
+  const valor = parseInt(input.value);
+  if (isNaN(valor) || valor < 1) {
+    input.value = 1;
+    input.style.borderColor = '#dc3545';
+    input.style.backgroundColor = '#ffe6e6';
+    
+    // Mostrar notificação de erro
+    mostrarNotificacao('⚠️ Quantidade deve ser um número maior que zero!', 'erro');
+    
+    // Remover estilo de erro após 2 segundos
     setTimeout(() => {
-      totalInput.style.backgroundColor = '';
-      totalInput.style.borderColor = '';
+      input.style.borderColor = '';
+      input.style.backgroundColor = '';
+    }, 2000);
+  } else {
+    input.style.borderColor = '#28a745';
+    input.style.backgroundColor = '#e6ffe6';
+    
+    // Remover estilo de sucesso após 1 segundo
+    setTimeout(() => {
+      input.style.borderColor = '';
+      input.style.backgroundColor = '';
     }, 1000);
   }
 }

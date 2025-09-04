@@ -159,6 +159,12 @@
     if (typeof window.atualizarVisualizacaoPedido === 'function') {
       window.atualizarVisualizacaoPedido();
     }
+    
+    // Adicionar listeners para edição de quantidades
+    setTimeout(() => {
+      adicionarListenersQuantidade();
+    }, 500);
+    
     // Aplica descontos se existirem
     setTimeout(() => {
       if (pedido.dados?.descontos) {
@@ -358,5 +364,131 @@
       salvarEdicaoPedido(pedido);
     }
   };
+
+  // Função para adicionar listeners de quantidade
+  function adicionarListenersQuantidade() {
+    // Procurar por inputs de quantidade na visualização do pedido
+    const inputsQuantidade = document.querySelectorAll('input[type="number"][id*="quantidade"], input[type="number"][name*="quantidade"]');
+    
+    inputsQuantidade.forEach(input => {
+      // Remover listeners existentes para evitar duplicação
+      input.removeEventListener('input', atualizarQuantidadeItem);
+      input.removeEventListener('change', validarQuantidadeEditor);
+      
+      // Adicionar novos listeners
+      input.addEventListener('input', atualizarQuantidadeItem);
+      input.addEventListener('change', validarQuantidadeEditor);
+      
+      // Adicionar classe para identificação
+      input.classList.add('quantidade-editor');
+    });
+  }
+
+  // Função para atualizar quantidade do item
+  function atualizarQuantidadeItem(event) {
+    const input = event.target;
+    const valor = parseInt(input.value);
+    
+    // Validar valor mínimo
+    if (valor < 1) {
+      input.value = 1;
+    }
+    
+    // Atualizar array de itens se possível
+    if (typeof window.pedidoItens !== 'undefined') {
+      // Tentar encontrar o índice do item baseado no input
+      const row = input.closest('tr');
+      if (row) {
+        const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+        if (window.pedidoItens[rowIndex]) {
+          window.pedidoItens[rowIndex].quantidade = parseInt(input.value) || 1;
+        }
+      }
+    }
+    
+    // Atualizar visualização se a função existir
+    if (typeof window.atualizarVisualizacaoPedido === 'function') {
+      window.atualizarVisualizacaoPedido();
+    }
+  }
+
+  // Função para validar quantidade no editor
+  function validarQuantidadeEditor(event) {
+    const input = event.target;
+    const valor = parseInt(input.value);
+    
+    if (isNaN(valor) || valor < 1) {
+      input.value = 1;
+      input.style.borderColor = '#dc3545';
+      input.style.backgroundColor = '#ffe6e6';
+      
+      // Mostrar notificação de erro
+      mostrarNotificacaoEditor('⚠️ Quantidade deve ser um número maior que zero!', 'erro');
+      
+      // Remover estilo de erro após 2 segundos
+      setTimeout(() => {
+        input.style.borderColor = '';
+        input.style.backgroundColor = '';
+      }, 2000);
+    } else {
+      input.style.borderColor = '#28a745';
+      input.style.backgroundColor = '#e6ffe6';
+      
+      // Remover estilo de sucesso após 1 segundo
+      setTimeout(() => {
+        input.style.borderColor = '';
+        input.style.backgroundColor = '';
+      }, 1000);
+    }
+  }
+
+  // Função para mostrar notificações no editor
+  function mostrarNotificacaoEditor(mensagem, tipo = 'info') {
+    // Remover notificação existente
+    const notificacaoExistente = document.getElementById('notificacao-editor-temp');
+    if (notificacaoExistente) {
+      notificacaoExistente.remove();
+    }
+    
+    const cores = {
+      sucesso: { bg: '#10b981', icon: '✅' },
+      erro: { bg: '#ef4444', icon: '❌' },
+      info: { bg: '#3b82f6', icon: 'ℹ️' }
+    };
+    
+    const cor = cores[tipo] || cores.info;
+    
+    const notificacao = document.createElement('div');
+    notificacao.id = 'notificacao-editor-temp';
+    notificacao.style.cssText = `
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: ${cor.bg};
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 20000;
+      font-weight: 600;
+      font-size: 0.9rem;
+      animation: slideInRight 0.3s ease-out;
+      max-width: 300px;
+    `;
+    
+    notificacao.innerHTML = `${cor.icon} ${mensagem}`;
+    
+    document.body.appendChild(notificacao);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+      if (notificacao.parentNode) {
+        notificacao.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => {
+          notificacao.remove();
+        }, 300);
+      }
+    }, 3000);
+  }
 
 })(); 
