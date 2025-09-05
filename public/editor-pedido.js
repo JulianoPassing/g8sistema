@@ -166,6 +166,20 @@
           const input = document.getElementById(`desconto-${tipo}`);
           if (input) {
             input.value = valor;
+            // Aplicar desconto imediatamente
+            if (tipo === 'prazo' && typeof aplicarDescontoPrazo === 'function') {
+              aplicarDescontoPrazo(parseFloat(valor));
+            } else if (tipo === 'volume' && typeof aplicarDescontoVolume === 'function') {
+              aplicarDescontoVolume(parseFloat(valor));
+            } else if (tipo === 'extra') {
+              // Para Steitz, aplicar desconto extra
+              if (typeof descontoExtraTotalPercentual !== 'undefined') {
+                descontoExtraTotalPercentual = parseFloat(valor);
+                if (typeof atualizarVisualizacaoPedido === 'function') {
+                  atualizarVisualizacaoPedido();
+                }
+              }
+            }
             input.dispatchEvent(new Event('input'));
           }
         });
@@ -321,6 +335,15 @@
         dados.dados.descontos[tipo] = valor;
       }
     });
+    
+    // Coletar desconto extra total (Steitz)
+    const descontoExtraTotal = document.getElementById('desconto-extra-total');
+    if (descontoExtraTotal) {
+      const valorExtra = parseFloat(descontoExtraTotal.value) || 0;
+      if (valorExtra > 0) {
+        dados.dados.descontos.extra = valorExtra;
+      }
+    }
     
     // Calcular total
     let total = 0;
