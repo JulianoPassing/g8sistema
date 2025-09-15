@@ -28,6 +28,10 @@
     {
       "source": "/api/pedidos/:id",
       "destination": "/api/pedidos.js"
+    },
+    {
+      "source": "/api/auth",
+      "destination": "/api/auth.js"
     }
   ],
   "headers": [

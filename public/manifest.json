@@ -1,0 +1,71 @@
+{
+  "name": "G8 Sistema de Pedidos",
+  "short_name": "G8Sistema",
+  "description": "Sistema de gestão de pedidos e clientes G8 Representações",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#002f4b",
+  "theme_color": "#005a9f",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "https://i.imgur.com/WveVVY5.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.imgur.com/WveVVY5.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Novo Pedido",
+      "short_name": "Pedido",
+      "description": "Criar um novo pedido",
+      "url": "/painel.html",
+      "icons": [
+        {
+          "src": "https://i.imgur.com/WveVVY5.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Clientes",
+      "short_name": "Clientes",
+      "description": "Gerenciar clientes",
+      "url": "/painel-clientes.html",
+      "icons": [
+        {
+          "src": "https://i.imgur.com/WveVVY5.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://i.imgur.com/vjq26ym.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Tela de login do G8Sistema"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}

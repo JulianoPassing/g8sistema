@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - G8 Representações</title>
     <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#005a9f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="G8Sistema" />
+    <link rel="apple-touch-icon" href="https://i.imgur.com/WveVVY5.png" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="modern-design.css">
     <script src="mobile-menu.js"></script>
+    <script src="animations.js"></script>
     <style>
       :root {
         --primary-color: #005a9f;
@@ -117,23 +125,25 @@
       }
 
       .login-container {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 21.6px;
-        padding: 43.2px;
-        box-shadow: var(--shadow-xl);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: var(--glass-bg);
+        backdrop-filter: var(--glass-backdrop);
+        -webkit-backdrop-filter: var(--glass-backdrop);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-2xl);
+        padding: 48px 40px;
+        box-shadow: var(--glass-shadow);
         width: 100%;
-        max-width: 396px;
+        max-width: 420px;
         position: relative;
-        z-index: 1;
-        animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        transition: all 0.3s ease;
+        z-index: 10;
+        animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all var(--transition-smooth);
       }
 
       .login-container:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
+        transform: translateY(-2px);
       }
 
       @keyframes slideUp {
@@ -204,7 +214,8 @@
 
       .input-wrapper {
         position: relative;
-        transition: all 0.3s ease;
+        margin-bottom: var(--spacing-xl);
+        transition: all var(--transition-smooth);
       }
 
       .input-wrapper i {
@@ -365,6 +376,16 @@
         box-shadow: var(--shadow-sm);
       }
 
+      .login-btn.loading {
+        background: var(--primary-color);
+        opacity: 0.8;
+        cursor: wait;
+      }
+
+      .login-btn.loading::before {
+        animation: none;
+      }
+
       .spinner {
         display: none;
         width: 18px;
@@ -519,9 +540,9 @@
       <div class="bg-circle"></div>
     </div>
 
-    <div class="login-container">
+    <div class="login-container glass-card animate-on-scroll">
       <div class="logo">
-        <img src="https://i.imgur.com/vjq26ym.png" alt="Logo G8" />
+        <img src="https://i.imgur.com/vjq26ym.png" alt="Logo G8" class="animate-pulse" />
         <h2>Acesso Restrito</h2>
       </div>
       
@@ -548,7 +569,7 @@
           <label for="remember-me">Lembrar usuário e senha</label>
         </div>
         
-        <button type="submit" class="login-btn" id="login-btn">
+        <button type="submit" class="login-btn btn-modern click-wave" id="login-btn">
           <span class="spinner" id="spinner"></span>
           <i class="fas fa-sign-in-alt" id="loginIcon"></i>
           <span id="loginText">Entrar</span>
@@ -563,10 +584,45 @@
       © 2025 J.P Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
     </footer>
 
-    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="notification-system.js"></script>
+    <script src="loading-system.js"></script>
+    <script src="common-utils.js"></script>
+    <script src="theme-system.js"></script>
+    <script src="visual-feedback.js"></script>
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
+        // Registrar Service Worker para funcionalidade PWA
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+              .then((registration) => {
+                console.log('Service Worker registrado com sucesso:', registration.scope);
+                
+                // Verificar atualizações
+                registration.addEventListener('updatefound', () => {
+                  const newWorker = registration.installing;
+                  newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                      // Nova versão disponível
+                      if (window.notifications) {
+                        notifications.info('Nova versão disponível. Recarregue a página para atualizar.', {
+                          title: 'Atualização Disponível',
+                          duration: 10000,
+                          closable: true
+                        });
+                      }
+                    }
+                  });
+                });
+              })
+              .catch((error) => {
+                console.log('Falha ao registrar Service Worker:', error);
+              });
+          });
+        }
+
         const usernameField = document.getElementById("username");
         const passwordField = document.getElementById("password");
         const rememberMeCheckbox = document.getElementById("remember-me");
@@ -635,39 +691,59 @@
           input.addEventListener('input', clearMessages);
         });
 
+        // Inicializar sistema de autenticação melhorado
+        const authSystem = new AuthSystem();
+
         document
           .getElementById("login-form")
-          .addEventListener("submit", function (event) {
+          .addEventListener("submit", async function (event) {
             event.preventDefault();
 
-            const usernameInput = usernameField.value;
+            const usernameInput = usernameField.value.trim();
             const passwordInput = passwordField.value;
             const rememberMe = rememberMeCheckbox.checked;
 
-            // Agora, 'validUsers' vem do arquivo config.js
-            if (
-              validUsers[usernameInput] &&
-              validUsers[usernameInput] === passwordInput
-            ) {
-              // Animação de loading
-              setLoading(true);
-              showMessage(successMessage, 'Login realizado com sucesso! Redirecionando...', 'success');
+            // Validação básica no frontend
+            if (!usernameInput || !passwordInput) {
+              authSystem.showMessage(errorMessage, "Por favor, preencha todos os campos.");
+              return;
+            }
+
+            // Mostrar loading
+            authSystem.setLoading(loginBtn, true);
+            clearMessages();
+
+            try {
+              // Usar sistema de autenticação melhorado
+              const result = await authSystem.authenticate(usernameInput, passwordInput);
               
-              if (rememberMe) {
-                localStorage.setItem("savedUsername", usernameInput);
-                localStorage.setItem("savedPassword", passwordInput);
+              if (result.success) {
+                authSystem.showMessage(successMessage, 'Login realizado com sucesso! Redirecionando...', 'success');
+                
+                if (rememberMe) {
+                  localStorage.setItem("savedUsername", usernameInput);
+                  localStorage.setItem("savedPassword", passwordInput);
+                } else {
+                  localStorage.removeItem("savedUsername");
+                  localStorage.removeItem("savedPassword");
+                }
+                
+                sessionStorage.setItem("loggedInUser", usernameInput);
+                
+                // Redirecionamento com delay melhorado
+                setTimeout(() => {
+                  window.location.href = "painel.html";
+                }, 1200);
               } else {
-                localStorage.removeItem("savedUsername");
-                localStorage.removeItem("savedPassword");
+                authSystem.showMessage(errorMessage, result.message || "Usuário ou senha inválidos.");
+                passwordField.value = '';
+                passwordField.focus();
               }
-              sessionStorage.setItem("loggedInUser", usernameInput);
-              setTimeout(() => {
-                window.location.href = "painel.html";
-              }, 1200);
-            } else {
-              showMessage(errorMessage, "Usuário ou senha inválidos.");
-              passwordField.value = '';
-              usernameField.focus();
+            } catch (error) {
+              console.error('Erro no login:', error);
+              authSystem.showMessage(errorMessage, "Erro inesperado. Tente novamente.");
+            } finally {
+              authSystem.setLoading(loginBtn, false);
             }
           });
       });

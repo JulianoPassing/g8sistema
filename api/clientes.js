@@ -2,12 +2,54 @@ const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
 
-module.exports = async (req, res) => {
-  console.log('API de clientes chamada:', {
+// Middleware de segurança e validação
+const addSecurityHeaders = (res) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+};
+
+// Validação de dados
+const validateClienteData = (data) => {
+  const errors = [];
+  
+  if (!data.razao || data.razao.trim().length < 2) {
+    errors.push('Razão social é obrigatória e deve ter pelo menos 2 caracteres');
+  }
+  
+  if (data.cnpj && !/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$|^\d{14}$/.test(data.cnpj)) {
+    errors.push('CNPJ deve estar em formato válido');
+  }
+  
+  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    errors.push('Email deve estar em formato válido');
+  }
+  
+  return errors;
+};
+
+// Logger melhorado
+const logRequest = (req, additionalInfo = {}) => {
+  const logData = {
+    timestamp: new Date().toISOString(),
     method: req.method,
     url: req.url,
+    userAgent: req.headers['user-agent'],
+    ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+    ...additionalInfo
+  };
+  console.log('API Request:', JSON.stringify(logData, null, 2));
+};
+
+module.exports = async (req, res) => {
+  // Adicionar headers de segurança
+  addSecurityHeaders(res);
+  
+  // Log da requisição
+  logRequest(req, { 
     path: req.headers['x-vercel-path'],
-    body: req.body
+    bodySize: req.body ? JSON.stringify(req.body).length : 0
   });
 
   // Função para carregar dados do arquivo JSON como fallback
@@ -66,18 +108,49 @@ module.exports = async (req, res) => {
     console.log('ID final extraído:', id);
 
     if (req.method === 'POST') {
+      // Validar dados de entrada
+      const validationErrors = validateClienteData(req.body);
+      if (validationErrors.length > 0) {
+        return res.status(400).json({ 
+          error: 'Dados inválidos', 
+          details: validationErrors 
+        });
+      }
+
       const {
         razao, cnpj, ie, endereco, bairro, cidade, estado, cep,
         email, telefone, transporte, prazo, obs
       } = req.body;
 
+      // Sanitizar dados
+      const sanitizedData = {
+        razao: razao?.trim(),
+        cnpj: cnpj?.replace(/\D/g, ''), // Remover caracteres não numéricos
+        ie: ie?.trim(),
+        endereco: endereco?.trim(),
+        bairro: bairro?.trim(),
+        cidade: cidade?.trim(),
+        estado: estado?.trim(),
+        cep: cep?.replace(/\D/g, ''),
+        email: email?.toLowerCase().trim(),
+        telefone: telefone?.replace(/\D/g, ''),
+        transporte: transporte?.trim(),
+        prazo: prazo?.trim(),
+        obs: obs?.trim()
+      };
+
       const [result] = await connection.execute(
         `INSERT INTO clientes (razao, cnpj, ie, endereco, bairro, cidade, estado, cep, email, telefone, transporte, prazo, obs)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [razao, cnpj, ie, endereco, bairro, cidade, estado, cep, email, telefone, transporte, prazo, obs]
+        Object.values(sanitizedData)
       );
 
-      res.status(201).json({ id: result.insertId, message: 'Cliente cadastrado com sucesso!' });
+      logRequest(req, { action: 'CREATE_CLIENT', clientId: result.insertId });
+      res.status(201).json({ 
+        id: result.insertId, 
+        message: 'Cliente cadastrado com sucesso!',
+        data: { id: result.insertId, ...sanitizedData }
+      });
       return;
     }
 

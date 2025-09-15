@@ -12,7 +12,14 @@
       rel="stylesheet"
     />
       <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="modern-design.css">
   <script src="mobile-menu.js"></script>
+  <script src="cache-system.js"></script>
+  <script src="notification-system.js"></script>
+  <script src="loading-system.js"></script>
+  <script src="animations.js"></script>
+  <script src="theme-system.js"></script>
+  <script src="visual-feedback.js"></script>
   <style>
       :root {
         --primary-color: #2563eb;
@@ -545,33 +552,33 @@
     <main class="container">
 
       <!-- Seção Escolha de Tabelas -->
-      <section class="section-card">
+      <section class="section-card glass-card animate-on-scroll" data-animation-delay="0">
         <div class="section-header">
           <div class="icon">🗒️</div>
           <h2>Escolha qual tabela usar</h2>
         </div>
         <div class="options-grid">
-          <div class="option-card pantaneiro-card">
+          <div class="option-card pantaneiro-card card-modern animate-on-scroll" data-animation-delay="100">
             <a href="pantaneiro5.html">
-              <span class="option-icon">🌊</span>
+              <span class="option-icon animate-pulse">🌊</span>
               <div class="option-title">Pantaneiro 5</div>
               <div class="option-description">
                 Acesse a tabela Pantaneiro com comissão de 5%.
               </div>
             </a>
           </div>
-          <div class="option-card pantaneiro-card">
+          <div class="option-card pantaneiro-card card-modern animate-on-scroll" data-animation-delay="200">
             <a href="pantaneiro7.html">
-              <span class="option-icon">🌊</span>
+              <span class="option-icon animate-pulse">🌊</span>
               <div class="option-title">Pantaneiro 7</div>
               <div class="option-description">
                 Acesse a tabela Pantaneiro com comissão de 7%.
               </div>
             </a>
           </div>
-          <div class="option-card steitz-card">
+          <div class="option-card steitz-card card-modern animate-on-scroll" data-animation-delay="300">
             <a href="steitz.html">
-              <span class="option-icon">👞</span>
+              <span class="option-icon animate-pulse">👞</span>
               <div class="option-title">Steitz</div>
               <div class="option-description">
                 Acesse a tabela da representada Steitz.
@@ -582,33 +589,33 @@
       </section>
 
       <!-- Seção Informações -->
-      <section class="section-card">
+      <section class="section-card glass-card animate-on-scroll" data-animation-delay="400">
         <div class="section-header">
           <div class="icon">📊</div>
           <h2>Informações</h2>
         </div>
         <div class="options-grid">
-          <div class="option-card info-card">
+          <div class="option-card info-card card-modern animate-on-scroll" data-animation-delay="500">
             <a href="painel-clientes.html">
-              <span class="option-icon">👥</span>
+              <span class="option-icon animate-bounce">👥</span>
               <div class="option-title">Clientes</div>
               <div class="option-description">
                 Visualize e filtre sua base de clientes.
               </div>
             </a>
           </div>
-          <div class="option-card info-card">
+          <div class="option-card info-card card-modern animate-on-scroll" data-animation-delay="600">
             <a href="pedidos.html">
-              <span class="option-icon">📦</span>
+              <span class="option-icon animate-bounce">📦</span>
               <div class="option-title">Pedidos</div>
               <div class="option-description">
                 Visualize e gerencie seus pedidos realizados.
               </div>
             </a>
           </div>
-          <div class="option-card info-card">
+          <div class="option-card info-card card-modern animate-on-scroll" data-animation-delay="700">
             <a href="https://g8representacoes.vercel.app/" target="_blank" rel="noopener noreferrer">
-              <span class="option-icon">🌐</span>
+              <span class="option-icon animate-bounce">🌐</span>
               <div class="option-title">Site G8</div>
               <div class="option-description">
                 Acesse o site institucional da G8 Representações.
@@ -625,28 +632,66 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        // 1. Pega o nome do usuário que foi salvo no sessionStorage
+        // Sistema de autenticação melhorado
         const loggedInUser = sessionStorage.getItem("loggedInUser");
-        // 2. Verifica se existe um usuário logado
+        
         if (loggedInUser) {
-          // Se sim, mostra a mensagem de boas-vindas
-          document.getElementById(
-            "user-info"
-          ).textContent = `Bem-vindo(a), ${loggedInUser}!`;
+          // Capitalizar primeira letra do nome
+          const userName = loggedInUser.charAt(0).toUpperCase() + loggedInUser.slice(1);
+          document.getElementById("user-info").textContent = `Bem-vindo(a), ${userName}!`;
+          
+          // Notificação de boas-vindas elegante
+          setTimeout(() => {
+            notifications.success(`Bem-vindo de volta, ${userName}!`, {
+              duration: 3000,
+              title: 'Login realizado'
+            });
+          }, 500);
         } else {
-          // Se não, impede o acesso e volta para a página de login
-          alert("Acesso negado. Por favor, realize o login.");
-          window.location.href = "index.html";
-        }
-        // 3. Adiciona a função de sair ao botão
-        document
-          .getElementById("logout-button")
-          .addEventListener("click", function () {
-            // Limpa o usuário da memória da sessão
-            sessionStorage.removeItem("loggedInUser");
-            // Redireciona para a página de login
-            window.location.href = "index.html";
+          // Notificação de erro mais elegante
+          notifications.error('Acesso negado. Redirecionando para login...', {
+            duration: 3000,
+            title: 'Acesso Negado'
           });
+          
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 2000);
+        }
+
+        // Logout melhorado
+        document.getElementById("logout-button").addEventListener("click", function () {
+          // Confirmar logout
+          if (confirm("Deseja realmente sair do sistema?")) {
+            // Mostrar loading
+            loadingSystem.showOverlay("Saindo do sistema...");
+            
+            // Limpar dados da sessão
+            sessionStorage.removeItem("loggedInUser");
+            localStorage.removeItem("savedUsername");
+            localStorage.removeItem("savedPassword");
+            
+            // Limpar cache
+            globalCache.clear();
+            
+            // Redirecionar após delay
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 1000);
+          }
+        });
+
+        // Verificar sessão periodicamente (opcional)
+        setInterval(() => {
+          if (!sessionStorage.getItem("loggedInUser")) {
+            notifications.warning('Sessão expirada. Redirecionando...', {
+              title: 'Sessão Expirada'
+            });
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 2000);
+          }
+        }, 60000); // Verificar a cada minuto
       });
     </script>
   </body>
