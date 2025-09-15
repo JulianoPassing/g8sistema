@@ -36,12 +36,21 @@ class AnimationSystem {
         rootMargin: '0px 0px -50px 0px'
       });
 
-      // Observar elementos com classe de animação
+      // Observar elementos com classe de animação e marcar como visíveis imediatamente se já estão na tela
       document.querySelectorAll('.animate-on-scroll').forEach(el => {
-        observer.observe(el);
+        if (this.isElementVisible(el)) {
+          el.classList.add('visible');
+        } else {
+          observer.observe(el);
+        }
       });
 
       this.observers.set('scroll', observer);
+    } else {
+      // Fallback: marcar todos como visíveis se IntersectionObserver não estiver disponível
+      document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        el.classList.add('visible');
+      });
     }
   }
 
@@ -388,7 +397,16 @@ window.AnimationUtils = AnimationUtils;
 // Instanciar sistema global
 window.animations = new AnimationSystem();
 
-// Configurar parallax quando DOM estiver pronto
+// Configurar parallax e garantir visibilidade quando DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
   AnimationUtils.setupParallax();
+  
+  // Garantir que elementos sejam visíveis imediatamente
+  setTimeout(() => {
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+      if (window.animations.isElementVisible(el)) {
+        el.classList.add('visible');
+      }
+    });
+  }, 100);
 });

@@ -302,15 +302,28 @@
   animation: pulse 2s infinite;
 }
 
-.animate-on-scroll {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s ease-out;
+.animate-bounce {
+  animation: bounce-modern 1s infinite;
 }
 
-.animate-on-scroll.visible {
-  opacity: 1;
-  transform: translateY(0);
+.animate-on-scroll {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  transition: all 0.6s ease-out;
+  visibility: visible !important;
+}
+
+/* Animação opcional apenas se suportada */
+@supports (opacity: 1) {
+  .animate-on-scroll:not(.visible) {
+    opacity: 0.1;
+    transform: translateY(10px);
+  }
+
+  .animate-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* === LOADER MODERNO === */
@@ -442,6 +455,21 @@
   }
   100% {
     background-position: 20px 20px;
+  }
+}
+
+@keyframes bounce-modern {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -10px, 0);
+  }
+  70% {
+    transform: translate3d(0, -5px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
   }
 }
 
