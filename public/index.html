@@ -226,7 +226,11 @@
         color: var(--text-muted);
         font-size: 16.2px;
         transition: all 0.3s ease;
-        z-index: 2;
+        z-index: 3;
+      }
+
+      .input-wrapper i.fas.fa-lock {
+        z-index: 3;
       }
 
       .form-group input {
@@ -243,6 +247,12 @@
         color: #000000;
         position: relative;
         z-index: 1;
+      }
+
+      /* Padding especial para campo de senha com ícone do olho */
+      .form-group input[type="password"],
+      .form-group input#password {
+        padding-right: 46.8px;
       }
 
       .form-group input:focus {
@@ -278,7 +288,8 @@
         transition: all 0.3s ease;
         padding: 4px;
         border-radius: 4px;
-        z-index: 2;
+        z-index: 10;
+        pointer-events: auto;
       }
 
       .toggle-password-icon:hover {
@@ -306,7 +317,8 @@
         color: var(--primary-color);
       }
 
-      input#remember-me {
+      input#remember-me,
+      input#show-password {
         width: 18px;
         height: 18px;
         padding: 0;
@@ -560,13 +572,17 @@
           <div class="input-wrapper">
             <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
             <i class="fas fa-lock"></i>
-            <i class="fas fa-eye toggle-password-icon" id="toggle-password"></i>
           </div>
         </div>
 
         <div class="remember-group">
           <input type="checkbox" id="remember-me" />
           <label for="remember-me">Lembrar usuário e senha</label>
+        </div>
+        
+        <div class="remember-group">
+          <input type="checkbox" id="show-password" />
+          <label for="show-password">Visualizar senha</label>
         </div>
         
         <button type="submit" class="login-btn btn-modern click-wave" id="login-btn">
@@ -627,7 +643,7 @@
         const usernameField = document.getElementById("username");
         const passwordField = document.getElementById("password");
         const rememberMeCheckbox = document.getElementById("remember-me");
-        const togglePassword = document.getElementById("toggle-password");
+        const showPasswordCheckbox = document.getElementById("show-password");
         const errorMessage = document.getElementById("error-message");
         const successMessage = document.getElementById("success-message");
         const loginBtn = document.getElementById("login-btn");
@@ -635,13 +651,9 @@
         const loginIcon = document.getElementById("loginIcon");
         const loginText = document.getElementById("loginText");
 
-        togglePassword.addEventListener("click", function () {
-          const type =
-            passwordField.getAttribute("type") === "password"
-              ? "text"
-              : "password";
+        showPasswordCheckbox.addEventListener("change", function () {
+          const type = this.checked ? "text" : "password";
           passwordField.setAttribute("type", type);
-          this.classList.toggle("fa-eye-slash");
         });
 
         const savedUsername = localStorage.getItem("savedUsername");
