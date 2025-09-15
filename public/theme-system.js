@@ -64,9 +64,12 @@ class ThemeSystem {
   // Inicializar sistema de temas
   init() {
     this.loadSavedTheme();
+    this.applyTheme(); // Aplicar tema primeiro
     this.createThemeToggler();
     this.setupAutoTheme();
-    this.applyTheme();
+    
+    // Aplicar novamente após um delay para garantir
+    setTimeout(() => this.applyTheme(), 100);
   }
 
   // Carregar tema salvo
@@ -260,6 +263,7 @@ class ThemeSystem {
 
   // Definir tema
   setTheme(themeName) {
+    console.log(`Mudando tema para: ${themeName}`);
     this.currentTheme = themeName;
     localStorage.setItem('g8-theme', themeName);
     this.applyTheme();
@@ -273,6 +277,10 @@ class ThemeSystem {
         duration: 2000,
         title: 'Tema'
       });
+    } else {
+      // Fallback para alert se notifications não estiver disponível
+      const name = themeName === 'auto' ? 'Automático' : this.themes[themeName]?.name;
+      console.log(`Tema alterado para: ${name}`);
     }
   }
 
@@ -294,6 +302,19 @@ class ThemeSystem {
       root.style.setProperty(property, value);
     });
 
+    // Aplicar também nas variáveis existentes do sistema
+    root.style.setProperty('--primary-color', theme.colors['--primary']);
+    root.style.setProperty('--primary-dark', theme.colors['--primary-dark']);
+    root.style.setProperty('--background', theme.colors['--background']);
+    root.style.setProperty('--surface', theme.colors['--surface']);
+    root.style.setProperty('--text-primary', theme.colors['--text']);
+    root.style.setProperty('--text-muted', theme.colors['--text-muted']);
+    root.style.setProperty('--border', theme.colors['--border']);
+    root.style.setProperty('--bg-color', theme.colors['--background']);
+    root.style.setProperty('--card-bg', theme.colors['--surface']);
+    root.style.setProperty('--text-color', theme.colors['--text']);
+    root.style.setProperty('--border-color', theme.colors['--border']);
+
     // Adicionar classe ao body
     document.body.className = document.body.className.replace(/theme-\w+/g, '');
     document.body.classList.add(`theme-${effectiveTheme}`);
@@ -303,6 +324,8 @@ class ThemeSystem {
     if (themeColorMeta) {
       themeColorMeta.content = theme.colors['--primary'];
     }
+
+    console.log(`Tema aplicado: ${effectiveTheme}`, theme.colors);
   }
 
   // Atualizar botão do toggler
