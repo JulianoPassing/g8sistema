@@ -16,23 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   carregarPedidos();
-  
-  // Event listeners para filtros e busca
-  const searchInput = document.getElementById('search-pedidos');
-  const filterEmpresa = document.getElementById('filter-empresa');
-  const refreshBtn = document.getElementById('refresh-pedidos');
-  
-  if (searchInput) {
-    searchInput.addEventListener('input', filtrarPedidos);
-  }
-  
-  if (filterEmpresa) {
-    filterEmpresa.addEventListener('change', filtrarPedidos);
-  }
-  
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', carregarPedidos);
-  }
 
   // Evento de submit do formulário de edição
   document.getElementById('form-editar-pedido').addEventListener('submit', async function (e) {
@@ -61,224 +44,115 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-let todosOsPedidos = [];
-let pedidosFiltrados = [];
-
 async function carregarPedidos() {
   const lista = document.getElementById('pedidos-lista');
-  const stats = document.getElementById('pedidos-stats');
-  
-  // Loading state
-  lista.innerHTML = `
-    <div class="loading-state">
-      <div class="loading-spinner"></div>
-      <h3>Carregando pedidos...</h3>
-      <p>Aguarde enquanto buscamos os dados</p>
-    </div>
-  `;
-  
+  lista.innerHTML = '<p>Carregando pedidos...</p>';
   try {
     const resp = await fetch('/api/pedidos');
     const pedidos = await resp.json();
-    
     if (!Array.isArray(pedidos) || pedidos.length === 0) {
-      lista.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">📦</div>
-          <h3>Nenhum pedido encontrado</h3>
-          <p>Não há pedidos cadastrados no sistema ainda.</p>
-        </div>
-      `;
-      stats.innerHTML = '';
+      lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       return;
     }
-    
-    todosOsPedidos = pedidos;
-    pedidosFiltrados = [...pedidos];
-    
-    renderizarEstatisticas(pedidos);
-    renderizarPedidos(pedidos);
-    popularFiltroEmpresas(pedidos);
-    
-  } catch (err) {
-    console.error('Erro ao carregar pedidos:', err);
-    lista.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">⚠️</div>
-        <h3>Erro ao carregar pedidos</h3>
-        <p>Não foi possível conectar com o servidor. Tente novamente.</p>
-        <button class="btn-refresh" onclick="carregarPedidos()">🔄 Tentar Novamente</button>
-      </div>
-    `;
-  }
-}
+    // Função para extrair informações do pedido
+    function extrairInfoPedido(descricao) {
+      const info = {
+        cliente: 'N/A',
+        itens: [],
+        total: 'R$ 0,00'
+      };
+      
+      // Extrair cliente
+      const clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Itens:)/);
+      if (clienteMatch) {
+        info.cliente = clienteMatch[1].trim();
+      }
+      
+      // Extrair itens
+      const itensMatch = descricao.match(/Itens:\s*([^T]+?)(?:\s+Total:)/);
+      if (itensMatch) {
+        const itensStr = itensMatch[1].trim();
+        info.itens = itensStr.split(', ').filter(item => item.trim());
+      }
+      
+      // Extrair total
+      const totalMatch = descricao.match(/Total:\s*(R\$\s*[\d.,]+)/);
+      if (totalMatch) {
+        info.total = totalMatch[1];
+      }
+      
+      return info;
+    }
 
-function renderizarEstatisticas(pedidos) {
-  const stats = document.getElementById('pedidos-stats');
-  const totalPedidos = pedidos.length;
-  const totalValor = pedidos.reduce((sum, p) => {
-    const dados = p.dados ? (typeof p.dados === 'string' ? JSON.parse(p.dados) : p.dados) : {};
-    return sum + (parseFloat(dados.total || p.total || 0));
-  }, 0);
-  
-  const empresas = [...new Set(pedidos.map(p => p.empresa))].length;
-  
-  stats.innerHTML = `
-    <div class="stat-card">
-      <span class="stat-number">${totalPedidos}</span>
-      <span class="stat-label">Total de Pedidos</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-number">${empresas}</span>
-      <span class="stat-label">Empresas</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-number">R$ ${totalValor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-      <span class="stat-label">Valor Total</span>
-    </div>
-  `;
-}
+    // Função para formatar data
+    function formatarData(data) {
+      if (!data) return 'N/A';
+      try {
+        const date = new Date(data);
+        return date.toLocaleDateString('pt-BR') + ' às ' + date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+      } catch {
+        return 'N/A';
+      }
+    }
 
-function renderizarPedidos(pedidos) {
-  const lista = document.getElementById('pedidos-lista');
-  
-  if (pedidos.length === 0) {
-    lista.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🔍</div>
-        <h3>Nenhum pedido encontrado</h3>
-        <p>Tente ajustar os filtros de busca.</p>
-      </div>
-    `;
-    return;
-  }
-  
-  const cardsHtml = pedidos.map(pedido => {
-    const dados = pedido.dados ? (typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados) : {};
-    const valor = parseFloat(dados.total || pedido.total || 0);
-    const dataFormatada = formatarData(pedido.data_pedido);
-    const status = obterStatusPedido(pedido.data_pedido);
-    
-    return `
-      <div class="pedido-card">
-        <div class="pedido-header-card">
-          <div class="pedido-id-info">
-            <div class="pedido-id">
-              📦 #${pedido.id}
+    let html = '<div class="pedidos-grid">';
+    for (const pedido of pedidos) {
+      const info = extrairInfoPedido(pedido.descricao);
+      const dataFormatada = formatarData(pedido.data_pedido);
+      
+      html += `
+        <div class="pedido-card-modern">
+          <div class="pedido-header">
+            <div class="pedido-id-badge">
+              <span class="id-label">Pedido</span>
+              <span class="id-number">#${pedido.id}</span>
             </div>
-            <div class="pedido-empresa">${pedido.empresa}</div>
-          </div>
-          <div class="pedido-status ${status.classe}">${status.texto}</div>
-        </div>
-        
-        <div class="pedido-content">
-          <div class="pedido-info-grid">
-            <div class="info-item">
-              <span class="info-label">📅 Data</span>
-              <span class="info-value">${dataFormatada}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">💰 Valor</span>
-              <span class="info-value valor">R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">📋 Itens</span>
-              <span class="info-value">${contarItens(dados)} produtos</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">👤 Cliente</span>
-              <span class="info-value">${dados.cliente || 'Não informado'}</span>
+            <div class="pedido-empresa-badge">
+              <span class="empresa-name">${pedido.empresa.toUpperCase()}</span>
             </div>
           </div>
           
-          ${pedido.descricao ? `
-            <div class="pedido-descricao">
-              <p class="pedido-descricao-text">${pedido.descricao}</p>
+          <div class="pedido-body">
+            <div class="cliente-info">
+              <div class="info-label">👤 Cliente</div>
+              <div class="info-value cliente-name">${info.cliente}</div>
             </div>
-          ` : ''}
+            
+            <div class="itens-info">
+              <div class="info-label">📦 Itens (${info.itens.length})</div>
+              <div class="itens-container">
+                ${info.itens.slice(0, 6).map(item => `<span class="item-badge">${item}</span>`).join('')}
+                ${info.itens.length > 6 ? `<span class="item-badge more">+${info.itens.length - 6} mais</span>` : ''}
+              </div>
+            </div>
+            
+            <div class="valor-info">
+              <div class="info-label">💰 Valor Total</div>
+              <div class="info-value valor-total">${info.total}</div>
+            </div>
+            
+            <div class="data-info">
+              <div class="info-label">📅 Data do Pedido</div>
+              <div class="info-value data-pedido">${dataFormatada}</div>
+            </div>
+          </div>
+          
+          <div class="pedido-actions">
+            <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
+              ✏️ Editar
+            </button>
+            <button class="btn-action btn-delete" onclick="excluirPedido(${pedido.id})">
+              🗑️ Excluir
+            </button>
+          </div>
         </div>
-        
-        <div class="pedido-actions">
-          <button class="btn-action-modern btn-edit-modern" onclick="editarPedido(${pedido.id})">
-            ✏️ Editar
-          </button>
-          <button class="btn-action-modern btn-delete-modern" onclick="excluirPedido(${pedido.id})">
-            🗑️ Excluir
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-  
-  lista.innerHTML = cardsHtml;
-}
-
-function formatarData(dataString) {
-  if (!dataString) return 'Data não informada';
-  const data = new Date(dataString);
-  return data.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit', 
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function obterStatusPedido(dataString) {
-  if (!dataString) return { classe: 'status-antigo', texto: 'Sem Data' };
-  
-  const agora = new Date();
-  const dataPedido = new Date(dataString);
-  const diferencaDias = Math.floor((agora - dataPedido) / (1000 * 60 * 60 * 24));
-  
-  if (diferencaDias <= 7) {
-    return { classe: 'status-recente', texto: 'Recente' };
-  } else if (diferencaDias <= 30) {
-    return { classe: 'status-medio', texto: 'Médio' };
-  } else {
-    return { classe: 'status-antigo', texto: 'Antigo' };
+      `;
+    }
+    html += '</div>';
+    lista.innerHTML = html;
+  } catch (err) {
+    lista.innerHTML = '<p>Erro ao carregar pedidos.</p>';
   }
-}
-
-function contarItens(dados) {
-  if (!dados || !dados.itens) return 0;
-  return Array.isArray(dados.itens) ? dados.itens.length : 0;
-}
-
-function popularFiltroEmpresas(pedidos) {
-  const select = document.getElementById('filter-empresa');
-  const empresas = [...new Set(pedidos.map(p => p.empresa))].sort();
-  
-  // Limpar opções existentes (exceto a primeira)
-  select.innerHTML = '<option value="">📋 Todas as empresas</option>';
-  
-  empresas.forEach(empresa => {
-    const option = document.createElement('option');
-    option.value = empresa;
-    option.textContent = empresa;
-    select.appendChild(option);
-  });
-}
-
-function filtrarPedidos() {
-  const searchTerm = document.getElementById('search-pedidos').value.toLowerCase();
-  const empresaSelecionada = document.getElementById('filter-empresa').value;
-  
-  let pedidosFiltrados = todosOsPedidos.filter(pedido => {
-    const matchSearch = !searchTerm || 
-      pedido.id.toString().includes(searchTerm) ||
-      pedido.empresa.toLowerCase().includes(searchTerm) ||
-      (pedido.descricao && pedido.descricao.toLowerCase().includes(searchTerm)) ||
-      (pedido.dados && JSON.stringify(pedido.dados).toLowerCase().includes(searchTerm));
-    
-    const matchEmpresa = !empresaSelecionada || pedido.empresa === empresaSelecionada;
-    
-    return matchSearch && matchEmpresa;
-  });
-  
-  renderizarPedidos(pedidosFiltrados);
-  renderizarEstatisticas(pedidosFiltrados);
 }
 
 let pedidoEditando = null;

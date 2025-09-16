@@ -996,406 +996,265 @@
         color: #ff9999;
         text-decoration: underline;
         text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
-      }
+        }
 
-      /* === NOVOS ESTILOS PARA PEDIDOS MODERNOS === */
-      
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 20px;
-        margin-bottom: 20px;
-      }
+        /* === ESTILOS MODERNOS PARA CARDS DE PEDIDOS === */
+        .pedidos-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+          gap: 24px;
+          margin-top: 20px;
+        }
 
-      .header-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
+        .pedido-card-modern {
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          border: 2px solid transparent;
+          overflow: hidden;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+        }
 
-      .pedidos-controls {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex-wrap: wrap;
-      }
+        .pedido-card-modern::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: var(--gradient-primary);
+          transform: scaleX(0);
+          transition: transform 0.3s ease;
+        }
 
-      .search-input-modern, .filter-select-modern {
-        padding: 10px 16px;
-        border: 2px solid var(--border-color);
-        border-radius: 25px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        background: white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
+        .pedido-card-modern:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 25px rgba(255, 0, 0, 0.15);
+          border-color: var(--g8-red);
+        }
 
-      .search-input-modern {
-        min-width: 250px;
-      }
+        .pedido-card-modern:hover::before {
+          transform: scaleX(1);
+        }
 
-      .search-input-modern:focus, .filter-select-modern:focus {
-        outline: none;
-        border-color: var(--g8-red);
-        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
-        transform: translateY(-1px);
-      }
+        .pedido-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 24px 16px;
+          background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+          border-bottom: 1px solid #e9ecef;
+        }
 
-      .btn-refresh {
-        padding: 10px 20px;
-        background: var(--gradient-primary);
-        color: white;
-        border: none;
-        border-radius: 25px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(255, 0, 0, 0.2);
-      }
-
-      .btn-refresh:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
-      }
-
-      .pedidos-stats-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-        padding: 20px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-        border-radius: 16px;
-        border: 1px solid var(--border-color);
-      }
-
-      .stat-card {
-        text-align: center;
-        padding: 16px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-      }
-
-      .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      }
-
-      .stat-number {
-        display: block;
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: var(--g8-red);
-        line-height: 1;
-        margin-bottom: 8px;
-      }
-
-      .stat-label {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .pedidos-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
-      }
-
-      .pedido-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        border: 2px solid transparent;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-      }
-
-      .pedido-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--gradient-primary);
-        transform: scaleX(0);
-        transition: transform 0.3s ease;
-      }
-
-      .pedido-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(255, 0, 0, 0.15);
-        border-color: var(--g8-red);
-      }
-
-      .pedido-card:hover::before {
-        transform: scaleX(1);
-      }
-
-      .pedido-header-card {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px 24px 16px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-        border-bottom: 1px solid #e9ecef;
-      }
-
-      .pedido-id-info {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .pedido-id {
-        font-size: 1.3rem;
-        font-weight: 800;
-        color: var(--g8-red);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .pedido-empresa {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .pedido-status {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-
-      .status-recente {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-      }
-
-      .status-medio {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        color: white;
-      }
-
-      .status-antigo {
-        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-        color: white;
-      }
-
-      .pedido-content {
-        padding: 20px 24px;
-      }
-
-      .pedido-info-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin-bottom: 16px;
-      }
-
-      .info-item {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .info-label {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .info-value {
-        font-size: 0.95rem;
-        color: var(--text-color);
-        font-weight: 600;
-      }
-
-      .info-value.valor {
-        font-size: 1.2rem;
-        color: var(--g8-red);
-        font-weight: 800;
-      }
-
-      .pedido-descricao {
-        background: #f8f9fa;
-        padding: 16px;
-        border-radius: 12px;
-        border-left: 4px solid var(--g8-red);
-        margin-bottom: 16px;
-      }
-
-      .pedido-descricao-text {
-        font-size: 0.9rem;
-        line-height: 1.5;
-        color: var(--text-color);
-        margin: 0;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-
-      .pedido-actions {
-        display: flex;
-        gap: 8px;
-        padding: 16px 24px;
-        background: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-      }
-
-      .btn-action-modern {
-        flex: 1;
-        padding: 12px 16px;
-        border: none;
-        border-radius: 12px;
-        font-size: 0.9rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-
-      .btn-edit-modern {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        color: white;
-      }
-
-      .btn-edit-modern:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-      }
-
-      .btn-delete-modern {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        color: white;
-      }
-
-      .btn-delete-modern:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-      }
-
-      .loading-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 60px 20px;
-        text-align: center;
-      }
-
-      .loading-spinner {
-        width: 50px;
-        height: 50px;
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid var(--g8-red);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-bottom: 20px;
-      }
-
-      .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--text-muted);
-      }
-
-      .empty-icon {
-        font-size: 4rem;
-        margin-bottom: 16px;
-        opacity: 0.7;
-      }
-
-      .empty-state h3 {
-        color: var(--text-color);
-        margin-bottom: 8px;
-        font-size: 1.2rem;
-      }
-
-      .empty-state p {
-        font-size: 0.9rem;
-        line-height: 1.5;
-      }
-
-      /* Responsividade dos novos estilos */
-      @media (max-width: 768px) {
-        .card-header {
+        .pedido-id-badge {
+          display: flex;
           flex-direction: column;
-          align-items: stretch;
-          gap: 16px;
+          gap: 2px;
         }
 
-        .pedidos-controls {
+        .id-label {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .id-number {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: var(--g8-red);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .pedido-empresa-badge {
+          padding: 8px 16px;
+          background: var(--gradient-primary);
+          color: white;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          box-shadow: 0 2px 8px rgba(255, 0, 0, 0.2);
+        }
+
+        .pedido-body {
+          padding: 24px;
+          display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 20px;
         }
 
-        .search-input-modern {
-          min-width: 100%;
-        }
-
-        .pedidos-container {
-          grid-template-columns: 1fr;
-          gap: 16px;
-        }
-
-        .pedido-info-grid {
-          grid-template-columns: 1fr;
-          gap: 12px;
-        }
-
-        .pedido-actions {
+        .cliente-info, .itens-info, .valor-info, .data-info {
+          display: flex;
           flex-direction: column;
           gap: 8px;
         }
 
-        .pedidos-stats-container {
-          grid-template-columns: repeat(2, 1fr);
+        .info-label {
+          font-size: 0.8rem;
+          color: var(--text-muted);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .info-value {
+          font-size: 0.95rem;
+          color: var(--text-color);
+          font-weight: 600;
+        }
+
+        .cliente-name {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: var(--g8-black);
+          line-height: 1.3;
+        }
+
+        .valor-total {
+          font-size: 1.4rem;
+          font-weight: 800;
+          color: var(--g8-red);
+        }
+
+        .data-pedido {
+          font-size: 0.9rem;
+          color: var(--text-muted);
+        }
+
+        .itens-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .item-badge {
+          padding: 6px 12px;
+          background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+          border: 1px solid #cbd5e1;
+          border-radius: 16px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: var(--text-color);
+          transition: all 0.2s ease;
+        }
+
+        .item-badge:hover {
+          background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+          transform: translateY(-1px);
+        }
+
+        .item-badge.more {
+          background: var(--gradient-primary);
+          color: white;
+          border-color: var(--g8-red);
+        }
+
+        .pedido-actions {
+          display: flex;
           gap: 12px;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .pedidos-stats-container {
-          grid-template-columns: 1fr;
+          padding: 16px 24px;
+          background: #f8f9fa;
+          border-top: 1px solid #e9ecef;
         }
 
-        .stat-number {
-          font-size: 2rem;
+        .btn-action {
+          flex: 1;
+          padding: 12px 16px;
+          border: none;
+          border-radius: 12px;
+          font-size: 0.9rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .pedido-header-card {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 12px;
+        .btn-edit {
+          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+          color: white;
         }
-      }
-    </style>
+
+        .btn-edit:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-delete {
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          color: white;
+        }
+
+        .btn-delete:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+          .pedidos-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+
+          .pedido-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+          }
+
+          .pedido-empresa-badge {
+            align-self: flex-end;
+          }
+
+          .itens-container {
+            max-height: 80px;
+            overflow-y: auto;
+          }
+
+          .pedido-actions {
+            flex-direction: column;
+            gap: 8px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .pedidos-grid {
+            margin: 10px;
+          }
+
+          .pedido-card-modern {
+            border-radius: 12px;
+          }
+
+          .pedido-body {
+            padding: 16px;
+            gap: 16px;
+          }
+
+          .cliente-name {
+            font-size: 1rem;
+          }
+
+          .valor-total {
+            font-size: 1.2rem;
+          }
+        }
+      </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   </head>
@@ -1420,20 +1279,10 @@
     <main class="container">
       <section class="card">
         <div class="card-header">
-          <div class="header-info">
-            <span role="img" aria-label="Pedidos" style="font-size: 1.8em">📦</span>
-            <h2>Pedidos</h2>
-          </div>
-          <div class="pedidos-controls">
-            <input type="text" id="search-pedidos" placeholder="🔍 Buscar pedidos..." class="search-input-modern">
-            <select id="filter-empresa" class="filter-select-modern">
-              <option value="">📋 Todas as empresas</option>
-            </select>
-            <button id="refresh-pedidos" class="btn-refresh">🔄 Atualizar</button>
-          </div>
+          <span role="img" aria-label="Pedidos" style="font-size: 1.8em">📦</span>
+          <h2>Pedidos</h2>
         </div>
-        <div id="pedidos-stats" class="pedidos-stats-container"></div>
-        <div id="pedidos-lista" class="pedidos-container"></div>
+        <div id="pedidos-lista"></div>
       </section>
       <section class="card" id="editar-pedido-card" style="display:none;">
         <div class="card-header">
