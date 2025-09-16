@@ -115,7 +115,7 @@ async function carregarPedidos() {
       if (!data) return 'N/A';
       try {
         const date = new Date(data);
-        return date.toLocaleDateString('pt-BR') + ' às ' + date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+        return date.toLocaleDateString('pt-BR');
       } catch {
         return 'N/A';
       }
@@ -184,11 +184,11 @@ async function carregarPedidos() {
           </div>
           
           <div class="pedido-actions">
+            <button class="btn-action btn-view" onclick="visualizarPedido(${pedido.id})">
+              👁️ Visualizar
+            </button>
             <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
               ✏️ Editar
-            </button>
-            <button class="btn-action btn-pdf" onclick="gerarPDFPedido(${pedido.id})">
-              📄 PDF
             </button>
             <button class="btn-action btn-delete" onclick="excluirPedido(${pedido.id})">
               🗑️ Excluir
@@ -1563,4 +1563,210 @@ window.gerarPDFPedido = async function(pedidoId) {
       alert('❌ Erro ao gerar PDF do pedido');
     }
   }
-}; 
+};
+
+// Função para visualizar pedido em modal
+window.visualizarPedido = async function(pedidoId) {
+  try {
+    // Buscar dados do pedido
+    const resp = await fetch('/api/pedidos');
+    const pedidos = await resp.json();
+    const pedido = pedidos.find(p => p.id == pedidoId);
+    
+    if (!pedido) {
+      alert('❌ Pedido não encontrado.');
+      return;
+    }
+
+    // Extrair informações do pedido
+    function extrairInfoPedidoCompleta(descricao, dados) {
+      const info = {
+        cliente: 'N/A',
+        itens: [],
+        total: 'R$ 0,00',
+        desconto: 'N/A',
+        prazo: 'N/A',
+        frete: 'N/A',
+        observacoes: 'N/A'
+      };
+      
+      // Tentar extrair da descrição primeiro
+      const clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Itens?:)/i);
+      if (clienteMatch) {
+        info.cliente = clienteMatch[1].trim();
+      }
+      
+      const itensMatch = descricao.match(/Itens?:\s*([^T]+?)(?:\s+Total:)/i);
+      if (itensMatch) {
+        const itensStr = itensMatch[1].trim();
+        info.itens = itensStr.split(', ').filter(item => item.trim());
+      }
+      
+      const totalMatch = descricao.match(/Total:\s*(R\$\s*[\d.,]+)/i);
+      if (totalMatch) {
+        info.total = totalMatch[1];
+      }
+      
+      // Tentar extrair dos dados estruturados se disponível
+      if (dados) {
+        try {
+          const dadosObj = typeof dados === 'string' ? JSON.parse(dados) : dados;
+          
+          // Cliente
+          if (info.cliente === 'N/A' && dadosObj.cliente) {
+            if (dadosObj.cliente.nome) {
+              info.cliente = dadosObj.cliente.nome;
+            } else if (typeof dadosObj.cliente === 'string') {
+              info.cliente = dadosObj.cliente;
+            }
+          }
+          
+          // Itens mais detalhados
+          if (dadosObj.itens && Array.isArray(dadosObj.itens)) {
+            info.itens = dadosObj.itens.map(item => {
+              if (typeof item === 'object') {
+                return `${item.REFERENCIA || item.ref || 'N/A'} - ${item.quantidade || item.qtd || 0} unidades`;
+              }
+              return item.toString();
+            });
+          }
+          
+          // Outros dados
+          if (dadosObj.total) {
+            info.total = typeof dadosObj.total === 'number' ? `R$ ${dadosObj.total.toFixed(2).replace('.', ',')}` : dadosObj.total;
+          }
+          
+          if (dadosObj.desconto || dadosObj.descontos) {
+            const desconto = dadosObj.desconto || dadosObj.descontos;
+            info.desconto = typeof desconto === 'number' ? `${desconto}%` : desconto.toString();
+          }
+          
+          if (dadosObj.prazo || dadosObj.prazoEntrega) {
+            info.prazo = dadosObj.prazo || dadosObj.prazoEntrega;
+          }
+          
+          if (dadosObj.frete || dadosObj.transporte) {
+            const frete = dadosObj.frete || dadosObj.transporte;
+            info.frete = typeof frete === 'number' ? `R$ ${frete.toFixed(2).replace('.', ',')}` : frete.toString();
+          }
+          
+          if (dadosObj.observacoes || dadosObj.obs) {
+            info.observacoes = dadosObj.observacoes || dadosObj.obs;
+          }
+          
+        } catch (e) {
+          console.log('❌ Erro ao parsear dados estruturados:', e);
+        }
+      }
+      
+      return info;
+    }
+
+    const info = extrairInfoPedidoCompleta(pedido.descricao, pedido.dados);
+    const dataFormatada = new Date(pedido.data_pedido).toLocaleDateString('pt-BR');
+
+    // Preencher o modal
+    const modalDetalhes = document.getElementById('modal-pedido-detalhes');
+    modalDetalhes.innerHTML = `
+      <div class="pedido-detalhes-grid">
+        <div class="detalhe-secao">
+          <div class="detalhe-titulo">
+            🏢 Informações Gerais
+          </div>
+          <div class="detalhe-item">
+            <span class="detalhe-label">Pedido #</span>
+            <span class="detalhe-valor destaque">${pedido.id}</span>
+          </div>
+          <div class="detalhe-item">
+            <span class="detalhe-label">Empresa</span>
+            <span class="detalhe-valor">${pedido.empresa.toUpperCase()}</span>
+          </div>
+          <div class="detalhe-item">
+            <span class="detalhe-label">Data do Pedido</span>
+            <span class="detalhe-valor">${dataFormatada}</span>
+          </div>
+        </div>
+
+        <div class="detalhe-secao">
+          <div class="detalhe-titulo">
+            👤 Cliente
+          </div>
+          <div class="detalhe-item">
+            <span class="detalhe-label">Nome/Razão Social</span>
+            <span class="detalhe-valor">${info.cliente}</span>
+          </div>
+        </div>
+
+        <div class="detalhe-secao">
+          <div class="detalhe-titulo">
+            💰 Valores
+          </div>
+          <div class="detalhe-item">
+            <span class="detalhe-label">Total do Pedido</span>
+            <span class="detalhe-valor destaque">${info.total}</span>
+          </div>
+          <div class="detalhe-item">
+            <span class="detalhe-label">Desconto</span>
+            <span class="detalhe-valor">${info.desconto}</span>
+          </div>
+          <div class="detalhe-item">
+            <span class="detalhe-label">Frete</span>
+            <span class="detalhe-valor">${info.frete}</span>
+          </div>
+        </div>
+
+        <div class="detalhe-secao">
+          <div class="detalhe-titulo">
+            📋 Condições
+          </div>
+          <div class="detalhe-item">
+            <span class="detalhe-label">Prazo de Entrega</span>
+            <span class="detalhe-valor">${info.prazo}</span>
+          </div>
+          <div class="detalhe-item">
+            <span class="detalhe-label">Observações</span>
+            <span class="detalhe-valor">${info.observacoes}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detalhe-secao">
+        <div class="detalhe-titulo">
+          📦 Itens do Pedido (${info.itens.length})
+        </div>
+        <div class="itens-lista">
+          ${info.itens.map(item => `<span class="item-tag">${item}</span>`).join('')}
+        </div>
+      </div>
+    `;
+
+    // Mostrar o modal
+    document.getElementById('modal-visualizar-pedido').style.display = 'flex';
+    
+  } catch (error) {
+    console.error('Erro ao carregar detalhes do pedido:', error);
+    alert('❌ Erro ao carregar detalhes do pedido');
+  }
+};
+
+// Função para fechar modal de visualização
+window.fecharModalVisualizacao = function() {
+  document.getElementById('modal-visualizar-pedido').style.display = 'none';
+};
+
+// Fechar modal clicando fora dele ou com ESC
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('modal-visualizar-pedido');
+  if (e.target === modal) {
+    fecharModalVisualizacao();
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('modal-visualizar-pedido');
+    if (modal && modal.style.display === 'flex') {
+      fecharModalVisualizacao();
+    }
+  }
+}); 
