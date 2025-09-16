@@ -16,13 +16,17 @@ function forceLightTheme() {
   root.style.setProperty('--text-color', '#1f2937');
   root.style.setProperty('--border-color', '#e5e7eb');
   
-  // Aplicar no body
-  document.body.style.backgroundColor = '#ffffff';
-  document.body.style.color = '#1f2937';
+  // Aplicar no body se existir
+  if (document.body) {
+    document.body.style.backgroundColor = '#ffffff';
+    document.body.style.color = '#1f2937';
+  }
   
-  // Remover qualquer classe de tema escuro
-  document.body.classList.remove('dark-theme', 'theme-dark');
-  document.body.classList.add('light-theme');
+  // Remover qualquer classe de tema escuro se o body existir
+  if (document.body) {
+    document.body.classList.remove('dark-theme', 'theme-dark');
+    document.body.classList.add('light-theme');
+  }
   
   // Limpar localStorage de temas
   localStorage.removeItem('dark-theme');

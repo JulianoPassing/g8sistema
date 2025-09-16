@@ -144,7 +144,16 @@ class NotificationSystem {
           }
         </style>
       `;
-      document.body.appendChild(this.container);
+      
+      // Verificar se o DOM está pronto
+      if (!document.body) {
+        console.warn('DOM não está pronto, aguardando...');
+        document.addEventListener('DOMContentLoaded', () => {
+          document.body.appendChild(this.container);
+        });
+      } else {
+        document.body.appendChild(this.container);
+      }
     }
   }
 

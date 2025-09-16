@@ -128,11 +128,19 @@ class G8ThemeSystem {
     `;
 
     // Adicionar ao header se existir, senão ao body
-    const header = document.querySelector('.header-right') || document.body;
-    if (header.classList && header.classList.contains('header-right')) {
+    const header = document.querySelector('.header-right');
+    if (header && header.classList && header.classList.contains('header-right')) {
       header.insertBefore(themeToggle, header.firstChild);
+    } else if (document.body) {
+      document.body.appendChild(themeToggle);
     } else {
-      header.appendChild(themeToggle);
+      // Se nem o header nem o body existem, aguardar DOM
+      document.addEventListener('DOMContentLoaded', () => {
+        const fallbackHeader = document.querySelector('.header-right') || document.body;
+        if (fallbackHeader) {
+          fallbackHeader.appendChild(themeToggle);
+        }
+      });
     }
 
     this.addThemeStyles();

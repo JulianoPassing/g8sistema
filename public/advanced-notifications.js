@@ -19,6 +19,15 @@ class AdvancedNotificationSystem {
   }
 
   createContainer() {
+    // Verificar se o DOM está pronto
+    if (!document.body) {
+      console.warn('DOM não está pronto, aguardando...');
+      document.addEventListener('DOMContentLoaded', () => {
+        this.createContainer();
+      });
+      return;
+    }
+
     this.container = document.createElement('div');
     this.container.id = 'g8-notifications';
     this.container.className = 'g8-notifications-container';

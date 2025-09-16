@@ -124,8 +124,8 @@ async function networkFirstStrategy(request) {
   try {
     const networkResponse = await fetch(request);
     
-    // Cachear resposta se for bem-sucedida
-    if (networkResponse.status === 200) {
+    // Cachear resposta se for bem-sucedida e método permitido
+    if (networkResponse.status === 200 && request.method === 'GET') {
       const cache = await caches.open(DYNAMIC_CACHE);
       cache.put(request, networkResponse.clone());
     }

@@ -227,10 +227,9 @@ class DashboardMetrics {
         }
       }
 
-      // 2. Fallback para outras fontes
-      console.log('⚠️ API não disponível, tentando outras fontes...');
+      // 2. Fallback para localStorage apenas (sem pedidos.json que não existe)
+      console.log('⚠️ API não disponível, tentando localStorage...');
       const sources = [
-        () => fetch('/pedidos.json').then(r => r.ok ? r.json() : null),
         () => {
           const local = localStorage.getItem('pedidos');
           return local ? JSON.parse(local) : null;
