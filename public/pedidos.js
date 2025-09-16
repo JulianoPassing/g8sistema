@@ -95,6 +95,9 @@ async function carregarPedidos() {
       }
     }
 
+    // Ordenar pedidos do ID mais alto para o mais baixo
+    pedidos.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+
     let html = '<div class="pedidos-grid">';
     for (const pedido of pedidos) {
       const info = extrairInfoPedido(pedido.descricao);
