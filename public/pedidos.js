@@ -184,7 +184,7 @@ async function carregarPedidos() {
           </div>
           
           <div class="pedido-actions">
-            <button class="btn-action btn-view" onclick="visualizarPedido(${pedido.id})">
+            <button class="btn-action btn-view" onclick="visualizarPDFPedido(${pedido.id})">
               👁️ Visualizar
             </button>
             <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
@@ -1565,8 +1565,8 @@ window.gerarPDFPedido = async function(pedidoId) {
   }
 };
 
-// Função para visualizar pedido em modal
-window.visualizarPedido = async function(pedidoId) {
+// Função para visualizar PDF do pedido (gerar e abrir em nova aba)
+window.visualizarPDFPedido = async function(pedidoId) {
   try {
     // Buscar dados do pedido
     const resp = await fetch('/api/pedidos');
@@ -1578,195 +1578,174 @@ window.visualizarPedido = async function(pedidoId) {
       return;
     }
 
-    // Extrair informações do pedido
-    function extrairInfoPedidoCompleta(descricao, dados) {
+    // Extrair informações do pedido (reutilizar função existente)
+    function extrairInfoPedido(descricao) {
       const info = {
         cliente: 'N/A',
         itens: [],
-        total: 'R$ 0,00',
-        desconto: 'N/A',
-        prazo: 'N/A',
-        frete: 'N/A',
-        observacoes: 'N/A'
+        total: 'R$ 0,00'
       };
       
-      // Tentar extrair da descrição primeiro
-      const clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Itens?:)/i);
+      let clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Itens?:)/i);
+      if (!clienteMatch) {
+        clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Item)/i);
+      }
+      if (!clienteMatch) {
+        clienteMatch = descricao.match(/Cliente:\s*(.+?)(?:\s+Itens)/i);
+      }
+      if (!clienteMatch) {
+        clienteMatch = descricao.match(/Cliente:\s*(.+?)(?=\s+(?:Itens?|Total))/i);
+      }
+      
       if (clienteMatch) {
         info.cliente = clienteMatch[1].trim();
       }
       
-      const itensMatch = descricao.match(/Itens?:\s*([^T]+?)(?:\s+Total:)/i);
+      let itensMatch = descricao.match(/Itens?:\s*([^T]+?)(?:\s+Total:)/i);
+      if (!itensMatch) {
+        itensMatch = descricao.match(/Itens?:\s*(.+?)(?:\s+Total)/i);
+      }
+      
       if (itensMatch) {
         const itensStr = itensMatch[1].trim();
         info.itens = itensStr.split(', ').filter(item => item.trim());
       }
       
-      const totalMatch = descricao.match(/Total:\s*(R\$\s*[\d.,]+)/i);
-      if (totalMatch) {
-        info.total = totalMatch[1];
+      let totalMatch = descricao.match(/Total:\s*(R\$\s*[\d.,]+)/i);
+      if (!totalMatch) {
+        totalMatch = descricao.match(/Total:\s*([\d.,]+)/i);
       }
       
-      // Tentar extrair dos dados estruturados se disponível
-      if (dados) {
-        try {
-          const dadosObj = typeof dados === 'string' ? JSON.parse(dados) : dados;
-          
-          // Cliente
-          if (info.cliente === 'N/A' && dadosObj.cliente) {
-            if (dadosObj.cliente.nome) {
-              info.cliente = dadosObj.cliente.nome;
-            } else if (typeof dadosObj.cliente === 'string') {
-              info.cliente = dadosObj.cliente;
-            }
-          }
-          
-          // Itens mais detalhados
-          if (dadosObj.itens && Array.isArray(dadosObj.itens)) {
-            info.itens = dadosObj.itens.map(item => {
-              if (typeof item === 'object') {
-                return `${item.REFERENCIA || item.ref || 'N/A'} - ${item.quantidade || item.qtd || 0} unidades`;
-              }
-              return item.toString();
-            });
-          }
-          
-          // Outros dados
-          if (dadosObj.total) {
-            info.total = typeof dadosObj.total === 'number' ? `R$ ${dadosObj.total.toFixed(2).replace('.', ',')}` : dadosObj.total;
-          }
-          
-          if (dadosObj.desconto || dadosObj.descontos) {
-            const desconto = dadosObj.desconto || dadosObj.descontos;
-            info.desconto = typeof desconto === 'number' ? `${desconto}%` : desconto.toString();
-          }
-          
-          if (dadosObj.prazo || dadosObj.prazoEntrega) {
-            info.prazo = dadosObj.prazo || dadosObj.prazoEntrega;
-          }
-          
-          if (dadosObj.frete || dadosObj.transporte) {
-            const frete = dadosObj.frete || dadosObj.transporte;
-            info.frete = typeof frete === 'number' ? `R$ ${frete.toFixed(2).replace('.', ',')}` : frete.toString();
-          }
-          
-          if (dadosObj.observacoes || dadosObj.obs) {
-            info.observacoes = dadosObj.observacoes || dadosObj.obs;
-          }
-          
-        } catch (e) {
-          console.log('❌ Erro ao parsear dados estruturados:', e);
-        }
+      if (totalMatch) {
+        info.total = totalMatch[1].includes('R$') ? totalMatch[1] : `R$ ${totalMatch[1]}`;
       }
       
       return info;
     }
 
-    const info = extrairInfoPedidoCompleta(pedido.descricao, pedido.dados);
+    let info = extrairInfoPedido(pedido.descricao);
+    
+    // Fallback para dados estruturados
+    if (info.cliente === 'N/A' && pedido.dados) {
+      try {
+        const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
+        if (dados.cliente && dados.cliente.nome) {
+          info.cliente = dados.cliente.nome;
+        } else if (dados.cliente && typeof dados.cliente === 'string') {
+          info.cliente = dados.cliente;
+        }
+      } catch (e) {
+        console.log('❌ Erro ao parsear dados do pedido:', e);
+      }
+    }
+
     const dataFormatada = new Date(pedido.data_pedido).toLocaleDateString('pt-BR');
 
-    // Preencher o modal
-    const modalDetalhes = document.getElementById('modal-pedido-detalhes');
-    modalDetalhes.innerHTML = `
-      <div class="pedido-detalhes-grid">
-        <div class="detalhe-secao">
-          <div class="detalhe-titulo">
-            🏢 Informações Gerais
-          </div>
-          <div class="detalhe-item">
-            <span class="detalhe-label">Pedido #</span>
-            <span class="detalhe-valor destaque">${pedido.id}</span>
-          </div>
-          <div class="detalhe-item">
-            <span class="detalhe-label">Empresa</span>
-            <span class="detalhe-valor">${pedido.empresa.toUpperCase()}</span>
-          </div>
-          <div class="detalhe-item">
-            <span class="detalhe-label">Data do Pedido</span>
-            <span class="detalhe-valor">${dataFormatada}</span>
-          </div>
-        </div>
+    // Criar PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let currentY = 20;
 
-        <div class="detalhe-secao">
-          <div class="detalhe-titulo">
-            👤 Cliente
-          </div>
-          <div class="detalhe-item">
-            <span class="detalhe-label">Nome/Razão Social</span>
-            <span class="detalhe-valor">${info.cliente}</span>
-          </div>
-        </div>
+    function addWrappedText(text, x, y, maxWidth, fontSize = 10) {
+      doc.setFontSize(fontSize);
+      const lines = doc.splitTextToSize(text, maxWidth);
+      doc.text(lines, x, y);
+      return y + (lines.length * (fontSize * 0.4));
+    }
 
-        <div class="detalhe-secao">
-          <div class="detalhe-titulo">
-            💰 Valores
-          </div>
-          <div class="detalhe-item">
-            <span class="detalhe-label">Total do Pedido</span>
-            <span class="detalhe-valor destaque">${info.total}</span>
-          </div>
-          <div class="detalhe-item">
-            <span class="detalhe-label">Desconto</span>
-            <span class="detalhe-valor">${info.desconto}</span>
-          </div>
-          <div class="detalhe-item">
-            <span class="detalhe-label">Frete</span>
-            <span class="detalhe-valor">${info.frete}</span>
-          </div>
-        </div>
-
-        <div class="detalhe-secao">
-          <div class="detalhe-titulo">
-            📋 Condições
-          </div>
-          <div class="detalhe-item">
-            <span class="detalhe-label">Prazo de Entrega</span>
-            <span class="detalhe-valor">${info.prazo}</span>
-          </div>
-          <div class="detalhe-item">
-            <span class="detalhe-label">Observações</span>
-            <span class="detalhe-valor">${info.observacoes}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="detalhe-secao">
-        <div class="detalhe-titulo">
-          📦 Itens do Pedido (${info.itens.length})
-        </div>
-        <div class="itens-lista">
-          ${info.itens.map(item => `<span class="item-tag">${item}</span>`).join('')}
-        </div>
-      </div>
-    `;
-
-    // Mostrar o modal
-    document.getElementById('modal-visualizar-pedido').style.display = 'flex';
+    // Cabeçalho
+    doc.setFontSize(20);
+    doc.setTextColor(255, 0, 0);
+    doc.text('G8 REPRESENTAÇÕES', pageWidth / 2, currentY, { align: 'center' });
     
+    currentY += 15;
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`PEDIDO #${pedido.id}`, pageWidth / 2, currentY, { align: 'center' });
+    
+    currentY += 20;
+
+    // Dados do pedido
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DADOS DO PEDIDO:', margin, currentY);
+    currentY += 8;
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Data: ${dataFormatada}`, margin, currentY);
+    currentY += 6;
+    doc.text(`Empresa: ${pedido.empresa.toUpperCase()}`, margin, currentY);
+    currentY += 10;
+
+    // Cliente
+    doc.setFont('helvetica', 'bold');
+    doc.text('CLIENTE:', margin, currentY);
+    currentY += 6;
+    doc.setFont('helvetica', 'normal');
+    currentY = addWrappedText(info.cliente, margin, currentY, pageWidth - (margin * 2), 10);
+    currentY += 10;
+
+    // Itens
+    doc.setFont('helvetica', 'bold');
+    doc.text(`ITENS (${info.itens.length}):`, margin, currentY);
+    currentY += 8;
+
+    doc.setFont('helvetica', 'normal');
+    info.itens.forEach((item, index) => {
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+      doc.text(`${index + 1}. ${item}`, margin + 5, currentY);
+      currentY += 6;
+    });
+
+    currentY += 10;
+
+    // Total
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 0, 0);
+    doc.text(`TOTAL: ${info.total}`, margin, currentY);
+
+    // Rodapé
+    const footerY = 280;
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('G8 Representações - Sistema de Gestão de Pedidos', pageWidth / 2, footerY, { align: 'center' });
+    doc.text(`Visualizado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, pageWidth / 2, footerY + 4, { align: 'center' });
+
+    // Abrir PDF em nova aba
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl, '_blank');
+
+    // Notificação
+    if (window.advancedNotifications) {
+      advancedNotifications.success(
+        `PDF do Pedido #${pedido.id} aberto para visualização!`,
+        {
+          title: 'PDF Visualizado',
+          duration: 3000
+        }
+      );
+    }
+
   } catch (error) {
-    console.error('Erro ao carregar detalhes do pedido:', error);
-    alert('❌ Erro ao carregar detalhes do pedido');
-  }
-};
-
-// Função para fechar modal de visualização
-window.fecharModalVisualizacao = function() {
-  document.getElementById('modal-visualizar-pedido').style.display = 'none';
-};
-
-// Fechar modal clicando fora dele ou com ESC
-document.addEventListener('click', function(e) {
-  const modal = document.getElementById('modal-visualizar-pedido');
-  if (e.target === modal) {
-    fecharModalVisualizacao();
-  }
-});
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    const modal = document.getElementById('modal-visualizar-pedido');
-    if (modal && modal.style.display === 'flex') {
-      fecharModalVisualizacao();
+    console.error('Erro ao visualizar PDF:', error);
+    
+    if (window.advancedNotifications) {
+      advancedNotifications.error(
+        'Erro ao gerar PDF para visualização',
+        {
+          title: 'Erro na Visualização',
+          duration: 6000
+        }
+      );
+    } else {
+      alert('❌ Erro ao gerar PDF para visualização');
     }
   }
-}); 
+}; 
