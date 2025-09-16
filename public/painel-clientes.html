@@ -8,20 +8,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="modern-design.css">
   <script src="mobile-menu.js"></script>
+  <script src="advanced-notifications.js"></script>
+  <script src="animations.js"></script>
+  <script src="theme-system.js"></script>
   <style>
     :root {
-      --primary-color: #3b82f6;
-      --secondary-color: #64748b;
+      /* === CORES G8 === */
+      --g8-red: #ff0000;
+      --g8-black: #000000;
+      --g8-white: #ffffff;
+      
+      --primary-color: #ff0000;
+      --secondary-color: #000000;
       --success-color: #10b981;
       --danger-color: #ef4444;
       --warning-color: #f59e0b;
       --info-color: #0ea5e9;
-      --light-color: #f1f5f9;
-      --dark-color: #1e293b;
-      --text-color: #334155;
-      --text-muted: #64748b;
-      --border-color: #e2e8f0;
+      --light-color: #ffffff;
+      --dark-color: #000000;
+      --text-color: #000000;
+      --text-muted: #666666;
+      --border-color: #e0e0e0;
       --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -30,14 +39,14 @@
       --border-radius-lg: 12px;
       --card-bg: #ffffff;
       --bg-color: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-      --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      --gradient-secondary: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      --gradient-primary: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      --gradient-secondary: linear-gradient(135deg, #000000 0%, #333333 100%);
       --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
       --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       --gradient-info: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-      --gradient-dark: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      --gradient-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      --gradient-dark: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+      --gradient-bg: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -529,30 +538,33 @@
      main, .container {
        flex: 1 0 auto;
      }
-     /* Rodapé */
+     /* Rodapé G8 */
      footer {
-      background: var(--gradient-dark);
-      color: white;
+      width: 100vw;
       text-align: center;
-      padding: 15px;
-      margin-top: 30px;
-      position: relative;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      font-size: 0.9rem;
-      box-shadow: var(--shadow-lg);
-      border-top: 1px solid var(--border-color);
-    }
-    footer a {
-      color: #3b82f6;
-      text-decoration: none;
+      padding: 15px 0;
+      background: var(--gradient-secondary);
+      color: white;
+      font-size: 0.85rem;
+      margin-top: auto;
+      border-top: 3px solid var(--g8-red);
       font-weight: 500;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    footer a {
+      color: #ff6666;
+      text-decoration: none;
+      font-weight: 600;
       transition: all 0.3s ease;
     }
+
     footer a:hover {
-      color: #93c5fd;
+      color: #ff9999;
       text-decoration: underline;
+      text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
     }
     /* Animações de entrada */
     .card:nth-child(1) { animation-delay: 0.1s; }
@@ -673,8 +685,8 @@
       </div>
     </div>
   </main>
-  <footer style="width: 100vw; text-align: center; padding: 15px 0; background: #1e3a5f; color: white; font-size: 0.85rem; margin-top: auto; border-top: 1px solid var(--border-color); font-weight: 500; position: relative; left: 50%; transform: translateX(-50%);">
-    © 2025 J.P. Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank" style="color: #60a5fa; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">jp-sistemas.com</a>
+  <footer>
+    © 2025 J.P. Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
   </footer>
   <script>
     const API_URL = '/api/clientes';

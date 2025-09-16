@@ -107,7 +107,7 @@ class AnimationSystem {
           border-radius: 50%;
           transform: scale(0);
           animation: ripple-animation 600ms linear;
-          background-color: rgba(255, 255, 255, 0.6);
+          background-color: rgba(255, 0, 0, 0.3);
           pointer-events: none;
         }
         @keyframes ripple-animation {
@@ -215,7 +215,7 @@ class AnimationSystem {
         height: 2px;
         bottom: -2px;
         left: 0;
-        background: linear-gradient(90deg, #667eea, #764ba2);
+        background: linear-gradient(90deg, #ff0000, #cc0000);
         transition: width 0.3s ease;
       }
 
@@ -224,7 +224,7 @@ class AnimationSystem {
       }
 
       .link-animated:hover {
-        color: #667eea;
+        color: #ff0000;
       }
     `;
     document.head.appendChild(linkStyle);
