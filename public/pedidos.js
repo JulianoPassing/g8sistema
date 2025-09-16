@@ -30,8 +30,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Adicionar botão de exclusão no painel de edição
   document.getElementById('form-editar-pedido').insertAdjacentHTML('beforeend', `
-    <button type="button" id="excluir-pedido-btn" style="margin-left:10px;background:#dc3545;color:white;">Excluir Pedido</button>
+    <button type="button" id="excluir-pedido-btn" style="margin-left:10px;background:#dc3545;color:white;">🗑️ Excluir Pedido</button>
   `);
+
+  // Evento para o botão de exclusão no painel de edição
+  document.getElementById('excluir-pedido-btn').addEventListener('click', function() {
+    const pedidoId = document.getElementById('pedido-id').value;
+    if (pedidoId) {
+      excluirPedido(pedidoId);
+    } else {
+      alert('❌ Erro: ID do pedido não encontrado.');
+    }
+  });
 });
 
 async function carregarPedidos() {
@@ -50,7 +60,10 @@ async function carregarPedidos() {
         <td>${pedido.id}</td>
         <td>${pedido.empresa}</td>
         <td>${pedido.descricao}</td>
-        <td><button class="edit-btn" onclick="editarPedido(${pedido.id})">Editar</button></td>
+        <td>
+          <button class="edit-btn" onclick="editarPedido(${pedido.id})">✏️ Editar</button>
+          <button class="delete-btn" onclick="excluirPedido(${pedido.id})" style="margin-left: 8px;">🗑️ Excluir</button>
+        </td>
       </tr>`;
     }
     html += '</tbody></table>';
@@ -61,6 +74,116 @@ async function carregarPedidos() {
 }
 
 let pedidoEditando = null;
+
+// Função para excluir pedido
+window.excluirPedido = async function(id) {
+  // Buscar informações do pedido para confirmação
+  try {
+    const resp = await fetch('/api/pedidos');
+    const pedidos = await resp.json();
+    const pedido = pedidos.find(p => p.id == id);
+    
+    if (!pedido) {
+      alert('Pedido não encontrado.');
+      return;
+    }
+
+    // Confirmar exclusão com detalhes do pedido
+    const confirmacao = confirm(
+      `🚨 ATENÇÃO: Deseja realmente excluir este pedido?\n\n` +
+      `ID: ${pedido.id}\n` +
+      `Empresa: ${pedido.empresa}\n` +
+      `Descrição: ${pedido.descricao}\n\n` +
+      `⚠️ Esta ação não pode ser desfeita!`
+    );
+
+    if (!confirmacao) {
+      return;
+    }
+
+    // Mostrar loading
+    const botaoExcluir = document.querySelector(`button[onclick="excluirPedido(${id})"]`);
+    if (botaoExcluir) {
+      botaoExcluir.disabled = true;
+      botaoExcluir.innerHTML = '⏳ Excluindo...';
+    }
+
+    // Fazer requisição DELETE para a API
+    const deleteResp = await fetch('/api/pedidos', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id: parseInt(id) })
+    });
+
+    if (deleteResp.ok) {
+      // Sucesso - mostrar notificação e recarregar lista
+      if (window.advancedNotifications) {
+        advancedNotifications.success(
+          `Pedido #${id} excluído com sucesso!`,
+          {
+            title: 'Pedido Excluído',
+            duration: 4000
+          }
+        );
+      } else {
+        alert('✅ Pedido excluído com sucesso!');
+      }
+      
+      // Recarregar lista de pedidos
+      await carregarPedidos();
+      
+      // Fechar painel de edição se estiver aberto
+      const painelEdicao = document.getElementById('editar-pedido-card');
+      if (painelEdicao && painelEdicao.style.display !== 'none') {
+        painelEdicao.style.display = 'none';
+      }
+    } else {
+      // Erro na exclusão
+      const errorData = await deleteResp.json().catch(() => ({ message: 'Erro desconhecido' }));
+      
+      if (window.advancedNotifications) {
+        advancedNotifications.error(
+          errorData.message || 'Erro ao excluir pedido',
+          {
+            title: 'Erro na Exclusão',
+            duration: 6000
+          }
+        );
+      } else {
+        alert(`❌ Erro ao excluir pedido: ${errorData.message || 'Erro desconhecido'}`);
+      }
+      
+      // Restaurar botão
+      if (botaoExcluir) {
+        botaoExcluir.disabled = false;
+        botaoExcluir.innerHTML = '🗑️ Excluir';
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao excluir pedido:', error);
+    
+    if (window.advancedNotifications) {
+      advancedNotifications.error(
+        'Erro de conexão ao excluir pedido',
+        {
+          title: 'Erro de Conexão',
+          duration: 6000
+        }
+      );
+    } else {
+      alert('❌ Erro de conexão ao excluir pedido');
+    }
+    
+    // Restaurar botão
+    const botaoExcluir = document.querySelector(`button[onclick="excluirPedido(${id})"]`);
+    if (botaoExcluir) {
+      botaoExcluir.disabled = false;
+      botaoExcluir.innerHTML = '🗑️ Excluir';
+    }
+  }
+};
 
 window.editarPedido = function(id) {
   fetch('/api/pedidos')
