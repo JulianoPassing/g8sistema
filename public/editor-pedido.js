@@ -218,6 +218,14 @@
     dadosAtualizados.empresa = pedidoOriginal.empresa || null;
     
     console.log('🔄 Atualizando pedido ID:', dadosAtualizados.id); // Debug
+    console.log('📋 Dados coletados:', dadosAtualizados); // Debug completo
+    
+    // Verificar se ID está definido
+    if (!dadosAtualizados.id) {
+      console.error('❌ ERRO: ID do pedido não está definido!');
+      alert('❌ Erro: ID do pedido não encontrado. Operação cancelada.');
+      return;
+    }
     
     // Gerar descrição no formato padrão do sistema
     const clienteNome = dadosAtualizados.dados?.cliente?.razao || 'Cliente';
@@ -228,7 +236,20 @@
     
     dadosAtualizados.descricao = `Cliente: ${clienteNome} Itens: ${itensDescricao} Total: R$ ${total.toFixed(2)}`;
     
-    // Salvar no servidor
+    console.log('📤 Enviando para API:', {
+      method: 'PUT',
+      url: '/api/pedidos',
+      data: dadosAtualizados
+    });
+    
+    // FORÇAR verificação de que é uma atualização
+    if (!dadosAtualizados.id || dadosAtualizados.id <= 0) {
+      console.error('❌ ERRO CRÍTICO: ID inválido para atualização!', dadosAtualizados.id);
+      alert('❌ Erro crítico: ID do pedido inválido. Operação cancelada.');
+      return;
+    }
+    
+    // Salvar no servidor COM VERIFICAÇÃO EXTRA
     fetch('/api/pedidos', {
       method: 'PUT',
       headers: {
@@ -237,19 +258,23 @@
       body: JSON.stringify(dadosAtualizados)
     })
     .then(response => {
+      console.log('📥 Resposta da API:', response.status, response.statusText);
       if (response.ok) {
         return response.json();
       } else {
         return response.json().then(errorData => {
+          console.error('❌ Erro da API:', errorData);
           throw new Error(errorData.error || 'Erro desconhecido');
         });
       }
     })
     .then(result => {
+      console.log('✅ Resultado da API:', result);
       if (result.success) {
         // Limpar localStorage
         localStorage.removeItem('pedidoParaEdicao');
         
+        console.log('✅ Pedido atualizado com sucesso, redirecionando...');
         // Redirecionar sem mostrar mensagem (evitar duplicação)
         window.location.href = 'pedidos.html';
       } else {
@@ -265,6 +290,7 @@
   // Função para coletar dados do formulário
   function coletarDadosFormulario() {
     const dados = {
+      // NÃO definir ID aqui - será definido na função salvarEdicaoPedido
       empresa: null,
       descricao: null,
       dados: {
@@ -274,6 +300,8 @@
         total: 0
       }
     };
+    
+    console.log('🔍 Iniciando coleta de dados do formulário...');
     
     // Coletar dados do cliente
     const camposCliente = ['razao', 'cnpj', 'ie', 'endereco', 'bairro', 'cidade', 'estado', 'cep', 'email', 'telefone', 'obs'];
