@@ -6,6 +6,7 @@
 class G8ThemeSystem {
   constructor() {
     this.currentTheme = 'g8-default';
+    this.themeSystemDisabled = true; // Sistema de temas desabilitado - tema G8 Clássico fixo
     this.themes = {
       'g8-default': {
         name: 'G8 Clássico',
@@ -73,8 +74,15 @@ class G8ThemeSystem {
   }
 
   init() {
+    // Se o sistema de temas estiver desabilitado, apenas aplicar tema G8 Clássico
+    if (this.themeSystemDisabled) {
+      this.currentTheme = 'g8-default';
+      this.applyTheme(this.currentTheme);
+      return;
+    }
+    
     this.loadSavedTheme();
-    // this.createThemeToggle(); // Botão de tema removido conforme solicitado
+    this.createThemeToggle();
     this.applyTheme(this.currentTheme);
   }
 
@@ -90,9 +98,65 @@ class G8ThemeSystem {
   }
 
   createThemeToggle() {
-    // Botão de tema removido - função desabilitada conforme solicitação
-    console.log('🎨 Botão de tema desabilitado conforme solicitado');
-    return;
+    // Se o sistema estiver desabilitado, não criar botão
+    if (this.themeSystemDisabled) {
+      return;
+    }
+    
+    // Criar seletor de tema
+    const themeToggle = document.createElement('div');
+    themeToggle.className = 'g8-theme-toggle';
+    themeToggle.innerHTML = `
+      <button class="theme-toggle-btn" onclick="g8ThemeSystem.toggleThemeSelector()">
+        <i class="fas fa-palette"></i>
+        <span>Tema</span>
+      </button>
+      <div class="theme-selector" id="g8-theme-selector">
+        <div class="theme-selector-header">
+          <h3>Escolha o Tema</h3>
+          <button onclick="g8ThemeSystem.toggleThemeSelector()" class="close-btn">×</button>
+        </div>
+        <div class="theme-options">
+          ${Object.entries(this.themes).map(([key, theme]) => `
+            <div class="theme-option ${key === this.currentTheme ? 'active' : ''}" 
+                 onclick="g8ThemeSystem.setTheme('${key}')">
+              <div class="theme-preview">
+                <div class="preview-primary" style="background: ${theme.colors.primary}"></div>
+                <div class="preview-secondary" style="background: ${theme.colors.secondary}"></div>
+                <div class="preview-surface" style="background: ${theme.colors.surface}"></div>
+              </div>
+              <div class="theme-info">
+                <div class="theme-name">${theme.name}</div>
+                <div class="theme-description">
+                  ${key === 'g8-default' ? 'Tema padrão com as cores clássicas' : 
+                    key === 'g8-dark' ? 'Tema escuro para ambientes com pouca luz' :
+                    key === 'g8-minimal' ? 'Design limpo e minimalista' :
+                    'Visual profissional para apresentações'}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    // Adicionar ao header se existir, senão ao body
+    const header = document.querySelector('.header-right');
+    if (header && header.classList && header.classList.contains('header-right')) {
+      header.insertBefore(themeToggle, header.firstChild);
+    } else if (document.body) {
+      document.body.appendChild(themeToggle);
+    } else {
+      // Se nem o header nem o body existem, aguardar DOM
+      document.addEventListener('DOMContentLoaded', () => {
+        const fallbackHeader = document.querySelector('.header-right') || document.body;
+        if (fallbackHeader) {
+          fallbackHeader.appendChild(themeToggle);
+        }
+      });
+    }
+
+    this.addThemeStyles();
   }
 
   addThemeStyles() {
@@ -416,26 +480,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Atalhos de teclado para temas - DESABILITADOS
-// document.addEventListener('keydown', (e) => {
-//   if (e.ctrlKey || e.metaKey) {
-//     switch (e.key) {
-//       case '1':
-//         e.preventDefault();
-//         g8ThemeSystem.setTheme('g8-default');
-//         break;
-//       case '2':
-//         e.preventDefault();
-//         g8ThemeSystem.setTheme('g8-dark');
-//         break;
-//       case '3':
-//         e.preventDefault();
-//         g8ThemeSystem.setTheme('g8-minimal');
-//         break;
-//       case '4':
-//         e.preventDefault();
-//         g8ThemeSystem.setTheme('g8-professional');
-//         break;
-//     }
-//   }
-// });
+// Atalhos de teclado para temas
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    switch (e.key) {
+      case '1':
+        e.preventDefault();
+        g8ThemeSystem.setTheme('g8-default');
+        break;
+      case '2':
+        e.preventDefault();
+        g8ThemeSystem.setTheme('g8-dark');
+        break;
+      case '3':
+        e.preventDefault();
+        g8ThemeSystem.setTheme('g8-minimal');
+        break;
+      case '4':
+        e.preventDefault();
+        g8ThemeSystem.setTheme('g8-professional');
+        break;
+    }
+  }
+});
