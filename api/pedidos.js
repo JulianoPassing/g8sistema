@@ -16,6 +16,7 @@ module.exports = async (req, res) => {
     
     console.log('📍 Requisição:', req.method, req.url);
     console.log('📍 ID da URL:', idFromUrl, 'É numérico:', isNumericId);
+    console.log('📍 Headers:', req.headers['x-operation-id'] || 'sem-id');
     console.log('📍 Body:', req.body);
     if (req.method === 'POST') {
       const { id, empresa, descricao, dados } = req.body;
@@ -54,7 +55,8 @@ module.exports = async (req, res) => {
       // Usar ID da URL se presente, senão usar do body
       const id = isNumericId ? parseInt(idFromUrl) : idBody;
       
-      console.log('🔄 PUT - ID da URL:', idFromUrl, 'ID do Body:', idBody, 'ID final:', id);
+      const operationId = req.headers['x-operation-id'] || 'sem-id';
+      console.log(`🔄 [${operationId}] PUT - ID da URL:`, idFromUrl, 'ID do Body:', idBody, 'ID final:', id);
       
       // Validar parâmetros obrigatórios
       if (!id) {
@@ -68,7 +70,7 @@ module.exports = async (req, res) => {
       const descricaoFinal = descricao !== undefined ? descricao : null;
       const dadosFinal = dados !== undefined ? JSON.stringify(dados) : JSON.stringify({});
       
-      console.log('🔄 Executando UPDATE com parâmetros:', {
+      console.log(`🔄 [${operationId}] Executando UPDATE com parâmetros:`, {
         empresa: empresaFinal,
         descricao: descricaoFinal,
         dados: dadosFinal ? dadosFinal.substring(0, 100) + '...' : 'null',
@@ -80,7 +82,7 @@ module.exports = async (req, res) => {
         [empresaFinal, descricaoFinal, dadosFinal, id]
       );
       
-      console.log('✅ Resultado do UPDATE:', {
+      console.log(`✅ [${operationId}] Resultado do UPDATE:`, {
         affectedRows: result.affectedRows,
         changedRows: result.changedRows,
         insertId: result.insertId
@@ -92,7 +94,7 @@ module.exports = async (req, res) => {
         return;
       }
       
-      console.log('✅ Pedido atualizado com sucesso:', id);
+      console.log(`✅ [${operationId}] Pedido atualizado com sucesso:`, id);
       res.status(200).json({ success: true, message: 'Pedido atualizado com sucesso!' });
       return;
     }

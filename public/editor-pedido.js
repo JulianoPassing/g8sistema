@@ -208,8 +208,23 @@
     }
   }
 
+  // Flag para evitar duplo clique
+  let salvandoPedido = false;
+
   // Função para salvar edição do pedido
   window.salvarEdicaoPedido = function(pedidoOriginal) {
+    // Proteção contra duplo clique
+    if (salvandoPedido) {
+      console.log('⚠️ Salvamento já em andamento, ignorando...');
+      return;
+    }
+    
+    salvandoPedido = true;
+    
+    // Gerar ID único para esta operação
+    const operationId = 'op_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    console.log('🆔 ID da operação:', operationId);
+    
     // Coletar dados atuais do formulário
     const dadosAtualizados = coletarDadosFormulario();
     
@@ -241,6 +256,14 @@
       url: '/api/pedidos',
       data: dadosAtualizados
     });
+
+    // VERIFICAR SE HÁ MÚLTIPLAS ABAS OU PROCESSOS
+    console.log('🔍 Verificando estado da aplicação:', {
+      currentUrl: window.location.href,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent.substring(0, 50),
+      salvandoFlag: salvandoPedido
+    });
     
     // FORÇAR verificação de que é uma atualização
     if (!dadosAtualizados.id || dadosAtualizados.id <= 0) {
@@ -267,13 +290,15 @@
         console.log('✅ Pedido encontrado, prosseguindo com atualização...', pedidoExistente);
         
         // Agora fazer a atualização com URL específica
+        console.log(`🔄 [${operationId}] Fazendo requisição PUT para /api/pedidos/${dadosAtualizados.id}`);
         return fetch(`/api/pedidos/${dadosAtualizados.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-HTTP-Method-Override': 'PUT' // Header adicional para garantir
+            'X-HTTP-Method-Override': 'PUT', // Header adicional para garantir
+            'X-Operation-ID': operationId // ID único da operação
           },
-          body: JSON.stringify(dadosAtualizados)
+          body: JSON.stringify({...dadosAtualizados, operationId})
         });
       })
       .catch(error => {
@@ -284,13 +309,15 @@
         console.log('⚠️ Erro ao verificar pedido, tentando atualização direta...');
         
         // Se falhar a verificação, tentar a atualização direta mesmo assim
+        console.log(`🔄 [${operationId}] Fazendo requisição PUT de fallback para /api/pedidos`);
         return fetch('/api/pedidos', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-HTTP-Method-Override': 'PUT'
+            'X-HTTP-Method-Override': 'PUT',
+            'X-Operation-ID': operationId
           },
-          body: JSON.stringify(dadosAtualizados)
+          body: JSON.stringify({...dadosAtualizados, operationId})
         });
       })
     .then(response => {
@@ -305,12 +332,14 @@
       }
     })
     .then(result => {
-      console.log('✅ Resultado da API:', result);
+      console.log(`✅ [${operationId}] Resultado da API:`, result);
       if (result.success) {
         // Limpar localStorage
         localStorage.removeItem('pedidoParaEdicao');
         
         console.log('✅ Pedido atualizado com sucesso, redirecionando...');
+        // Resetar flag antes de redirecionar
+        salvandoPedido = false;
         // Redirecionar sem mostrar mensagem (evitar duplicação)
         window.location.href = 'pedidos.html';
       } else {
@@ -319,6 +348,8 @@
     })
     .catch(error => {
       console.error('Erro ao salvar pedido:', error);
+      // Resetar flag em caso de erro
+      salvandoPedido = false;
       alert('❌ Erro ao salvar pedido: ' + error.message);
     });
   };
