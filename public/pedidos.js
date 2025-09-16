@@ -105,8 +105,6 @@ async function carregarPedidos() {
       const statusPedido = getStatusPedido(pedido);
       const resumoItens = gerarResumoItens(dadosPedido);
 
-      // Debug temporário para ver os dados do pedido
-      console.log(`Pedido #${pedido.id} - Empresa original:`, pedido.empresa);
       
       html += `
         <div class="pedido-card" data-empresa="${pedido.empresa}" data-id="${pedido.id}">
@@ -240,8 +238,6 @@ function formatarEmpresa(empresa) {
   // Normalizar o nome da empresa para minúsculo para comparação
   const empresaNormalizada = empresa.toLowerCase().trim();
   
-  // Debug temporário para ver qual empresa está sendo recebida
-  console.log('Empresa recebida:', empresa, 'Normalizada:', empresaNormalizada);
   
   // Verificar diferentes variações possíveis - ordem importa!
   if (empresaNormalizada.includes('pantaneiro') && empresaNormalizada.includes('7')) {
@@ -264,6 +260,14 @@ function formatarEmpresa(empresa) {
 
 function obterNomeCliente(dadosPedido) {
   if (!dadosPedido) return 'Cliente não informado';
+  
+  // Debug específico para entender a estrutura dos dados
+  if (Math.random() < 0.1) { // Só mostrar 10% das vezes para não poluir o console
+    console.log('=== DEBUG CLIENTE ===');
+    console.log('Dados completos do pedido:', dadosPedido);
+    console.log('Propriedades disponíveis:', Object.keys(dadosPedido));
+    console.log('=====================');
+  }
   
   // Baseado no que vimos na edição, o cliente provavelmente está em uma estrutura específica
   // Vamos tentar as estruturas mais comuns primeiro
@@ -288,6 +292,11 @@ function obterNomeCliente(dadosPedido) {
   if (dadosPedido.nome_cliente && dadosPedido.nome_cliente.trim() !== '') return dadosPedido.nome_cliente;
   if (dadosPedido.nomeFantasia && dadosPedido.nomeFantasia.trim() !== '') return dadosPedido.nomeFantasia;
   if (dadosPedido.empresa && dadosPedido.empresa.trim() !== '') return dadosPedido.empresa;
+  
+  // 2.1 Verificar outras variações comuns
+  if (dadosPedido['razao-social'] && dadosPedido['razao-social'].trim() !== '') return dadosPedido['razao-social'];
+  if (dadosPedido['nome-cliente'] && dadosPedido['nome-cliente'].trim() !== '') return dadosPedido['nome-cliente'];
+  if (dadosPedido['cliente-nome'] && dadosPedido['cliente-nome'].trim() !== '') return dadosPedido['cliente-nome'];
   
   // 3. Verificar se há informações do cliente em itens (às vezes o nome fica no primeiro item)
   if (dadosPedido.itens && Array.isArray(dadosPedido.itens) && dadosPedido.itens.length > 0) {
