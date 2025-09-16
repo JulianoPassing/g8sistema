@@ -16,6 +16,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   carregarPedidos();
+  
+  // Event listeners para filtros e busca
+  const searchInput = document.getElementById('search-pedidos');
+  const filterEmpresa = document.getElementById('filter-empresa');
+  const refreshBtn = document.getElementById('refresh-pedidos');
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', filtrarPedidos);
+  }
+  
+  if (filterEmpresa) {
+    filterEmpresa.addEventListener('change', filtrarPedidos);
+  }
+  
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', carregarPedidos);
+  }
 
   // Evento de submit do formulário de edição
   document.getElementById('form-editar-pedido').addEventListener('submit', async function (e) {
@@ -44,9 +61,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+let todosOsPedidos = [];
+let pedidosFiltrados = [];
+
 async function carregarPedidos() {
   const lista = document.getElementById('pedidos-lista');
-  lista.innerHTML = '<div class="loading-pedidos"><div class="spinner"></div><p>Carregando pedidos...</p></div>';
+  const stats = document.getElementById('pedidos-stats');
+  
+  // Loading state
+  lista.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <h3>Carregando pedidos...</h3>
+      <p>Aguarde enquanto buscamos os dados</p>
+    </div>
+  `;
   
   try {
     const resp = await fetch('/api/pedidos');
@@ -57,390 +86,202 @@ async function carregarPedidos() {
         <div class="empty-state">
           <div class="empty-icon">📦</div>
           <h3>Nenhum pedido encontrado</h3>
-          <p>Não há pedidos cadastrados no sistema.</p>
+          <p>Não há pedidos cadastrados no sistema ainda.</p>
         </div>
       `;
+      stats.innerHTML = '';
       return;
     }
-
-    // Ordenar pedidos por ID/número do pedido (maior para menor)
-    pedidos.sort((a, b) => parseInt(b.id || 0) - parseInt(a.id || 0));
-
-    let html = `
-      <div class="pedidos-header">
-        <div class="pedidos-stats">
-          <div class="stat-item">
-            <span class="stat-number">${pedidos.length}</span>
-            <span class="stat-label">Total de Pedidos</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">${calcularValorTotal(pedidos)}</span>
-            <span class="stat-label">Valor Total</span>
-          </div>
-        </div>
-        <div class="pedidos-filters">
-          <input type="text" id="search-pedidos" placeholder="🔍 Buscar pedidos..." class="search-input">
-          <select id="filter-empresa" class="filter-select">
-            <option value="">Todas as empresas</option>
-            ${getEmpresasUnicas(pedidos).map(emp => `<option value="${emp}">${formatarEmpresa(emp)}</option>`).join('')}
-          </select>
-        </div>
-      </div>
-      <div class="pedidos-grid">
-    `;
-
-    for (const pedido of pedidos) {
-      // Tratar dados que podem ser string JSON ou objeto
-      let dadosPedido = {};
-      if (pedido.dados) {
-        try {
-          dadosPedido = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
-        } catch (e) {
-          dadosPedido = {}; // Usar objeto vazio se não conseguir processar
-        }
-      }
-      
-      const dataPedido = formatarData(pedido.data_pedido);
-      const valorPedido = calcularValorPedido(dadosPedido);
-      const statusPedido = getStatusPedido(pedido);
-      const resumoItens = gerarResumoItens(dadosPedido);
-
-      
-      html += `
-        <div class="pedido-card" data-empresa="${pedido.empresa}" data-id="${pedido.id}">
-          <div class="pedido-header">
-            <div class="pedido-info">
-              <div class="pedido-id">#${pedido.id}</div>
-              <div class="pedido-empresa">${formatarEmpresa(pedido.empresa)}</div>
-            </div>
-            <div class="pedido-status ${statusPedido.class}">${statusPedido.text}</div>
-          </div>
-          
-          <div class="pedido-content">
-            <div class="pedido-cliente">
-              <strong>Cliente:</strong> ${obterNomeCliente(dadosPedido)}
-            </div>
-            
-            <div class="pedido-data">
-              <strong>Data:</strong> ${dataPedido}
-            </div>
-            
-            <div class="pedido-valor">
-              <strong>Valor Total:</strong> <span class="valor-destaque">${valorPedido}</span>
-            </div>
-            
-            ${resumoItens ? `
-            <div class="pedido-itens">
-              <strong>Itens:</strong>
-              <div class="itens-resumo">${resumoItens}</div>
-            </div>
-            ` : ''}
-            
-            ${dadosPedido.observacoes ? `
-            <div class="pedido-obs">
-              <strong>Observações:</strong> ${dadosPedido.observacoes}
-            </div>
-            ` : ''}
-          </div>
-          
-          <div class="pedido-actions">
-            <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})" title="Editar Pedido">
-              <i class="icon">✏️</i> Editar
-            </button>
-            <button class="btn-action btn-pdf" onclick="gerarPDFPedido(${pedido.id})" title="Gerar PDF">
-              <i class="icon">📄</i> PDF
-            </button>
-            <button class="btn-action btn-delete" onclick="excluirPedido(${pedido.id})" title="Excluir Pedido">
-              <i class="icon">🗑️</i> Excluir
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    html += '</div>';
-    lista.innerHTML = html;
-
-    // Adicionar eventos de filtro
-    setupFiltrosPedidos();
-
+    
+    todosOsPedidos = pedidos;
+    pedidosFiltrados = [...pedidos];
+    
+    renderizarEstatisticas(pedidos);
+    renderizarPedidos(pedidos);
+    popularFiltroEmpresas(pedidos);
+    
   } catch (err) {
     console.error('Erro ao carregar pedidos:', err);
     lista.innerHTML = `
-      <div class="error-state">
-        <div class="error-icon">⚠️</div>
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
         <h3>Erro ao carregar pedidos</h3>
-        <p>Não foi possível carregar os pedidos. Tente novamente.</p>
-        <button onclick="carregarPedidos()" class="btn-retry">🔄 Tentar Novamente</button>
+        <p>Não foi possível conectar com o servidor. Tente novamente.</p>
+        <button class="btn-refresh" onclick="carregarPedidos()">🔄 Tentar Novamente</button>
       </div>
     `;
   }
 }
 
-let pedidoEditando = null;
+function renderizarEstatisticas(pedidos) {
+  const stats = document.getElementById('pedidos-stats');
+  const totalPedidos = pedidos.length;
+  const totalValor = pedidos.reduce((sum, p) => {
+    const dados = p.dados ? (typeof p.dados === 'string' ? JSON.parse(p.dados) : p.dados) : {};
+    return sum + (parseFloat(dados.total || p.total || 0));
+  }, 0);
+  
+  const empresas = [...new Set(pedidos.map(p => p.empresa))].length;
+  
+  stats.innerHTML = `
+    <div class="stat-card">
+      <span class="stat-number">${totalPedidos}</span>
+      <span class="stat-label">Total de Pedidos</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">${empresas}</span>
+      <span class="stat-label">Empresas</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">R$ ${totalValor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+      <span class="stat-label">Valor Total</span>
+    </div>
+  `;
+}
 
-// Funções auxiliares para o novo layout de pedidos
-function calcularValorTotal(pedidos) {
-  let total = 0;
-  pedidos.forEach(pedido => {
-    if (pedido.dados) {
-      try {
-        // Se dados já é um objeto, usar diretamente; senão fazer parse
-        const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
-        total += parseFloat(dados.total || 0);
-      } catch (e) {
-        // Silencioso - não logar warnings desnecessários
-      }
-    }
+function renderizarPedidos(pedidos) {
+  const lista = document.getElementById('pedidos-lista');
+  
+  if (pedidos.length === 0) {
+    lista.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>Nenhum pedido encontrado</h3>
+        <p>Tente ajustar os filtros de busca.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  const cardsHtml = pedidos.map(pedido => {
+    const dados = pedido.dados ? (typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados) : {};
+    const valor = parseFloat(dados.total || pedido.total || 0);
+    const dataFormatada = formatarData(pedido.data_pedido);
+    const status = obterStatusPedido(pedido.data_pedido);
+    
+    return `
+      <div class="pedido-card">
+        <div class="pedido-header-card">
+          <div class="pedido-id-info">
+            <div class="pedido-id">
+              📦 #${pedido.id}
+            </div>
+            <div class="pedido-empresa">${pedido.empresa}</div>
+          </div>
+          <div class="pedido-status ${status.classe}">${status.texto}</div>
+        </div>
+        
+        <div class="pedido-content">
+          <div class="pedido-info-grid">
+            <div class="info-item">
+              <span class="info-label">📅 Data</span>
+              <span class="info-value">${dataFormatada}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">💰 Valor</span>
+              <span class="info-value valor">R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">📋 Itens</span>
+              <span class="info-value">${contarItens(dados)} produtos</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">👤 Cliente</span>
+              <span class="info-value">${dados.cliente || 'Não informado'}</span>
+            </div>
+          </div>
+          
+          ${pedido.descricao ? `
+            <div class="pedido-descricao">
+              <p class="pedido-descricao-text">${pedido.descricao}</p>
+            </div>
+          ` : ''}
+        </div>
+        
+        <div class="pedido-actions">
+          <button class="btn-action-modern btn-edit-modern" onclick="editarPedido(${pedido.id})">
+            ✏️ Editar
+          </button>
+          <button class="btn-action-modern btn-delete-modern" onclick="excluirPedido(${pedido.id})">
+            🗑️ Excluir
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  lista.innerHTML = cardsHtml;
+}
+
+function formatarData(dataString) {
+  if (!dataString) return 'Data não informada';
+  const data = new Date(dataString);
+  return data.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit', 
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   });
-  return formatarMoeda(total);
 }
 
-function calcularValorPedido(dados) {
-  if (dados.total) {
-    return formatarMoeda(parseFloat(dados.total));
-  }
-  return 'R$ 0,00';
-}
-
-function formatarMoeda(valor) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(valor);
-}
-
-function formatarData(dataStr) {
-  if (!dataStr) return 'Data não informada';
+function obterStatusPedido(dataString) {
+  if (!dataString) return { classe: 'status-antigo', texto: 'Sem Data' };
   
-  try {
-    const data = new Date(dataStr);
-    // Verificar se a data é válida
-    if (isNaN(data.getTime())) {
-      return 'Data não informada';
-    }
-    
-    return data.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  } catch (e) {
-    return 'Data não informada';
+  const agora = new Date();
+  const dataPedido = new Date(dataString);
+  const diferencaDias = Math.floor((agora - dataPedido) / (1000 * 60 * 60 * 24));
+  
+  if (diferencaDias <= 7) {
+    return { classe: 'status-recente', texto: 'Recente' };
+  } else if (diferencaDias <= 30) {
+    return { classe: 'status-medio', texto: 'Médio' };
+  } else {
+    return { classe: 'status-antigo', texto: 'Antigo' };
   }
 }
 
-function formatarEmpresa(empresa) {
-  if (!empresa) return 'Empresa não informada';
-  
-  // Normalizar o nome da empresa para minúsculo para comparação
-  const empresaNormalizada = empresa.toLowerCase().trim();
-  
-  
-  // Verificar diferentes variações possíveis - ordem importa!
-  if (empresaNormalizada.includes('pantaneiro') && empresaNormalizada.includes('7')) {
-    return 'Pantaneiro 7';
-  } else if (empresaNormalizada.includes('pantaneiro') && empresaNormalizada.includes('5')) {
-    return 'Pantaneiro 5';
-  } else if (empresaNormalizada.includes('steitz')) {
-    return 'Steitz';
-  }
-  
-  // Mapeamento exato
-  const empresas = {
-    'pantaneiro5': 'Pantaneiro 5',
-    'pantaneiro7': 'Pantaneiro 7',
-    'steitz': 'Steitz'
-  };
-  
-  return empresas[empresaNormalizada] || empresa;
+function contarItens(dados) {
+  if (!dados || !dados.itens) return 0;
+  return Array.isArray(dados.itens) ? dados.itens.length : 0;
 }
 
-function obterNomeCliente(dadosPedido) {
-  if (!dadosPedido) return 'Cliente não informado';
+function popularFiltroEmpresas(pedidos) {
+  const select = document.getElementById('filter-empresa');
+  const empresas = [...new Set(pedidos.map(p => p.empresa))].sort();
   
-  // Debug específico para entender a estrutura dos dados
-  if (Math.random() < 0.1) { // Só mostrar 10% das vezes para não poluir o console
-    console.log('=== DEBUG CLIENTE ===');
-    console.log('Dados completos do pedido:', dadosPedido);
-    console.log('Propriedades disponíveis:', Object.keys(dadosPedido));
-    console.log('=====================');
-  }
+  // Limpar opções existentes (exceto a primeira)
+  select.innerHTML = '<option value="">📋 Todas as empresas</option>';
   
-  // Baseado no que vimos na edição, o cliente provavelmente está em uma estrutura específica
-  // Vamos tentar as estruturas mais comuns primeiro
-  
-  // 1. Verificar se cliente está diretamente nos dados
-  if (dadosPedido.cliente) {
-    if (typeof dadosPedido.cliente === 'object') {
-      return dadosPedido.cliente.razaoSocial || 
-             dadosPedido.cliente.nome || 
-             dadosPedido.cliente.nomeFantasia ||
-             dadosPedido.cliente.empresa ||
-             'Cliente não informado';
-    }
-    if (typeof dadosPedido.cliente === 'string' && dadosPedido.cliente.trim() !== '') {
-      return dadosPedido.cliente;
-    }
-  }
-  
-  // 2. Verificar propriedades diretas
-  if (dadosPedido.razaoSocial && dadosPedido.razaoSocial.trim() !== '') return dadosPedido.razaoSocial;
-  if (dadosPedido.nomeCliente && dadosPedido.nomeCliente.trim() !== '') return dadosPedido.nomeCliente;
-  if (dadosPedido.nome_cliente && dadosPedido.nome_cliente.trim() !== '') return dadosPedido.nome_cliente;
-  if (dadosPedido.nomeFantasia && dadosPedido.nomeFantasia.trim() !== '') return dadosPedido.nomeFantasia;
-  if (dadosPedido.empresa && dadosPedido.empresa.trim() !== '') return dadosPedido.empresa;
-  
-  // 2.1 Verificar outras variações comuns
-  if (dadosPedido['razao-social'] && dadosPedido['razao-social'].trim() !== '') return dadosPedido['razao-social'];
-  if (dadosPedido['nome-cliente'] && dadosPedido['nome-cliente'].trim() !== '') return dadosPedido['nome-cliente'];
-  if (dadosPedido['cliente-nome'] && dadosPedido['cliente-nome'].trim() !== '') return dadosPedido['cliente-nome'];
-  
-  // 3. Verificar se há informações do cliente em itens (às vezes o nome fica no primeiro item)
-  if (dadosPedido.itens && Array.isArray(dadosPedido.itens) && dadosPedido.itens.length > 0) {
-    const primeiroItem = dadosPedido.itens[0];
-    if (primeiroItem && primeiroItem.cliente) {
-      return typeof primeiroItem.cliente === 'string' ? primeiroItem.cliente : 
-             (primeiroItem.cliente.razaoSocial || primeiroItem.cliente.nome || primeiroItem.cliente.nomeFantasia);
-    }
-  }
-  
-  // 4. Busca mais ampla nas propriedades
-  const propriedades = Object.keys(dadosPedido);
-  for (const prop of propriedades) {
-    const valor = dadosPedido[prop];
-    
-    // Se a propriedade contém "cliente", "razao", "nome" ou "empresa"
-    if ((prop.toLowerCase().includes('cliente') || 
-         prop.toLowerCase().includes('razao') || 
-         prop.toLowerCase().includes('empresa')) && 
-        typeof valor === 'string' && 
-        valor.trim() !== '' && 
-        valor !== 'pantaneiro5' && 
-        valor !== 'pantaneiro7' && 
-        valor !== 'steitz') {
-      return valor;
-    }
-    
-    // Se é um objeto, verificar suas propriedades
-    if (typeof valor === 'object' && valor !== null) {
-      if (valor.razaoSocial && valor.razaoSocial.trim() !== '') return valor.razaoSocial;
-      if (valor.nome && valor.nome.trim() !== '') return valor.nome;
-      if (valor.nomeFantasia && valor.nomeFantasia.trim() !== '') return valor.nomeFantasia;
-    }
-  }
-  
-  return 'Cliente não informado';
-}
-
-function getEmpresasUnicas(pedidos) {
-  const empresas = [...new Set(pedidos.map(p => p.empresa))];
-  return empresas.sort();
-}
-
-function getStatusPedido(pedido) {
-  // Lógica para determinar status baseado na data
-  if (!pedido.data_pedido) {
-    return { class: 'status-antigo', text: 'Sem Data' };
-  }
-  
-  try {
-    const agora = new Date();
-    const dataPedido = new Date(pedido.data_pedido);
-    
-    // Verificar se a data é válida
-    if (isNaN(dataPedido.getTime())) {
-      return { class: 'status-antigo', text: 'Data Inválida' };
-    }
-    
-    const diasPassados = Math.floor((agora - dataPedido) / (1000 * 60 * 60 * 24));
-    
-    if (diasPassados <= 1) {
-      return { class: 'status-novo', text: 'Novo' };
-    } else if (diasPassados <= 7) {
-      return { class: 'status-recente', text: 'Recente' };
-    } else {
-      return { class: 'status-antigo', text: 'Antigo' };
-    }
-  } catch (e) {
-    return { class: 'status-antigo', text: 'Sem Data' };
-  }
-}
-
-function gerarResumoItens(dados) {
-  if (!dados || !dados.itens || !Array.isArray(dados.itens)) {
-    return '';
-  }
-  
-  const totalItens = dados.itens.length;
-  if (totalItens === 0) return '';
-  
-  try {
-    if (totalItens === 1) {
-      const descricao = dados.itens[0]?.DESCRIÇÃO || dados.itens[0]?.descricao || 'Item sem descrição';
-      return `1 item: ${descricao.substring(0, 30)}...`;
-    } else if (totalItens <= 3) {
-      const itensDesc = dados.itens.map(item => {
-        const desc = item?.DESCRIÇÃO || item?.descricao || 'Item';
-        return desc.substring(0, 15);
-      }).join(', ');
-      return `${totalItens} itens: ${itensDesc}...`;
-    } else {
-      const primeiroItem = dados.itens[0]?.DESCRIÇÃO || dados.itens[0]?.descricao || 'Item';
-      return `${totalItens} itens: ${primeiroItem.substring(0, 20)} e mais ${totalItens - 1} itens`;
-    }
-  } catch (e) {
-    return `${totalItens} itens`;
-  }
-}
-
-function setupFiltrosPedidos() {
-  const searchInput = document.getElementById('search-pedidos');
-  const filterEmpresa = document.getElementById('filter-empresa');
-  
-  if (searchInput) {
-    searchInput.addEventListener('input', filtrarPedidos);
-  }
-  
-  if (filterEmpresa) {
-    filterEmpresa.addEventListener('change', filtrarPedidos);
-  }
+  empresas.forEach(empresa => {
+    const option = document.createElement('option');
+    option.value = empresa;
+    option.textContent = empresa;
+    select.appendChild(option);
+  });
 }
 
 function filtrarPedidos() {
-  const searchTerm = document.getElementById('search-pedidos')?.value.toLowerCase() || '';
-  const empresaFilter = document.getElementById('filter-empresa')?.value || '';
-  const cards = document.querySelectorAll('.pedido-card');
+  const searchTerm = document.getElementById('search-pedidos').value.toLowerCase();
+  const empresaSelecionada = document.getElementById('filter-empresa').value;
   
-  cards.forEach(card => {
-    const empresa = card.dataset.empresa;
-    const cardText = card.textContent.toLowerCase();
+  let pedidosFiltrados = todosOsPedidos.filter(pedido => {
+    const matchSearch = !searchTerm || 
+      pedido.id.toString().includes(searchTerm) ||
+      pedido.empresa.toLowerCase().includes(searchTerm) ||
+      (pedido.descricao && pedido.descricao.toLowerCase().includes(searchTerm)) ||
+      (pedido.dados && JSON.stringify(pedido.dados).toLowerCase().includes(searchTerm));
     
-    const matchSearch = !searchTerm || cardText.includes(searchTerm);
-    const matchEmpresa = !empresaFilter || empresa === empresaFilter;
+    const matchEmpresa = !empresaSelecionada || pedido.empresa === empresaSelecionada;
     
-    if (matchSearch && matchEmpresa) {
-      card.style.display = 'block';
-      card.style.animation = 'fadeInUp 0.3s ease-out';
-    } else {
-      card.style.display = 'none';
-    }
+    return matchSearch && matchEmpresa;
   });
+  
+  renderizarPedidos(pedidosFiltrados);
+  renderizarEstatisticas(pedidosFiltrados);
 }
 
-function gerarPDFPedido(id) {
-  // Implementar geração de PDF para pedido específico
-  if (window.advancedNotifications) {
-    advancedNotifications.info('Funcionalidade de PDF em desenvolvimento', {
-      title: 'PDF',
-      duration: 3000
-    });
-  } else {
-    alert('Funcionalidade de PDF em desenvolvimento');
-  }
-}
+let pedidoEditando = null;
 
 // Função para excluir pedido
 window.excluirPedido = async function(id) {
