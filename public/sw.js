@@ -77,7 +77,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Estratégia para diferentes tipos de requisição
+  // SERVICE WORKER DESABILITADO PARA DEBUG
+  console.log('🚫 SW desabilitado - não interceptando:', request.url, request.method);
+  return;
+  
+  // Estratégia para diferentes tipos de requisição (DESABILITADO)
   if (request.url.includes('/api/')) {
     // APIs: Network First (tentar rede primeiro, fallback para cache)
     event.respondWith(networkFirstStrategy(request));

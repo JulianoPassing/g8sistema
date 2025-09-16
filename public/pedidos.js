@@ -17,10 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   carregarPedidos();
 
-  // Evento de submit do formulário de edição
+  // Evento de submit do formulário de edição - DESABILITADO (usando editor-pedido.js)
   document.getElementById('form-editar-pedido').addEventListener('submit', async function (e) {
     e.preventDefault();
-    await salvarAlteracoes();
+    console.log('🚫 LISTENER DESABILITADO - usando editor-pedido.js em vez de salvarAlteracoes()');
+    // await salvarAlteracoes(); // DESABILITADO
   });
 
   // Botão cancelar edição
@@ -926,6 +927,9 @@ function fecharModalProdutos() {
 }
 
 async function salvarAlteracoes() {
+  console.log('🚫 FUNÇÃO salvarAlteracoes() DESABILITADA - usando editor-pedido.js');
+  return;
+  
   const id = document.getElementById('pedido-id').value;
   if (!pedidoEditando) return;
   
