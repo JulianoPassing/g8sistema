@@ -1,5 +1,18 @@
 const mysql = require('mysql2/promise');
 
+// Cache para prevenir operações duplicadas
+const operationCache = new Map();
+
+// Limpar cache antigas (mais de 5 minutos)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, timestamp] of operationCache.entries()) {
+    if (now - timestamp > 5 * 60 * 1000) { // 5 minutos
+      operationCache.delete(key);
+    }
+  }
+}, 60 * 1000); // Verificar a cada minuto
+
 module.exports = async (req, res) => {
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
@@ -36,6 +49,28 @@ module.exports = async (req, res) => {
         return;
       }
       
+      // PROTEÇÃO CONTRA CRIAÇÃO DUPLICADA: Verificar se já existe pedido com mesma descrição nos últimos 30 segundos
+      if (descricao) {
+        const [recentDuplicates] = await connection.execute(
+          'SELECT id, data_pedido FROM pedidos WHERE descricao = ? AND data_pedido > DATE_SUB(NOW(), INTERVAL 30 SECOND)',
+          [descricao]
+        );
+        
+        if (recentDuplicates.length > 0) {
+          console.error('❌ ERRO: Tentativa de criar pedido duplicado detectada!', {
+            descricao: descricao.substring(0, 100) + '...',
+            pedidoExistente: recentDuplicates[0].id,
+            dataExistente: recentDuplicates[0].data_pedido
+          });
+          res.status(409).json({ 
+            error: 'Pedido duplicado detectado. Um pedido idêntico foi criado recentemente.',
+            existingId: recentDuplicates[0].id,
+            suggestion: 'Use PUT para atualizar o pedido existente.'
+          });
+          return;
+        }
+      }
+      
       // Garantir que não há valores undefined
       const empresaFinal = empresa !== undefined ? empresa : null;
       const descricaoFinal = descricao !== undefined ? descricao : null;
@@ -50,13 +85,39 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'PUT') {
-      const { id: idBody, empresa, descricao, dados } = req.body;
+      const { id: idBody, empresa, descricao, dados, operationId: bodyOpId } = req.body;
       
       // Usar ID da URL se presente, senão usar do body
       const id = isNumericId ? parseInt(idFromUrl) : idBody;
       
-      const operationId = req.headers['x-operation-id'] || 'sem-id';
+      const operationId = req.headers['x-operation-id'] || bodyOpId || 'sem-id';
       console.log(`🔄 [${operationId}] PUT - ID da URL:`, idFromUrl, 'ID do Body:', idBody, 'ID final:', id);
+      
+      // PROTEÇÃO CONTRA OPERAÇÕES DUPLICADAS
+      const cacheKey = `PUT_${id}_${operationId}`;
+      if (operationCache.has(cacheKey)) {
+        console.log(`🚫 [${operationId}] OPERAÇÃO DUPLICADA DETECTADA - ignorando:`, cacheKey);
+        res.status(200).json({ success: true, message: 'Operação já processada (cache)', cached: true });
+        return;
+      }
+      
+      // Registrar operação no cache
+      operationCache.set(cacheKey, Date.now());
+      console.log(`📝 [${operationId}] Operação registrada no cache:`, cacheKey);
+      
+      // VERIFICAÇÃO CRÍTICA: Verificar se o pedido realmente existe antes de atualizar
+      const [existingCheck] = await connection.execute(
+        'SELECT id, empresa, descricao FROM pedidos WHERE id = ?',
+        [id]
+      );
+      
+      if (existingCheck.length === 0) {
+        console.error(`❌ [${operationId}] ERRO: Tentativa de atualizar pedido inexistente:`, id);
+        res.status(404).json({ error: 'Pedido não encontrado para atualização.' });
+        return;
+      }
+      
+      console.log(`✅ [${operationId}] Pedido existe, prosseguindo com UPDATE:`, existingCheck[0]);
       
       // Validar parâmetros obrigatórios
       if (!id) {
