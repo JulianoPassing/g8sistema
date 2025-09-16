@@ -90,7 +90,16 @@ async function carregarPedidos() {
     `;
 
     for (const pedido of pedidos) {
-      const dadosPedido = pedido.dados ? JSON.parse(pedido.dados) : {};
+      // Tratar dados que podem ser string JSON ou objeto
+      let dadosPedido = {};
+      if (pedido.dados) {
+        try {
+          dadosPedido = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
+        } catch (e) {
+          dadosPedido = {}; // Usar objeto vazio se não conseguir processar
+        }
+      }
+      
       const dataPedido = formatarData(pedido.data_pedido);
       const valorPedido = calcularValorPedido(dadosPedido);
       const statusPedido = getStatusPedido(pedido);
@@ -175,10 +184,11 @@ function calcularValorTotal(pedidos) {
   pedidos.forEach(pedido => {
     if (pedido.dados) {
       try {
-        const dados = JSON.parse(pedido.dados);
+        // Se dados já é um objeto, usar diretamente; senão fazer parse
+        const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
         total += parseFloat(dados.total || 0);
       } catch (e) {
-        console.warn('Erro ao processar dados do pedido:', pedido.id);
+        // Silencioso - não logar warnings desnecessários
       }
     }
   });
@@ -204,6 +214,11 @@ function formatarData(dataStr) {
   
   try {
     const data = new Date(dataStr);
+    // Verificar se a data é válida
+    if (isNaN(data.getTime())) {
+      return 'Data não informada';
+    }
+    
     return data.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
@@ -212,7 +227,7 @@ function formatarData(dataStr) {
       minute: '2-digit'
     });
   } catch (e) {
-    return 'Data inválida';
+    return 'Data não informada';
   }
 }
 
@@ -232,33 +247,57 @@ function getEmpresasUnicas(pedidos) {
 
 function getStatusPedido(pedido) {
   // Lógica para determinar status baseado na data
-  const agora = new Date();
-  const dataPedido = new Date(pedido.data_pedido);
-  const diasPassados = Math.floor((agora - dataPedido) / (1000 * 60 * 60 * 24));
+  if (!pedido.data_pedido) {
+    return { class: 'status-antigo', text: 'Sem Data' };
+  }
   
-  if (diasPassados <= 1) {
-    return { class: 'status-novo', text: 'Novo' };
-  } else if (diasPassados <= 7) {
-    return { class: 'status-recente', text: 'Recente' };
-  } else {
-    return { class: 'status-antigo', text: 'Antigo' };
+  try {
+    const agora = new Date();
+    const dataPedido = new Date(pedido.data_pedido);
+    
+    // Verificar se a data é válida
+    if (isNaN(dataPedido.getTime())) {
+      return { class: 'status-antigo', text: 'Data Inválida' };
+    }
+    
+    const diasPassados = Math.floor((agora - dataPedido) / (1000 * 60 * 60 * 24));
+    
+    if (diasPassados <= 1) {
+      return { class: 'status-novo', text: 'Novo' };
+    } else if (diasPassados <= 7) {
+      return { class: 'status-recente', text: 'Recente' };
+    } else {
+      return { class: 'status-antigo', text: 'Antigo' };
+    }
+  } catch (e) {
+    return { class: 'status-antigo', text: 'Sem Data' };
   }
 }
 
 function gerarResumoItens(dados) {
-  if (!dados.itens || !Array.isArray(dados.itens)) {
+  if (!dados || !dados.itens || !Array.isArray(dados.itens)) {
     return '';
   }
   
   const totalItens = dados.itens.length;
   if (totalItens === 0) return '';
   
-  if (totalItens === 1) {
-    return `1 item: ${dados.itens[0].DESCRIÇÃO?.substring(0, 30) || 'Item sem descrição'}...`;
-  } else if (totalItens <= 3) {
-    return `${totalItens} itens: ${dados.itens.map(item => item.DESCRIÇÃO?.substring(0, 15) || 'Item').join(', ')}...`;
-  } else {
-    return `${totalItens} itens: ${dados.itens[0].DESCRIÇÃO?.substring(0, 20) || 'Item'} e mais ${totalItens - 1} itens`;
+  try {
+    if (totalItens === 1) {
+      const descricao = dados.itens[0]?.DESCRIÇÃO || dados.itens[0]?.descricao || 'Item sem descrição';
+      return `1 item: ${descricao.substring(0, 30)}...`;
+    } else if (totalItens <= 3) {
+      const itensDesc = dados.itens.map(item => {
+        const desc = item?.DESCRIÇÃO || item?.descricao || 'Item';
+        return desc.substring(0, 15);
+      }).join(', ');
+      return `${totalItens} itens: ${itensDesc}...`;
+    } else {
+      const primeiroItem = dados.itens[0]?.DESCRIÇÃO || dados.itens[0]?.descricao || 'Item';
+      return `${totalItens} itens: ${primeiroItem.substring(0, 20)} e mais ${totalItens - 1} itens`;
+    }
+  } catch (e) {
+    return `${totalItens} itens`;
   }
 }
 
