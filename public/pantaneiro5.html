@@ -3100,6 +3100,16 @@ window.produtosData = [
           total: totalPedidoComDesconto,
           data: new Date().toISOString()
         };
+        // Verificar se está em modo edição
+        const urlParams = new URLSearchParams(window.location.search);
+        const modoEdicao = urlParams.get('modo') === 'edicao';
+        
+        if (modoEdicao) {
+          console.log('🚫 MODO EDIÇÃO DETECTADO - não fazendo POST (usando editor-pedido.js)');
+          return; // Não fazer POST em modo edição
+        }
+        
+        console.log('📤 Fazendo POST para criar novo pedido (modo normal)');
         fetch('/api/pedidos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

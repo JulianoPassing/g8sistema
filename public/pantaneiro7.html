@@ -3086,7 +3086,15 @@ window.produtosData = [
         )} - ${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`;
         doc.save(nomeArquivo);
 
-        // Enviar pedido para o backend
+        // Enviar pedido para o backend - APENAS SE NÃO ESTIVER EM MODO EDIÇÃO
+        const urlParams = new URLSearchParams(window.location.search);
+        const modoEdicao = urlParams.get('modo') === 'edicao';
+        
+        if (modoEdicao) {
+          console.log('🚫 MODO EDIÇÃO DETECTADO - não fazendo POST (usando editor-pedido.js)');
+          return; // Não fazer POST em modo edição
+        }
+        
         const descricaoPedido = `Cliente: ${inputsCliente.razao.value} Itens: ${window.pedidoItens.map(item => item.REFERENCIA + ' x' + item.quantidade).join(', ')} Total: R$ ${totalPedidoComDesconto.toFixed(2)}`;
         const dadosPedido = {
           cliente: Object.fromEntries(Object.entries(inputsCliente).map(([k, v]) => [k, v.value])),
@@ -3098,6 +3106,8 @@ window.produtosData = [
           total: totalPedidoComDesconto,
           data: new Date().toISOString()
         };
+        
+        console.log('📤 Fazendo POST para criar novo pedido (modo normal)');
         fetch('/api/pedidos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
