@@ -63,8 +63,8 @@ async function carregarPedidos() {
       return;
     }
 
-    // Ordenar pedidos por data (mais recente primeiro)
-    pedidos.sort((a, b) => new Date(b.data_pedido || b.created_at || 0) - new Date(a.data_pedido || a.created_at || 0));
+    // Ordenar pedidos por ID/número do pedido (maior para menor)
+    pedidos.sort((a, b) => parseInt(b.id || 0) - parseInt(a.id || 0));
 
     let html = `
       <div class="pedidos-header">
@@ -117,7 +117,7 @@ async function carregarPedidos() {
           
           <div class="pedido-content">
             <div class="pedido-cliente">
-              <strong>Cliente:</strong> ${dadosPedido.cliente?.nome || 'Não informado'}
+              <strong>Cliente:</strong> ${obterNomeCliente(dadosPedido)}
             </div>
             
             <div class="pedido-data">
@@ -232,12 +232,54 @@ function formatarData(dataStr) {
 }
 
 function formatarEmpresa(empresa) {
+  if (!empresa) return 'Empresa não informada';
+  
   const empresas = {
     'pantaneiro5': 'Pantaneiro 5',
     'pantaneiro7': 'Pantaneiro 7',
     'steitz': 'Steitz'
   };
-  return empresas[empresa] || empresa;
+  
+  // Normalizar o nome da empresa para minúsculo para comparação
+  const empresaNormalizada = empresa.toLowerCase().trim();
+  
+  // Verificar diferentes variações possíveis
+  if (empresaNormalizada.includes('pantaneiro') && empresaNormalizada.includes('5')) {
+    return 'Pantaneiro 5';
+  } else if (empresaNormalizada.includes('pantaneiro') && empresaNormalizada.includes('7')) {
+    return 'Pantaneiro 7';
+  } else if (empresaNormalizada.includes('steitz')) {
+    return 'Steitz';
+  }
+  
+  return empresas[empresaNormalizada] || empresa;
+}
+
+function obterNomeCliente(dadosPedido) {
+  if (!dadosPedido) return 'Cliente não informado';
+  
+  // Verificar diferentes possíveis estruturas de dados do cliente
+  if (dadosPedido.cliente) {
+    // Se cliente é um objeto
+    if (typeof dadosPedido.cliente === 'object') {
+      return dadosPedido.cliente.nome || 
+             dadosPedido.cliente.razaoSocial || 
+             dadosPedido.cliente.nomeFantasia ||
+             'Cliente não informado';
+    }
+    // Se cliente é uma string
+    if (typeof dadosPedido.cliente === 'string') {
+      return dadosPedido.cliente;
+    }
+  }
+  
+  // Verificar outras possíveis estruturas
+  if (dadosPedido.nomeCliente) return dadosPedido.nomeCliente;
+  if (dadosPedido.nome_cliente) return dadosPedido.nome_cliente;
+  if (dadosPedido.razaoSocial) return dadosPedido.razaoSocial;
+  if (dadosPedido.nomeFantasia) return dadosPedido.nomeFantasia;
+  
+  return 'Cliente não informado';
 }
 
 function getEmpresasUnicas(pedidos) {
