@@ -1631,52 +1631,69 @@ window.visualizarPDFPedido = async function(pedidoId) {
 
     // Tabela de dados do cliente (igual ao formato das empresas)
     const clienteData = dadosPedido.cliente || {};
-    doc.autoTable({
-      startY: 30,
-      theme: "grid",
-      head: [[{
-        content: "DADOS DO CLIENTE",
-        colSpan: 4,
-        styles: {
-          halign: "center",
-          fontStyle: "bold",
-          fillColor: [230, 230, 230],
-          textColor: 30,
-        },
-      }]],
-      body: [
-        ["Cliente:", { content: clienteData.nome || clienteData.razao || "N/A", colSpan: 3 }],
-        [
-          "CNPJ:", clienteData.cnpj || "N/A",
-          "I.E.:", clienteData.ie || "N/A"
-        ],
-        [
-          "Telefone:", clienteData.telefone || "N/A",
-          "E-mail:", clienteData.email || "N/A"
-        ],
-        [
-          "Endereço:",
-          {
-            content: `${clienteData.endereco || ""}, ${clienteData.bairro || ""}`,
-            colSpan: 3,
+    
+    // Verificar se autoTable está disponível
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({
+        startY: 30,
+        theme: "grid",
+        head: [[{
+          content: "DADOS DO CLIENTE",
+          colSpan: 4,
+          styles: {
+            halign: "center",
+            fontStyle: "bold",
+            fillColor: [230, 230, 230],
+            textColor: 30,
           },
+        }]],
+        body: [
+          ["Cliente:", { content: clienteData.nome || clienteData.razao || "N/A", colSpan: 3 }],
+          [
+            "CNPJ:", clienteData.cnpj || "N/A",
+            "I.E.:", clienteData.ie || "N/A"
+          ],
+          [
+            "Telefone:", clienteData.telefone || "N/A",
+            "E-mail:", clienteData.email || "N/A"
+          ],
+          [
+            "Endereço:",
+            {
+              content: `${clienteData.endereco || ""}, ${clienteData.bairro || ""}`,
+              colSpan: 3,
+            },
+          ],
+          [
+            "Cidade/UF:",
+            `${clienteData.cidade || ""}/${clienteData.estado || ""}`,
+            "CEP:",
+            clienteData.cep || "",
+          ],
         ],
-        [
-          "Cidade/UF:",
-          `${clienteData.cidade || ""}/${clienteData.estado || ""}`,
-          "CEP:",
-          clienteData.cep || "",
-        ],
-      ],
-      styles: { fontSize: 8, cellPadding: 1.5 },
-      columnStyles: {
-        0: { fontStyle: "bold", cellWidth: 22 },
-        2: { fontStyle: "bold", cellWidth: 20 },
-      },
-      margin: { left: margin, right: margin },
-    });
+        styles: { fontSize: 8, cellPadding: 1.5 },
+        columnStyles: {
+          0: { fontStyle: "bold", cellWidth: 22 },
+          2: { fontStyle: "bold", cellWidth: 20 },
+        },
+        margin: { left: margin, right: margin },
+      });
+    } else {
+      console.error('autoTable não está disponível');
+      // Fallback para texto simples
+      let currentY = 40;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("DADOS DO CLIENTE", margin, currentY);
+      currentY += 10;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Cliente: ${clienteData.nome || clienteData.razao || "N/A"}`, margin, currentY);
+      currentY += 6;
+      doc.text(`CNPJ: ${clienteData.cnpj || "N/A"}`, margin, currentY);
+    }
 
-    let startY = doc.autoTable.previous.finalY + 7;
+    let startY = doc.autoTable && doc.autoTable.previous ? doc.autoTable.previous.finalY + 7 : 100;
 
     // Tabela de itens (igual ao formato das empresas)
     const itens = dadosPedido.itens || [];
@@ -1685,55 +1702,75 @@ window.visualizarPDFPedido = async function(pedidoId) {
     const descontoVolume = descontos.volume || 0;
     const descontoGeral = (1 - descontoPrazo / 100) * (1 - descontoVolume / 100);
 
-    const head = [["Ref.", "Descrição", "Tam/Cor", "Qtd", "Unit.", "Desc.%", "Total"]];
-    const body = itens.map((item) => {
-      const precoUnitarioComDesconto = (item.preco || 0) * descontoGeral;
-      return [
-        item.REFERENCIA || item.ref || "",
-        item.DESCRIÇÃO || item.descricao || "",
-        item.tamanho || item.cor || "",
-        item.quantidade || 0,
-        `R$ ${precoUnitarioComDesconto.toFixed(2)}`,
-        `${item.descontoExtra || 0}%`,
-        `R$ ${(precoUnitarioComDesconto * (item.quantidade || 0)).toFixed(2)}`,
-      ];
-    });
+    if (typeof doc.autoTable === 'function') {
+      const head = [["Ref.", "Descrição", "Tam/Cor", "Qtd", "Unit.", "Desc.%", "Total"]];
+      const body = itens.map((item) => {
+        const precoUnitarioComDesconto = (item.preco || 0) * descontoGeral;
+        return [
+          item.REFERENCIA || item.ref || "",
+          item.DESCRIÇÃO || item.descricao || "",
+          item.tamanho || item.cor || "",
+          item.quantidade || 0,
+          `R$ ${precoUnitarioComDesconto.toFixed(2)}`,
+          `${item.descontoExtra || 0}%`,
+          `R$ ${(precoUnitarioComDesconto * (item.quantidade || 0)).toFixed(2)}`,
+        ];
+      });
 
-    doc.autoTable({
-      head: head,
-      body: body,
-      startY: startY,
-      theme: "grid",
-      styles: {
-        fontSize: 8,
-        cellPadding: 2,
-        overflow: "linebreak",
-        valign: "middle",
-      },
-      headStyles: {
-        fillColor: [44, 62, 80],
-        textColor: [255, 255, 255],
-        fontStyle: "bold",
-        halign: "center",
-      },
-      columnStyles: {
-        0: { cellWidth: 15 },
-        1: { cellWidth: "auto" },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 10, halign: "center" },
-        4: { cellWidth: 20, halign: "right" },
-        5: { cellWidth: 15, halign: "center" },
-        6: { cellWidth: 22, halign: "right" },
-      },
-      didDrawPage: (data) => {
-        if (data.pageNumber > 1) {
-          drawHeaderAndFooter(data);
-        }
-      },
-      margin: { top: 30, bottom: 15 },
-    });
+      doc.autoTable({
+        head: head,
+        body: body,
+        startY: startY,
+        theme: "grid",
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          overflow: "linebreak",
+          valign: "middle",
+        },
+        headStyles: {
+          fillColor: [44, 62, 80],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          halign: "center",
+        },
+        columnStyles: {
+          0: { cellWidth: 15 },
+          1: { cellWidth: "auto" },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 10, halign: "center" },
+          4: { cellWidth: 20, halign: "right" },
+          5: { cellWidth: 15, halign: "center" },
+          6: { cellWidth: 22, halign: "right" },
+        },
+        didDrawPage: (data) => {
+          if (data.pageNumber > 1) {
+            drawHeaderAndFooter(data);
+          }
+        },
+        margin: { top: 30, bottom: 15 },
+      });
 
-    finalY = doc.autoTable.previous.finalY;
+      finalY = doc.autoTable.previous.finalY;
+    } else {
+      // Fallback simples para itens
+      let currentY = startY;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("ITENS DO PEDIDO:", margin, currentY);
+      currentY += 8;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      
+      itens.forEach((item, index) => {
+        const precoUnitarioComDesconto = (item.preco || 0) * descontoGeral;
+        const total = precoUnitarioComDesconto * (item.quantidade || 0);
+        doc.text(`${index + 1}. ${item.REFERENCIA || item.ref} - ${item.DESCRIÇÃO || item.descricao} - Qtd: ${item.quantidade} - Total: R$ ${total.toFixed(2)}`, margin, currentY);
+        currentY += 5;
+      });
+      
+      finalY = currentY + 10;
+    }
 
     // Observações e totais (igual ao formato das empresas)
     const transporte = dadosPedido.transporte || clienteData.transporte || "A combinar";
@@ -1777,33 +1814,57 @@ window.visualizarPDFPedido = async function(pedidoId) {
     ]);
 
     // Tabela final com observações e totais
-    const finalTableBody = [];
-    const leftColumn = {
-      content: obsText,
-      rowSpan: summaryData.length,
-      styles: { valign: "top", fontSize: 8 },
-    };
-    
-    summaryData.forEach((row, index) => {
-      if (index === 0) {
-        finalTableBody.push([leftColumn, row[0], row[1]]);
-      } else {
-        finalTableBody.push(["", row[0], row[1]]);
-      }
-    });
+    if (typeof doc.autoTable === 'function') {
+      const finalTableBody = [];
+      const leftColumn = {
+        content: obsText,
+        rowSpan: summaryData.length,
+        styles: { valign: "top", fontSize: 8 },
+      };
+      
+      summaryData.forEach((row, index) => {
+        if (index === 0) {
+          finalTableBody.push([leftColumn, row[0], row[1]]);
+        } else {
+          finalTableBody.push(["", row[0], row[1]]);
+        }
+      });
 
-    doc.autoTable({
-      body: finalTableBody,
-      startY: finalY + 5,
-      theme: "grid",
-      styles: { fontSize: 8, cellPadding: 2 },
-      columnStyles: {
-        0: { cellWidth: 80 },
-        1: { cellWidth: 60, halign: "right", fontStyle: "bold" },
-        2: { cellWidth: 40, halign: "right" },
-      },
-      margin: { left: margin, right: margin },
-    });
+      doc.autoTable({
+        body: finalTableBody,
+        startY: finalY + 5,
+        theme: "grid",
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 80 },
+          1: { cellWidth: 60, halign: "right", fontStyle: "bold" },
+          2: { cellWidth: 40, halign: "right" },
+        },
+        margin: { left: margin, right: margin },
+      });
+    } else {
+      // Fallback para observações e totais
+      let currentY = finalY + 10;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      
+      // Observações
+      const obsLines = obsText.split('\n');
+      obsLines.forEach(line => {
+        doc.text(line, margin, currentY);
+        currentY += 4;
+      });
+      
+      currentY += 10;
+      
+      // Totais
+      summaryData.forEach(row => {
+        if (row[0] && row[1]) {
+          doc.text(`${row[0]} ${row[1]}`, pageWidth - margin - 80, currentY, { align: "right" });
+          currentY += 5;
+        }
+      });
+    }
 
     // Abrir PDF em nova aba
     const pdfBlob = doc.output('blob');

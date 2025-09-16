@@ -213,9 +213,11 @@
     // Coletar dados atuais do formulário
     const dadosAtualizados = coletarDadosFormulario();
     
-    // Manter ID original e empresa
-    dadosAtualizados.id = pedidoOriginal.id;
+    // CRÍTICO: Manter ID original e empresa
+    dadosAtualizados.id = parseInt(pedidoOriginal.id); // Garantir que é número
     dadosAtualizados.empresa = pedidoOriginal.empresa || null;
+    
+    console.log('🔄 Atualizando pedido ID:', dadosAtualizados.id); // Debug
     
     // Gerar descrição no formato padrão do sistema
     const clienteNome = dadosAtualizados.dados?.cliente?.razao || 'Cliente';
