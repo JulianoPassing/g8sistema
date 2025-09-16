@@ -9,8 +9,31 @@ module.exports = async (req, res) => {
   });
 
   try {
+    // Extrair ID da URL se presente (para /api/pedidos/123)
+    const urlParts = req.url.split('/');
+    const idFromUrl = urlParts[urlParts.length - 1];
+    const isNumericId = /^\d+$/.test(idFromUrl);
+    
+    console.log('📍 Requisição:', req.method, req.url);
+    console.log('📍 ID da URL:', idFromUrl, 'É numérico:', isNumericId);
+    console.log('📍 Body:', req.body);
     if (req.method === 'POST') {
-      const { empresa, descricao, dados } = req.body;
+      const { id, empresa, descricao, dados } = req.body;
+      
+      // VERIFICAÇÃO CRÍTICA: Se tem ID no POST, deveria ser PUT
+      if (id) {
+        console.error('❌ ERRO CRÍTICO: POST com ID detectado - deveria ser PUT!', {
+          id: id,
+          method: req.method,
+          url: req.url
+        });
+        res.status(400).json({ 
+          error: 'Erro: Tentativa de criar pedido com ID existente. Use PUT para atualizar.',
+          receivedId: id,
+          correctMethod: 'PUT'
+        });
+        return;
+      }
       
       // Garantir que não há valores undefined
       const empresaFinal = empresa !== undefined ? empresa : null;
@@ -26,10 +49,16 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'PUT') {
-      const { id, empresa, descricao, dados } = req.body;
+      const { id: idBody, empresa, descricao, dados } = req.body;
+      
+      // Usar ID da URL se presente, senão usar do body
+      const id = isNumericId ? parseInt(idFromUrl) : idBody;
+      
+      console.log('🔄 PUT - ID da URL:', idFromUrl, 'ID do Body:', idBody, 'ID final:', id);
       
       // Validar parâmetros obrigatórios
       if (!id) {
+        console.error('❌ PUT - ID do pedido é obrigatório');
         res.status(400).json({ error: 'ID do pedido é obrigatório.' });
         return;
       }
@@ -39,16 +68,31 @@ module.exports = async (req, res) => {
       const descricaoFinal = descricao !== undefined ? descricao : null;
       const dadosFinal = dados !== undefined ? JSON.stringify(dados) : JSON.stringify({});
       
+      console.log('🔄 Executando UPDATE com parâmetros:', {
+        empresa: empresaFinal,
+        descricao: descricaoFinal,
+        dados: dadosFinal ? dadosFinal.substring(0, 100) + '...' : 'null',
+        id: id
+      });
+
       const [result] = await connection.execute(
         `UPDATE pedidos SET empresa = ?, descricao = ?, dados = ?, data_pedido = NOW() WHERE id = ?`,
         [empresaFinal, descricaoFinal, dadosFinal, id]
       );
       
+      console.log('✅ Resultado do UPDATE:', {
+        affectedRows: result.affectedRows,
+        changedRows: result.changedRows,
+        insertId: result.insertId
+      });
+      
       if (result.affectedRows === 0) {
+        console.error('❌ Nenhuma linha afetada - Pedido não encontrado:', id);
         res.status(404).json({ error: 'Pedido não encontrado.' });
         return;
       }
       
+      console.log('✅ Pedido atualizado com sucesso:', id);
       res.status(200).json({ success: true, message: 'Pedido atualizado com sucesso!' });
       return;
     }

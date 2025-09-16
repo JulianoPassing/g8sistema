@@ -249,14 +249,50 @@
       return;
     }
     
-    // Salvar no servidor COM VERIFICAÇÃO EXTRA
-    fetch('/api/pedidos', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(dadosAtualizados)
-    })
+    // TENTAR ABORDAGEM ALTERNATIVA - Verificar se pedido existe primeiro
+    console.log('🔍 Verificando se pedido existe antes de atualizar...');
+    
+    // Primeiro, verificar se o pedido realmente existe
+    fetch('/api/pedidos')
+      .then(response => response.json())
+      .then(pedidos => {
+        const pedidoExistente = pedidos.find(p => p.id == dadosAtualizados.id);
+        
+        if (!pedidoExistente) {
+          console.error('❌ ERRO: Pedido não encontrado na base de dados!', dadosAtualizados.id);
+          alert('❌ Erro: Pedido não encontrado na base de dados. Operação cancelada.');
+          return Promise.reject('Pedido não encontrado');
+        }
+        
+        console.log('✅ Pedido encontrado, prosseguindo com atualização...', pedidoExistente);
+        
+        // Agora fazer a atualização com URL específica
+        return fetch(`/api/pedidos/${dadosAtualizados.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-HTTP-Method-Override': 'PUT' // Header adicional para garantir
+          },
+          body: JSON.stringify(dadosAtualizados)
+        });
+      })
+      .catch(error => {
+        if (error === 'Pedido não encontrado') {
+          return Promise.reject(error);
+        }
+        
+        console.log('⚠️ Erro ao verificar pedido, tentando atualização direta...');
+        
+        // Se falhar a verificação, tentar a atualização direta mesmo assim
+        return fetch('/api/pedidos', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-HTTP-Method-Override': 'PUT'
+          },
+          body: JSON.stringify(dadosAtualizados)
+        });
+      })
     .then(response => {
       console.log('📥 Resposta da API:', response.status, response.statusText);
       if (response.ok) {
