@@ -530,8 +530,14 @@ class AdvancedNotificationSystem {
   }
 }
 
-// Instância global
-window.advancedNotifications = new AdvancedNotificationSystem();
+// Instância global - inicializar apenas quando DOM estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.advancedNotifications = new AdvancedNotificationSystem();
+  });
+} else {
+  window.advancedNotifications = new AdvancedNotificationSystem();
+}
 
 // Compatibilidade com sistema anterior
 if (!window.notifications) {

@@ -400,6 +400,12 @@ class FormFeedback {
 window.NotificationSystem = NotificationSystem;
 window.FormFeedback = FormFeedback;
 
-// Instanciar sistemas globais
-window.notifications = new NotificationSystem();
+// Instanciar sistemas globais - apenas quando DOM estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.notifications = new NotificationSystem();
+  });
+} else {
+  window.notifications = new NotificationSystem();
+}
 window.formFeedback = new FormFeedback();

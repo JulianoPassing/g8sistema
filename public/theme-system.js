@@ -401,9 +401,11 @@ class G8ThemeSystem {
       }
     });
 
-    // Aplicar classe do tema ao body
-    document.body.className = document.body.className.replace(/g8-theme-\w+/g, '');
-    document.body.classList.add(`g8-theme-${themeName}`);
+    // Aplicar classe do tema ao body se existir
+    if (document.body) {
+      document.body.className = document.body.className.replace(/g8-theme-\w+/g, '');
+      document.body.classList.add(`g8-theme-${themeName}`);
+    }
 
     // Disparar evento customizado
     window.dispatchEvent(new CustomEvent('g8ThemeChanged', {
@@ -449,12 +451,20 @@ class G8ThemeSystem {
   }
 }
 
-// Instância global
-window.g8ThemeSystem = new G8ThemeSystem();
+// Instância global - inicializar apenas quando DOM estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.g8ThemeSystem = new G8ThemeSystem();
+  });
+} else {
+  window.g8ThemeSystem = new G8ThemeSystem();
+}
 
 // Configurar detecção automática de tema do sistema
 document.addEventListener('DOMContentLoaded', () => {
-  g8ThemeSystem.setupSystemThemeDetection();
+  if (window.g8ThemeSystem) {
+    window.g8ThemeSystem.setupSystemThemeDetection();
+  }
 });
 
 // Atalhos de teclado para temas
