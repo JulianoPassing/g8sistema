@@ -31,6 +31,13 @@ class DashboardMetrics {
 
   async loadMetrics(filterMonth = null) {
     try {
+      // Se não especificou mês, usar mês atual por padrão
+      if (!filterMonth) {
+        const now = new Date();
+        filterMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        console.log('📅 Usando mês atual por padrão:', filterMonth);
+      }
+      
       const response = await this.fetchMetrics(filterMonth);
       this.updateMetrics(response);
       this.currentFilter = filterMonth;
@@ -79,28 +86,77 @@ class DashboardMetrics {
 
   async fetchMetrics(filterMonth = null) {
     try {
-      // Carregar dados reais dos clientes
+      // Carregar dados reais dos clientes e pedidos
       const clientesData = await this.loadClientes();
       const pedidosData = await this.loadPedidos();
       
-      // Filtrar por mês se especificado
+      console.log('📊 Dados carregados:', {
+        clientes: clientesData.length,
+        pedidos: pedidosData.length,
+        filterMonth
+      });
+      
+      // Filtrar pedidos por mês se especificado
       let filteredPedidos = pedidosData;
       if (filterMonth) {
+        const [year, month] = filterMonth.split('-');
         filteredPedidos = pedidosData.filter(pedido => {
-          if (pedido.data) {
-            const pedidoDate = new Date(pedido.data);
-            const filterDate = new Date(filterMonth);
-            return pedidoDate.getMonth() === filterDate.getMonth() && 
-                   pedidoDate.getFullYear() === filterDate.getFullYear();
+          // Verificar diferentes formatos de data
+          let pedidoDate = null;
+          
+          if (pedido.data_pedido) {
+            pedidoDate = new Date(pedido.data_pedido);
+          } else if (pedido.data) {
+            pedidoDate = new Date(pedido.data);
+          } else if (pedido.dados) {
+            try {
+              const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
+              if (dados.data) {
+                pedidoDate = new Date(dados.data);
+              }
+            } catch (e) {
+              // Ignorar erros de parsing
+            }
           }
-          return false;
+          
+          if (pedidoDate && !isNaN(pedidoDate.getTime())) {
+            return pedidoDate.getMonth() + 1 === parseInt(month) && 
+                   pedidoDate.getFullYear() === parseInt(year);
+          }
+          
+          // Se não conseguir determinar a data, incluir no mês atual se não houver filtro
+          return !filterMonth;
         });
+        
+        console.log(`📅 Pedidos filtrados para ${filterMonth}:`, filteredPedidos.length);
       }
 
       // Calcular total em R$ dos pedidos
       const totalVendas = filteredPedidos.reduce((total, pedido) => {
-        return total + (parseFloat(pedido.total) || 0);
+        let valorPedido = 0;
+        
+        // Tentar diferentes formas de obter o valor
+        if (pedido.total) {
+          valorPedido = parseFloat(pedido.total);
+        } else if (pedido.dados) {
+          try {
+            const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
+            if (dados.total) {
+              valorPedido = parseFloat(dados.total);
+            }
+          } catch (e) {
+            // Ignorar erros de parsing
+          }
+        }
+        
+        return total + (isNaN(valorPedido) ? 0 : valorPedido);
       }, 0);
+
+      console.log('💰 Valores calculados:', {
+        totalClientes: clientesData.length,
+        totalPedidos: filteredPedidos.length,
+        totalVendas: totalVendas.toFixed(2)
+      });
 
       // Calcular crescimento (comparar com mês anterior)
       const crescimento = await this.calculateGrowth(clientesData.length, filteredPedidos.length, totalVendas, filterMonth);
@@ -112,7 +168,7 @@ class DashboardMetrics {
         crescimento
       };
     } catch (error) {
-      console.error('Erro ao carregar métricas:', error);
+      console.error('❌ Erro ao carregar métricas:', error);
       // Fallback para dados simulados
       return {
         clientes: 0,
@@ -125,22 +181,54 @@ class DashboardMetrics {
 
   async loadClientes() {
     try {
+      // 1. Tentar carregar da API primeiro (dados mais atualizados)
+      console.log('🔍 Carregando clientes da API...');
+      const apiResponse = await fetch('/api/clientes');
+      if (apiResponse.ok) {
+        const apiClientes = await apiResponse.json();
+        if (apiClientes && Array.isArray(apiClientes) && apiClientes.length > 0) {
+          console.log('✅ Clientes carregados da API:', apiClientes.length);
+          return apiClientes;
+        }
+      }
+
+      // 2. Fallback para arquivo JSON
+      console.log('⚠️ API não disponível, tentando arquivo JSON...');
       const response = await fetch('/clientes.json');
       if (response.ok) {
-        return await response.json();
+        const jsonClientes = await response.json();
+        if (jsonClientes && Array.isArray(jsonClientes) && jsonClientes.length > 0) {
+          console.log('✅ Clientes carregados do JSON:', jsonClientes.length);
+          return jsonClientes;
+        }
       }
     } catch (error) {
-      console.log('Arquivo clientes.json não encontrado, usando dados locais');
+      console.error('❌ Erro ao carregar clientes:', error);
     }
     
-    // Tentar localStorage
+    // 3. Fallback para localStorage
+    console.log('⚠️ Tentando localStorage...');
     const localClientes = localStorage.getItem('clientes');
-    return localClientes ? JSON.parse(localClientes) : [];
+    const dados = localClientes ? JSON.parse(localClientes) : [];
+    console.log('📊 Total de clientes encontrados:', dados.length);
+    return dados;
   }
 
   async loadPedidos() {
     try {
-      // Tentar carregar de diferentes fontes
+      // 1. Tentar carregar da API primeiro (dados mais atualizados)
+      console.log('🔍 Carregando pedidos da API...');
+      const apiResponse = await fetch('/api/pedidos');
+      if (apiResponse.ok) {
+        const apiPedidos = await apiResponse.json();
+        if (apiPedidos && Array.isArray(apiPedidos) && apiPedidos.length > 0) {
+          console.log('✅ Pedidos carregados da API:', apiPedidos.length);
+          return apiPedidos;
+        }
+      }
+
+      // 2. Fallback para outras fontes
+      console.log('⚠️ API não disponível, tentando outras fontes...');
       const sources = [
         () => fetch('/pedidos.json').then(r => r.ok ? r.json() : null),
         () => {
@@ -156,7 +244,8 @@ class DashboardMetrics {
       for (const source of sources) {
         try {
           const data = await source();
-          if (data && Array.isArray(data)) {
+          if (data && Array.isArray(data) && data.length > 0) {
+            console.log('✅ Pedidos carregados de fonte alternativa:', data.length);
             return data;
           }
         } catch (e) {
@@ -164,9 +253,10 @@ class DashboardMetrics {
         }
       }
     } catch (error) {
-      console.log('Erro ao carregar pedidos:', error);
+      console.error('❌ Erro ao carregar pedidos:', error);
     }
     
+    console.log('⚠️ Nenhum pedido encontrado');
     return [];
   }
 
