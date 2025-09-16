@@ -46,34 +46,267 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function carregarPedidos() {
   const lista = document.getElementById('pedidos-lista');
-  lista.innerHTML = '<p>Carregando pedidos...</p>';
+  lista.innerHTML = '<div class="loading-pedidos"><div class="spinner"></div><p>Carregando pedidos...</p></div>';
+  
   try {
     const resp = await fetch('/api/pedidos');
     const pedidos = await resp.json();
+    
     if (!Array.isArray(pedidos) || pedidos.length === 0) {
-      lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
+      lista.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <h3>Nenhum pedido encontrado</h3>
+          <p>Não há pedidos cadastrados no sistema.</p>
+        </div>
+      `;
       return;
     }
-    let html = '<table><thead><tr><th>ID</th><th>Empresa</th><th>Descrição</th><th>Ações</th></tr></thead><tbody>';
+
+    // Ordenar pedidos por data (mais recente primeiro)
+    pedidos.sort((a, b) => new Date(b.data_pedido || b.created_at || 0) - new Date(a.data_pedido || a.created_at || 0));
+
+    let html = `
+      <div class="pedidos-header">
+        <div class="pedidos-stats">
+          <div class="stat-item">
+            <span class="stat-number">${pedidos.length}</span>
+            <span class="stat-label">Total de Pedidos</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">${calcularValorTotal(pedidos)}</span>
+            <span class="stat-label">Valor Total</span>
+          </div>
+        </div>
+        <div class="pedidos-filters">
+          <input type="text" id="search-pedidos" placeholder="🔍 Buscar pedidos..." class="search-input">
+          <select id="filter-empresa" class="filter-select">
+            <option value="">Todas as empresas</option>
+            ${getEmpresasUnicas(pedidos).map(emp => `<option value="${emp}">${formatarEmpresa(emp)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="pedidos-grid">
+    `;
+
     for (const pedido of pedidos) {
-      html += `<tr>
-        <td>${pedido.id}</td>
-        <td>${pedido.empresa}</td>
-        <td>${pedido.descricao}</td>
-        <td>
-          <button class="edit-btn" onclick="editarPedido(${pedido.id})">✏️ Editar</button>
-          <button class="delete-btn" onclick="excluirPedido(${pedido.id})" style="margin-left: 8px;">🗑️ Excluir</button>
-        </td>
-      </tr>`;
+      const dadosPedido = pedido.dados ? JSON.parse(pedido.dados) : {};
+      const dataPedido = formatarData(pedido.data_pedido);
+      const valorPedido = calcularValorPedido(dadosPedido);
+      const statusPedido = getStatusPedido(pedido);
+      const resumoItens = gerarResumoItens(dadosPedido);
+
+      html += `
+        <div class="pedido-card" data-empresa="${pedido.empresa}" data-id="${pedido.id}">
+          <div class="pedido-header">
+            <div class="pedido-info">
+              <div class="pedido-id">#${pedido.id}</div>
+              <div class="pedido-empresa">${formatarEmpresa(pedido.empresa)}</div>
+            </div>
+            <div class="pedido-status ${statusPedido.class}">${statusPedido.text}</div>
+          </div>
+          
+          <div class="pedido-content">
+            <div class="pedido-cliente">
+              <strong>Cliente:</strong> ${dadosPedido.cliente?.nome || 'Não informado'}
+            </div>
+            
+            <div class="pedido-data">
+              <strong>Data:</strong> ${dataPedido}
+            </div>
+            
+            <div class="pedido-valor">
+              <strong>Valor Total:</strong> <span class="valor-destaque">${valorPedido}</span>
+            </div>
+            
+            ${resumoItens ? `
+            <div class="pedido-itens">
+              <strong>Itens:</strong>
+              <div class="itens-resumo">${resumoItens}</div>
+            </div>
+            ` : ''}
+            
+            ${dadosPedido.observacoes ? `
+            <div class="pedido-obs">
+              <strong>Observações:</strong> ${dadosPedido.observacoes}
+            </div>
+            ` : ''}
+          </div>
+          
+          <div class="pedido-actions">
+            <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})" title="Editar Pedido">
+              <i class="icon">✏️</i> Editar
+            </button>
+            <button class="btn-action btn-pdf" onclick="gerarPDFPedido(${pedido.id})" title="Gerar PDF">
+              <i class="icon">📄</i> PDF
+            </button>
+            <button class="btn-action btn-delete" onclick="excluirPedido(${pedido.id})" title="Excluir Pedido">
+              <i class="icon">🗑️</i> Excluir
+            </button>
+          </div>
+        </div>
+      `;
     }
-    html += '</tbody></table>';
+
+    html += '</div>';
     lista.innerHTML = html;
+
+    // Adicionar eventos de filtro
+    setupFiltrosPedidos();
+
   } catch (err) {
-    lista.innerHTML = '<p>Erro ao carregar pedidos.</p>';
+    console.error('Erro ao carregar pedidos:', err);
+    lista.innerHTML = `
+      <div class="error-state">
+        <div class="error-icon">⚠️</div>
+        <h3>Erro ao carregar pedidos</h3>
+        <p>Não foi possível carregar os pedidos. Tente novamente.</p>
+        <button onclick="carregarPedidos()" class="btn-retry">🔄 Tentar Novamente</button>
+      </div>
+    `;
   }
 }
 
 let pedidoEditando = null;
+
+// Funções auxiliares para o novo layout de pedidos
+function calcularValorTotal(pedidos) {
+  let total = 0;
+  pedidos.forEach(pedido => {
+    if (pedido.dados) {
+      try {
+        const dados = JSON.parse(pedido.dados);
+        total += parseFloat(dados.total || 0);
+      } catch (e) {
+        console.warn('Erro ao processar dados do pedido:', pedido.id);
+      }
+    }
+  });
+  return formatarMoeda(total);
+}
+
+function calcularValorPedido(dados) {
+  if (dados.total) {
+    return formatarMoeda(parseFloat(dados.total));
+  }
+  return 'R$ 0,00';
+}
+
+function formatarMoeda(valor) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(valor);
+}
+
+function formatarData(dataStr) {
+  if (!dataStr) return 'Data não informada';
+  
+  try {
+    const data = new Date(dataStr);
+    return data.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (e) {
+    return 'Data inválida';
+  }
+}
+
+function formatarEmpresa(empresa) {
+  const empresas = {
+    'pantaneiro5': 'Pantaneiro 5',
+    'pantaneiro7': 'Pantaneiro 7',
+    'steitz': 'Steitz'
+  };
+  return empresas[empresa] || empresa;
+}
+
+function getEmpresasUnicas(pedidos) {
+  const empresas = [...new Set(pedidos.map(p => p.empresa))];
+  return empresas.sort();
+}
+
+function getStatusPedido(pedido) {
+  // Lógica para determinar status baseado na data
+  const agora = new Date();
+  const dataPedido = new Date(pedido.data_pedido);
+  const diasPassados = Math.floor((agora - dataPedido) / (1000 * 60 * 60 * 24));
+  
+  if (diasPassados <= 1) {
+    return { class: 'status-novo', text: 'Novo' };
+  } else if (diasPassados <= 7) {
+    return { class: 'status-recente', text: 'Recente' };
+  } else {
+    return { class: 'status-antigo', text: 'Antigo' };
+  }
+}
+
+function gerarResumoItens(dados) {
+  if (!dados.itens || !Array.isArray(dados.itens)) {
+    return '';
+  }
+  
+  const totalItens = dados.itens.length;
+  if (totalItens === 0) return '';
+  
+  if (totalItens === 1) {
+    return `1 item: ${dados.itens[0].DESCRIÇÃO?.substring(0, 30) || 'Item sem descrição'}...`;
+  } else if (totalItens <= 3) {
+    return `${totalItens} itens: ${dados.itens.map(item => item.DESCRIÇÃO?.substring(0, 15) || 'Item').join(', ')}...`;
+  } else {
+    return `${totalItens} itens: ${dados.itens[0].DESCRIÇÃO?.substring(0, 20) || 'Item'} e mais ${totalItens - 1} itens`;
+  }
+}
+
+function setupFiltrosPedidos() {
+  const searchInput = document.getElementById('search-pedidos');
+  const filterEmpresa = document.getElementById('filter-empresa');
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', filtrarPedidos);
+  }
+  
+  if (filterEmpresa) {
+    filterEmpresa.addEventListener('change', filtrarPedidos);
+  }
+}
+
+function filtrarPedidos() {
+  const searchTerm = document.getElementById('search-pedidos')?.value.toLowerCase() || '';
+  const empresaFilter = document.getElementById('filter-empresa')?.value || '';
+  const cards = document.querySelectorAll('.pedido-card');
+  
+  cards.forEach(card => {
+    const empresa = card.dataset.empresa;
+    const cardText = card.textContent.toLowerCase();
+    
+    const matchSearch = !searchTerm || cardText.includes(searchTerm);
+    const matchEmpresa = !empresaFilter || empresa === empresaFilter;
+    
+    if (matchSearch && matchEmpresa) {
+      card.style.display = 'block';
+      card.style.animation = 'fadeInUp 0.3s ease-out';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+function gerarPDFPedido(id) {
+  // Implementar geração de PDF para pedido específico
+  if (window.advancedNotifications) {
+    advancedNotifications.info('Funcionalidade de PDF em desenvolvimento', {
+      title: 'PDF',
+      duration: 3000
+    });
+  } else {
+    alert('Funcionalidade de PDF em desenvolvimento');
+  }
+}
 
 // Função para excluir pedido
 window.excluirPedido = async function(id) {
