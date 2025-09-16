@@ -105,6 +105,9 @@ async function carregarPedidos() {
       const statusPedido = getStatusPedido(pedido);
       const resumoItens = gerarResumoItens(dadosPedido);
 
+      // Debug temporário para ver os dados do pedido
+      console.log(`Pedido #${pedido.id} - Empresa original:`, pedido.empresa);
+      
       html += `
         <div class="pedido-card" data-empresa="${pedido.empresa}" data-id="${pedido.id}">
           <div class="pedido-header">
@@ -234,23 +237,27 @@ function formatarData(dataStr) {
 function formatarEmpresa(empresa) {
   if (!empresa) return 'Empresa não informada';
   
+  // Normalizar o nome da empresa para minúsculo para comparação
+  const empresaNormalizada = empresa.toLowerCase().trim();
+  
+  // Debug temporário para ver qual empresa está sendo recebida
+  console.log('Empresa recebida:', empresa, 'Normalizada:', empresaNormalizada);
+  
+  // Verificar diferentes variações possíveis - ordem importa!
+  if (empresaNormalizada.includes('pantaneiro') && empresaNormalizada.includes('7')) {
+    return 'Pantaneiro 7';
+  } else if (empresaNormalizada.includes('pantaneiro') && empresaNormalizada.includes('5')) {
+    return 'Pantaneiro 5';
+  } else if (empresaNormalizada.includes('steitz')) {
+    return 'Steitz';
+  }
+  
+  // Mapeamento exato
   const empresas = {
     'pantaneiro5': 'Pantaneiro 5',
     'pantaneiro7': 'Pantaneiro 7',
     'steitz': 'Steitz'
   };
-  
-  // Normalizar o nome da empresa para minúsculo para comparação
-  const empresaNormalizada = empresa.toLowerCase().trim();
-  
-  // Verificar diferentes variações possíveis
-  if (empresaNormalizada.includes('pantaneiro') && empresaNormalizada.includes('5')) {
-    return 'Pantaneiro 5';
-  } else if (empresaNormalizada.includes('pantaneiro') && empresaNormalizada.includes('7')) {
-    return 'Pantaneiro 7';
-  } else if (empresaNormalizada.includes('steitz')) {
-    return 'Steitz';
-  }
   
   return empresas[empresaNormalizada] || empresa;
 }
@@ -258,26 +265,63 @@ function formatarEmpresa(empresa) {
 function obterNomeCliente(dadosPedido) {
   if (!dadosPedido) return 'Cliente não informado';
   
-  // Verificar diferentes possíveis estruturas de dados do cliente
+  // Baseado no que vimos na edição, o cliente provavelmente está em uma estrutura específica
+  // Vamos tentar as estruturas mais comuns primeiro
+  
+  // 1. Verificar se cliente está diretamente nos dados
   if (dadosPedido.cliente) {
-    // Se cliente é um objeto
     if (typeof dadosPedido.cliente === 'object') {
-      return dadosPedido.cliente.nome || 
-             dadosPedido.cliente.razaoSocial || 
+      return dadosPedido.cliente.razaoSocial || 
+             dadosPedido.cliente.nome || 
              dadosPedido.cliente.nomeFantasia ||
+             dadosPedido.cliente.empresa ||
              'Cliente não informado';
     }
-    // Se cliente é uma string
-    if (typeof dadosPedido.cliente === 'string') {
+    if (typeof dadosPedido.cliente === 'string' && dadosPedido.cliente.trim() !== '') {
       return dadosPedido.cliente;
     }
   }
   
-  // Verificar outras possíveis estruturas
-  if (dadosPedido.nomeCliente) return dadosPedido.nomeCliente;
-  if (dadosPedido.nome_cliente) return dadosPedido.nome_cliente;
-  if (dadosPedido.razaoSocial) return dadosPedido.razaoSocial;
-  if (dadosPedido.nomeFantasia) return dadosPedido.nomeFantasia;
+  // 2. Verificar propriedades diretas
+  if (dadosPedido.razaoSocial && dadosPedido.razaoSocial.trim() !== '') return dadosPedido.razaoSocial;
+  if (dadosPedido.nomeCliente && dadosPedido.nomeCliente.trim() !== '') return dadosPedido.nomeCliente;
+  if (dadosPedido.nome_cliente && dadosPedido.nome_cliente.trim() !== '') return dadosPedido.nome_cliente;
+  if (dadosPedido.nomeFantasia && dadosPedido.nomeFantasia.trim() !== '') return dadosPedido.nomeFantasia;
+  if (dadosPedido.empresa && dadosPedido.empresa.trim() !== '') return dadosPedido.empresa;
+  
+  // 3. Verificar se há informações do cliente em itens (às vezes o nome fica no primeiro item)
+  if (dadosPedido.itens && Array.isArray(dadosPedido.itens) && dadosPedido.itens.length > 0) {
+    const primeiroItem = dadosPedido.itens[0];
+    if (primeiroItem && primeiroItem.cliente) {
+      return typeof primeiroItem.cliente === 'string' ? primeiroItem.cliente : 
+             (primeiroItem.cliente.razaoSocial || primeiroItem.cliente.nome || primeiroItem.cliente.nomeFantasia);
+    }
+  }
+  
+  // 4. Busca mais ampla nas propriedades
+  const propriedades = Object.keys(dadosPedido);
+  for (const prop of propriedades) {
+    const valor = dadosPedido[prop];
+    
+    // Se a propriedade contém "cliente", "razao", "nome" ou "empresa"
+    if ((prop.toLowerCase().includes('cliente') || 
+         prop.toLowerCase().includes('razao') || 
+         prop.toLowerCase().includes('empresa')) && 
+        typeof valor === 'string' && 
+        valor.trim() !== '' && 
+        valor !== 'pantaneiro5' && 
+        valor !== 'pantaneiro7' && 
+        valor !== 'steitz') {
+      return valor;
+    }
+    
+    // Se é um objeto, verificar suas propriedades
+    if (typeof valor === 'object' && valor !== null) {
+      if (valor.razaoSocial && valor.razaoSocial.trim() !== '') return valor.razaoSocial;
+      if (valor.nome && valor.nome.trim() !== '') return valor.nome;
+      if (valor.nomeFantasia && valor.nomeFantasia.trim() !== '') return valor.nomeFantasia;
+    }
+  }
   
   return 'Cliente não informado';
 }
