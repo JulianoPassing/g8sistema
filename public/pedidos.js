@@ -1565,7 +1565,7 @@ window.gerarPDFPedido = async function(pedidoId) {
   }
 };
 
-// Função para visualizar PDF do pedido (gerar e abrir em nova aba)
+// Função para visualizar PDF do pedido (100% igual ao PDF gerado nas empresas)
 window.visualizarPDFPedido = async function(pedidoId) {
   try {
     // Buscar dados do pedido
@@ -1578,144 +1578,232 @@ window.visualizarPDFPedido = async function(pedidoId) {
       return;
     }
 
-    // Extrair informações do pedido (reutilizar função existente)
-    function extrairInfoPedido(descricao) {
-      const info = {
-        cliente: 'N/A',
-        itens: [],
-        total: 'R$ 0,00'
-      };
-      
-      let clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Itens?:)/i);
-      if (!clienteMatch) {
-        clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Item)/i);
-      }
-      if (!clienteMatch) {
-        clienteMatch = descricao.match(/Cliente:\s*(.+?)(?:\s+Itens)/i);
-      }
-      if (!clienteMatch) {
-        clienteMatch = descricao.match(/Cliente:\s*(.+?)(?=\s+(?:Itens?|Total))/i);
-      }
-      
-      if (clienteMatch) {
-        info.cliente = clienteMatch[1].trim();
-      }
-      
-      let itensMatch = descricao.match(/Itens?:\s*([^T]+?)(?:\s+Total:)/i);
-      if (!itensMatch) {
-        itensMatch = descricao.match(/Itens?:\s*(.+?)(?:\s+Total)/i);
-      }
-      
-      if (itensMatch) {
-        const itensStr = itensMatch[1].trim();
-        info.itens = itensStr.split(', ').filter(item => item.trim());
-      }
-      
-      let totalMatch = descricao.match(/Total:\s*(R\$\s*[\d.,]+)/i);
-      if (!totalMatch) {
-        totalMatch = descricao.match(/Total:\s*([\d.,]+)/i);
-      }
-      
-      if (totalMatch) {
-        info.total = totalMatch[1].includes('R$') ? totalMatch[1] : `R$ ${totalMatch[1]}`;
-      }
-      
-      return info;
-    }
-
-    let info = extrairInfoPedido(pedido.descricao);
-    
-    // Fallback para dados estruturados
-    if (info.cliente === 'N/A' && pedido.dados) {
+    // Parsear dados estruturados do pedido
+    let dadosPedido = {};
+    if (pedido.dados) {
       try {
-        const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
-        if (dados.cliente && dados.cliente.nome) {
-          info.cliente = dados.cliente.nome;
-        } else if (dados.cliente && typeof dados.cliente === 'string') {
-          info.cliente = dados.cliente;
-        }
+        dadosPedido = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
       } catch (e) {
         console.log('❌ Erro ao parsear dados do pedido:', e);
+        dadosPedido = {};
       }
     }
 
-    const dataFormatada = new Date(pedido.data_pedido).toLocaleDateString('pt-BR');
-
-    // Criar PDF
+    // Criar PDF com mesmo formato das páginas das empresas
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');
+    const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
-    let currentY = 20;
+    let finalY = 0;
 
-    function addWrappedText(text, x, y, maxWidth, fontSize = 10) {
-      doc.setFontSize(fontSize);
-      const lines = doc.splitTextToSize(text, maxWidth);
-      doc.text(lines, x, y);
-      return y + (lines.length * (fontSize * 0.4));
-    }
+    // Função para cabeçalho e rodapé (igual ao das empresas)
+    const drawHeaderAndFooter = (data) => {
+      // Logo G8
+      const logoImg = new Image();
+      logoImg.src = "https://i.imgur.com/vjq26ym.png";
+      doc.addImage(logoImg, "PNG", margin, 10, 90, 15);
+      
+      // Título baseado na empresa
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      let titulo = "Pedido de Venda";
+      if (pedido.empresa === 'pantaneiro5') titulo += " - Pantaneiro";
+      else if (pedido.empresa === 'pantaneiro7') titulo += " - Pantaneiro";
+      else if (pedido.empresa === 'steitz') titulo += " - Steitz";
+      
+      doc.text(titulo, pageWidth - margin, 18, { align: "right" });
+      
+      // Data
+      const hoje = new Date(pedido.data_pedido);
+      const dataAtual = `${hoje.getDate().toString().padStart(2, "0")}/${(hoje.getMonth() + 1).toString().padStart(2, "0")}/${hoje.getFullYear()}`;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Data: ${dataAtual}`, pageWidth - margin, 24, { align: "right" });
 
-    // Cabeçalho
-    doc.setFontSize(20);
-    doc.setTextColor(255, 0, 0);
-    doc.text('G8 REPRESENTAÇÕES', pageWidth / 2, currentY, { align: 'center' });
-    
-    currentY += 15;
-    doc.setFontSize(16);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`PEDIDO #${pedido.id}`, pageWidth / 2, currentY, { align: 'center' });
-    
-    currentY += 20;
+      // Número da página
+      const pageCount = doc.internal.getNumberOfPages();
+      doc.setFontSize(8);
+      doc.text(`Página ${data.pageNumber} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+    };
 
-    // Dados do pedido
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('DADOS DO PEDIDO:', margin, currentY);
-    currentY += 8;
+    drawHeaderAndFooter({ pageNumber: 1 });
 
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Data: ${dataFormatada}`, margin, currentY);
-    currentY += 6;
-    doc.text(`Empresa: ${pedido.empresa.toUpperCase()}`, margin, currentY);
-    currentY += 10;
-
-    // Cliente
-    doc.setFont('helvetica', 'bold');
-    doc.text('CLIENTE:', margin, currentY);
-    currentY += 6;
-    doc.setFont('helvetica', 'normal');
-    currentY = addWrappedText(info.cliente, margin, currentY, pageWidth - (margin * 2), 10);
-    currentY += 10;
-
-    // Itens
-    doc.setFont('helvetica', 'bold');
-    doc.text(`ITENS (${info.itens.length}):`, margin, currentY);
-    currentY += 8;
-
-    doc.setFont('helvetica', 'normal');
-    info.itens.forEach((item, index) => {
-      if (currentY > 250) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(`${index + 1}. ${item}`, margin + 5, currentY);
-      currentY += 6;
+    // Tabela de dados do cliente (igual ao formato das empresas)
+    const clienteData = dadosPedido.cliente || {};
+    doc.autoTable({
+      startY: 30,
+      theme: "grid",
+      head: [[{
+        content: "DADOS DO CLIENTE",
+        colSpan: 4,
+        styles: {
+          halign: "center",
+          fontStyle: "bold",
+          fillColor: [230, 230, 230],
+          textColor: 30,
+        },
+      }]],
+      body: [
+        ["Cliente:", { content: clienteData.nome || clienteData.razao || "N/A", colSpan: 3 }],
+        [
+          "CNPJ:", clienteData.cnpj || "N/A",
+          "I.E.:", clienteData.ie || "N/A"
+        ],
+        [
+          "Telefone:", clienteData.telefone || "N/A",
+          "E-mail:", clienteData.email || "N/A"
+        ],
+        [
+          "Endereço:",
+          {
+            content: `${clienteData.endereco || ""}, ${clienteData.bairro || ""}`,
+            colSpan: 3,
+          },
+        ],
+        [
+          "Cidade/UF:",
+          `${clienteData.cidade || ""}/${clienteData.estado || ""}`,
+          "CEP:",
+          clienteData.cep || "",
+        ],
+      ],
+      styles: { fontSize: 8, cellPadding: 1.5 },
+      columnStyles: {
+        0: { fontStyle: "bold", cellWidth: 22 },
+        2: { fontStyle: "bold", cellWidth: 20 },
+      },
+      margin: { left: margin, right: margin },
     });
 
-    currentY += 10;
+    let startY = doc.autoTable.previous.finalY + 7;
 
-    // Total
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.setTextColor(255, 0, 0);
-    doc.text(`TOTAL: ${info.total}`, margin, currentY);
+    // Tabela de itens (igual ao formato das empresas)
+    const itens = dadosPedido.itens || [];
+    const descontos = dadosPedido.descontos || {};
+    const descontoPrazo = descontos.prazo || 0;
+    const descontoVolume = descontos.volume || 0;
+    const descontoGeral = (1 - descontoPrazo / 100) * (1 - descontoVolume / 100);
 
-    // Rodapé
-    const footerY = 280;
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text('G8 Representações - Sistema de Gestão de Pedidos', pageWidth / 2, footerY, { align: 'center' });
-    doc.text(`Visualizado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, pageWidth / 2, footerY + 4, { align: 'center' });
+    const head = [["Ref.", "Descrição", "Tam/Cor", "Qtd", "Unit.", "Desc.%", "Total"]];
+    const body = itens.map((item) => {
+      const precoUnitarioComDesconto = (item.preco || 0) * descontoGeral;
+      return [
+        item.REFERENCIA || item.ref || "",
+        item.DESCRIÇÃO || item.descricao || "",
+        item.tamanho || item.cor || "",
+        item.quantidade || 0,
+        `R$ ${precoUnitarioComDesconto.toFixed(2)}`,
+        `${item.descontoExtra || 0}%`,
+        `R$ ${(precoUnitarioComDesconto * (item.quantidade || 0)).toFixed(2)}`,
+      ];
+    });
+
+    doc.autoTable({
+      head: head,
+      body: body,
+      startY: startY,
+      theme: "grid",
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        overflow: "linebreak",
+        valign: "middle",
+      },
+      headStyles: {
+        fillColor: [44, 62, 80],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        halign: "center",
+      },
+      columnStyles: {
+        0: { cellWidth: 15 },
+        1: { cellWidth: "auto" },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 10, halign: "center" },
+        4: { cellWidth: 20, halign: "right" },
+        5: { cellWidth: 15, halign: "center" },
+        6: { cellWidth: 22, halign: "right" },
+      },
+      didDrawPage: (data) => {
+        if (data.pageNumber > 1) {
+          drawHeaderAndFooter(data);
+        }
+      },
+      margin: { top: 30, bottom: 15 },
+    });
+
+    finalY = doc.autoTable.previous.finalY;
+
+    // Observações e totais (igual ao formato das empresas)
+    const transporte = dadosPedido.transporte || clienteData.transporte || "A combinar";
+    const prazo = dadosPedido.prazo || clienteData.prazo || "A combinar";
+    const observacoes = dadosPedido.observacoes || clienteData.obs || "Nenhuma.";
+    
+    const obsText = `Transporte: ${transporte}\nPrazo: ${prazo}\n\nObservações:\n${observacoes}`;
+
+    // Calcular totais
+    const subtotal = itens.reduce((sum, item) => sum + ((item.preco || 0) * (item.quantidade || 0)), 0);
+    const totalComDesconto = dadosPedido.total || (subtotal * descontoGeral);
+
+    const summaryData = [];
+    summaryData.push(["Subtotal sem Desconto:", `R$ ${subtotal.toFixed(2)}`]);
+    
+    if (descontoPrazo > 0) {
+      summaryData.push([
+        `Desconto Prazo (${descontoPrazo}%):`,
+        `- R$ ${((subtotal * descontoPrazo) / 100).toFixed(2)}`,
+      ]);
+    }
+    
+    if (descontoVolume > 0) {
+      const baseDescontoVol = subtotal * (1 - descontoPrazo / 100);
+      summaryData.push([
+        `Desconto Volume (${descontoVolume}%):`,
+        `- R$ ${((baseDescontoVol * descontoVolume) / 100).toFixed(2)}`,
+      ]);
+    }
+    
+    summaryData.push(["", ""]);
+    summaryData.push([
+      {
+        content: "Total do Pedido:",
+        styles: { fontStyle: "bold", fontSize: 10 },
+      },
+      {
+        content: `R$ ${totalComDesconto.toFixed(2)}`,
+        styles: { fontStyle: "bold", fontSize: 10 },
+      },
+    ]);
+
+    // Tabela final com observações e totais
+    const finalTableBody = [];
+    const leftColumn = {
+      content: obsText,
+      rowSpan: summaryData.length,
+      styles: { valign: "top", fontSize: 8 },
+    };
+    
+    summaryData.forEach((row, index) => {
+      if (index === 0) {
+        finalTableBody.push([leftColumn, row[0], row[1]]);
+      } else {
+        finalTableBody.push(["", row[0], row[1]]);
+      }
+    });
+
+    doc.autoTable({
+      body: finalTableBody,
+      startY: finalY + 5,
+      theme: "grid",
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { cellWidth: 60, halign: "right", fontStyle: "bold" },
+        2: { cellWidth: 40, halign: "right" },
+      },
+      margin: { left: margin, right: margin },
+    });
 
     // Abrir PDF em nova aba
     const pdfBlob = doc.output('blob');
