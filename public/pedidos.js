@@ -129,16 +129,34 @@ async function carregarPedidos() {
     for (const pedido of pedidos) {
       let info = extrairInfoPedido(pedido.descricao);
       
-      // Se não conseguiu extrair o cliente da descrição, tentar dos dados estruturados
-      if (info.cliente === 'N/A' && pedido.dados) {
+      // Verificar se é um pedido B2B
+      let isB2B = false;
+      let clienteB2BInfo = null;
+      
+      if (pedido.dados) {
         try {
           const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
-          if (dados.cliente && dados.cliente.nome) {
-            info.cliente = dados.cliente.nome;
-            console.log('👤 Cliente extraído dos dados estruturados:', info.cliente);
-          } else if (dados.cliente && typeof dados.cliente === 'string') {
-            info.cliente = dados.cliente;
-            console.log('👤 Cliente extraído dos dados (string):', info.cliente);
+          
+          // Verificar se é pedido B2B
+          if (dados.origem === 'b2b') {
+            isB2B = true;
+            clienteB2BInfo = dados.clienteInfo;
+            
+            // Para pedidos B2B, usar as informações do cliente B2B
+            if (clienteB2BInfo && clienteB2BInfo.razao) {
+              info.cliente = clienteB2BInfo.razao;
+            }
+          }
+          
+          // Se não conseguiu extrair o cliente da descrição, tentar dos dados estruturados
+          if (info.cliente === 'N/A') {
+            if (dados.cliente && dados.cliente.nome) {
+              info.cliente = dados.cliente.nome;
+              console.log('👤 Cliente extraído dos dados estruturados:', info.cliente);
+            } else if (dados.cliente && typeof dados.cliente === 'string') {
+              info.cliente = dados.cliente;
+              console.log('👤 Cliente extraído dos dados (string):', info.cliente);
+            }
           }
         } catch (e) {
           console.log('❌ Erro ao parsear dados do pedido:', e);
@@ -148,14 +166,17 @@ async function carregarPedidos() {
       const dataFormatada = formatarData(pedido.data_pedido);
       
       html += `
-        <div class="pedido-card-modern">
+        <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''}">
           <div class="pedido-header">
             <div class="pedido-id-badge">
               <span class="id-label">Pedido</span>
               <span class="id-number">#${pedido.id}</span>
             </div>
-            <div class="pedido-empresa-badge">
-              <span class="empresa-name">${pedido.empresa.toUpperCase()}</span>
+            <div class="pedido-badges">
+              <div class="pedido-empresa-badge">
+                <span class="empresa-name">${pedido.empresa.toUpperCase()}</span>
+              </div>
+              ${isB2B ? '<div class="pedido-b2b-badge"><span class="b2b-label">🌐 B2B</span></div>' : ''}
             </div>
           </div>
           

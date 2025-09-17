@@ -427,6 +427,17 @@
         background: linear-gradient(135deg, rgba(255, 0, 0, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
       }
 
+      .b2b-card {
+        border-color: var(--g8-red);
+        background: linear-gradient(135deg, rgba(255, 0, 0, 0.02) 0%, rgba(255, 255, 255, 1) 100%);
+      }
+
+      .b2b-card:hover {
+        border-color: var(--primary-hover);
+        box-shadow: 0 20px 25px -5px rgba(255, 0, 0, 0.25), 0 10px 10px -5px rgba(255, 0, 0, 0.1);
+        background: linear-gradient(135deg, rgba(255, 0, 0, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+      }
+
       /* Rodapé G8 */
       footer {
         width: 100vw;
@@ -631,7 +642,16 @@
               </div>
             </a>
           </div>
-          <div class="option-card info-card card-modern animate-on-scroll" data-animation-delay="700">
+          <div class="option-card b2b-card card-modern animate-on-scroll" data-animation-delay="700">
+            <a href="b2b-login.html" target="_blank">
+              <span class="option-icon">🏢</span>
+              <div class="option-title">Portal B2B</div>
+              <div class="option-description">
+                Acesso para clientes fazerem pedidos online.
+              </div>
+            </a>
+          </div>
+          <div class="option-card info-card card-modern animate-on-scroll" data-animation-delay="800">
             <a href="https://g8representacoes.vercel.app/" target="_blank" rel="noopener noreferrer">
               <span class="option-icon">🌐</span>
               <div class="option-title">Site G8</div>

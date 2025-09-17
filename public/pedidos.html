@@ -1070,6 +1070,12 @@
           gap: 8px;
         }
 
+        .pedido-badges {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
         .pedido-empresa-badge {
           padding: 8px 16px;
           background: var(--gradient-primary);
@@ -1080,6 +1086,30 @@
           text-transform: uppercase;
           letter-spacing: 0.5px;
           box-shadow: 0 2px 8px rgba(255, 0, 0, 0.2);
+        }
+
+        .pedido-b2b-badge {
+          padding: 6px 12px;
+          background: var(--gradient-primary);
+          color: white;
+          border-radius: 15px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+        }
+
+        .pedido-b2b {
+          border-left: 4px solid var(--g8-red) !important;
+          background: linear-gradient(135deg, #fff0f0 0%, #ffffff 100%) !important;
+        }
+
+        .pedido-b2b::before {
+          background: var(--gradient-primary) !important;
+        }
+
+        .pedido-b2b:hover {
+          box-shadow: 0 8px 25px rgba(255, 0, 0, 0.15) !important;
+          border-color: var(--g8-red) !important;
         }
 
         .pedido-body {
