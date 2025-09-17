@@ -620,7 +620,7 @@
           if (!categoriaProdutos || categoriaProdutos.length === 0) return;
           const categoriaDiv = document.createElement("section");
           categoriaDiv.className = "card";
-          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
+          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
           categoriaProdutos.forEach((produto) => {
             const tamanhosNormais = true; // Para Steitz, todos os produtos têm tamanhos normais
             let tamanhosInputHTML = '<div class="tamanho-input-container">';
@@ -630,7 +630,7 @@
               tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
             });
             tamanhosInputHTML += "</div>";
-            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
           });
           tabelaHTML += `</tbody></table></div>`;
           categoriaDiv.innerHTML = tabelaHTML;
@@ -643,18 +643,11 @@
         const corSelecionada = document
           .getElementById(`cor-${produto.REFERENCIA}`)
           .value.trim();
-        const descontoExtra =
-          parseFloat(
-            document.getElementById(`desconto-${produto.REFERENCIA}`).value
-          ) || 0;
         let itemAdicionado = false;
         const handleItem = (tamanho, quantidade) => {
           if (quantidade <= 0) return;
           itemAdicionado = true;
           let precoFinal = produto.PRECO;
-          if (descontoExtra > 0) {
-            precoFinal *= 1 - descontoExtra / 100;
-          }
           let itemDesc = tamanho;
           if (corSelecionada) itemDesc += `, Cor: ${corSelecionada}`;
           const itemExistente = window.pedidoItens.find(
@@ -672,7 +665,6 @@
               tamanho: itemDesc,
               preco: precoFinal,
               quantidade: quantidade,
-              descontoExtra: descontoExtra,
             });
           }
         };
@@ -723,11 +715,7 @@
               item.DESCRIÇÃO
             }</strong><br><small>Ref: ${item.REFERENCIA} | ${
               item.tamanho
-            } | Qtd: ${item.quantidade} ${
-              item.descontoExtra > 0
-                ? `| Desc. Extra: ${item.descontoExtra}%`
-                : ""
-            } | Total: R$ ${precoTotalItem.toFixed(
+            } | Qtd: ${item.quantidade            } | Total: R$ ${precoTotalItem.toFixed(
               2
             )}</small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
             pedidoContainer.appendChild(itemDiv);
