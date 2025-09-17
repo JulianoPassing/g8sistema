@@ -199,6 +199,59 @@
         background-color: #f5f5f5;
       }
 
+      /* CSS para botões */
+      .btn {
+        display: inline-block;
+        padding: 8px 16px;
+        margin-bottom: 0;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.42857143;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        cursor: pointer;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      .btn-sm {
+        padding: 5px 10px;
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 3px;
+      }
+
+      .btn-success {
+        background-color: var(--success-color);
+        color: white;
+        border-color: var(--success-color);
+      }
+
+      .btn-success:hover {
+        background-color: var(--success-hover);
+        border-color: var(--success-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-danger {
+        background-color: var(--danger-color);
+        color: white;
+        border-color: var(--danger-color);
+        padding: 5px 10px;
+        font-size: 0.85em;
+      }
+
+      .btn-danger:hover {
+        background-color: var(--danger-hover);
+        border-color: var(--danger-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
       .card {
         background: var(--card-bg);
         border-radius: var(--border-radius-lg);
@@ -564,7 +617,8 @@
         document.getElementById('telefone').value = clienteData.telefone || '';
         document.getElementById('transporte').value = clienteData.transporte || '';
         document.getElementById('prazo').value = clienteData.prazo || '';
-        document.getElementById('obs').value = clienteData.obs || '';
+        // Preencher observações automaticamente com a empresa
+        document.getElementById('obs').value = 'Pedido via B2B - Tabela Steitz';
       }
 
       // ========== INÍCIO DA LISTA DE PRODUTOS ATUALIZADA ==========
@@ -690,6 +744,18 @@
         }
       }
 
+      // Função para alterar quantidade de um item
+      function alterarQuantidade(index, novaQuantidade) {
+        const quantidade = parseInt(novaQuantidade);
+        if (quantidade > 0) {
+          window.pedidoItens[index].quantidade = quantidade;
+          atualizarVisualizacaoPedido();
+        } else {
+          // Se quantidade for 0 ou menor, remover o item
+          removerDoPedido(index);
+        }
+      }
+
       // Função para remover item do pedido
       function removerDoPedido(index) {
         window.pedidoItens.splice(index, 1);
@@ -715,13 +781,30 @@
               item.DESCRIÇÃO
             }</strong><br><small>Ref: ${item.REFERENCIA} | ${
               item.tamanho
-            } | Qtd: ${item.quantidade            } | Total: R$ ${precoTotalItem.toFixed(
+            } | Qtd: <input type="number" min="1" value="${item.quantidade}" onchange="alterarQuantidade(${index}, this.value)" style="width: 60px; padding: 2px; text-align: center;"> | Total: R$ ${precoTotalItem.toFixed(
               2
             )}</small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
             pedidoContainer.appendChild(itemDiv);
           });
         } else {
           pedidoVazio.style.display = "block";
+        }
+
+        // Mostrar total do pedido
+        if (window.pedidoItens.length > 0) {
+          const totalDiv = document.createElement("div");
+          totalDiv.className = "pedido-total";
+          totalDiv.style.cssText = "margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary-color);";
+          totalDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h3 style="margin: 0; color: var(--text-color);">Total do Pedido:</h3>
+              <span style="font-size: 1.5em; font-weight: bold; color: var(--primary-color);">R$ ${subtotalPedido.toFixed(2)}</span>
+            </div>
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 10px; color: #856404; font-size: 0.9em;">
+              <strong>ℹ️ Informação:</strong> Consulte descontos com o representante. Eles serão aplicados internamente no processamento do pedido.
+            </div>
+          `;
+          pedidoContainer.appendChild(totalDiv);
         }
       }
 
