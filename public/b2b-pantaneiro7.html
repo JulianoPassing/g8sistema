@@ -453,7 +453,7 @@
         padding: 10px 12px;
         border: 2px solid var(--border-color);
         border-radius: var(--border-radius);
-        font-size: 1rem;
+        font-size: 0.9rem;
         transition: all 0.3s ease;
         background: var(--card-bg);
         color: var(--text-color);
@@ -2782,8 +2782,8 @@ window.produtosData = [
               </div>
             </div>
             <div style="margin-top: 20px; text-align: center;">
-              <button type="button" class="btn-primary" onclick="gerarPDF()" style="padding: 12px 24px; font-size: 1rem; width: 100%; max-width: 300px;">
-                📄 Gerar PDF do Pedido
+              <button type="button" class="btn-primary" onclick="enviarPedido()" style="padding: 12px 24px; font-size: 1rem; width: 100%; max-width: 300px;">
+                📤 Enviar Pedido
               </button>
             </div>
           `;
@@ -2791,9 +2791,52 @@ window.produtosData = [
         }
       }
 
-      // Gerar PDF do pedido
+      // Enviar pedido para o sistema principal
+      async function enviarPedido() {
+        if (window.pedidoItens.length === 0) {
+          alert('Adicione pelo menos um produto ao pedido para enviar.');
+          return;
+        }
+
+        try {
+          // Preparar dados do pedido
+          const pedidoData = {
+            cliente: clienteData,
+            itens: window.pedidoItens,
+            total: subtotalPedido,
+            observacoes: document.getElementById('obs').value,
+            data: new Date().toISOString(),
+            origem: 'B2B - Pantaneiro 7'
+          };
+
+          // Enviar para a API
+          const response = await fetch('/api/pedidos-b2b', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(pedidoData)
+          });
+
+          if (response.ok) {
+            alert('Pedido enviado com sucesso! Você será redirecionado para o sistema principal.');
+            // Limpar pedido local
+            window.pedidoItens = [];
+            atualizarVisualizacaoPedido();
+            // Redirecionar para o sistema principal
+            window.location.href = '/pedidos.html';
+          } else {
+            throw new Error('Erro ao enviar pedido');
+          }
+        } catch (error) {
+          console.error('Erro ao enviar pedido:', error);
+          alert('Erro ao enviar pedido. Tente novamente.');
+        }
+      }
+
+      // Gerar PDF do pedido (função mantida para compatibilidade)
       function gerarPDF() {
-        if (produtosSelecionados.length === 0) {
+        if (window.pedidoItens.length === 0) {
           alert('Adicione pelo menos um produto ao pedido para gerar o PDF.');
           return;
         }
