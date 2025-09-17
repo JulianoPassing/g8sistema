@@ -281,8 +281,24 @@
         font-weight: 600;
       }
 
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
       .form-group {
+        display: flex;
+        flex-direction: column;
         margin-bottom: 12px;
+      }
+
+      .form-grid .form-group {
+        margin-bottom: 0;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
       }
 
       .form-group label {
@@ -647,57 +663,59 @@
           <h2>Informações do Cliente - Steitz</h2>
         </div>
         
-        <div class="form-group">
-          <label for="razao"><span>🏢</span>Razão Social:</label>
-          <input type="text" id="razao" readonly />
-        </div>
-        <div class="form-group">
-          <label for="cnpj"><span>🏭</span>CNPJ:</label>
-          <input type="text" id="cnpj" readonly />
-        </div>
-        <div class="form-group">
-          <label for="ie"><span>📄</span>I.E.:</label>
-          <input type="text" id="ie" readonly />
-        </div>
-        <div class="form-group">
-          <label for="endereco"><span>📍</span>Endereço:</label>
-          <input type="text" id="endereco" readonly />
-        </div>
-        <div class="form-group">
-          <label for="bairro"><span>🏘️</span>Bairro:</label>
-          <input type="text" id="bairro" readonly />
-        </div>
-        <div class="form-group">
-          <label for="cidade"><span>🏙️</span>Cidade:</label>
-          <input type="text" id="cidade" readonly />
-        </div>
-        <div class="form-group">
-          <label for="estado"><span>🗺️</span>Estado:</label>
-          <input type="text" id="estado" readonly />
-        </div>
-        <div class="form-group">
-          <label for="cep"><span>📮</span>CEP:</label>
-          <input type="text" id="cep" readonly />
-        </div>
-        <div class="form-group">
-          <label for="email"><span>📧</span>E-mail:</label>
-          <input type="email" id="email" readonly />
-        </div>
-        <div class="form-group">
-          <label for="telefone"><span>📞</span>Telefone:</label>
-          <input type="tel" id="telefone" readonly />
-        </div>
-        <div class="form-group">
-          <label for="transporte"><span>🚚</span>Transporte:</label>
-          <input type="text" id="transporte" readonly />
-        </div>
-        <div class="form-group">
-          <label for="prazo"><span>⏰</span>Prazo:</label>
-          <input type="text" id="prazo" readonly />
-        </div>
-        <div class="form-group">
-          <label for="obs"><span>📝</span>Observações:</label>
-          <textarea id="obs" rows="3" readonly></textarea>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="razao"><span>🏢</span>Razão Social:</label>
+            <input type="text" id="razao" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cnpj"><span>🏭</span>CNPJ:</label>
+            <input type="text" id="cnpj" readonly />
+          </div>
+          <div class="form-group">
+            <label for="ie"><span>📝</span>I.E:</label>
+            <input type="text" id="ie" readonly />
+          </div>
+          <div class="form-group">
+            <label for="endereco"><span>🗺️</span>Endereço:</label>
+            <input type="text" id="endereco" readonly />
+          </div>
+          <div class="form-group">
+            <label for="bairro"><span>🏘️</span>Bairro:</label>
+            <input type="text" id="bairro" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cidade"><span>🏙️</span>Cidade:</label>
+            <input type="text" id="cidade" readonly />
+          </div>
+          <div class="form-group">
+            <label for="estado"><span>🌎</span>Estado:</label>
+            <input type="text" id="estado" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cep"><span>📫</span>CEP:</label>
+            <input type="text" id="cep" readonly />
+          </div>
+          <div class="form-group">
+            <label for="email"><span>📧</span>E-mail:</label>
+            <input type="email" id="email" readonly />
+          </div>
+          <div class="form-group">
+            <label for="telefone"><span>📞</span>Telefone:</label>
+            <input type="text" id="telefone" readonly />
+          </div>
+          <div class="form-group">
+            <label for="transporte"><span>🚚</span>Transporte:</label>
+            <input type="text" id="transporte" readonly />
+          </div>
+          <div class="form-group">
+            <label for="prazo"><span>💰</span>Prazo Pagamento:</label>
+            <input type="text" id="prazo" readonly />
+          </div>
+          <div class="form-group full-width">
+            <label for="obs"><span>💬</span>Observações:</label>
+            <textarea id="obs" rows="3" readonly></textarea>
+          </div>
         </div>
       </section>
 

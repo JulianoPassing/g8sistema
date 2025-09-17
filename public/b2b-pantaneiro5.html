@@ -296,6 +296,10 @@
         margin-bottom: 12px;
       }
 
+      .form-grid .form-group {
+        margin-bottom: 0;
+      }
+
       .form-group.full-width {
         grid-column: 1 / -1;
       }
@@ -468,8 +472,8 @@
         border: 1px solid #e9ecef;
         border-bottom: 2px solid #dee2e6;
         border-radius: 8px;
-        padding: 12px 16px;
-        margin-bottom: 8px;
+        padding: 8px 12px;
+        margin-bottom: 6px;
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
         transition: all 0.3s ease;
         position: relative;
@@ -495,8 +499,8 @@
       .pedido-item-info {
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        margin-bottom: 8px;
+        gap: 2px;
+        margin-bottom: 4px;
       }
 
       .pedido-item-info strong {
@@ -737,12 +741,6 @@
         </div>
         <div id="pedido-container">
           <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
-        </div>
-
-        <div class="form-group">
-          <button type="button" class="btn-primary" onclick="gerarPDF()">
-            📄 Gerar PDF do Pedido
-          </button>
         </div>
       </section>
 
@@ -2771,6 +2769,16 @@ window.produtosData = [
             </div>
           `;
           pedidoContainer.appendChild(totalDiv);
+
+          // Adicionar botão Gerar PDF após o total
+          const pdfButtonDiv = document.createElement("div");
+          pdfButtonDiv.style.cssText = "margin-top: 20px; text-align: center;";
+          pdfButtonDiv.innerHTML = `
+            <button type="button" class="btn-primary" onclick="gerarPDF()" style="padding: 12px 24px; font-size: 1rem; width: 100%; max-width: 300px;">
+              📄 Gerar PDF do Pedido
+            </button>
+          `;
+          pedidoContainer.appendChild(pdfButtonDiv);
         }
       }
 
