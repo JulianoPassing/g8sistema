@@ -485,7 +485,7 @@
       pedidosList.innerHTML = '';
 
       try {
-        const response = await fetch(`/api/pedidos-b2b?clienteId=${clienteData.id}`);
+        const response = await fetch('/api/pedidos');
         const pedidos = await response.json();
 
         if (pedidos.length === 0) {

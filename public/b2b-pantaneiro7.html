@@ -2794,18 +2794,22 @@ window.produtosData = [
         }
 
         try {
-          // Preparar dados do pedido
+          // Preparar dados do pedido no formato que a API principal espera
           const pedidoData = {
-            cliente: clienteData,
-            itens: window.pedidoItens,
-            total: subtotalPedido,
-            observacoes: document.getElementById('obs').value,
-            data: new Date().toISOString(),
-            origem: 'B2B - Pantaneiro 7'
+            empresa: clienteData.razao,
+            descricao: `Pedido B2B - Pantaneiro 7 - ${window.pedidoItens.length} itens`,
+            dados: {
+              cliente: clienteData,
+              itens: window.pedidoItens,
+              total: subtotalPedido,
+              data: new Date().toISOString(),
+              origem: 'B2B - Pantaneiro 7',
+              observacoes: document.getElementById('obs') ? document.getElementById('obs').value : ''
+            }
           };
 
-          // Enviar para a API
-          const response = await fetch('/api/pedidos-b2b', {
+          // Enviar para a API principal
+          const response = await fetch('/api/pedidos', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
