@@ -258,7 +258,7 @@
       .card {
         background: var(--card-bg);
         border-radius: var(--border-radius-lg);
-        padding: 30px;
+        padding: 20px;
         margin-bottom: 30px;
         box-shadow: var(--shadow);
         border: 1px solid var(--border-color);
@@ -285,19 +285,19 @@
       }
 
       .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 12px;
       }
 
       .form-group label {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
         font-weight: 600;
         color: var(--text-color);
       }
 
       .form-group input, .form-group select, .form-group textarea {
         width: 100%;
-        padding: 12px;
+        padding: 8px;
         border: 2px solid var(--border-color);
         border-radius: var(--border-radius);
         font-size: 14px;
@@ -417,6 +417,185 @@
 
       .manual-tamanho-input {
         width: 140px;
+      }
+
+      /* Estilos específicos para inputs em tabelas - igual ao original */
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        color: var(--text-color);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        transform: translateY(-1px);
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+
+      /* Estilos profissionais para seção "Seu Pedido" */
+      .pedido-item {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .pedido-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+      }
+
+      .pedido-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border-color: var(--primary-color);
+      }
+
+      .pedido-item-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .pedido-item-info strong {
+        color: var(--text-color);
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.4;
+      }
+
+      .pedido-item-info small {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .pedido-item-info input[type="number"] {
+        width: 70px;
+        padding: 6px 8px;
+        border: 2px solid #e9ecef;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: 500;
+        background: white;
+        transition: all 0.3s ease;
+      }
+
+      .pedido-item-info input[type="number"]:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        outline: none;
+      }
+
+      .pedido-item-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .pedido-total {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px solid var(--primary-color);
+        border-radius: 16px;
+        padding: 24px;
+        margin-top: 24px;
+        box-shadow: 0 4px 20px rgba(255, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .pedido-total::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+      }
+
+      .pedido-total-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .pedido-total h3 {
+        margin: 0;
+        color: var(--text-color);
+        font-size: 1.3rem;
+        font-weight: 600;
+      }
+
+      .pedido-total-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-shadow: 0 2px 4px rgba(255, 0, 0, 0.1);
+      }
+
+      .pedido-info-message {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffeaa7;
+        border-radius: 12px;
+        padding: 16px;
+        color: #856404;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
+      }
+
+      .pedido-info-message strong {
+        color: #856404;
+        font-weight: 600;
+      }
+
+      #pedido-vazio {
+        text-align: center;
+        color: var(--text-muted);
+        font-style: italic;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px dashed #e9ecef;
+        border-radius: 12px;
+        margin: 0;
       }
 
       @media (max-width: 768px) {
@@ -2529,13 +2708,25 @@ window.produtosData = [
             itemDiv.className = "pedido-item";
             const precoTotalItem = item.preco * item.quantidade;
             subtotalPedido += precoTotalItem;
-            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${
-              item.DESCRIÇÃO
-            }</strong><br><small>Ref: ${item.REFERENCIA} | ${
-              item.tamanho
-            } | Qtd: <input type="number" min="1" value="${item.quantidade}" onchange="alterarQuantidade(${index}, this.value)" style="width: 60px; padding: 2px; text-align: center;"> | Total: R$ ${precoTotalItem.toFixed(
-              2
-            )}</small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            itemDiv.innerHTML = `
+              <div class="pedido-item-info">
+                <strong>${item.DESCRIÇÃO}</strong>
+                <small>
+                  <span>Ref: ${item.REFERENCIA}</span>
+                  <span>•</span>
+                  <span>${item.tamanho}</span>
+                  <span>•</span>
+                  <span>Qtd: <input type="number" min="1" value="${item.quantidade}" onchange="alterarQuantidade(${index}, this.value)"></span>
+                  <span>•</span>
+                  <span style="font-weight: 600; color: var(--primary-color);">Total: R$ ${precoTotalItem.toFixed(2)}</span>
+                </small>
+              </div>
+              <div class="pedido-item-actions">
+                <button class="btn btn-danger" onclick="removerDoPedido(${index})">
+                  <span>🗑️</span> Remover
+                </button>
+              </div>
+            `;
             pedidoContainer.appendChild(itemDiv);
           });
         } else {
@@ -2546,14 +2737,16 @@ window.produtosData = [
         if (window.pedidoItens.length > 0) {
           const totalDiv = document.createElement("div");
           totalDiv.className = "pedido-total";
-          totalDiv.style.cssText = "margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary-color);";
           totalDiv.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <h3 style="margin: 0; color: var(--text-color);">Total do Pedido:</h3>
-              <span style="font-size: 1.5em; font-weight: bold; color: var(--primary-color);">R$ ${subtotalPedido.toFixed(2)}</span>
+            <div class="pedido-total-header">
+              <h3>Total do Pedido:</h3>
+              <span class="pedido-total-value">R$ ${subtotalPedido.toFixed(2)}</span>
             </div>
-            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 10px; color: #856404; font-size: 0.9em;">
-              <strong>ℹ️ Informação:</strong> Consulte descontos com o representante. Eles serão aplicados internamente no processamento do pedido.
+            <div class="pedido-info-message">
+              <span style="font-size: 1.2em;">ℹ️</span>
+              <div>
+                <strong>Informação:</strong> Consulte descontos com o representante. Eles serão aplicados internamente no processamento do pedido.
+              </div>
             </div>
           `;
           pedidoContainer.appendChild(totalDiv);
