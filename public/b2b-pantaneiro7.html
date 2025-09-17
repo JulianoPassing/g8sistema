@@ -393,7 +393,16 @@
           <input type="text" id="busca-produto" placeholder="Digite o nome, referência ou código do produto..." />
           <div id="sugestoes-produtos"></div>
         </div>
-
+      </div>
+      
+      <div id="produtos-container"></div>
+      
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Seu Pedido" style="font-size: 1.8em">🛒</span>
+          <h2>Seu Pedido</h2>
+        </div>
+        
         <div id="produtos-selecionados" class="produtos-container">
           <!-- Produtos selecionados aparecerão aqui -->
         </div>
@@ -422,6 +431,7 @@
       let clienteData = null;
       let produtosSelecionados = [];
       let produtosData = []; // Será carregado do arquivo original
+      const produtosContainer = document.getElementById("produtos-container");
 
       // Verificar autenticação B2B
       function checkAuthB2B() {
@@ -2231,6 +2241,49 @@ window.produtosData = [
       function carregarProdutos() {
         produtosData = window.produtosData;
         console.log('Produtos carregados:', produtosData.length);
+        // Renderizar produtos após carregar
+        renderizarProdutosPorCategoria(produtosData);
+      }
+
+      // Função para renderizar produtos por categoria
+      function renderizarProdutosPorCategoria(produtos = produtosData) {
+        console.log('Renderizando produtos:', produtos.length, 'produtos');
+        if (!produtosContainer) {
+          console.error('Elemento produtos-container não encontrado!');
+          return;
+        }
+        produtosContainer.innerHTML = "";
+        const categoriasOrdenadas = ["Aventura", "PRO", "Urbano", "Estilo", "Acessórios"];
+        const categoriasAgrupadas = produtos.reduce((acc, produto) => {
+          acc[produto.CATEGORIA] = acc[produto.CATEGORIA] || [];
+          acc[produto.CATEGORIA].push(produto);
+          return acc;
+        }, {});
+        categoriasOrdenadas.forEach((categoria) => {
+          const categoriaProdutos = categoriasAgrupadas[categoria];
+          if (!categoriaProdutos || categoriaProdutos.length === 0) return;
+          const categoriaDiv = document.createElement("section");
+          categoriaDiv.className = "card";
+          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
+          categoriaProdutos.forEach((produto) => {
+            const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
+            let tamanhosInputHTML = '<div class="tamanho-input-container">';
+            if (tamanhosNormais) {
+              const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
+              tamanhosProduto.forEach((tamanho) => {
+                const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+                tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+              });
+            } else {
+              tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
+            }
+            tamanhosInputHTML += "</div>";
+            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+          });
+          tabelaHTML += `</tbody></table></div>`;
+          categoriaDiv.innerHTML = tabelaHTML;
+          produtosContainer.appendChild(categoriaDiv);
+        });
       }
 
       // Gerar PDF do pedido
