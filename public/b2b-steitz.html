@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Steitz - Portal B2B</title>
+    <title>G8 Representações</title>
     <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
     <link rel="apple-touch-icon" href="https://i.imgur.com/WveVVY5.png" />
 
@@ -471,24 +471,36 @@
         document.getElementById('obs').value = clienteData.obs || '';
       }
 
-      // Carregar produtos (será implementado igual ao sistema original)
-      async function carregarProdutos() {
-        // Por enquanto, vamos usar uma lista básica
-        // TODO: Implementar carregamento real dos produtos
-        produtosData = [
-          {
-            REF: "ST001",
-            DESCRICAO: "Produto Steitz 1",
-            VALOR: 15.75,
-            DISPONIVEL: "SIM"
-          },
-          {
-            REF: "ST002", 
-            DESCRICAO: "Produto Steitz 2",
-            VALOR: 32.50,
-            DISPONIVEL: "SIM"
-          }
-        ];
+      // ========== INÍCIO DA LISTA DE PRODUTOS ATUALIZADA ==========
+      window.produtosData = [
+        {
+          CATEGORIA: "Calçados",
+          REFERENCIA: "ST001",
+          DESCRIÇÃO: "BOTA DE SEGURANÇA STEITZ",
+          TAMANHOS: ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"],
+          PRECO: 285.50,
+        },
+        {
+          CATEGORIA: "Calçados",
+          REFERENCIA: "ST002",
+          DESCRIÇÃO: "SAPATO DE SEGURANÇA STEITZ",
+          TAMANHOS: ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"],
+          PRECO: 245.75,
+        },
+        {
+          CATEGORIA: "Calçados",
+          REFERENCIA: "ST003",
+          DESCRIÇÃO: "TÊNIS DE SEGURANÇA STEITZ",
+          TAMANHOS: ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"],
+          PRECO: 195.90,
+        },
+      ];
+      // ========== FIM DA LISTA DE PRODUTOS ATUALIZADA ==========
+
+      // Carregar produtos
+      function carregarProdutos() {
+        produtosData = window.produtosData;
+        console.log('Produtos carregados:', produtosData.length);
       }
 
       // Gerar PDF do pedido
