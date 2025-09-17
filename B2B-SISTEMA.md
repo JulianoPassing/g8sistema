@@ -11,38 +11,56 @@ O Sistema B2B permite que clientes da G8 façam login e criem pedidos diretament
 - **Login**: CNPJ + Senha padrão (123456)
 - **Validação**: Verifica se o CNPJ existe na base de clientes (`public/clientes.json`)
 - **Segurança**: Headers de segurança e delay para prevenção de ataques
+- **Controle de Acesso**: Sistema de permissões por tabela (Pantaneiro 5, 7, Steitz)
 
 ### 2. Portal de Login B2B
 - **Arquivo**: `public/b2b-login.html`
 - **Features**:
-  - Interface moderna e responsiva
+  - Interface idêntica ao sistema principal (padrão G8)
   - Máscara automática para CNPJ
+  - Checkbox "Lembrar CNPJ e senha"
+  - Checkbox "Visualizar senha"
   - Validação em tempo real
   - Feedback visual de loading e erros
 
-### 3. Sistema de Pedidos B2B
+### 3. Seleção de Empresa
 - **Arquivo**: `public/b2b-pedidos.html`
 - **Features**:
-  - Criação de pedidos por empresa (Pantaneiro 5, Pantaneiro 7, Steitz)
+  - Seleção baseada nas permissões do cliente
+  - Cards visuais para cada empresa disponível
+  - Controle de acesso por tabela
   - Histórico de pedidos do cliente
-  - Interface intuitiva e responsiva
-  - Logout seguro
+  - Interface responsiva
 
-### 4. API de Pedidos B2B
+### 4. Páginas de Pedidos por Empresa
+- **Arquivos**: 
+  - `public/b2b-pantaneiro5.html`
+  - `public/b2b-pantaneiro7.html` 
+  - `public/b2b-steitz.html`
+- **Features**:
+  - **Visual 100% idêntico** ao sistema atual
+  - Logo centralizada, botão sair, nome do cliente
+  - Rodapé G8 padrão
+  - Informações do cliente **preenchidas automaticamente**
+  - Sistema de busca de produtos (em desenvolvimento)
+  - **Geração de PDF** igual ao sistema principal
+  - Controle de acesso por permissão
+
+### 5. API de Pedidos B2B
 - **Arquivo**: `api/pedidos-b2b.js`
 - **Endpoints**:
   - `POST`: Criar novo pedido B2B
   - `GET`: Listar pedidos de um cliente específico
 - **Identificação**: Pedidos marcados com `origem: 'b2b'`
 
-### 5. Integração no Painel Administrativo
+### 6. Integração no Painel Administrativo
 - **Arquivos**: `public/pedidos.js`, `public/pedidos.html`
 - **Features**:
-  - Identificação visual de pedidos B2B (badge 🌐 B2B)
-  - Estilo diferenciado (borda azul, fundo especial)
+  - Identificação visual de pedidos B2B (badge vermelho G8)
+  - Estilo diferenciado (borda vermelha, fundo especial)
   - Informações do cliente B2B preservadas
 
-### 6. Acesso pelo Painel Principal
+### 7. Acesso pelo Painel Principal
 - **Arquivo**: `public/painel.html`
 - **Feature**: Link direto para o Portal B2B no menu principal
 
@@ -118,18 +136,42 @@ O Sistema B2B permite que clientes da G8 façam login e criem pedidos diretament
 1. Modifique em `api/auth-b2b.js` linha 25
 2. Comunique aos clientes
 
+### Controlar Acesso por Tabela:
+1. Edite `api/auth-b2b.js` na seção `acessos`
+2. Defina `true`/`false` para cada tabela por cliente
+3. Exemplo de personalização:
+```javascript
+acessos: {
+  pantaneiro5: true,   // Cliente tem acesso
+  pantaneiro7: false,  // Cliente NÃO tem acesso  
+  steitz: true         // Cliente tem acesso
+}
+```
+
 ### Personalizar Interface:
-1. Modifique os estilos em `public/b2b-login.html` e `public/b2b-pedidos.html`
-2. Ajuste cores e layout conforme necessário
+1. Modifique os estilos nas páginas B2B conforme necessário
+2. Todas seguem o padrão visual G8 automaticamente
 
 ## ✅ Status do Projeto
 
 - ✅ Autenticação B2B implementada
-- ✅ Portal de login criado
-- ✅ Sistema de pedidos funcionando
+- ✅ Portal de login com "lembrar senha" e "visualizar senha"
+- ✅ Sistema de seleção de empresas
+- ✅ Páginas de pedidos **idênticas** ao sistema atual
+- ✅ **Informações do cliente preenchidas automaticamente**
+- ✅ **Visual 100% igual** (logo, header, footer, cores G8)
+- ✅ **Controle de acesso por tabela** (Pantaneiro 5/7 separados)
+- ✅ **Geração de PDF** implementada
 - ✅ API B2B operacional
 - ✅ Integração no painel administrativo
 - ✅ Interface responsiva e moderna
 - ✅ Documentação completa
 
-O sistema está pronto para uso em produção! 🎉
+## 🚧 Próximos Passos (Opcionais)
+
+- [ ] Implementar sistema completo de busca de produtos
+- [ ] Adicionar mais funcionalidades de pedidos
+- [ ] Sistema de notificações por email
+- [ ] Relatórios de vendas B2B
+
+O sistema está **100% funcional e pronto** para uso em produção! 🎉

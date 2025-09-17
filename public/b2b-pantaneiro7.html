@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pantaneiro 7 - Portal B2B</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="modern-design.css">
+    <script src="advanced-notifications.js"></script>
+    <script src="animations.js"></script>
+
+    <style>
+      :root {
+        /* === CORES G8 === */
+        --g8-red: #ff0000;
+        --g8-black: #000000;
+        --g8-white: #ffffff;
+        
+        --primary-color: #ff0000;
+        --primary-hover: #cc0000;
+        --secondary-color: #000000;
+        --success-color: #059669;
+        --success-hover: #047857;
+        --danger-color: #dc2626;
+        --danger-hover: #b91c1c;
+        --warning-color: #d97706;
+        --warning-hover: #b45309;
+        --light-color: #ffffff;
+        --dark-color: #000000;
+        --text-color: #000000;
+        --text-muted: #666666;
+        --bg-color: #ffffff;
+        --card-bg: #fafafa;
+        --border-color: #e0e0e0;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --shadow-red: 0 10px 40px rgba(255, 0, 0, 0.25);
+        --border-radius: 8px;
+        --border-radius-lg: 12px;
+        --border-radius-xl: 16px;
+        --gradient-primary: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+        --gradient-secondary: linear-gradient(135deg, #000000 0%, #333333 100%);
+        --gradient-success: linear-gradient(135deg, #059669 0%, #047857 100%);
+        --gradient-danger: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        --gradient-dark: linear-gradient(135deg, #1e293b 0%, #000000 100%);
+        --gradient-bg: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background: var(--bg-color);
+        margin: 0;
+        padding: 80px 20px 0 20px;
+        font-size: 14px;
+        min-height: 100vh;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Fundo animado sutil */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+          radial-gradient(circle at 20% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.08) 0%, transparent 50%),
+          radial-gradient(circle at 40% 40%, rgba(255, 0, 0, 0.03) 0%, transparent 50%);
+        animation: backgroundFloat 25s ease-in-out infinite;
+        z-index: -1;
+      }
+
+      @keyframes backgroundFloat {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        50% { transform: translateX(-15px) translateY(15px); }
+      }
+
+      /* --- NOVO: HEADER DE USUÁRIO E LOGOUT (Importado do Painel) --- */
+      .header-top {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: var(--gradient-primary);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        height: 80px;
+      }
+
+      .header-left, .header-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .header-center {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .header-center img {
+        height: 50px;
+        width: auto;
+      }
+
+      #user-info {
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      #logout-button, .btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+      }
+
+      #logout-button:hover, .btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        flex: 1;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius-lg);
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        box-shadow: var(--shadow-lg);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+      }
+
+      .card-header h2 {
+        color: var(--text-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: white;
+      }
+
+      .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+      }
+
+      .btn-primary {
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      /* Rodapé G8 */
+      footer {
+        width: 100vw;
+        text-align: center;
+        padding: 15px 0;
+        background: var(--gradient-secondary);
+        color: white;
+        margin-top: auto;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        transform: translateX(-50%);
+      }
+
+      footer a {
+        color: #ff6666;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      footer a:hover {
+        color: #ff9999;
+        text-decoration: underline;
+        text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+      }
+
+      @media (max-width: 768px) {
+        .header-top {
+          padding: 10px 15px;
+          gap: 10px;
+        }
+        
+        .header-center img {
+          height: 40px;
+        }
+        
+        #user-info {
+          font-size: 0.8rem;
+        }
+        
+        #logout-button, .btn {
+          padding: 6px 12px;
+          font-size: 0.8rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="g8-theme-g8-default">
+    <header class="header-top">
+      <div class="header-left"></div>
+      <div class="header-center">
+        <img
+          id="logo"
+          src="https://i.imgur.com/vjq26ym.png"
+          alt="Logo G8 Pantaneiro"
+        />
+      </div>
+      <div class="header-right">
+        <div id="user-info">Carregando...</div>
+        <button id="logout-button" onclick="logout()">Sair</button>
+        <a href="b2b-pedidos.html" class="btn">⬅️ Voltar</a>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Cliente" style="font-size: 1.8em">👤</span>
+          <h2>Informações do Cliente - Pantaneiro 7</h2>
+        </div>
+        
+        <div class="form-group">
+          <label for="razao"><span>🏢</span>Razão Social:</label>
+          <input type="text" id="razao" readonly />
+        </div>
+        <div class="form-group">
+          <label for="cnpj"><span>🏭</span>CNPJ:</label>
+          <input type="text" id="cnpj" readonly />
+        </div>
+        <div class="form-group">
+          <label for="ie"><span>📄</span>I.E.:</label>
+          <input type="text" id="ie" readonly />
+        </div>
+        <div class="form-group">
+          <label for="endereco"><span>📍</span>Endereço:</label>
+          <input type="text" id="endereco" readonly />
+        </div>
+        <div class="form-group">
+          <label for="bairro"><span>🏘️</span>Bairro:</label>
+          <input type="text" id="bairro" readonly />
+        </div>
+        <div class="form-group">
+          <label for="cidade"><span>🏙️</span>Cidade:</label>
+          <input type="text" id="cidade" readonly />
+        </div>
+        <div class="form-group">
+          <label for="estado"><span>🗺️</span>Estado:</label>
+          <input type="text" id="estado" readonly />
+        </div>
+        <div class="form-group">
+          <label for="cep"><span>📮</span>CEP:</label>
+          <input type="text" id="cep" readonly />
+        </div>
+        <div class="form-group">
+          <label for="email"><span>📧</span>E-mail:</label>
+          <input type="email" id="email" readonly />
+        </div>
+        <div class="form-group">
+          <label for="telefone"><span>📞</span>Telefone:</label>
+          <input type="tel" id="telefone" readonly />
+        </div>
+        <div class="form-group">
+          <label for="transporte"><span>🚚</span>Transporte:</label>
+          <input type="text" id="transporte" readonly />
+        </div>
+        <div class="form-group">
+          <label for="prazo"><span>⏰</span>Prazo:</label>
+          <input type="text" id="prazo" readonly />
+        </div>
+        <div class="form-group">
+          <label for="obs"><span>📝</span>Observações:</label>
+          <textarea id="obs" rows="3" readonly></textarea>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Produtos" style="font-size: 1.8em">📦</span>
+          <h2>Adicionar Produtos ao Pedido</h2>
+        </div>
+        
+        <div class="form-group">
+          <label for="busca-produto">Buscar Produto:</label>
+          <input type="text" id="busca-produto" placeholder="Digite o nome, referência ou código do produto..." />
+          <div id="sugestoes-produtos"></div>
+        </div>
+
+        <div id="produtos-selecionados" class="produtos-container">
+          <!-- Produtos selecionados aparecerão aqui -->
+        </div>
+
+        <div class="form-group">
+          <button type="button" class="btn-primary" onclick="gerarPDF()">
+            📄 Gerar PDF do Pedido
+          </button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Status" style="font-size: 1.8em">📊</span>
+          <h2>Status do Pedido</h2>
+        </div>
+        <div id="status-mensagem">Pronto para adicionar produtos...</div>
+      </section>
+    </main>
+    
+    <footer>
+      © 2025 J.P. Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
+    </footer>
+
+    <script>
+      let clienteData = null;
+      let produtosSelecionados = [];
+      let produtosData = []; // Será carregado do arquivo original
+
+      // Verificar autenticação B2B
+      function checkAuthB2B() {
+        const clienteStr = localStorage.getItem('clienteB2B');
+        if (!clienteStr) {
+          window.location.href = 'b2b-login.html';
+          return false;
+        }
+        
+        clienteData = JSON.parse(clienteStr);
+        
+        // Verificar se tem acesso ao Pantaneiro 7
+        if (!clienteData.acessos || !clienteData.acessos.pantaneiro7) {
+          alert('Você não tem acesso a esta tabela.');
+          window.location.href = 'b2b-pedidos.html';
+          return false;
+        }
+        
+        return true;
+      }
+
+      // Função de logout
+      function logout() {
+        localStorage.removeItem('clienteB2B');
+        localStorage.removeItem('savedCnpjB2B');
+        localStorage.removeItem('savedPasswordB2B');
+        window.location.href = 'b2b-login.html';
+      }
+
+      // Preencher informações do cliente
+      function preencherInformacoesCliente() {
+        if (!clienteData) return;
+
+        document.getElementById('user-info').textContent = clienteData.razao;
+        document.getElementById('razao').value = clienteData.razao || '';
+        document.getElementById('cnpj').value = clienteData.cnpj || '';
+        document.getElementById('ie').value = clienteData.ie || '';
+        document.getElementById('endereco').value = clienteData.endereco || '';
+        document.getElementById('bairro').value = clienteData.bairro || '';
+        document.getElementById('cidade').value = clienteData.cidade || '';
+        document.getElementById('estado').value = clienteData.estado || '';
+        document.getElementById('cep').value = clienteData.cep || '';
+        document.getElementById('email').value = clienteData.email || '';
+        document.getElementById('telefone').value = clienteData.telefone || '';
+        document.getElementById('transporte').value = clienteData.transporte || '';
+        document.getElementById('prazo').value = clienteData.prazo || '';
+        document.getElementById('obs').value = clienteData.obs || '';
+      }
+
+      // Carregar produtos (será implementado igual ao sistema original)
+      async function carregarProdutos() {
+        // Por enquanto, vamos usar uma lista básica
+        // TODO: Implementar carregamento real dos produtos
+        produtosData = [
+          {
+            REF: "001",
+            DESCRICAO: "Produto Exemplo 1",
+            VALOR: 10.50,
+            DISPONIVEL: "SIM"
+          },
+          {
+            REF: "002", 
+            DESCRICAO: "Produto Exemplo 2",
+            VALOR: 25.00,
+            DISPONIVEL: "SIM"
+          }
+        ];
+      }
+
+      // Gerar PDF do pedido
+      function gerarPDF() {
+        if (produtosSelecionados.length === 0) {
+          alert('Adicione pelo menos um produto ao pedido para gerar o PDF.');
+          return;
+        }
+
+        // Implementar geração de PDF igual ao sistema original
+        // Por enquanto, uma versão básica
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Título
+        doc.setFontSize(16);
+        doc.text('PEDIDO - PANTANEIRO 7', 20, 20);
+
+        // Dados do cliente
+        doc.setFontSize(12);
+        let y = 40;
+        doc.text(`Cliente: ${clienteData.razao}`, 20, y);
+        y += 10;
+        doc.text(`CNPJ: ${clienteData.cnpj}`, 20, y);
+        y += 10;
+        doc.text(`Cidade: ${clienteData.cidade}/${clienteData.estado}`, 20, y);
+        y += 20;
+
+        // Produtos
+        doc.text('PRODUTOS:', 20, y);
+        y += 10;
+
+        let total = 0;
+        produtosSelecionados.forEach(produto => {
+          const subtotal = produto.quantidade * produto.valor;
+          total += subtotal;
+          doc.text(`${produto.ref} - ${produto.descricao} - Qtd: ${produto.quantidade} - Valor: R$ ${produto.valor.toFixed(2)} - Subtotal: R$ ${subtotal.toFixed(2)}`, 20, y);
+          y += 7;
+        });
+
+        y += 10;
+        doc.setFontSize(14);
+        doc.text(`TOTAL GERAL: R$ ${total.toFixed(2)}`, 20, y);
+
+        // Salvar PDF
+        doc.save(`pedido_${clienteData.razao.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+      }
+
+      // Inicializar página
+      if (checkAuthB2B()) {
+        preencherInformacoesCliente();
+        carregarProdutos();
+      }
+    </script>
+  </body>
+</html>

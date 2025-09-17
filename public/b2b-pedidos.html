@@ -277,6 +277,60 @@
       100% { transform: rotate(360deg); }
     }
 
+    .empresas-container {
+      margin-bottom: 40px;
+    }
+
+    .empresas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .empresa-card {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: var(--shadow);
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .empresa-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--g8-red);
+    }
+
+    .empresa-card h3 {
+      color: var(--text-color);
+      margin-bottom: 10px;
+      font-size: 1.5rem;
+    }
+
+    .empresa-card p {
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .empresa-card .btn-empresa {
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .empresa-card .btn-empresa:hover {
+      background: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+    }
+
     @media (max-width: 768px) {
       .header-content {
         flex-direction: column;
@@ -284,8 +338,9 @@
         text-align: center;
       }
       
-      .form-grid {
+      .empresas-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
       }
       
       .container {
@@ -306,46 +361,12 @@
   </header>
 
   <div class="container">
-    <h1 class="page-title">Criar Novo Pedido</h1>
+    <h1 class="page-title">Escolha a Empresa</h1>
 
-    <div class="form-container">
-      <div id="successMessage" class="success-message"></div>
-      <div id="errorMessage" class="error-message"></div>
-
-      <form id="pedidoForm">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="empresa">Empresa *</label>
-            <select id="empresa" required>
-              <option value="">Selecione a empresa</option>
-              <option value="Pantaneiro 5">Pantaneiro 5</option>
-              <option value="Pantaneiro 7">Pantaneiro 7</option>
-              <option value="Steitz">Steitz</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label for="descricao">Descrição do Pedido *</label>
-          <textarea 
-            id="descricao" 
-            placeholder="Descreva detalhadamente os produtos ou serviços que você precisa..."
-            required
-          ></textarea>
-        </div>
-
-        <div class="form-group full-width">
-          <label for="observacoes">Observações Adicionais</label>
-          <textarea 
-            id="observacoes" 
-            placeholder="Informações complementares, prazos especiais, instruções de entrega, etc."
-          ></textarea>
-        </div>
-
-        <button type="submit" class="btn-primary" id="submitBtn">
-          Enviar Pedido
-        </button>
-      </form>
+    <div class="empresas-container">
+      <div class="empresas-grid" id="empresasGrid">
+        <!-- Empresas serão carregadas dinamicamente -->
+      </div>
     </div>
 
     <div class="pedidos-history">
@@ -377,7 +398,61 @@
     // Função de logout
     function logout() {
       localStorage.removeItem('clienteB2B');
+      localStorage.removeItem('savedCnpjB2B');
+      localStorage.removeItem('savedPasswordB2B');
       window.location.href = 'b2b-login.html';
+    }
+
+    // Carregar empresas baseadas nos acessos do cliente
+    function carregarEmpresas() {
+      if (!clienteData || !clienteData.acessos) return;
+
+      const empresasGrid = document.getElementById('empresasGrid');
+      let html = '';
+
+      const empresas = [
+        {
+          key: 'pantaneiro5',
+          nome: 'Pantaneiro 5',
+          descricao: 'Tabela Pantaneiro com comissão de 5%',
+          pagina: 'b2b-pantaneiro5.html'
+        },
+        {
+          key: 'pantaneiro7', 
+          nome: 'Pantaneiro 7',
+          descricao: 'Tabela Pantaneiro com comissão de 7%',
+          pagina: 'b2b-pantaneiro7.html'
+        },
+        {
+          key: 'steitz',
+          nome: 'Steitz',
+          descricao: 'Tabela da representada Steitz',
+          pagina: 'b2b-steitz.html'
+        }
+      ];
+
+      empresas.forEach(empresa => {
+        if (clienteData.acessos[empresa.key]) {
+          html += `
+            <div class="empresa-card" onclick="acessarEmpresa('${empresa.pagina}')">
+              <h3>${empresa.nome}</h3>
+              <p>${empresa.descricao}</p>
+              <button class="btn-empresa">Acessar</button>
+            </div>
+          `;
+        }
+      });
+
+      if (html === '') {
+        html = '<p style="text-align: center; color: #718096; grid-column: 1 / -1;">Nenhuma empresa disponível para acesso.</p>';
+      }
+
+      empresasGrid.innerHTML = html;
+    }
+
+    // Acessar empresa específica
+    function acessarEmpresa(pagina) {
+      window.location.href = pagina;
     }
 
     // Carregar pedidos do cliente
@@ -417,95 +492,9 @@
       }
     }
 
-    // Enviar pedido
-    document.getElementById('pedidoForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      if (!clienteData) return;
-
-      const empresa = document.getElementById('empresa').value.trim();
-      const descricao = document.getElementById('descricao').value.trim();
-      const observacoes = document.getElementById('observacoes').value.trim();
-      
-      const submitBtn = document.getElementById('submitBtn');
-      const successDiv = document.getElementById('successMessage');
-      const errorDiv = document.getElementById('errorMessage');
-
-      // Limpar mensagens
-      successDiv.style.display = 'none';
-      errorDiv.style.display = 'none';
-
-      // Validações
-      if (!empresa || !descricao) {
-        showError('Por favor, preencha todos os campos obrigatórios.');
-        return;
-      }
-
-      // Mostrar loading
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Enviando...';
-
-      try {
-        const response = await fetch('/api/pedidos-b2b', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            clienteId: clienteData.id,
-            empresa,
-            descricao,
-            observacoes,
-            dados: {
-              clienteInfo: clienteData
-            }
-          })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          showSuccess(data.message);
-          
-          // Limpar formulário
-          document.getElementById('pedidoForm').reset();
-          
-          // Recarregar pedidos
-          setTimeout(() => {
-            carregarPedidos();
-          }, 1000);
-        } else {
-          showError(data.error || 'Erro ao enviar pedido.');
-        }
-      } catch (error) {
-        console.error('Erro ao enviar pedido:', error);
-        showError('Erro de conexão. Tente novamente.');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar Pedido';
-      }
-    });
-
-    function showSuccess(message) {
-      const successDiv = document.getElementById('successMessage');
-      successDiv.textContent = message;
-      successDiv.style.display = 'block';
-      
-      // Scroll para o topo
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function showError(message) {
-      const errorDiv = document.getElementById('errorMessage');
-      errorDiv.textContent = message;
-      errorDiv.style.display = 'block';
-      
-      // Scroll para o topo
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
     // Inicializar página
     if (checkAuth()) {
+      carregarEmpresas();
       carregarPedidos();
     }
   </script>

@@ -59,7 +59,21 @@ module.exports = async (req, res) => {
           cidade: cliente.cidade,
           estado: cliente.estado,
           email: cliente.email,
-          telefone: cliente.telefone
+          telefone: cliente.telefone,
+          endereco: cliente.endereco,
+          bairro: cliente.bairro,
+          cep: cliente.cep,
+          ie: cliente.ie,
+          transporte: cliente.transporte,
+          prazo: cliente.prazo,
+          obs: cliente.obs,
+          // Controle de acesso às tabelas - por padrão todos têm acesso a todas
+          // Pode ser personalizado por cliente no futuro
+          acessos: {
+            pantaneiro5: true,
+            pantaneiro7: true,
+            steitz: true
+          }
         }
       });
     } else {
