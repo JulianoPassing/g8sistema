@@ -256,18 +256,13 @@
 
       /* Rodapé G8 */
       footer {
-        width: 100vw;
+        width: 100%;
         text-align: center;
-        padding: 15px 0;
+        padding: 15px 20px;
         background: var(--gradient-secondary);
         color: white;
-        margin-top: auto;
+        margin-top: 40px;
         position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        transform: translateX(-50%);
       }
 
       footer a {
@@ -432,6 +427,12 @@
       let produtosSelecionados = [];
       let produtosData = []; // Será carregado do arquivo original
       const produtosContainer = document.getElementById("produtos-container");
+      const pedidoContainer = document.getElementById("pedido-container");
+      const pedidoVazio = document.getElementById("pedido-vazio");
+      
+      // Variáveis para controle do pedido
+      window.pedidoItens = [];
+      let subtotalPedido = 0;
 
       // Verificar autenticação B2B
       function checkAuthB2B() {
@@ -550,6 +551,105 @@
           categoriaDiv.innerHTML = tabelaHTML;
           produtosContainer.appendChild(categoriaDiv);
         });
+      }
+
+      // Função para adicionar produto ao pedido
+      function adicionarAoPedido(produto) {
+        const corSelecionada = document
+          .getElementById(`cor-${produto.REFERENCIA}`)
+          .value.trim();
+        const descontoExtra =
+          parseFloat(
+            document.getElementById(`desconto-${produto.REFERENCIA}`).value
+          ) || 0;
+        let itemAdicionado = false;
+        const handleItem = (tamanho, quantidade) => {
+          if (quantidade <= 0) return;
+          itemAdicionado = true;
+          let precoFinal = produto.PRECO;
+          if (descontoExtra > 0) {
+            precoFinal *= 1 - descontoExtra / 100;
+          }
+          let itemDesc = tamanho;
+          if (corSelecionada) itemDesc += `, Cor: ${corSelecionada}`;
+          const itemExistente = window.pedidoItens.find(
+            (item) =>
+              item.REFERENCIA === produto.REFERENCIA &&
+              item.tamanho === itemDesc &&
+              item.preco === precoFinal
+          );
+          if (itemExistente) {
+            itemExistente.quantidade += quantidade;
+          } else {
+            window.pedidoItens.push({
+              REFERENCIA: produto.REFERENCIA,
+              DESCRIÇÃO: produto.DESCRIÇÃO,
+              tamanho: itemDesc,
+              preco: precoFinal,
+              quantidade: quantidade,
+              descontoExtra: descontoExtra,
+            });
+          }
+        };
+        const tamanhosProduto = Array.isArray(produto.TAMANHOS)
+          ? produto.TAMANHOS
+          : [produto.TAMANHOS];
+        tamanhosProduto.forEach((tamanho) => {
+          const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+          const quantidade =
+            parseInt(
+              document.getElementById(
+                `quantidade-${produto.REFERENCIA}-${tamanhoId}`
+              ).value
+            ) || 0;
+          handleItem(tamanho, quantidade);
+        });
+        if (itemAdicionado) {
+          atualizarVisualizacaoPedido();
+        } else {
+          alert(
+            `Por favor, informe a quantidade para pelo menos um tamanho do produto ${produto.DESCRIÇÃO}.`
+          );
+        }
+      }
+
+      // Função para remover item do pedido
+      function removerDoPedido(index) {
+        window.pedidoItens.splice(index, 1);
+        atualizarVisualizacaoPedido();
+      }
+
+      // Função para atualizar visualização do pedido
+      function atualizarVisualizacaoPedido() {
+        pedidoContainer.innerHTML = "";
+        subtotalPedido = 0;
+        // Garante que window.pedidoItens sempre seja um array
+        if (!Array.isArray(window.pedidoItens)) {
+          window.pedidoItens = [];
+        }
+        if (window.pedidoItens.length > 0) {
+          pedidoVazio.style.display = "none";
+          window.pedidoItens.forEach((item, index) => {
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "pedido-item";
+            const precoTotalItem = item.preco * item.quantidade;
+            subtotalPedido += precoTotalItem;
+            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${
+              item.DESCRIÇÃO
+            }</strong><br><small>Ref: ${item.REFERENCIA} | ${
+              item.tamanho
+            } | Qtd: ${item.quantidade} ${
+              item.descontoExtra > 0
+                ? `| Desc. Extra: ${item.descontoExtra}%`
+                : ""
+            } | Total: R$ ${precoTotalItem.toFixed(
+              2
+            )}</small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            pedidoContainer.appendChild(itemDiv);
+          });
+        } else {
+          pedidoVazio.style.display = "block";
+        }
       }
 
       // Gerar PDF do pedido
