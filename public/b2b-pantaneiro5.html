@@ -115,68 +115,95 @@
         position: absolute;
         top: 0;
         left: 0;
+        background: var(--gradient-primary);
+        padding: 15px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 25px;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        box-shadow: var(--shadow);
-        box-sizing: border-box;
-        z-index: 1000; /* Garante que o header fique por cima */
-        border-bottom: 1px solid var(--border-color);
-        height: 55px;
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        height: 80px;
       }
 
-      .header-left {
-        flex: 1;
+      .header-left, .header-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
       }
 
       .header-center {
-        flex: 1;
-        display: flex;
-        justify-content: center;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
       }
 
-      .header-right {
-        flex: 1;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 12px;
+      .header-center img {
+        height: 50px;
+        width: auto;
       }
+
       #user-info {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 0.9rem;
-        color: var(--text-color);
+        color: white;
         font-weight: 600;
-        text-transform: capitalize;
-        padding: 6px 12px;
-        background: var(--light-color);
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border-color);
+        font-size: 0.9rem;
       }
-      #logout-button {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: var(--gradient-danger);
+
+      #logout-button, .btn {
+        background: rgba(255, 255, 255, 0.2);
         color: white;
         border: none;
         padding: 8px 16px;
-        border-radius: var(--border-radius);
+        border-radius: 6px;
         cursor: pointer;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
         transition: all 0.3s ease;
-        box-shadow: var(--shadow-sm);
       }
-      #logout-button:hover {
-        background: var(--gradient-danger);
+
+      #logout-button:hover, .btn:hover {
+        background: rgba(255, 255, 255, 0.3);
         transform: translateY(-1px);
-        box-shadow: var(--shadow);
       }
 
       .container {
         max-width: 1200px;
         margin: 0 auto;
+      }
+
+      /* Caixa de rolagem para produtos */
+      #produtos-container {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 25px;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 12px 0;
+        transition: all 0.3s ease;
+      }
+
+      #produtos-container:hover {
+        box-shadow: var(--shadow-lg);
+      }
+
+      /* CSS para linhas alternadas da tabela */
+      tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+
+      tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+      }
+
+      tbody tr:hover {
+        background-color: #e9ecef;
+      }
         padding: 20px;
         flex: 1;
       }
@@ -379,13 +406,7 @@
       <div class="header-right">
         <div id="user-info">Carregando...</div>
         <button id="logout-button" onclick="logout()">Sair</button>
-        <a
-          href="b2b-pedidos.html"
-          class="btn"
-          style="height: 35px; background-color: black; color: white"
-        >
-          ⬅️ Voltar
-        </a>
+        <a href="b2b-pedidos.html" class="btn">⬅️ Voltar</a>
       </div>
     </header>
 
