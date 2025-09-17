@@ -2832,51 +2832,6 @@ window.produtosData = [
         }
       }
 
-      // Gerar PDF do pedido (função mantida para compatibilidade)
-      function gerarPDF() {
-        if (window.pedidoItens.length === 0) {
-          alert('Adicione pelo menos um produto ao pedido para gerar o PDF.');
-          return;
-        }
-
-        // Implementar geração de PDF igual ao sistema original
-        // Por enquanto, uma versão básica
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        // Título
-        doc.setFontSize(16);
-        doc.text('PEDIDO - PANTANEIRO 5', 20, 20);
-
-        // Dados do cliente
-        doc.setFontSize(12);
-        let y = 40;
-        doc.text(`Cliente: ${clienteData.razao}`, 20, y);
-        y += 10;
-        doc.text(`CNPJ: ${clienteData.cnpj}`, 20, y);
-        y += 10;
-        doc.text(`Cidade: ${clienteData.cidade}/${clienteData.estado}`, 20, y);
-        y += 20;
-
-        // Produtos
-        doc.text('PRODUTOS:', 20, y);
-        y += 10;
-
-        let total = 0;
-        produtosSelecionados.forEach(produto => {
-          const subtotal = produto.quantidade * produto.valor;
-          total += subtotal;
-          doc.text(`${produto.ref} - ${produto.descricao} - Qtd: ${produto.quantidade} - Valor: R$ ${produto.valor.toFixed(2)} - Subtotal: R$ ${subtotal.toFixed(2)}`, 20, y);
-          y += 7;
-        });
-
-        y += 10;
-        doc.setFontSize(14);
-        doc.text(`TOTAL GERAL: R$ ${total.toFixed(2)}`, 20, y);
-
-        // Salvar PDF
-        doc.save(`pedido_${clienteData.razao.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
-      }
 
       // Função para mostrar sugestões de produtos
       function mostrarSugestoesProdutos(filtro) {
