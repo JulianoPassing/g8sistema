@@ -278,6 +278,40 @@
         text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
       }
 
+      /* CSS para sugestões de produtos */
+      #sugestoes-produtos {
+        position: absolute;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-height: 300px;
+        overflow-y: auto;
+        width: 100%;
+        z-index: 1001;
+        margin-top: 2px;
+        padding: 0;
+        display: none;
+      }
+      .sugestao-cliente-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 1em;
+        background: #fff;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.18s;
+        color: #222;
+        line-height: 1.3;
+        display: block;
+      }
+      .sugestao-cliente-item:last-child {
+        border-bottom: none;
+      }
+      .sugestao-cliente-item:hover {
+        background: #f3f7fa;
+        color: #007bff;
+      }
+
       @media (max-width: 768px) {
         .header-top {
           padding: 10px 15px;
@@ -698,10 +732,85 @@
         doc.save(`pedido_steitz_${clienteData.razao.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
       }
 
+      // Função para mostrar sugestões de produtos
+      function mostrarSugestoesProdutos(filtro) {
+        const sugestoesDiv = document.getElementById("sugestoes-produtos");
+        sugestoesDiv.innerHTML = "";
+        if (!filtro || filtro.length < 2) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        const filtroLower = filtro.toLowerCase();
+        const produtosFiltrados = produtosData.filter((produto) => {
+          return (
+            (produto.REFERENCIA && String(produto.REFERENCIA).toLowerCase().includes(filtroLower)) ||
+            (produto.DESCRIÇÃO && String(produto.DESCRIÇÃO).toLowerCase().includes(filtroLower))
+          );
+        });
+        if (produtosFiltrados.length === 0) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        sugestoesDiv.style.display = "block";
+        produtosFiltrados.slice(0, 8).forEach((produto) => {
+          const item = document.createElement("div");
+          item.className = "sugestao-cliente-item";
+          item.innerHTML = `<strong>${produto.REFERENCIA}</strong> - ${produto.DESCRIÇÃO}`;
+          item.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            document.getElementById("busca-produto").value = `${produto.REFERENCIA} - ${produto.DESCRIÇÃO}`;
+            sugestoesDiv.style.display = "none";
+            renderizarProdutosFiltrados([produto]);
+          });
+          sugestoesDiv.appendChild(item);
+        });
+      }
+
+      // Função para renderizar produtos filtrados (ou todos)
+      function renderizarProdutosFiltrados(produtos) {
+        produtosContainer.innerHTML = "";
+        // Agrupa por categoria se vier mais de um produto, senão mostra só o produto
+        if (produtos.length === 1) {
+          const produto = produtos[0];
+          const categoriaDiv = document.createElement("section");
+          categoriaDiv.className = "card";
+          let tabelaHTML = `<div class="card-header"><h2>${produto.CATEGORIA}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
+          let tamanhosInputHTML = '<div class="tamanho-input-container">';
+          const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
+          tamanhosProduto.forEach((tamanho) => {
+            const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+            tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+          });
+          tamanhosInputHTML += "</div>";
+          tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+          tabelaHTML += `</tbody></table></div>`;
+          categoriaDiv.innerHTML = tabelaHTML;
+          produtosContainer.appendChild(categoriaDiv);
+        } else {
+          renderizarProdutosPorCategoria(produtos);
+        }
+      }
+
       // Inicializar página
       if (checkAuthB2B()) {
         preencherInformacoesCliente();
         carregarProdutos();
+        
+        // Busca de produtos
+        const buscaProdutoInput = document.getElementById("busca-produto");
+        buscaProdutoInput.addEventListener("input", (e) => {
+          mostrarSugestoesProdutos(e.target.value);
+          if (!e.target.value) {
+            renderizarProdutosPorCategoria(window.produtosData);
+          }
+        });
+        document.addEventListener("mousedown", (event) => {
+          const sugestoesDiv = document.getElementById("sugestoes-produtos");
+          const buscaProdutoInput = document.getElementById("busca-produto");
+          if (!sugestoesDiv.contains(event.target) && event.target !== buscaProdutoInput) {
+            sugestoesDiv.style.display = "none";
+          }
+        });
       }
     </script>
   </body>
