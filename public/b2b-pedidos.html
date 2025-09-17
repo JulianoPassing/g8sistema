@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>G8 Sistema - Criar Pedido</title>
-  <link rel="stylesheet" href="modern-design.css">
-  <link rel="manifest" href="manifest.json">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G8 Sistema - Criar Pedido</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+    <link rel="apple-touch-icon" href="https://i.imgur.com/WveVVY5.png" />
+    <link rel="stylesheet" href="modern-design.css">
+    <link rel="manifest" href="manifest.json">
   <style>
     :root {
       /* === CORES G8 === */
@@ -78,6 +80,16 @@
     .logo {
       font-size: 1.8rem;
       font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo img {
+      width: 180px;
+      height: auto;
+      object-fit: contain;
+      max-width: 300px;
     }
 
     .user-info {
@@ -338,6 +350,11 @@
         text-align: center;
       }
       
+      .logo img {
+        width: 150px;
+        max-width: 250px;
+      }
+      
       .empresas-grid {
         grid-template-columns: 1fr;
         gap: 15px;
@@ -352,7 +369,9 @@
 <body>
   <header class="header">
     <div class="header-content">
-      <div class="logo">G8 Sistema</div>
+      <div class="logo">
+        <img src="https://i.imgur.com/vjq26ym.png" alt="Logo G8" />
+      </div>
       <div class="user-info">
         <span id="clienteNome">Carregando...</span>
         <button class="btn-logout" onclick="logout()">Sair</button>
