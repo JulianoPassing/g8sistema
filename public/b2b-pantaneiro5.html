@@ -284,8 +284,20 @@
         font-weight: 600;
       }
 
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
       .form-group {
+        display: flex;
+        flex-direction: column;
         margin-bottom: 12px;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
       }
 
       .form-group label {
@@ -454,10 +466,11 @@
       .pedido-item {
         background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
         border: 1px solid #e9ecef;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-bottom: 2px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
@@ -482,34 +495,35 @@
       .pedido-item-info {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-bottom: 16px;
+        gap: 4px;
+        margin-bottom: 8px;
       }
 
       .pedido-item-info strong {
         color: var(--text-color);
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 600;
-        line-height: 1.4;
+        line-height: 1.3;
       }
 
       .pedido-item-info small {
         color: var(--text-muted);
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         flex-wrap: wrap;
       }
 
       .pedido-item-info input[type="number"] {
-        width: 70px;
-        padding: 6px 8px;
-        border: 2px solid #e9ecef;
-        border-radius: 6px;
+        width: 50px;
+        padding: 4px 6px;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
         text-align: center;
         font-weight: 500;
         background: white;
+        font-size: 0.85rem;
         transition: all 0.3s ease;
       }
 
@@ -522,8 +536,13 @@
       .pedido-item-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 12px;
+        gap: 8px;
         align-items: center;
+      }
+
+      .pedido-item-actions .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
       }
 
       .pedido-total {
@@ -643,57 +662,59 @@
           <h2>Informações do Cliente - Pantaneiro 5</h2>
         </div>
         
-        <div class="form-group">
-          <label for="razao"><span>🏢</span>Razão Social:</label>
-          <input type="text" id="razao" readonly />
-        </div>
-        <div class="form-group">
-          <label for="cnpj"><span>🏭</span>CNPJ:</label>
-          <input type="text" id="cnpj" readonly />
-        </div>
-        <div class="form-group">
-          <label for="ie"><span>📄</span>I.E.:</label>
-          <input type="text" id="ie" readonly />
-        </div>
-        <div class="form-group">
-          <label for="endereco"><span>📍</span>Endereço:</label>
-          <input type="text" id="endereco" readonly />
-        </div>
-        <div class="form-group">
-          <label for="bairro"><span>🏘️</span>Bairro:</label>
-          <input type="text" id="bairro" readonly />
-        </div>
-        <div class="form-group">
-          <label for="cidade"><span>🏙️</span>Cidade:</label>
-          <input type="text" id="cidade" readonly />
-        </div>
-        <div class="form-group">
-          <label for="estado"><span>🗺️</span>Estado:</label>
-          <input type="text" id="estado" readonly />
-        </div>
-        <div class="form-group">
-          <label for="cep"><span>📮</span>CEP:</label>
-          <input type="text" id="cep" readonly />
-        </div>
-        <div class="form-group">
-          <label for="email"><span>📧</span>E-mail:</label>
-          <input type="email" id="email" readonly />
-        </div>
-        <div class="form-group">
-          <label for="telefone"><span>📞</span>Telefone:</label>
-          <input type="tel" id="telefone" readonly />
-        </div>
-        <div class="form-group">
-          <label for="transporte"><span>🚚</span>Transporte:</label>
-          <input type="text" id="transporte" readonly />
-        </div>
-        <div class="form-group">
-          <label for="prazo"><span>⏰</span>Prazo:</label>
-          <input type="text" id="prazo" readonly />
-        </div>
-        <div class="form-group">
-          <label for="obs"><span>📝</span>Observações:</label>
-          <textarea id="obs" rows="3" readonly></textarea>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="razao"><span>🏢</span>Razão Social:</label>
+            <input type="text" id="razao" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cnpj"><span>🏭</span>CNPJ:</label>
+            <input type="text" id="cnpj" readonly />
+          </div>
+          <div class="form-group">
+            <label for="ie"><span>📝</span>I.E:</label>
+            <input type="text" id="ie" readonly />
+          </div>
+          <div class="form-group">
+            <label for="endereco"><span>🗺️</span>Endereço:</label>
+            <input type="text" id="endereco" readonly />
+          </div>
+          <div class="form-group">
+            <label for="bairro"><span>🏘️</span>Bairro:</label>
+            <input type="text" id="bairro" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cidade"><span>🏙️</span>Cidade:</label>
+            <input type="text" id="cidade" readonly />
+          </div>
+          <div class="form-group">
+            <label for="estado"><span>🌎</span>Estado:</label>
+            <input type="text" id="estado" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cep"><span>📫</span>CEP:</label>
+            <input type="text" id="cep" readonly />
+          </div>
+          <div class="form-group">
+            <label for="email"><span>📧</span>E-mail:</label>
+            <input type="email" id="email" readonly />
+          </div>
+          <div class="form-group">
+            <label for="telefone"><span>📞</span>Telefone:</label>
+            <input type="text" id="telefone" readonly />
+          </div>
+          <div class="form-group">
+            <label for="transporte"><span>🚚</span>Transporte:</label>
+            <input type="text" id="transporte" readonly />
+          </div>
+          <div class="form-group">
+            <label for="prazo"><span>💰</span>Prazo Pagamento:</label>
+            <input type="text" id="prazo" readonly />
+          </div>
+          <div class="form-group full-width">
+            <label for="obs"><span>💬</span>Observações:</label>
+            <textarea id="obs" rows="3" readonly></textarea>
+          </div>
         </div>
       </section>
 
