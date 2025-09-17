@@ -2,6 +2,35 @@
 const fs = require('fs');
 const path = require('path');
 
+// Função para definir acessos por cliente
+function getAcessosCliente(cnpj) {
+  // Normalizar CNPJ para comparação
+  const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
+  
+  // CONFIGURAÇÃO DE ACESSO AO PANTANEIRO 5
+  // PANTANEIRO 7 e STEITZ: Sempre liberados para todos
+  // PANTANEIRO 5: Apenas clientes listados aqui
+  const clientesComPantaneiro5 = [
+    '14909309000103',  // Andre Luis Krailink de Melo
+    '18786752000195',  // Jose Rodrigo Dutra Jorge
+    '33462113000168',  // Isabela Rosa
+    
+    // Adicione mais CNPJs aqui (sem pontos, barras ou hífens)
+    // '12345678000100',
+    // '98765432000111',
+  ];
+  
+  // Verificar se o cliente tem acesso ao Pantaneiro 5
+  const temAcessoPantaneiro5 = clientesComPantaneiro5.includes(cnpjNormalizado);
+  
+  // Retornar acessos (Pantaneiro 7 e Steitz sempre liberados)
+  return {
+    pantaneiro5: temAcessoPantaneiro5,  // Só se estiver na lista
+    pantaneiro7: true,                  // Sempre liberado
+    steitz: true                        // Sempre liberado
+  };
+}
+
 module.exports = async (req, res) => {
   // Adicionar headers de segurança
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -67,13 +96,8 @@ module.exports = async (req, res) => {
           transporte: cliente.transporte,
           prazo: cliente.prazo,
           obs: cliente.obs,
-          // Controle de acesso às tabelas - por padrão todos têm acesso a todas
-          // Pode ser personalizado por cliente no futuro
-          acessos: {
-            pantaneiro5: true,
-            pantaneiro7: true,
-            steitz: true
-          }
+          // Controle de acesso às tabelas
+          acessos: getAcessosCliente(cliente.cnpj)
         }
       });
     } else {
