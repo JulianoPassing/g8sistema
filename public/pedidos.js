@@ -524,7 +524,7 @@ function renderizarPedidos(pedidos) {
             👁️ Visualizar
           </button>
           <button class="btn-action btn-pdf" onclick="gerarPDFPedido(${pedido.id})">
-            📄 Gerar PDF
+            📄 PDF
           </button>
           <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
             ✏️ Editar
@@ -1901,8 +1901,20 @@ window.gerarPDFPedido = async function(pedidoId) {
     doc.text('G8 Representações - Sistema de Gestão de Pedidos', pageWidth / 2, footerY, { align: 'center' });
     doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, pageWidth / 2, footerY + 4, { align: 'center' });
 
+    // Nome do arquivo específico por empresa (igual às páginas das empresas)
+    let nomeArquivo;
+    const clienteNome = info.cliente || 'Cliente';
+    
+    if (pedido.empresa === 'pantaneiro5' || pedido.empresa === 'pantaneiro7') {
+      nomeArquivo = `G8 Pedido Pantaneiro - ${clienteNome.replace(/[\s\/]/g, '_')} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+    } else if (pedido.empresa === 'steitz' || pedido.empresa === 'b2b-steitz') {
+      nomeArquivo = `G8 Pedido Steitz - ${clienteNome.replace(/[\s\/]/g, '_')} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+    } else {
+      nomeArquivo = `Pedido_${pedido.id}_${clienteNome.replace(/[\s\/]/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+    }
+
     // Salvar PDF
-    doc.save(`Pedido_${pedido.id}_${pedido.empresa}.pdf`);
+    doc.save(nomeArquivo);
 
     // Notificação de sucesso
     if (window.advancedNotifications) {
