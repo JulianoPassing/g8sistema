@@ -29,7 +29,7 @@
     }
 
     body {
-      background: var(--gradient-bg);
+      background: linear-gradient(135deg, #ff0000 0%, #990000 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -60,6 +60,40 @@
     @keyframes backgroundFloat {
       0%, 100% { transform: translateX(0) translateY(0); }
       50% { transform: translateX(-15px) translateY(15px); }
+    }
+
+    .footer {
+      width: 100%;
+      text-align: center;
+      padding: 20px 0;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      background: transparent;
+      font-family: 'Segoe UI', sans-serif;
+      letter-spacing: 0.02em;
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    .footer a {
+      color: rgba(255, 255, 255, 1);
+      text-decoration: underline;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .footer a:hover {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+      .footer {
+        position: relative;
+        margin-top: 30px;
+      }
     }
 
     .login-container {
@@ -419,5 +453,9 @@
       window.location.href = 'b2b-pedidos.html';
     }
   </script>
+
+  <footer class="footer">
+    © 2025 J.P Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
+  </footer>
 </body>
 </html>
