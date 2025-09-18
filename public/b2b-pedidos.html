@@ -463,7 +463,15 @@
         }
       ];
 
+      // Lógica: Se tem acesso ao Pantaneiro 5, não mostra o Pantaneiro 7
+      const temAcessoPantaneiro5 = clienteData.acessos.pantaneiro5;
+      
       empresas.forEach(empresa => {
+        // Se tem acesso ao Pantaneiro 5, pula o Pantaneiro 7
+        if (temAcessoPantaneiro5 && empresa.key === 'pantaneiro7') {
+          return; // Pula esta empresa
+        }
+        
         if (clienteData.acessos[empresa.key]) {
           html += `
             <div class="empresa-card" onclick="acessarEmpresa('${empresa.pagina}')">

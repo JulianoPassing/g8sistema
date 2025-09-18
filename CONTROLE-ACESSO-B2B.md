@@ -4,8 +4,11 @@
 
 Sistema **SUPER SIMPLES** para controlar acesso:
 - **Pantaneiro 5**: Apenas clientes selecionados ⚡
-- **Pantaneiro 7**: **SEMPRE LIBERADO** para todos ✅
+- **Pantaneiro 7**: **SEMPRE LIBERADO** para todos (EXCETO se tiver Pantaneiro 5) ✅
 - **Steitz**: **SEMPRE LIBERADO** para todos ✅
+
+### 🔄 Regra Especial:
+**Se o cliente tem acesso ao Pantaneiro 5, o Pantaneiro 7 NÃO aparece** (evita confusão)
 
 ## ⚙️ Como Configurar
 
@@ -59,6 +62,10 @@ const clientesComPantaneiro5 = [
 - ✅ **Steitz**: **SEMPRE** liberado (não precisa configurar)
 - ⚡ **Pantaneiro 5**: Só clientes da lista
 
+### 🎯 Regra de Exclusão:
+- **Cliente SEM Pantaneiro 5**: Vê Pantaneiro 7 + Steitz
+- **Cliente COM Pantaneiro 5**: Vê APENAS Pantaneiro 5 + Steitz (Pantaneiro 7 fica oculto)
+
 **Não tem complicação**: Pantaneiro 7 e Steitz são automáticos!
 
 ## 📱 Como o Cliente Vê
@@ -110,8 +117,8 @@ const clientesComPantaneiro5 = [
 ```
 
 **Resultado:**
-- **Andre Luis**: Pantaneiro 5 + 7 + Steitz ✅
-- **Isabela Rosa**: Pantaneiro 5 + 7 + Steitz ✅
+- **Andre Luis**: Pantaneiro 5 + Steitz (Pantaneiro 7 oculto) ✅
+- **Isabela Rosa**: Pantaneiro 5 + Steitz (Pantaneiro 7 oculto) ✅
 - **Jose Rodrigo**: Pantaneiro 7 + Steitz (sem Pantaneiro 5) ✅
 - **Todos os outros**: Pantaneiro 7 + Steitz ✅
 
