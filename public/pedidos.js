@@ -382,12 +382,15 @@ window.editarPedido = function(id) {
       let paginaEmpresa = '';
       switch(pedido.empresa) {
         case 'pantaneiro5':
+        case 'b2b-pantaneiro5':
           paginaEmpresa = 'pantaneiro5.html';
           break;
         case 'pantaneiro7':
+        case 'b2b-pantaneiro7':
           paginaEmpresa = 'pantaneiro7.html';
           break;
         case 'steitz':
+        case 'b2b-steitz':
           paginaEmpresa = 'steitz.html';
           break;
         default:
@@ -404,11 +407,11 @@ window.editarPedido = function(id) {
 async function carregarProdutosDaEmpresa(empresa) {
   try {
     let produtosUrl;
-    if (empresa === 'pantaneiro5') {
+    if (empresa === 'pantaneiro5' || empresa === 'b2b-pantaneiro5') {
       produtosUrl = '/prodpantaneiro5.html';
-    } else if (empresa === 'pantaneiro7') {
+    } else if (empresa === 'pantaneiro7' || empresa === 'b2b-pantaneiro7') {
       produtosUrl = '/prodpantaneiro7.html';
-    } else if (empresa === 'steitz') {
+    } else if (empresa === 'steitz' || empresa === 'b2b-steitz') {
       return produtosSteitzCompletos; // Steitz está definido diretamente
     }
     
@@ -468,10 +471,17 @@ const produtosPantaneiro7Basicos = [...produtosPantaneiro5Basicos]; // Mesmo cat
 
 function getProdutosFallback(empresa) {
   switch(empresa) {
-    case 'pantaneiro5': return produtosPantaneiro5Basicos;
-    case 'pantaneiro7': return produtosPantaneiro7Basicos;
-    case 'steitz': return produtosSteitzCompletos;
-    default: return [...produtosPantaneiro5Basicos, ...produtosPantaneiro7Basicos, ...produtosSteitzCompletos];
+    case 'pantaneiro5':
+    case 'b2b-pantaneiro5': 
+      return produtosPantaneiro5Basicos;
+    case 'pantaneiro7':
+    case 'b2b-pantaneiro7': 
+      return produtosPantaneiro7Basicos;
+    case 'steitz':
+    case 'b2b-steitz': 
+      return produtosSteitzCompletos;
+    default: 
+      return [...produtosPantaneiro5Basicos, ...produtosPantaneiro7Basicos, ...produtosSteitzCompletos];
   }
 }
 
