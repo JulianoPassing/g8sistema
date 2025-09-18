@@ -568,7 +568,9 @@
 
     // Funções para modal de alteração de senha
     function abrirModalSenha() {
+      console.log('Abrindo modal de alteração de senha...');
       const modal = document.getElementById('modalSenha');
+      console.log('Modal encontrado:', modal);
       modal.style.display = 'flex';
       modal.style.alignItems = 'center';
       modal.style.justifyContent = 'center';
@@ -591,7 +593,9 @@
 
     // Função para configurar event listeners do modal
     function configurarEventListenersModal() {
+      console.log('Configurando event listeners do modal...');
       const formAlterarSenha = document.getElementById('formAlterarSenha');
+      console.log('Formulário encontrado:', formAlterarSenha);
       if (formAlterarSenha) {
         formAlterarSenha.addEventListener('submit', async function(e) {
           e.preventDefault();
@@ -681,11 +685,15 @@
             mensagemDiv.style.display = 'block';
           }
         });
+        console.log('Event listener adicionado ao formulário');
+      } else {
+        console.error('Formulário não encontrado!');
       }
     }
 
     // Inicializar página
     if (checkAuth()) {
+      console.log('Inicializando página...');
       carregarEmpresas();
       carregarPedidos();
       configurarEventListenersModal();
