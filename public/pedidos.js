@@ -2081,6 +2081,11 @@ window.visualizarPDFPedido = async function(pedidoId) {
           // Para Pantaneiro, usar desconto "prazo"
           descontoPrazo = percentualDesconto;
         }
+      } else if (subtotalSemDesconto > 0 && totalComDesconto === subtotalSemDesconto) {
+        // Se total é igual ao subtotal, não há desconto aplicado
+        descontoExtra = 0;
+        descontoPrazo = 0;
+        descontoVolume = 0;
       }
     }
     
@@ -2091,8 +2096,8 @@ window.visualizarPDFPedido = async function(pedidoId) {
       const body = itens.map((item) => {
         const precoUnitarioComDesconto = (item.preco || 0) * descontoGeral;
         return [
-          item.REFERENCIA || item.ref || "",
-          item.DESCRIÇÃO || item.descricao || "",
+          item.REFERENCIA || item.REF || item.ref || "",
+          item.DESCRIÇÃO || item.MODELO || item.descricao || "",
           item.tamanho || item.cor || "",
           item.quantidade || 0,
           `R$ ${precoUnitarioComDesconto.toFixed(2)}`,
@@ -2149,7 +2154,7 @@ window.visualizarPDFPedido = async function(pedidoId) {
       itens.forEach((item, index) => {
         const precoUnitarioComDesconto = (item.preco || 0) * descontoGeral;
         const total = precoUnitarioComDesconto * (item.quantidade || 0);
-        doc.text(`${index + 1}. ${item.REFERENCIA || item.ref} - ${item.DESCRIÇÃO || item.descricao} - Qtd: ${item.quantidade} - Total: R$ ${total.toFixed(2)}`, margin, currentY);
+        doc.text(`${index + 1}. ${item.REFERENCIA || item.REF || item.ref} - ${item.DESCRIÇÃO || item.MODELO || item.descricao} - Qtd: ${item.quantidade} - Total: R$ ${total.toFixed(2)}`, margin, currentY);
         currentY += 5;
       });
       
