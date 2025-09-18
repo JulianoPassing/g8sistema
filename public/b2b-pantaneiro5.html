@@ -2829,6 +2829,8 @@ window.produtosData = [
               total: subtotalPedido,
               data: new Date().toISOString(),
               origem: 'B2B - Pantaneiro 5',
+              transporte: document.getElementById('transporte') ? document.getElementById('transporte').value : '',
+              prazo: document.getElementById('prazo') ? document.getElementById('prazo').value : '',
               observacoes: document.getElementById('obs') ? document.getElementById('obs').value : ''
             }
           };
