@@ -595,11 +595,25 @@
       if (formAlterarSenha) {
         formAlterarSenha.addEventListener('submit', async function(e) {
           e.preventDefault();
+          console.log('Formulário de alteração de senha submetido');
           
           const senhaAtual = document.getElementById('senhaAtual').value;
           const novaSenha = document.getElementById('novaSenha').value;
           const confirmarSenha = document.getElementById('confirmarSenha').value;
           const mensagemDiv = document.getElementById('mensagemSenha');
+          
+          console.log('Dados do formulário:', { senhaAtual, novaSenha, confirmarSenha, cnpj: clienteData?.cnpj });
+          
+          // Verificar se clienteData existe
+          if (!clienteData || !clienteData.cnpj) {
+            console.error('clienteData não encontrado:', clienteData);
+            mensagemDiv.textContent = 'Erro: Dados do cliente não encontrados. Faça login novamente.';
+            mensagemDiv.style.background = '#f8d7da';
+            mensagemDiv.style.color = '#721c24';
+            mensagemDiv.style.border = '1px solid #f5c6cb';
+            mensagemDiv.style.display = 'block';
+            return;
+          }
           
           // Validar se as senhas coincidem
           if (novaSenha !== confirmarSenha) {
@@ -622,6 +636,7 @@
           }
           
           try {
+            console.log('Enviando requisição para alterar senha...');
             const response = await fetch('/api/change-password-b2b', {
               method: 'POST',
               headers: {
@@ -635,7 +650,9 @@
               })
             });
             
+            console.log('Resposta recebida:', response.status, response.statusText);
             const data = await response.json();
+            console.log('Dados da resposta:', data);
             
             if (data.success) {
               mensagemDiv.textContent = 'Senha alterada com sucesso!';

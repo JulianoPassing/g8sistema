@@ -24,8 +24,13 @@ function loadPasswords() {
     return defaultPasswords;
   }
   
-  const data = fs.readFileSync(passwordsPath, 'utf8');
-  return JSON.parse(data);
+  try {
+    const data = fs.readFileSync(passwordsPath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Erro ao carregar senhas:', error);
+    return {};
+  }
 }
 
 // Função para salvar senhas
@@ -47,9 +52,11 @@ module.exports = async (req, res) => {
 
   try {
     const { cnpj, senhaAtual, novaSenha, confirmarSenha } = req.body;
+    console.log('Dados recebidos na API:', { cnpj, senhaAtual: senhaAtual ? '***' : 'vazio', novaSenha: novaSenha ? '***' : 'vazio', confirmarSenha: confirmarSenha ? '***' : 'vazio' });
     
     // Validação básica
     if (!cnpj || !senhaAtual || !novaSenha || !confirmarSenha) {
+      console.log('Validação falhou - campos obrigatórios:', { cnpj: !!cnpj, senhaAtual: !!senhaAtual, novaSenha: !!novaSenha, confirmarSenha: !!confirmarSenha });
       return res.status(400).json({ 
         success: false, 
         message: 'Todos os campos são obrigatórios' 
@@ -83,11 +90,15 @@ module.exports = async (req, res) => {
     
     if (passwords[cnpjNormalizado]) {
       // Cliente já tem senha personalizada
+      console.log('Cliente tem senha personalizada');
       senhaAtualValida = verifyPassword(senhaAtual, passwords[cnpjNormalizado]);
     } else {
       // Cliente ainda usa senha padrão
+      console.log('Cliente usa senha padrão');
       senhaAtualValida = (senhaAtual === '123456');
     }
+    
+    console.log('Senha atual válida:', senhaAtualValida);
     
     if (!senhaAtualValida) {
       return res.status(401).json({ 
@@ -99,6 +110,8 @@ module.exports = async (req, res) => {
     // Salvar nova senha
     passwords[cnpjNormalizado] = hashPassword(novaSenha);
     savePasswords(passwords);
+    
+    console.log('Senha alterada com sucesso para CNPJ:', cnpjNormalizado);
     
     return res.status(200).json({ 
       success: true, 
