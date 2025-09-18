@@ -155,12 +155,17 @@ async function carregarPedidos() {
       let isB2B = false;
       let clienteB2BInfo = null;
       
+      // Verificar se é pedido B2B pelo campo empresa
+      if (pedido.empresa && pedido.empresa.startsWith('b2b-')) {
+        isB2B = true;
+      }
+      
       if (pedido.dados) {
         try {
           const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
           
-          // Verificar se é pedido B2B
-          if (dados.origem === 'b2b') {
+          // Verificar se é pedido B2B pelos dados também
+          if (dados.origem && dados.origem.includes('B2B')) {
             isB2B = true;
             clienteB2BInfo = dados.clienteInfo;
             
@@ -196,7 +201,7 @@ async function carregarPedidos() {
             </div>
             <div class="pedido-badges">
               <div class="pedido-empresa-badge">
-                <span class="empresa-name">${pedido.empresa.toUpperCase()}</span>
+                <span class="empresa-name">${isB2B ? pedido.empresa.toUpperCase() : pedido.empresa.toUpperCase()}</span>
               </div>
               ${isB2B ? '<div class="pedido-b2b-badge"><span class="b2b-label">🌐 B2B</span></div>' : ''}
             </div>
