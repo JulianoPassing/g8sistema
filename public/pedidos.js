@@ -1561,7 +1561,10 @@ function gerarPDFPedidoEditado(pedido) {
     nomeArquivo = `Pedido_${pedido.id}_${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   }
   
-  doc.save(nomeArquivo);
+  // Abrir PDF em nova aba ao invés de baixar
+  const pdfBlob = doc.output('blob');
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  window.open(pdfUrl, '_blank');
 }
 
 window.verPedidoPDF = async function(id) {
