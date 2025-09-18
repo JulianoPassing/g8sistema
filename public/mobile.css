@@ -680,4 +680,161 @@
   th, td {
     padding: 6px 4px !important;
   }
+
+  /* ========== ESTILOS ESPECÍFICOS PARA PÁGINAS B2B ========== */
+  
+  /* Formulário de cliente B2B */
+  .form-grid {
+    display: block !important;
+    grid-template-columns: none !important;
+  }
+  
+  .form-grid .form-group {
+    margin-bottom: 15px !important;
+    width: 100% !important;
+  }
+  
+  .form-group.full-width {
+    grid-column: unset !important;
+  }
+  
+  /* Tabelas de produtos B2B */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .table-responsive table {
+    min-width: 800px !important;
+    font-size: 12px !important;
+  }
+  
+  .table-responsive th,
+  .table-responsive td {
+    padding: 8px 4px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Container de tamanhos */
+  .tamanho-input-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    max-width: 200px !important;
+  }
+  
+  .tamanho-input-container input {
+    width: 40px !important;
+    padding: 4px !important;
+    font-size: 11px !important;
+    text-align: center !important;
+  }
+  
+  /* Botões de ação */
+  .btn-sm {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Header B2B */
+  .header-top {
+    height: 70px !important;
+    padding: 10px 15px !important;
+  }
+  
+  .header-center img {
+    height: 35px !important;
+  }
+  
+  .header-right {
+    gap: 8px !important;
+  }
+  
+  .header-right .btn {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+  }
+  
+  /* Cards B2B */
+  .card {
+    margin-bottom: 15px !important;
+    border-radius: 8px !important;
+  }
+  
+  .card-header {
+    padding: 15px !important;
+  }
+  
+  .card-header h2 {
+    font-size: 1.2rem !important;
+  }
+  
+  /* Seção de pedido */
+  .pedido-section {
+    margin-bottom: 20px !important;
+  }
+  
+  .pedido-section .card-header {
+    padding: 12px 15px !important;
+  }
+  
+  /* Botões de ação principais */
+  .btn-primary,
+  .btn-success {
+    width: 100% !important;
+    margin-bottom: 10px !important;
+    padding: 12px !important;
+    font-size: 1rem !important;
+  }
+  
+  /* Inputs de busca */
+  input[type="text"],
+  input[type="email"],
+  textarea,
+  select {
+    font-size: 16px !important; /* Previne zoom no iOS */
+    padding: 12px !important;
+  }
+  
+  /* Modal de produtos (se existir) */
+  .modal {
+    padding: 10px !important;
+  }
+  
+  .modal-content {
+    margin: 10px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Responsividade para telas muito pequenas */
+  @media screen and (max-width: 480px) {
+    .table-responsive table {
+      min-width: 700px !important;
+      font-size: 11px !important;
+    }
+    
+    .tamanho-input-container {
+      max-width: 150px !important;
+    }
+    
+    .tamanho-input-container input {
+      width: 35px !important;
+      font-size: 10px !important;
+    }
+    
+    .btn-sm {
+      padding: 4px 6px !important;
+      font-size: 10px !important;
+    }
+    
+    .header-center img {
+      height: 30px !important;
+    }
+    
+    .card-header h2 {
+      font-size: 1.1rem !important;
+    }
+  }
 } 
