@@ -94,7 +94,12 @@ module.exports = async (req, res) => {
     
     return res.status(200).json({ 
       success: true, 
-      message: 'Senha alterada com sucesso!' 
+      message: 'Senha alterada com sucesso!',
+      debug: {
+        cnpj: cnpjNormalizado,
+        hashedPassword: hashedPassword,
+        savedPasswords: Object.keys(loadPasswords())
+      }
     });
     
   } catch (error) {

@@ -90,7 +90,13 @@ module.exports = async (req, res) => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       return res.status(401).json({ 
         success: false, 
-        message: 'Senha inválida' 
+        message: 'Senha inválida',
+        debug: {
+          cnpj: cnpjNormalizado,
+          hasPersonalPassword: !!passwords[cnpjNormalizado],
+          passwordType: passwords[cnpjNormalizado] ? 'personalizada' : 'padrão',
+          savedPasswords: Object.keys(passwords)
+        }
       });
     }
 
