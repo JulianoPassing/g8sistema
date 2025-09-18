@@ -249,9 +249,6 @@ async function carregarPedidos() {
             <button class="btn-action btn-view" onclick="visualizarPDFPedido(${pedido.id})">
               👁️ Visualizar
             </button>
-            <button class="btn-action btn-pdf" onclick="gerarPDFPedido(${pedido.id})">
-              📄 Gerar PDF
-            </button>
             <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
               ✏️ Editar
             </button>
@@ -522,9 +519,6 @@ function renderizarPedidos(pedidos) {
         <div class="pedido-actions">
           <button class="btn-action btn-view" onclick="visualizarPDFPedido(${pedido.id})">
             👁️ Visualizar
-          </button>
-          <button class="btn-action btn-pdf" onclick="gerarPDFPedido(${pedido.id})">
-            📄 PDF
           </button>
           <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
             ✏️ Editar
@@ -1505,10 +1499,7 @@ function gerarPDFPedidoEditado(pedido) {
   finalY = doc.autoTable.previous.finalY;
 
   // Observações e totais (seguindo formato original)
-  // Buscar valores corretos de transporte e prazo
-  const transporteReal = transporte || pedido.dados?.cliente?.transporte || 'A combinar';
-  const prazoReal = prazo || pedido.dados?.cliente?.prazo || 'A combinar';
-  const obsText = `Transporte: ${transporteReal}\nPrazo Pagamento: ${prazoReal}\n\nObservações:\n${cliente?.obs || 'Nenhuma.'}`;
+  const obsText = `Transporte: ${transporte || 'A combinar'}\nPrazo Pagamento: ${prazo || 'A combinar'}\n\nObservações:\n${cliente?.obs || 'Nenhuma.'}`;
   
   // Calcular subtotal sem desconto
   let subtotalSemDesconto = 0;
@@ -1570,10 +1561,7 @@ function gerarPDFPedidoEditado(pedido) {
     nomeArquivo = `Pedido_${pedido.id}_${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   }
   
-  // Abrir PDF em nova aba ao invés de baixar
-  const pdfBlob = doc.output('blob');
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, '_blank');
+  doc.save(nomeArquivo);
 }
 
 window.verPedidoPDF = async function(id) {
@@ -1763,7 +1751,7 @@ function formatarDataBrasilia(data) {
 // Exemplo de uso (caso queira reativar a coluna de data):
 // <td>${pedido.data_pedido ? formatarDataBrasilia(pedido.data_pedido) : ''}</td>
 
-// Função para gerar PDF de um pedido específico (100% igual às páginas das empresas)
+// Função para gerar PDF de um pedido específico
 window.gerarPDFPedido = async function(pedidoId) {
   try {
     // Buscar dados do pedido
@@ -1776,9 +1764,149 @@ window.gerarPDFPedido = async function(pedidoId) {
       return;
     }
 
-    // Usar a mesma função que gera PDF nas páginas das empresas
-    gerarPDFPedidoEditado(pedido);
-    return;
+    // Extrair informações do pedido
+    function extrairInfoPedido(descricao) {
+      const info = {
+        cliente: 'N/A',
+        itens: [],
+        total: 'R$ 0,00'
+      };
+      
+      // Extrair cliente - versões mais flexíveis da regex
+      let clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Itens?:)/i);
+      if (!clienteMatch) {
+        clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Item)/i);
+      }
+      if (!clienteMatch) {
+        clienteMatch = descricao.match(/Cliente:\s*(.+?)(?:\s+Itens)/i);
+      }
+      if (!clienteMatch) {
+        clienteMatch = descricao.match(/Cliente:\s*(.+?)(?=\s+(?:Itens?|Total))/i);
+      }
+      
+      if (clienteMatch) {
+        info.cliente = clienteMatch[1].trim();
+      }
+      
+      // Extrair itens - mais flexível
+      let itensMatch = descricao.match(/Itens?:\s*([^T]+?)(?:\s+Total:)/i);
+      if (!itensMatch) {
+        itensMatch = descricao.match(/Itens?:\s*(.+?)(?:\s+Total)/i);
+      }
+      
+      if (itensMatch) {
+        const itensStr = itensMatch[1].trim();
+        info.itens = itensStr.split(', ').filter(item => item.trim());
+      }
+      
+      // Extrair total - mais flexível
+      let totalMatch = descricao.match(/Total:\s*(R\$\s*[\d.,]+)/i);
+      if (!totalMatch) {
+        totalMatch = descricao.match(/Total:\s*([\d.,]+)/i);
+      }
+      
+      if (totalMatch) {
+        info.total = totalMatch[1].includes('R$') ? totalMatch[1] : `R$ ${totalMatch[1]}`;
+      }
+      
+      return info;
+    }
+
+    const info = extrairInfoPedido(pedido.descricao);
+    const dataFormatada = new Date(pedido.data_pedido).toLocaleDateString('pt-BR');
+
+    // Criar PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let currentY = 20;
+
+    // Função para adicionar texto com quebra de linha
+    function addWrappedText(text, x, y, maxWidth, fontSize = 10) {
+      doc.setFontSize(fontSize);
+      const lines = doc.splitTextToSize(text, maxWidth);
+      doc.text(lines, x, y);
+      return y + (lines.length * (fontSize * 0.4));
+    }
+
+    // Cabeçalho
+    doc.setFontSize(20);
+    doc.setTextColor(255, 0, 0); // Vermelho G8
+    doc.text('G8 REPRESENTAÇÕES', pageWidth / 2, currentY, { align: 'center' });
+    
+    currentY += 15;
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`PEDIDO #${pedido.id}`, pageWidth / 2, currentY, { align: 'center' });
+    
+    currentY += 20;
+
+    // Informações do pedido
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DADOS DO PEDIDO:', margin, currentY);
+    currentY += 8;
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Data: ${dataFormatada}`, margin, currentY);
+    currentY += 6;
+    doc.text(`Empresa: ${pedido.empresa.toUpperCase()}`, margin, currentY);
+    currentY += 10;
+
+    // Cliente
+    doc.setFont('helvetica', 'bold');
+    doc.text('CLIENTE:', margin, currentY);
+    currentY += 6;
+    doc.setFont('helvetica', 'normal');
+    currentY = addWrappedText(info.cliente, margin, currentY, pageWidth - (margin * 2), 10);
+    currentY += 10;
+
+    // Itens
+    doc.setFont('helvetica', 'bold');
+    doc.text(`ITENS (${info.itens.length}):`, margin, currentY);
+    currentY += 8;
+
+    doc.setFont('helvetica', 'normal');
+    info.itens.forEach((item, index) => {
+      if (currentY > 250) { // Quebra de página se necessário
+        doc.addPage();
+        currentY = 20;
+      }
+      doc.text(`${index + 1}. ${item}`, margin + 5, currentY);
+      currentY += 6;
+    });
+
+    currentY += 10;
+
+    // Total
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 0, 0); // Vermelho G8
+    doc.text(`TOTAL: ${info.total}`, margin, currentY);
+
+    // Rodapé
+    const footerY = 280;
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('G8 Representações - Sistema de Gestão de Pedidos', pageWidth / 2, footerY, { align: 'center' });
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, pageWidth / 2, footerY + 4, { align: 'center' });
+
+    // Salvar PDF
+    doc.save(`Pedido_${pedido.id}_${pedido.empresa}.pdf`);
+
+    // Notificação de sucesso
+    if (window.advancedNotifications) {
+      advancedNotifications.success(
+        `PDF do Pedido #${pedido.id} gerado com sucesso!`,
+        {
+          title: 'PDF Gerado',
+          duration: 4000
+        }
+      );
+    } else {
+      alert(`✅ PDF do Pedido #${pedido.id} gerado com sucesso!`);
+    }
 
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
