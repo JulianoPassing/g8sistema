@@ -71,12 +71,19 @@ module.exports = async (req, res) => {
     
     // Salvar nova senha
     console.log('Salvando nova senha para CNPJ:', cnpjNormalizado);
-    passwords[cnpjNormalizado] = hashPassword(novaSenha);
-    console.log('Hash da nova senha gerado');
+    const hashedPassword = hashPassword(novaSenha);
+    console.log('Hash da nova senha gerado:', hashedPassword);
+    passwords[cnpjNormalizado] = hashedPassword;
+    console.log('Senha adicionada ao objeto passwords:', passwords);
     
     try {
       savePasswords(passwords);
       console.log('Senha alterada com sucesso para CNPJ:', cnpjNormalizado);
+      
+      // Verificar se foi salvo corretamente
+      const savedPasswords = loadPasswords();
+      console.log('Verificação - senhas salvas:', Object.keys(savedPasswords));
+      console.log('Verificação - hash salvo para CNPJ:', savedPasswords[cnpjNormalizado]);
     } catch (saveError) {
       console.error('Erro ao salvar senhas:', saveError);
       return res.status(500).json({ 

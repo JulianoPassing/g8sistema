@@ -27,7 +27,13 @@ function hashPassword(password) {
 
 // Função para verificar senha
 function verifyPassword(password, hash) {
-  return hashPassword(password) === hash;
+  const passwordHash = hashPassword(password);
+  console.log('Verificando senha:');
+  console.log('  Senha fornecida:', password);
+  console.log('  Hash da senha fornecida:', passwordHash);
+  console.log('  Hash armazenado:', hash);
+  console.log('  Senhas coincidem:', passwordHash === hash);
+  return passwordHash === hash;
 }
 
 module.exports = {
