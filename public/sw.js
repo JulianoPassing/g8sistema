@@ -22,12 +22,10 @@ const STATIC_FILES = [
 
 // Instalar Service Worker
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Instalando...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('Service Worker: Cache estático criado');
         return cache.addAll(STATIC_FILES.map(url => {
           // Tratar URLs externas
           if (url.startsWith('http')) {
@@ -47,7 +45,6 @@ self.addEventListener('install', (event) => {
 
 // Ativar Service Worker
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Ativando...');
   
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -55,7 +52,6 @@ self.addEventListener('activate', (event) => {
         cacheNames.map((cacheName) => {
           // Remover caches antigos
           if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-            console.log('Service Worker: Removendo cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -78,7 +74,6 @@ self.addEventListener('fetch', (event) => {
   }
   
   // SERVICE WORKER DESABILITADO PARA DEBUG
-  console.log('🚫 SW desabilitado - não interceptando:', request.url, request.method);
   return;
   
   // Estratégia para diferentes tipos de requisição (DESABILITADO)
@@ -136,7 +131,6 @@ async function networkFirstStrategy(request) {
     
     return networkResponse;
   } catch (error) {
-    console.log('Network falhou, tentando cache:', request.url);
     
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
@@ -190,7 +184,6 @@ async function cleanOldCache() {
   if (keys.length > 50) {
     const keysToDelete = keys.slice(0, keys.length - 50);
     await Promise.all(keysToDelete.map(key => cache.delete(key)));
-    console.log('Cache limpo:', keysToDelete.length, 'itens removidos');
   }
 }
 
@@ -209,7 +202,6 @@ self.addEventListener('sync', (event) => {
 });
 
 async function doBackgroundSync() {
-  console.log('Executando sincronização em background...');
   
   // Aqui você pode implementar lógica para sincronizar dados
   // quando a conexão for restabelecida
