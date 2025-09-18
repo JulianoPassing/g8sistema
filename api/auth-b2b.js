@@ -21,8 +21,13 @@ function loadPasswords() {
     return {};
   }
   
-  const data = fs.readFileSync(passwordsPath, 'utf8');
-  return JSON.parse(data);
+  try {
+    const data = fs.readFileSync(passwordsPath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Erro ao carregar senhas:', error);
+    return {};
+  }
 }
 
 // Função para definir acessos por cliente
@@ -110,11 +115,28 @@ module.exports = async (req, res) => {
 
     // Carregar lista de clientes
     const clientesPath = path.join(process.cwd(), 'public', 'clientes.json');
-    const clientesData = fs.readFileSync(clientesPath, 'utf8');
-    const clientes = JSON.parse(clientesData);
     
-    // Normalizar CNPJ (remover pontos, barras e espaços)
-    const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
+    if (!fs.existsSync(clientesPath)) {
+      console.error('Arquivo clientes.json não encontrado:', clientesPath);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Arquivo de clientes não encontrado' 
+      });
+    }
+    
+    let clientesData;
+    let clientes;
+    
+    try {
+      clientesData = fs.readFileSync(clientesPath, 'utf8');
+      clientes = JSON.parse(clientesData);
+    } catch (fileError) {
+      console.error('Erro ao carregar ou fazer parse do clientes.json:', fileError);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao processar arquivo de clientes' 
+      });
+    }
     
     // Buscar cliente pelo CNPJ
     const cliente = clientes.find(c => {
@@ -155,9 +177,11 @@ module.exports = async (req, res) => {
     }
   } catch (error) {
     console.error('Erro na autenticação B2B:', error);
+    console.error('Stack trace:', error.stack);
     return res.status(500).json({ 
       success: false, 
-      message: 'Erro interno do servidor' 
+      message: 'Erro interno do servidor',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
