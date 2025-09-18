@@ -501,12 +501,38 @@
         const response = await fetch('/api/pedidos');
         const todosPedidos = await response.json();
 
+        console.log('Todos os pedidos:', todosPedidos);
+        console.log('Cliente logado:', clienteData);
+
         // Filtrar apenas os pedidos do cliente logado
         const pedidosCliente = todosPedidos.filter(pedido => {
-          return pedido.dados && 
-                 pedido.dados.cliente && 
-                 pedido.dados.cliente.id === clienteData.id;
+          console.log('Analisando pedido:', pedido.id, pedido.dados);
+          
+          // Verificar se tem dados e se é do cliente logado
+          if (pedido.dados && pedido.dados.cliente) {
+            // Verificar por ID do cliente
+            if (pedido.dados.cliente.id === clienteData.id) {
+              return true;
+            }
+            // Verificar por CNPJ (para pedidos antigos que podem não ter ID)
+            if (pedido.dados.cliente.cnpj === clienteData.cnpj) {
+              return true;
+            }
+            // Verificar por razão social (fallback)
+            if (pedido.dados.cliente.razao === clienteData.razao) {
+              return true;
+            }
+          }
+          
+          // Verificar se o pedido tem empresa igual ao cliente (para pedidos antigos)
+          if (pedido.empresa === clienteData.razao) {
+            return true;
+          }
+          
+          return false;
         });
+
+        console.log('Pedidos filtrados:', pedidosCliente);
 
         if (pedidosCliente.length === 0) {
           pedidosList.innerHTML = '<p style="text-align: center; color: #718096;">Nenhum pedido encontrado.</p>';
