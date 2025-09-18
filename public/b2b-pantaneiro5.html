@@ -2843,12 +2843,12 @@ window.produtosData = [
           });
 
           if (response.ok) {
-            alert('Pedido enviado com sucesso! Você será redirecionado para o sistema principal.');
+            alert('Pedido enviado com sucesso! Você será redirecionado para seus pedidos.');
             // Limpar pedido local
             window.pedidoItens = [];
             atualizarVisualizacaoPedido();
-            // Redirecionar para o sistema principal
-            window.location.href = '/pedidos.html';
+            // Redirecionar para a página de pedidos B2B
+            window.location.href = 'b2b-pedidos.html';
           } else {
             throw new Error('Erro ao enviar pedido');
           }

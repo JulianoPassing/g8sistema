@@ -56,8 +56,9 @@ async function carregarPedidos() {
       return;
     }
     // Função para extrair informações do pedido
-    function extrairInfoPedido(descricao) {
+    function extrairInfoPedido(descricao, dados) {
       console.log('📋 Descrição do pedido:', descricao); // Debug
+      console.log('📋 Dados do pedido:', dados); // Debug
       
       const info = {
         cliente: 'N/A',
@@ -65,6 +66,27 @@ async function carregarPedidos() {
         total: 'R$ 0,00'
       };
       
+      // Se tem dados estruturados (pedidos B2B), usar eles primeiro
+      if (dados && dados.cliente) {
+        info.cliente = dados.cliente.razao || dados.cliente.nome || 'N/A';
+        
+        if (dados.itens && Array.isArray(dados.itens)) {
+          info.itens = dados.itens.map(item => {
+            const ref = item.REFERENCIA || item.ref || item.REF || '';
+            const qtd = item.quantidade || 0;
+            return `${ref} x${qtd}`;
+          });
+        }
+        
+        if (dados.total) {
+          info.total = `R$ ${parseFloat(dados.total).toFixed(2)}`;
+        }
+        
+        console.log('✅ Informações extraídas dos dados estruturados:', info);
+        return info;
+      }
+      
+      // Fallback: extrair da descrição (pedidos antigos)
       // Extrair cliente - versões mais flexíveis da regex
       let clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Itens?:)/i);
       if (!clienteMatch) {
@@ -127,7 +149,7 @@ async function carregarPedidos() {
 
     let html = '<div class="pedidos-grid">';
     for (const pedido of pedidos) {
-      let info = extrairInfoPedido(pedido.descricao);
+      let info = extrairInfoPedido(pedido.descricao, pedido.dados);
       
       // Verificar se é um pedido B2B
       let isB2B = false;
