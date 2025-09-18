@@ -2176,6 +2176,13 @@ window.visualizarPDFPedido = async function(pedidoId) {
     if (descontoExtra > 0 || descontoPrazo > 0 || descontoVolume > 0) {
       totalComDesconto = subtotal * descontoGeral;
     }
+    
+    // Debug: Log dos valores calculados
+    console.log('🔍 Debug PDF - Valores calculados:');
+    console.log('Subtotal:', subtotal);
+    console.log('Total com desconto:', totalComDesconto);
+    console.log('Desconto geral:', descontoGeral);
+    console.log('Descontos aplicados:', { descontoExtra, descontoPrazo, descontoVolume });
 
     const summaryData = [];
     summaryData.push(["Subtotal sem Desconto:", `R$ ${subtotal.toFixed(2)}`]);
@@ -2225,7 +2232,10 @@ window.visualizarPDFPedido = async function(pedidoId) {
         if (index === 0) {
           finalTableBody.push([leftColumn, row[0], row[1]]);
         } else {
-          finalTableBody.push(["", row[0], row[1]]);
+          // Para objetos com content e styles, extrair apenas o content
+          const label = typeof row[0] === 'object' && row[0].content ? row[0].content : row[0];
+          const value = typeof row[1] === 'object' && row[1].content ? row[1].content : row[1];
+          finalTableBody.push(["", label, value]);
         }
       });
 
@@ -2258,8 +2268,10 @@ window.visualizarPDFPedido = async function(pedidoId) {
       
       // Totais
       summaryData.forEach(row => {
-        if (row[0] && row[1]) {
-          doc.text(`${row[0]} ${row[1]}`, pageWidth - margin - 80, currentY, { align: "right" });
+        const label = typeof row[0] === 'object' && row[0].content ? row[0].content : row[0];
+        const value = typeof row[1] === 'object' && row[1].content ? row[1].content : row[1];
+        if (label && value) {
+          doc.text(`${label} ${value}`, pageWidth - margin - 80, currentY, { align: "right" });
           currentY += 5;
         }
       });
