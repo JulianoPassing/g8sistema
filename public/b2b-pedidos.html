@@ -589,83 +589,89 @@
       }
     });
 
-    // Submissão do formulário de alteração de senha
-    document.getElementById('formAlterarSenha').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const senhaAtual = document.getElementById('senhaAtual').value;
-      const novaSenha = document.getElementById('novaSenha').value;
-      const confirmarSenha = document.getElementById('confirmarSenha').value;
-      const mensagemDiv = document.getElementById('mensagemSenha');
-      
-      // Validar se as senhas coincidem
-      if (novaSenha !== confirmarSenha) {
-        mensagemDiv.textContent = 'As senhas não coincidem!';
-        mensagemDiv.style.background = '#f8d7da';
-        mensagemDiv.style.color = '#721c24';
-        mensagemDiv.style.border = '1px solid #f5c6cb';
-        mensagemDiv.style.display = 'block';
-        return;
-      }
-      
-      // Validar tamanho da senha
-      if (novaSenha.length < 6) {
-        mensagemDiv.textContent = 'A nova senha deve ter pelo menos 6 caracteres!';
-        mensagemDiv.style.background = '#f8d7da';
-        mensagemDiv.style.color = '#721c24';
-        mensagemDiv.style.border = '1px solid #f5c6cb';
-        mensagemDiv.style.display = 'block';
-        return;
-      }
-      
-      try {
-        const response = await fetch('/api/change-password-b2b', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            cnpj: clienteData.cnpj,
-            senhaAtual: senhaAtual,
-            novaSenha: novaSenha,
-            confirmarSenha: confirmarSenha
-          })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          mensagemDiv.textContent = 'Senha alterada com sucesso!';
-          mensagemDiv.style.background = '#d4edda';
-          mensagemDiv.style.color = '#155724';
-          mensagemDiv.style.border = '1px solid #c3e6cb';
-          mensagemDiv.style.display = 'block';
+    // Função para configurar event listeners do modal
+    function configurarEventListenersModal() {
+      const formAlterarSenha = document.getElementById('formAlterarSenha');
+      if (formAlterarSenha) {
+        formAlterarSenha.addEventListener('submit', async function(e) {
+          e.preventDefault();
           
-          // Fechar modal após 2 segundos
-          setTimeout(() => {
-            fecharModalSenha();
-          }, 2000);
-        } else {
-          mensagemDiv.textContent = data.message || 'Erro ao alterar senha!';
-          mensagemDiv.style.background = '#f8d7da';
-          mensagemDiv.style.color = '#721c24';
-          mensagemDiv.style.border = '1px solid #f5c6cb';
-          mensagemDiv.style.display = 'block';
-        }
-      } catch (error) {
-        console.error('Erro ao alterar senha:', error);
-        mensagemDiv.textContent = 'Erro de conexão. Tente novamente.';
-        mensagemDiv.style.background = '#f8d7da';
-        mensagemDiv.style.color = '#721c24';
-        mensagemDiv.style.border = '1px solid #f5c6cb';
-        mensagemDiv.style.display = 'block';
+          const senhaAtual = document.getElementById('senhaAtual').value;
+          const novaSenha = document.getElementById('novaSenha').value;
+          const confirmarSenha = document.getElementById('confirmarSenha').value;
+          const mensagemDiv = document.getElementById('mensagemSenha');
+          
+          // Validar se as senhas coincidem
+          if (novaSenha !== confirmarSenha) {
+            mensagemDiv.textContent = 'As senhas não coincidem!';
+            mensagemDiv.style.background = '#f8d7da';
+            mensagemDiv.style.color = '#721c24';
+            mensagemDiv.style.border = '1px solid #f5c6cb';
+            mensagemDiv.style.display = 'block';
+            return;
+          }
+          
+          // Validar tamanho da senha
+          if (novaSenha.length < 6) {
+            mensagemDiv.textContent = 'A nova senha deve ter pelo menos 6 caracteres!';
+            mensagemDiv.style.background = '#f8d7da';
+            mensagemDiv.style.color = '#721c24';
+            mensagemDiv.style.border = '1px solid #f5c6cb';
+            mensagemDiv.style.display = 'block';
+            return;
+          }
+          
+          try {
+            const response = await fetch('/api/change-password-b2b', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                cnpj: clienteData.cnpj,
+                senhaAtual: senhaAtual,
+                novaSenha: novaSenha,
+                confirmarSenha: confirmarSenha
+              })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+              mensagemDiv.textContent = 'Senha alterada com sucesso!';
+              mensagemDiv.style.background = '#d4edda';
+              mensagemDiv.style.color = '#155724';
+              mensagemDiv.style.border = '1px solid #c3e6cb';
+              mensagemDiv.style.display = 'block';
+              
+              // Fechar modal após 2 segundos
+              setTimeout(() => {
+                fecharModalSenha();
+              }, 2000);
+            } else {
+              mensagemDiv.textContent = data.message || 'Erro ao alterar senha!';
+              mensagemDiv.style.background = '#f8d7da';
+              mensagemDiv.style.color = '#721c24';
+              mensagemDiv.style.border = '1px solid #f5c6cb';
+              mensagemDiv.style.display = 'block';
+            }
+          } catch (error) {
+            console.error('Erro ao alterar senha:', error);
+            mensagemDiv.textContent = 'Erro de conexão. Tente novamente.';
+            mensagemDiv.style.background = '#f8d7da';
+            mensagemDiv.style.color = '#721c24';
+            mensagemDiv.style.border = '1px solid #f5c6cb';
+            mensagemDiv.style.display = 'block';
+          }
+        });
       }
-    });
+    }
 
     // Inicializar página
     if (checkAuth()) {
       carregarEmpresas();
       carregarPedidos();
+      configurarEventListenersModal();
     }
   </script>
 

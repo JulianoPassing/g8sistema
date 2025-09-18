@@ -1049,21 +1049,21 @@
             const quantidade = parseInt(input.value, 10);
             if (quantidade > 0) {
               const precoFinal = precoUnitarioBase;
-              const itemExistente = window.pedidoItens.find(
-                (item) =>
+          const itemExistente = window.pedidoItens.find(
+            (item) =>
                   item.REF === ref &&
                   item.tamanho === tamanho &&
                   item.preco === precoFinal &&
                   item.cor.toLowerCase() === cor.toLowerCase()
-              );
-              if (itemExistente) {
-                itemExistente.quantidade += quantidade;
-              } else {
-                window.pedidoItens.push({
+          );
+          if (itemExistente) {
+            itemExistente.quantidade += quantidade;
+          } else {
+            window.pedidoItens.push({
                   REF: produto.REF,
                   MODELO: produto.MODELO,
                   tamanho: tamanho,
-                  quantidade: quantidade,
+              quantidade: quantidade,
                   cor: cor || "-",
                   preco: precoFinal,
                 });
@@ -1307,7 +1307,7 @@
                 tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
               });
               tamanhosHtml += "</div>";
-            } else {
+        } else {
               tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
             }
             
