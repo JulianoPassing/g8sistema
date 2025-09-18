@@ -67,15 +67,23 @@ module.exports = async (req, res) => {
     const passwords = loadPasswords();
     const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
     
+    console.log('Senhas carregadas:', Object.keys(passwords));
+    console.log('CNPJ normalizado:', cnpjNormalizado);
+    console.log('Cliente tem senha personalizada:', !!passwords[cnpjNormalizado]);
+    
     let senhaValida = false;
     
     if (passwords[cnpjNormalizado]) {
       // Cliente tem senha personalizada
+      console.log('Verificando senha personalizada');
       senhaValida = verifyPassword(password, passwords[cnpjNormalizado]);
     } else {
       // Cliente ainda usa senha padrão
+      console.log('Verificando senha padrão');
       senhaValida = (password === '123456');
     }
+    
+    console.log('Senha válida:', senhaValida);
     
     if (!senhaValida) {
       // Delay pequeno para prevenir ataques de força bruta
