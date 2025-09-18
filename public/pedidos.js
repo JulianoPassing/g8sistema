@@ -2183,6 +2183,8 @@ window.visualizarPDFPedido = async function(pedidoId) {
     console.log('Total com desconto:', totalComDesconto);
     console.log('Desconto geral:', descontoGeral);
     console.log('Descontos aplicados:', { descontoExtra, descontoPrazo, descontoVolume });
+    console.log('Dados do pedido:', dadosPedido);
+    console.log('Itens:', itens);
 
     const summaryData = [];
     summaryData.push(["Subtotal sem Desconto:", `R$ ${subtotal.toFixed(2)}`]);
@@ -2219,6 +2221,9 @@ window.visualizarPDFPedido = async function(pedidoId) {
       },
     ]);
 
+    // Debug: Log do summaryData antes de renderizar
+    console.log('🔍 SummaryData antes de renderizar:', summaryData);
+
     // Tabela final com observações e totais
     if (typeof doc.autoTable === 'function') {
       const finalTableBody = [];
@@ -2250,6 +2255,12 @@ window.visualizarPDFPedido = async function(pedidoId) {
           2: { cellWidth: 40, halign: "right" },
         },
         margin: { left: margin, right: margin },
+        didDrawCell: (data) => {
+          // Debug: Log das células sendo desenhadas
+          if (data.cell && data.cell.text && data.cell.text.length > 0) {
+            console.log('🔍 Célula desenhada:', data.cell.text, 'na posição:', data.cell.x, data.cell.y);
+          }
+        }
       });
     } else {
       // Fallback para observações e totais
