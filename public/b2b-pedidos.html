@@ -387,6 +387,7 @@
       </div>
       <div class="user-info">
         <span id="clienteNome">Carregando...</span>
+        <button id="change-password-button" onclick="abrirModalSenha()" style="background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-right: 12px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 3px 10px rgba(5, 150, 105, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(5, 150, 105, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(5, 150, 105, 0.3)'">🔒 Alterar Senha</button>
         <button class="btn-logout" onclick="logout()">Sair</button>
       </div>
     </div>
@@ -565,12 +566,147 @@
       }
     }
 
+    // Funções para modal de alteração de senha
+    function abrirModalSenha() {
+      document.getElementById('modalSenha').style.display = 'flex';
+      document.getElementById('senhaAtual').focus();
+    }
+
+    function fecharModalSenha() {
+      document.getElementById('modalSenha').style.display = 'none';
+      document.getElementById('formAlterarSenha').reset();
+      document.getElementById('mensagemSenha').style.display = 'none';
+    }
+
+    // Fechar modal ao clicar fora
+    document.addEventListener('click', function(e) {
+      const modal = document.getElementById('modalSenha');
+      if (e.target === modal) {
+        fecharModalSenha();
+      }
+    });
+
+    // Submissão do formulário de alteração de senha
+    document.getElementById('formAlterarSenha').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const senhaAtual = document.getElementById('senhaAtual').value;
+      const novaSenha = document.getElementById('novaSenha').value;
+      const confirmarSenha = document.getElementById('confirmarSenha').value;
+      const mensagemDiv = document.getElementById('mensagemSenha');
+      
+      // Validar se as senhas coincidem
+      if (novaSenha !== confirmarSenha) {
+        mensagemDiv.textContent = 'As senhas não coincidem!';
+        mensagemDiv.style.background = '#f8d7da';
+        mensagemDiv.style.color = '#721c24';
+        mensagemDiv.style.border = '1px solid #f5c6cb';
+        mensagemDiv.style.display = 'block';
+        return;
+      }
+      
+      // Validar tamanho da senha
+      if (novaSenha.length < 6) {
+        mensagemDiv.textContent = 'A nova senha deve ter pelo menos 6 caracteres!';
+        mensagemDiv.style.background = '#f8d7da';
+        mensagemDiv.style.color = '#721c24';
+        mensagemDiv.style.border = '1px solid #f5c6cb';
+        mensagemDiv.style.display = 'block';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/change-password-b2b', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            cnpj: clienteData.cnpj,
+            senhaAtual: senhaAtual,
+            novaSenha: novaSenha,
+            confirmarSenha: confirmarSenha
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          mensagemDiv.textContent = 'Senha alterada com sucesso!';
+          mensagemDiv.style.background = '#d4edda';
+          mensagemDiv.style.color = '#155724';
+          mensagemDiv.style.border = '1px solid #c3e6cb';
+          mensagemDiv.style.display = 'block';
+          
+          // Fechar modal após 2 segundos
+          setTimeout(() => {
+            fecharModalSenha();
+          }, 2000);
+        } else {
+          mensagemDiv.textContent = data.message || 'Erro ao alterar senha!';
+          mensagemDiv.style.background = '#f8d7da';
+          mensagemDiv.style.color = '#721c24';
+          mensagemDiv.style.border = '1px solid #f5c6cb';
+          mensagemDiv.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Erro ao alterar senha:', error);
+        mensagemDiv.textContent = 'Erro de conexão. Tente novamente.';
+        mensagemDiv.style.background = '#f8d7da';
+        mensagemDiv.style.color = '#721c24';
+        mensagemDiv.style.border = '1px solid #f5c6cb';
+        mensagemDiv.style.display = 'block';
+      }
+    });
+
     // Inicializar página
     if (checkAuth()) {
       carregarEmpresas();
       carregarPedidos();
     }
   </script>
+
+  <!-- Modal de Alteração de Senha -->
+  <div id="modalSenha" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); padding: 40px; border-radius: 20px; max-width: 450px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); position: relative; overflow: hidden;">
+      <!-- Decoração de fundo -->
+      <div style="position: absolute; top: -50px; right: -50px; width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 50%; opacity: 0.1;"></div>
+      <div style="position: absolute; bottom: -30px; left: -30px; width: 60px; height: 60px; background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); border-radius: 50%; opacity: 0.1;"></div>
+      
+      <!-- Header do Modal -->
+      <div style="text-align: center; margin-bottom: 30px; position: relative; z-index: 2;">
+        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.15);">
+          <span style="font-size: 24px; color: white;">🔒</span>
+        </div>
+        <h2 style="margin: 0; color: #2c3e50; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Alterar Senha</h2>
+        <p style="margin: 8px 0 0; color: #6c757d; font-size: 14px; font-weight: 500;">Defina uma nova senha para sua conta</p>
+      </div>
+      
+      <form id="formAlterarSenha" style="position: relative; z-index: 2;">
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px; letter-spacing: 0.3px;">Senha Atual</label>
+          <input type="password" id="senhaAtual" required style="width: 100%; padding: 15px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 15px; background: #ffffff; transition: all 0.3s ease; box-sizing: border-box;" onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 3px rgba(220, 38, 38, 0.1)'" onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'">
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px; letter-spacing: 0.3px;">Nova Senha</label>
+          <input type="password" id="novaSenha" required minlength="6" style="width: 100%; padding: 15px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 15px; background: #ffffff; transition: all 0.3s ease; box-sizing: border-box;" onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 3px rgba(220, 38, 38, 0.1)'" onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'">
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 14px; letter-spacing: 0.3px;">Confirmar Nova Senha</label>
+          <input type="password" id="confirmarSenha" required minlength="6" style="width: 100%; padding: 15px 20px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 15px; background: #ffffff; transition: all 0.3s ease; box-sizing: border-box;" onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 3px rgba(220, 38, 38, 0.1)'" onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'">
+        </div>
+        
+        <div id="mensagemSenha" style="margin-bottom: 20px; padding: 15px 20px; border-radius: 12px; display: none; font-weight: 500; font-size: 14px; text-align: center; border: 1px solid;"></div>
+        
+        <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+          <button type="button" onclick="fecharModalSenha()" style="background: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(108, 117, 125, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(108, 117, 125, 0.3)'">Cancelar</button>
+          <button type="submit" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(220, 38, 38, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(220, 38, 38, 0.3)'">Alterar Senha</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <footer style="width: 100%; text-align: center; padding: 15px 20px; background: transparent; color: #000000; margin-top: 40px; position: relative; font-size: 0.85rem; font-weight: 500;">
     © 2025 J.P Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank" style="color: #000000; text-decoration: underline;">jp-sistemas.com</a>

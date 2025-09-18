@@ -1,6 +1,29 @@
 // API de autenticação B2B para clientes
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+
+// Função para gerar hash da senha
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+// Função para verificar senha
+function verifyPassword(password, hash) {
+  return hashPassword(password) === hash;
+}
+
+// Função para carregar senhas personalizadas
+function loadPasswords() {
+  const passwordsPath = path.join(process.cwd(), 'api', 'passwords-b2b.json');
+  
+  if (!fs.existsSync(passwordsPath)) {
+    return {};
+  }
+  
+  const data = fs.readFileSync(passwordsPath, 'utf8');
+  return JSON.parse(data);
+}
 
 // Função para definir acessos por cliente
 function getAcessosCliente(cnpj) {
@@ -62,8 +85,21 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Verificar senha padrão
-    if (password !== '123456') {
+    // Verificar senha (padrão ou personalizada)
+    const passwords = loadPasswords();
+    const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
+    
+    let senhaValida = false;
+    
+    if (passwords[cnpjNormalizado]) {
+      // Cliente tem senha personalizada
+      senhaValida = verifyPassword(password, passwords[cnpjNormalizado]);
+    } else {
+      // Cliente ainda usa senha padrão
+      senhaValida = (password === '123456');
+    }
+    
+    if (!senhaValida) {
       // Delay pequeno para prevenir ataques de força bruta
       await new Promise(resolve => setTimeout(resolve, 1000));
       return res.status(401).json({ 
