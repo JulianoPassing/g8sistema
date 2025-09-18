@@ -11,7 +11,7 @@ function getAcessosCliente(cnpj) {
   // PANTANEIRO 7 e STEITZ: Sempre liberados para todos
   // PANTANEIRO 5: Apenas clientes listados aqui
   const clientesComPantaneiro5 = [
-    '14909309000103',  // Andre Luis Krailink de Melo
+    '30110818000128',  // G8 Representações
     '18786752000195',  // Jose Rodrigo Dutra Jorge
     '33462113000168',  // Isabela Rosa
     
