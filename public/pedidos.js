@@ -2098,7 +2098,7 @@ window.visualizarPDFPedido = async function(pedidoId) {
         return [
           item.REFERENCIA || item.REF || item.ref || "",
           item.DESCRIÇÃO || item.MODELO || item.descricao || "",
-          item.tamanho || item.cor || "",
+          `${item.tamanho || ''}${item.cor ? ' / ' + item.cor : ''}`,
           item.quantidade || 0,
           `R$ ${precoUnitarioComDesconto.toFixed(2)}`,
           `${item.descontoExtra || 0}%`,
@@ -2170,7 +2170,12 @@ window.visualizarPDFPedido = async function(pedidoId) {
 
     // Calcular totais
     const subtotal = itens.reduce((sum, item) => sum + ((item.preco || 0) * (item.quantidade || 0)), 0);
-    const totalComDesconto = dadosPedido.total || (subtotal * descontoGeral);
+    let totalComDesconto = dadosPedido.total || subtotal;
+    
+    // Se há desconto aplicado, calcular o total com desconto
+    if (descontoExtra > 0 || descontoPrazo > 0 || descontoVolume > 0) {
+      totalComDesconto = subtotal * descontoGeral;
+    }
 
     const summaryData = [];
     summaryData.push(["Subtotal sem Desconto:", `R$ ${subtotal.toFixed(2)}`]);
