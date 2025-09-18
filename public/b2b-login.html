@@ -41,15 +41,6 @@
       position: relative;
     }
 
-    @media (max-width: 768px) {
-      body {
-        padding: 5px;
-        align-items: flex-start;
-        padding-top: 10px;
-        min-height: 100vh;
-      }
-    }
-
     /* Fundo animado sutil G8 */
     body::before {
       content: '';
@@ -121,17 +112,6 @@
       transition: all 0.3s ease;
     }
 
-    @media (max-width: 768px) {
-      .login-container {
-        padding: 20px 15px;
-        margin: 0;
-        max-width: 100%;
-        border-radius: 12px;
-        width: calc(100% - 10px);
-        min-height: auto;
-      }
-    }
-
     .login-container:hover {
       border-color: var(--g8-red);
       box-shadow: 0 20px 25px -5px rgba(255, 0, 0, 0.25), 0 10px 10px -5px rgba(255, 0, 0, 0.1);
@@ -155,40 +135,17 @@
     }
 
     .logo img {
-      width: 300px;
-      height: auto;
-      object-fit: contain;
-      max-width: 90%;
-    }
-
-    @media (max-width: 768px) {
-      .logo img {
-        width: 180px;
-        max-width: 85%;
-        height: auto;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .logo img {
-        width: 140px;
-        max-width: 80%;
-        height: auto;
-      }
+      width: 200px !important;
+      height: auto !important;
+      margin-bottom: 20px !important;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      transition: all 0.3s ease;
     }
 
     .subtitle {
       color: #666;
       margin-bottom: 30px;
       font-size: 1.1rem;
-    }
-
-    @media (max-width: 768px) {
-      .subtitle {
-        font-size: 0.95rem;
-        margin-bottom: 15px;
-        line-height: 1.4;
-      }
     }
 
     .form-group {
@@ -213,14 +170,6 @@
       box-sizing: border-box;
     }
 
-    @media (max-width: 768px) {
-      input[type="text"], input[type="password"] {
-        padding: 12px;
-        font-size: 16px; /* Previne zoom no iOS */
-        border-radius: 8px;
-      }
-    }
-
     input[type="text"]:focus, input[type="password"]:focus {
       outline: none;
       border-color: var(--g8-red);
@@ -239,15 +188,6 @@
       cursor: pointer;
       transition: all 0.3s ease;
       margin-top: 10px;
-    }
-
-    @media (max-width: 768px) {
-      .btn-login {
-        padding: 12px;
-        font-size: 16px;
-        border-radius: 8px;
-        min-height: 48px; /* Melhora área de toque */
-      }
     }
 
     .btn-login:hover {
@@ -301,14 +241,6 @@
       text-align: left;
     }
 
-    @media (max-width: 768px) {
-      .info-box {
-        padding: 10px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-      }
-    }
-
     .info-box h3 {
       margin: 0 0 10px 0;
       color: #2d3748;
@@ -321,17 +253,6 @@
       font-size: 0.9rem;
     }
 
-    @media (max-width: 768px) {
-      .info-box h3 {
-        font-size: 1rem;
-        margin-bottom: 8px;
-      }
-
-      .info-box p {
-        font-size: 0.85rem;
-      }
-    }
-
     .remember-group {
       display: flex;
       align-items: center;
@@ -339,13 +260,6 @@
       margin-bottom: 15px;
       font-size: 14px;
       text-align: left;
-    }
-
-    @media (max-width: 768px) {
-      .remember-group {
-        margin-bottom: 12px;
-        font-size: 13px;
-      }
     }
 
     .remember-group input[type="checkbox"] {
@@ -367,125 +281,35 @@
       color: var(--g8-red);
     }
 
+    /* Responsive design - mesmo padrão do index.html */
     @media (max-width: 480px) {
-      body {
-        padding: 2px;
-        padding-top: 5px;
-      }
-
       .login-container {
-        padding: 15px 12px;
-        margin: 0;
-        width: calc(100% - 4px);
-        border-radius: 10px;
-      }
-      
-      .logo img {
-        width: 120px;
-        max-width: 75%;
-        height: auto;
-      }
-
-      .subtitle {
-        font-size: 0.85rem;
-        margin-bottom: 12px;
-        line-height: 1.3;
-      }
-
-      .info-box {
-        padding: 8px;
-        margin-bottom: 12px;
-        border-radius: 6px;
-      }
-
-      .info-box h3 {
-        font-size: 0.85rem;
-        margin-bottom: 6px;
-      }
-
-      .info-box p {
-        font-size: 0.75rem;
-        line-height: 1.3;
-      }
-
-      input[type="text"], input[type="password"] {
-        padding: 8px;
-        font-size: 16px;
-        border-radius: 6px;
-      }
-
-      .btn-login {
-        padding: 8px;
-        font-size: 14px;
-        border-radius: 6px;
-        min-height: 44px;
-      }
-
-      .remember-group {
-        font-size: 11px;
-        margin-bottom: 8px;
-      }
-
-      .form-group {
-        margin-bottom: 15px;
-      }
-    }
-
-    /* Telas muito pequenas */
-    @media (max-width: 360px) {
-      body {
-        padding: 1px;
-        padding-top: 3px;
-      }
-
-      .login-container {
-        padding: 12px 8px;
-        width: calc(100% - 2px);
-        border-radius: 8px;
+        padding: 28.8px 21.6px;
+        margin: 14.4px;
+        border-radius: 18px;
       }
 
       .logo img {
-        width: 100px;
-        max-width: 70%;
+        width: 200px !important;
       }
 
       .subtitle {
-        font-size: 0.8rem;
-        margin-bottom: 10px;
-      }
-
-      .info-box {
-        padding: 6px;
-        margin-bottom: 10px;
-      }
-
-      .info-box h3 {
-        font-size: 0.8rem;
-        margin-bottom: 4px;
-      }
-
-      .info-box p {
-        font-size: 0.7rem;
+        font-size: 1.1rem;
       }
 
       input[type="text"], input[type="password"] {
-        padding: 6px;
-        font-size: 16px;
+        padding: 14.4px;
+        font-size: 14.4px;
       }
 
       .btn-login {
-        padding: 6px;
-        font-size: 13px;
-        min-height: 40px;
+        padding: 14.4px;
+        font-size: 14.4px;
       }
 
-      .remember-group {
-        font-size: 10px;
-        margin-bottom: 6px;
-      }
-
-      .form-group {
-        margin-bottom: 12px;
+      .footer {
+        position: relative;
+        margin-top: 30px;
       }
     }
   </style>
