@@ -1,32 +1,5 @@
 // API para alteração de senha B2B
-const crypto = require('crypto');
-
-// Função para gerar hash da senha
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
-}
-
-// Função para verificar senha
-function verifyPassword(password, hash) {
-  return hashPassword(password) === hash;
-}
-
-// Simulação de banco de dados em memória (para Vercel)
-// Em produção, isso deveria ser um banco de dados real
-let passwordsDatabase = {};
-
-// Função para carregar senhas (simulada)
-function loadPasswords() {
-  console.log('Carregando senhas do banco em memória');
-  return passwordsDatabase;
-}
-
-// Função para salvar senhas (simulada)
-function savePasswords(passwords) {
-  console.log('Salvando senhas no banco em memória');
-  passwordsDatabase = { ...passwords };
-  console.log('Senhas salvas com sucesso');
-}
+const { loadPasswords, savePasswords, hashPassword, verifyPassword } = require('./passwords-shared');
 
 module.exports = async (req, res) => {
   // Headers de segurança

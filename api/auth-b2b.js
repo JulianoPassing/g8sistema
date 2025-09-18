@@ -1,34 +1,7 @@
 // API de autenticação B2B para clientes
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
-
-// Função para gerar hash da senha
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
-}
-
-// Função para verificar senha
-function verifyPassword(password, hash) {
-  return hashPassword(password) === hash;
-}
-
-// Função para carregar senhas personalizadas
-function loadPasswords() {
-  const passwordsPath = path.join(process.cwd(), 'api', 'passwords-b2b.json');
-  
-  if (!fs.existsSync(passwordsPath)) {
-    return {};
-  }
-  
-  try {
-    const data = fs.readFileSync(passwordsPath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Erro ao carregar senhas:', error);
-    return {};
-  }
-}
+const { loadPasswords, verifyPassword } = require('./passwords-shared');
 
 // Função para definir acessos por cliente
 function getAcessosCliente(cnpj) {
