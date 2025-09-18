@@ -36,7 +36,13 @@ function loadPasswords() {
 // Função para salvar senhas
 function savePasswords(passwords) {
   const passwordsPath = path.join(process.cwd(), 'api', 'passwords-b2b.json');
-  fs.writeFileSync(passwordsPath, JSON.stringify(passwords, null, 2));
+  try {
+    fs.writeFileSync(passwordsPath, JSON.stringify(passwords, null, 2));
+    console.log('Senhas salvas com sucesso em:', passwordsPath);
+  } catch (error) {
+    console.error('Erro ao salvar senhas:', error);
+    throw error;
+  }
 }
 
 module.exports = async (req, res) => {
@@ -108,10 +114,20 @@ module.exports = async (req, res) => {
     }
     
     // Salvar nova senha
+    console.log('Salvando nova senha para CNPJ:', cnpjNormalizado);
     passwords[cnpjNormalizado] = hashPassword(novaSenha);
-    savePasswords(passwords);
+    console.log('Hash da nova senha gerado');
     
-    console.log('Senha alterada com sucesso para CNPJ:', cnpjNormalizado);
+    try {
+      savePasswords(passwords);
+      console.log('Senha alterada com sucesso para CNPJ:', cnpjNormalizado);
+    } catch (saveError) {
+      console.error('Erro ao salvar senhas:', saveError);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao salvar nova senha' 
+      });
+    }
     
     return res.status(200).json({ 
       success: true, 
@@ -120,9 +136,11 @@ module.exports = async (req, res) => {
     
   } catch (error) {
     console.error('Erro ao alterar senha:', error);
+    console.error('Stack trace:', error.stack);
     return res.status(500).json({ 
       success: false, 
-      message: 'Erro interno do servidor' 
+      message: 'Erro interno do servidor',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
