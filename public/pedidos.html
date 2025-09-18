@@ -1318,6 +1318,56 @@
       </div>
     </header>
     <main class="container">
+      <!-- Seção de Busca -->
+      <section class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <span role="img" aria-label="Buscar" style="font-size: 1.8em">🔍</span>
+          <h2>Buscar Pedidos</h2>
+        </div>
+        <div style="padding: 20px;">
+          <div style="position: relative; max-width: 600px; margin: 0 auto;">
+            <input 
+              type="text" 
+              id="busca-pedidos" 
+              placeholder="🔍 Buscar por ID, razão social, CNPJ..." 
+              style="
+                width: 100%; 
+                padding: 15px 20px 15px 50px; 
+                border: 2px solid #e2e8f0; 
+                border-radius: 12px; 
+                font-size: 1rem; 
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                transition: all 0.3s ease;
+                outline: none;
+              "
+              onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 4px 20px rgba(59, 130, 246, 0.15)'"
+              onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)'"
+            />
+            <div style="
+              position: absolute; 
+              left: 18px; 
+              top: 50%; 
+              transform: translateY(-50%); 
+              color: #64748b; 
+              font-size: 1.2rem;
+              pointer-events: none;
+            ">
+              🔍
+            </div>
+            <div id="contador-resultados" style="
+              text-align: center; 
+              margin-top: 10px; 
+              color: #64748b; 
+              font-size: 0.9rem; 
+              font-weight: 500;
+            ">
+              <!-- Contador será preenchido pelo JavaScript -->
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="card">
         <div class="card-header">
           <span role="img" aria-label="Pedidos" style="font-size: 1.8em">📦</span>
