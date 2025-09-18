@@ -1505,7 +1505,10 @@ function gerarPDFPedidoEditado(pedido) {
   finalY = doc.autoTable.previous.finalY;
 
   // Observações e totais (seguindo formato original)
-  const obsText = `Transporte: ${transporte || 'A combinar'}\nPrazo Pagamento: ${prazo || 'A combinar'}\n\nObservações:\n${cliente?.obs || 'Nenhuma.'}`;
+  // Buscar valores corretos de transporte e prazo
+  const transporteReal = transporte || pedido.dados?.cliente?.transporte || 'A combinar';
+  const prazoReal = prazo || pedido.dados?.cliente?.prazo || 'A combinar';
+  const obsText = `Transporte: ${transporteReal}\nPrazo Pagamento: ${prazoReal}\n\nObservações:\n${cliente?.obs || 'Nenhuma.'}`;
   
   // Calcular subtotal sem desconto
   let subtotalSemDesconto = 0;
@@ -1760,7 +1763,7 @@ function formatarDataBrasilia(data) {
 // Exemplo de uso (caso queira reativar a coluna de data):
 // <td>${pedido.data_pedido ? formatarDataBrasilia(pedido.data_pedido) : ''}</td>
 
-// Função para gerar PDF de um pedido específico
+// Função para gerar PDF de um pedido específico (100% igual às páginas das empresas)
 window.gerarPDFPedido = async function(pedidoId) {
   try {
     // Buscar dados do pedido
@@ -1773,16 +1776,9 @@ window.gerarPDFPedido = async function(pedidoId) {
       return;
     }
 
-    // Extrair informações do pedido
-    function extrairInfoPedido(descricao) {
-      const info = {
-        cliente: 'N/A',
-        itens: [],
-        total: 'R$ 0,00'
-      };
-      
-      // Extrair cliente - versões mais flexíveis da regex
-      let clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Itens?:)/i);
+    // Usar a mesma função que gera PDF nas páginas das empresas
+    gerarPDFPedidoEditado(pedido);
+    return;
       if (!clienteMatch) {
         clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Item)/i);
       }
