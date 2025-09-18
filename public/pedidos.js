@@ -249,6 +249,9 @@ async function carregarPedidos() {
             <button class="btn-action btn-view" onclick="visualizarPDFPedido(${pedido.id})">
               👁️ Visualizar
             </button>
+            <button class="btn-action btn-pdf" onclick="gerarPDFPedido(${pedido.id})">
+              📄 Gerar PDF
+            </button>
             <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
               ✏️ Editar
             </button>
@@ -519,6 +522,9 @@ function renderizarPedidos(pedidos) {
         <div class="pedido-actions">
           <button class="btn-action btn-view" onclick="visualizarPDFPedido(${pedido.id})">
             👁️ Visualizar
+          </button>
+          <button class="btn-action btn-pdf" onclick="gerarPDFPedido(${pedido.id})">
+            📄 Gerar PDF
           </button>
           <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
             ✏️ Editar
