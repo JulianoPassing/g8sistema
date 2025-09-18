@@ -2058,9 +2058,33 @@ window.visualizarPDFPedido = async function(pedidoId) {
     // Tabela de itens (igual ao formato das empresas)
     const itens = dadosPedido.itens || [];
     const descontos = dadosPedido.descontos || {};
-    const descontoPrazo = descontos.prazo || 0;
-    const descontoVolume = descontos.volume || 0;
-    const descontoGeral = (1 - descontoPrazo / 100) * (1 - descontoVolume / 100);
+    
+    // Para pedidos B2B, os descontos podem estar em estrutura diferente
+    let descontoPrazo = descontos.prazo || 0;
+    let descontoVolume = descontos.volume || 0;
+    let descontoExtra = descontos.extra || 0;
+    
+    // Se não tem descontos na estrutura padrão, verificar se é pedido B2B
+    if (descontoPrazo === 0 && descontoVolume === 0 && dadosPedido.origem && dadosPedido.origem.includes('B2B')) {
+      // Para pedidos B2B, calcular desconto baseado no total vs subtotal
+      const subtotalSemDesconto = itens.reduce((sum, item) => sum + ((item.preco || 0) * (item.quantidade || 0)), 0);
+      const totalComDesconto = dadosPedido.total || 0;
+      
+      if (subtotalSemDesconto > 0 && totalComDesconto < subtotalSemDesconto) {
+        // Calcular percentual de desconto total
+        const percentualDesconto = ((subtotalSemDesconto - totalComDesconto) / subtotalSemDesconto) * 100;
+        
+        // Para Steitz, usar desconto "extra"
+        if (pedido.empresa === 'steitz' || pedido.empresa === 'b2b-steitz') {
+          descontoExtra = percentualDesconto;
+        } else {
+          // Para Pantaneiro, usar desconto "prazo"
+          descontoPrazo = percentualDesconto;
+        }
+      }
+    }
+    
+    const descontoGeral = (1 - descontoPrazo / 100) * (1 - descontoVolume / 100) * (1 - descontoExtra / 100);
 
     if (typeof doc.autoTable === 'function') {
       const head = [["Ref.", "Descrição", "Tam/Cor", "Qtd", "Unit.", "Desc.%", "Total"]];
@@ -2146,19 +2170,24 @@ window.visualizarPDFPedido = async function(pedidoId) {
     const summaryData = [];
     summaryData.push(["Subtotal sem Desconto:", `R$ ${subtotal.toFixed(2)}`]);
     
-    if (descontoPrazo > 0) {
-      summaryData.push([
-        `Desconto Prazo (${descontoPrazo}%):`,
-        `- R$ ${((subtotal * descontoPrazo) / 100).toFixed(2)}`,
-      ]);
-    }
-    
-    if (descontoVolume > 0) {
-      const baseDescontoVol = subtotal * (1 - descontoPrazo / 100);
-      summaryData.push([
-        `Desconto Volume (${descontoVolume}%):`,
-        `- R$ ${((baseDescontoVol * descontoVolume) / 100).toFixed(2)}`,
-      ]);
+    // Aplicar descontos conforme empresa
+    if (pedido.empresa === 'steitz' || pedido.empresa === 'b2b-steitz') {
+      // Para Steitz, usar desconto "extra"
+      if (descontoExtra > 0) {
+        const valorDescontoExtra = subtotal * (descontoExtra / 100);
+        summaryData.push([`Desconto Extra (${descontoExtra.toFixed(1)}%):`, `- R$ ${valorDescontoExtra.toFixed(2)}`]);
+      }
+    } else {
+      // Para Pantaneiro, usar desconto prazo e volume
+      if (descontoPrazo > 0) {
+        const valorDescontoPrazo = subtotal * (descontoPrazo / 100);
+        summaryData.push([`Desconto Prazo (${descontoPrazo.toFixed(1)}%):`, `- R$ ${valorDescontoPrazo.toFixed(2)}`]);
+      }
+      if (descontoVolume > 0) {
+        const baseDescontoVolume = subtotal * (1 - descontoPrazo / 100);
+        const valorDescontoVolume = baseDescontoVolume * (descontoVolume / 100);
+        summaryData.push([`Desconto Volume (${descontoVolume.toFixed(1)}%):`, `- R$ ${valorDescontoVolume.toFixed(2)}`]);
+      }
     }
     
     summaryData.push(["", ""]);

@@ -758,16 +758,23 @@
 
       <section class="card">
         <div class="card-header">
-          <span role="img" aria-label="Produtos" style="font-size: 1.8em">📦</span>
-          <h2>Adicionar Produtos ao Pedido</h2>
+          <span role="img" aria-label="Tabela de Preços" style="font-size: 1.8em">📋</span>
+          <h2>Tabela de Preços</h2>
         </div>
-        
+        <div class="form-group">
+          <label for="tabela-precos-select">Selecionar Tabela de Preços:</label>
+          <select id="tabela-precos-select">
+            <option value="a_vista">À Vista</option>
+            <option value="p_30_45_60">30/45/60 Dias</option>
+            <option value="p_30_60_90">30/60/90 Dias</option>
+          </select>
+        </div>
         <div class="form-group">
           <label for="busca-produto">Buscar Produto:</label>
           <input type="text" id="busca-produto" placeholder="Digite o nome, referência ou código do produto..." />
           <div id="sugestoes-produtos"></div>
         </div>
-      </div>
+      </section>
       
       <div id="produtos-container"></div>
       
@@ -778,7 +785,7 @@
         </div>
         
         <div id="produtos-selecionados" class="produtos-container">
-          <!-- Produtos selecionados aparecerão aqui -->
+          <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
         </div>
 
       </section>
@@ -857,126 +864,250 @@
         document.getElementById('obs').value = 'Pedido via B2B - Tabela Steitz';
       }
 
-      // ========== INÍCIO DA LISTA DE PRODUTOS ATUALIZADA ==========
+      // ========== LISTA COMPLETA DE PRODUTOS STEITZ ==========
       window.produtosData = [
         {
-          CATEGORIA: "Calçados",
-          REFERENCIA: "ST001",
-          DESCRIÇÃO: "BOTA DE SEGURANÇA STEITZ",
-          TAMANHOS: ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"],
-          PRECO: 285.50,
+          REF: "1041",
+          MODELO: "AUSTRAL-PRÓ WATER RESISTENT",
+          TAM: "37 a 45",
+          PRECOS: { p_30_60_90: 961.0, p_30_45_60: 921.0, a_vista: 898.0 },
         },
         {
-          CATEGORIA: "Calçados",
-          REFERENCIA: "ST002",
-          DESCRIÇÃO: "SAPATO DE SEGURANÇA STEITZ",
-          TAMANHOS: ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"],
-          PRECO: 245.75,
+          REF: "1042",
+          MODELO: "AUSTRAL WATER RESISTENT",
+          TAM: "37 a 45",
+          PRECOS: { p_30_60_90: 839.0, p_30_45_60: 808.0, a_vista: 789.0 },
         },
         {
-          CATEGORIA: "Calçados",
-          REFERENCIA: "ST003",
-          DESCRIÇÃO: "TÊNIS DE SEGURANÇA STEITZ",
-          TAMANHOS: ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"],
-          PRECO: 195.90,
+          REF: "1004",
+          MODELO: "BOTA MOTOC. WATER RESISTENT",
+          TAM: "34 a 44",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1020",
+          MODELO: "BOTA MOTOC.WATER RESISTENT",
+          TAM: "34 a 44",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1005",
+          MODELO: "BOTA FEM.WATER RESISTENT",
+          TAM: "34 a 39",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1007",
+          MODELO: "BOTA FEM.WATER RESISTENT",
+          TAM: "34 a 40",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1009",
+          MODELO: "BOTA MOTOC. WATER RESISTENT",
+          TAM: "33 a 39",
+          PRECOS: { p_30_60_90: 514.0, p_30_45_60: 497.0, a_vista: 479.0 },
+        },
+        {
+          REF: "1010",
+          MODELO: "BOTINA MOTOC.WATER RESISTENT",
+          TAM: "35 a 44",
+          PRECOS: { p_30_60_90: 414.0, p_30_45_60: 401.0, a_vista: 388.0 },
+        },
+        {
+          REF: "04-A",
+          MODELO: "BOTA PRETA C/PROT.",
+          TAM: "34 a 44",
+          PRECOS: { p_30_60_90: 315.0, p_30_45_60: 299.0, a_vista: 284.0 },
+        },
+        {
+          REF: "04",
+          MODELO: "BOTA PRETA C/PROT.",
+          TAM: "35 a 45",
+          PRECOS: { p_30_60_90: 315.0, p_30_45_60: 299.0, a_vista: 284.0 },
+        },
+        {
+          REF: "010",
+          MODELO: "BOTINA MOTOC.",
+          TAM: "35 a 44",
+          PRECOS: { p_30_60_90: 299.0, p_30_45_60: 285.0, a_vista: 270.0 },
+        },
+        {
+          REF: "020",
+          MODELO: "BOTA MOTOC.",
+          TAM: "34 a 44",
+          PRECOS: { p_30_60_90: 351.0, p_30_45_60: 333.0, a_vista: 316.0 },
+        },
+        {
+          REF: "4002",
+          MODELO: "BOTA NYLON & PELO C/ BORDA",
+          TAM: "35 a 39",
+          PRECOS: { p_30_60_90: 196.0, p_30_45_60: 189.0, a_vista: 182.0 },
         },
       ];
-      // ========== FIM DA LISTA DE PRODUTOS ATUALIZADA ==========
+      // ========== FIM DA LISTA DE PRODUTOS STEITZ ==========
 
       // Carregar produtos
       function carregarProdutos() {
         produtosData = window.produtosData;
         console.log('Produtos carregados:', produtosData.length);
         // Renderizar produtos após carregar
-        renderizarProdutosPorCategoria(produtosData);
+        renderizarProdutos();
       }
 
-      // Função para renderizar produtos por categoria
-      function renderizarProdutosPorCategoria(produtos = produtosData) {
-        console.log('Renderizando produtos:', produtos.length, 'produtos');
-        if (!produtosContainer) {
-          console.error('Elemento produtos-container não encontrado!');
-          return;
+      // Função para parsear range de tamanhos
+      function parseTamanhoRange(tamStr) {
+        const match = tamStr.match(/^(\d+)\s*a\s*(\d+)$/);
+        if (!match) return null;
+        const start = parseInt(match[1], 10);
+        const end = parseInt(match[2], 10);
+        if (isNaN(start) || isNaN(end) || start > end) return null;
+        const range = [];
+        for (let i = start; i <= end; i++) {
+          range.push(i.toString());
         }
-        produtosContainer.innerHTML = "";
-        const categoriasOrdenadas = ["Calçados", "Acessórios"];
-        const categoriasAgrupadas = produtos.reduce((acc, produto) => {
-          acc[produto.CATEGORIA] = acc[produto.CATEGORIA] || [];
-          acc[produto.CATEGORIA].push(produto);
-          return acc;
-        }, {});
-        categoriasOrdenadas.forEach((categoria) => {
-          const categoriaProdutos = categoriasAgrupadas[categoria];
-          if (!categoriaProdutos || categoriaProdutos.length === 0) return;
-          const categoriaDiv = document.createElement("section");
-          categoriaDiv.className = "card";
-          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
-          categoriaProdutos.forEach((produto) => {
-            const tamanhosNormais = true; // Para Steitz, todos os produtos têm tamanhos normais
-            let tamanhosInputHTML = '<div class="tamanho-input-container">';
-            const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
-            tamanhosProduto.forEach((tamanho) => {
-              const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
-              tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+        return range;
+      }
+
+      // Função para renderizar produtos
+      function renderizarProdutos() {
+        const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
+        const table = document.createElement("table");
+        table.innerHTML = `<thead><tr><th>REF.</th><th>MODELO</th><th>PREÇO UNIT.</th><th>TAMANHOS</th><th>COR</th><th>AÇÃO</th></tr></thead>`;
+        const tbody = document.createElement("tbody");
+        
+        window.produtosData.forEach((produto) => {
+          const preco = produto.PRECOS[tabelaSelecionada];
+          const row = document.createElement("tr");
+          const tamanhosRange = parseTamanhoRange(produto.TAM);
+          let tamanhosHtml = "";
+          
+          if (tamanhosRange) {
+            tamanhosHtml = '<div class="tamanho-input-container">';
+            tamanhosRange.forEach((tamanho) => {
+              tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
             });
-            tamanhosInputHTML += "</div>";
-            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
-          });
-          tabelaHTML += `</tbody></table></div>`;
-          categoriaDiv.innerHTML = tabelaHTML;
-          produtosContainer.appendChild(categoriaDiv);
+            tamanhosHtml += "</div>";
+          } else {
+            tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
+          }
+          
+          row.innerHTML = `<td>${produto.REF}</td><td>${
+            produto.MODELO
+          }</td><td>R$ ${preco.toFixed(2)}</td><td style="width: 30%;">${tamanhosHtml}</td><td style="width: 15%;"><input type="text" class="manual-input" id="cor-${
+            produto.REF
+          }" placeholder="Opcional"></td><td><button data-ref="${
+            produto.REF
+          }" class="btn btn-success btn-sm">Adicionar</button></td>`;
+          tbody.appendChild(row);
         });
+        
+        table.appendChild(tbody);
+        produtosContainer.innerHTML = "";
+        produtosContainer.appendChild(table);
+      }
+
+      // Função para parsear tamanhos manuais
+      function parseTamanhosInput(inputStr) {
+        if (!inputStr || inputStr.trim() === "") return [];
+        const pares = inputStr.split(",");
+        const resultado = [];
+        for (const par of pares) {
+          const partes = par.split(":");
+          if (partes.length !== 2) {
+            alert(`Formato inválido: "${par}". Use "tamanho:quantidade".`);
+            return null;
+          }
+          const tamanho = partes[0].trim();
+          const quantidade = parseInt(partes[1].trim(), 10);
+          if (!tamanho || isNaN(quantidade) || quantidade <= 0) {
+            alert(`Valor inválido: "${par}".`);
+            return null;
+          }
+          resultado.push({
+            tamanho,
+            quantidade,
+          });
+        }
+        return resultado;
       }
 
       // Função para adicionar produto ao pedido
-      function adicionarAoPedido(produto) {
-        const corSelecionada = document
-          .getElementById(`cor-${produto.REFERENCIA}`)
-          .value.trim();
-        let itemAdicionado = false;
-        const handleItem = (tamanho, quantidade) => {
-          if (quantidade <= 0) return;
-          itemAdicionado = true;
-          let precoFinal = produto.PRECO;
-          let itemDesc = tamanho;
-          if (corSelecionada) itemDesc += `, Cor: ${corSelecionada}`;
-          const itemExistente = window.pedidoItens.find(
-            (item) =>
-              item.REFERENCIA === produto.REFERENCIA &&
-              item.tamanho === itemDesc &&
-              item.preco === precoFinal
-          );
-          if (itemExistente) {
-            itemExistente.quantidade += quantidade;
-          } else {
-            window.pedidoItens.push({
-              REFERENCIA: produto.REFERENCIA,
-              DESCRIÇÃO: produto.DESCRIÇÃO,
-              tamanho: itemDesc,
-              preco: precoFinal,
-              quantidade: quantidade,
+      function adicionarAoPedido(ref) {
+        const produto = window.produtosData.find((p) => p.REF === ref);
+        if (!produto) return;
+        
+        const cor = document.getElementById(`cor-${ref}`).value.trim();
+        const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
+        const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
+        let itensAdicionados = 0;
+        
+        const tamanhosRange = parseTamanhoRange(produto.TAM);
+        if (tamanhosRange) {
+          tamanhosRange.forEach((tamanho) => {
+            const input = document.getElementById(`qty-${produto.REF}-${tamanho}`);
+            const quantidade = parseInt(input.value, 10);
+            if (quantidade > 0) {
+              const precoFinal = precoUnitarioBase;
+              const itemExistente = window.pedidoItens.find(
+                (item) =>
+                  item.REF === ref &&
+                  item.tamanho === tamanho &&
+                  item.preco === precoFinal &&
+                  item.cor.toLowerCase() === cor.toLowerCase()
+              );
+              if (itemExistente) {
+                itemExistente.quantidade += quantidade;
+              } else {
+                window.pedidoItens.push({
+                  REF: produto.REF,
+                  MODELO: produto.MODELO,
+                  tamanho: tamanho,
+                  quantidade: quantidade,
+                  cor: cor || "-",
+                  preco: precoFinal,
+                });
+              }
+              input.value = "";
+              itensAdicionados++;
+            }
+          });
+        } else {
+          const manualInput = document.getElementById(`tamanhos-manual-${ref}`);
+          const grade = parseTamanhosInput(manualInput.value);
+          if (grade && grade.length > 0) {
+            grade.forEach((itemGrade) => {
+              const precoFinal = precoUnitarioBase;
+              const itemExistente = window.pedidoItens.find(
+                (item) =>
+                  item.REF === ref &&
+                  item.tamanho === itemGrade.tamanho &&
+                  item.preco === precoFinal &&
+                  item.cor.toLowerCase() === cor.toLowerCase()
+              );
+              if (itemExistente) {
+                itemExistente.quantidade += itemGrade.quantidade;
+              } else {
+                window.pedidoItens.push({
+                  REF: produto.REF,
+                  MODELO: produto.MODELO,
+                  tamanho: itemGrade.tamanho,
+                  quantidade: itemGrade.quantidade,
+                  cor: cor || "-",
+                  preco: precoFinal,
+                });
+              }
+              itensAdicionados++;
             });
+            manualInput.value = "";
           }
-        };
-        const tamanhosProduto = Array.isArray(produto.TAMANHOS)
-          ? produto.TAMANHOS
-          : [produto.TAMANHOS];
-        tamanhosProduto.forEach((tamanho) => {
-          const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
-          const quantidade =
-            parseInt(
-              document.getElementById(
-                `quantidade-${produto.REFERENCIA}-${tamanhoId}`
-              ).value
-            ) || 0;
-          handleItem(tamanho, quantidade);
-        });
-        if (itemAdicionado) {
+        }
+        
+        if (itensAdicionados > 0) {
+          document.getElementById(`cor-${ref}`).value = "";
           atualizarVisualizacaoPedido();
         } else {
-          alert(
-            `Por favor, informe a quantidade para pelo menos um tamanho do produto ${produto.DESCRIÇÃO}.`
-          );
+          alert("Nenhuma quantidade foi preenchida para este produto.");
         }
       }
 
@@ -1000,14 +1131,19 @@
 
       // Função para atualizar visualização do pedido
       function atualizarVisualizacaoPedido() {
+        const pedidoContainer = document.getElementById("produtos-selecionados");
+        const pedidoVazio = document.getElementById("pedido-vazio");
+        
         pedidoContainer.innerHTML = "";
         subtotalPedido = 0;
+        
         // Garante que window.pedidoItens sempre seja um array
         if (!Array.isArray(window.pedidoItens)) {
           window.pedidoItens = [];
         }
+        
         if (window.pedidoItens.length > 0) {
-          pedidoVazio.style.display = "none";
+          if (pedidoVazio) pedidoVazio.style.display = "none";
           window.pedidoItens.forEach((item, index) => {
             const itemDiv = document.createElement("div");
             itemDiv.className = "pedido-item";
@@ -1015,12 +1151,16 @@
             subtotalPedido += precoTotalItem;
             itemDiv.innerHTML = `
               <div class="pedido-item-info">
-                <strong>${item.DESCRIÇÃO}</strong>
-                <span>Ref: ${item.REFERENCIA}</span>
+                <strong>${item.MODELO}</strong>
+                <span>Ref: ${item.REF}</span>
                 <span>•</span>
-                <span>${item.tamanho}</span>
+                <span>Tam: ${item.tamanho}</span>
+                <span>•</span>
+                <span>Cor: ${item.cor}</span>
                 <span>•</span>
                 <span>Qtd: <input type="number" min="1" value="${item.quantidade}" onchange="alterarQuantidade(${index}, this.value)"></span>
+                <span>•</span>
+                <span>Unit: R$ ${item.preco.toFixed(2)}</span>
                 <span>•</span>
                 <span style="font-weight: 600; color: var(--primary-color);">Total: R$ ${precoTotalItem.toFixed(2)}</span>
                 <div class="pedido-item-actions">
@@ -1033,7 +1173,7 @@
             pedidoContainer.appendChild(itemDiv);
           });
         } else {
-          pedidoVazio.style.display = "block";
+          if (pedidoVazio) pedidoVazio.style.display = "block";
         }
 
         // Mostrar total do pedido
@@ -1120,10 +1260,10 @@
           return;
         }
         const filtroLower = filtro.toLowerCase();
-        const produtosFiltrados = produtosData.filter((produto) => {
+        const produtosFiltrados = window.produtosData.filter((produto) => {
           return (
-            (produto.REFERENCIA && String(produto.REFERENCIA).toLowerCase().includes(filtroLower)) ||
-            (produto.DESCRIÇÃO && String(produto.DESCRIÇÃO).toLowerCase().includes(filtroLower))
+            (produto.REF && String(produto.REF).toLowerCase().includes(filtroLower)) ||
+            (produto.MODELO && String(produto.MODELO).toLowerCase().includes(filtroLower))
           );
         });
         if (produtosFiltrados.length === 0) {
@@ -1134,10 +1274,10 @@
         produtosFiltrados.slice(0, 8).forEach((produto) => {
           const item = document.createElement("div");
           item.className = "sugestao-cliente-item";
-          item.innerHTML = `<strong>${produto.REFERENCIA}</strong> - ${produto.DESCRIÇÃO}`;
+          item.innerHTML = `<strong>${produto.REF}</strong> - ${produto.MODELO}`;
           item.addEventListener("mousedown", (e) => {
             e.preventDefault();
-            document.getElementById("busca-produto").value = `${produto.REFERENCIA} - ${produto.DESCRIÇÃO}`;
+            document.getElementById("busca-produto").value = `${produto.REF} - ${produto.MODELO}`;
             sugestoesDiv.style.display = "none";
             renderizarProdutosFiltrados([produto]);
           });
@@ -1148,25 +1288,44 @@
       // Função para renderizar produtos filtrados (ou todos)
       function renderizarProdutosFiltrados(produtos) {
         produtosContainer.innerHTML = "";
-        // Agrupa por categoria se vier mais de um produto, senão mostra só o produto
-        if (produtos.length === 1) {
-          const produto = produtos[0];
-          const categoriaDiv = document.createElement("section");
-          categoriaDiv.className = "card";
-          let tabelaHTML = `<div class="card-header"><h2>${produto.CATEGORIA}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
-          let tamanhosInputHTML = '<div class="tamanho-input-container">';
-          const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
-          tamanhosProduto.forEach((tamanho) => {
-            const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
-            tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+        // Se for busca específica, mostra só os produtos filtrados
+        if (produtos.length < window.produtosData.length) {
+          const table = document.createElement("table");
+          table.innerHTML = `<thead><tr><th>REF.</th><th>MODELO</th><th>PREÇO UNIT.</th><th>TAMANHOS</th><th>COR</th><th>AÇÃO</th></tr></thead>`;
+          const tbody = document.createElement("tbody");
+          
+          produtos.forEach((produto) => {
+            const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
+            const preco = produto.PRECOS[tabelaSelecionada];
+            const row = document.createElement("tr");
+            const tamanhosRange = parseTamanhoRange(produto.TAM);
+            let tamanhosHtml = "";
+            
+            if (tamanhosRange) {
+              tamanhosHtml = '<div class="tamanho-input-container">';
+              tamanhosRange.forEach((tamanho) => {
+                tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
+              });
+              tamanhosHtml += "</div>";
+            } else {
+              tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
+            }
+            
+            row.innerHTML = `<td>${produto.REF}</td><td>${
+              produto.MODELO
+            }</td><td>R$ ${preco.toFixed(2)}</td><td style="width: 30%;">${tamanhosHtml}</td><td style="width: 15%;"><input type="text" class="manual-input" id="cor-${
+              produto.REF
+            }" placeholder="Opcional"></td><td><button data-ref="${
+              produto.REF
+            }" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            tbody.appendChild(row);
           });
-          tamanhosInputHTML += "</div>";
-          tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
-          tabelaHTML += `</tbody></table></div>`;
-          categoriaDiv.innerHTML = tabelaHTML;
-          produtosContainer.appendChild(categoriaDiv);
+          
+          table.appendChild(tbody);
+          produtosContainer.appendChild(table);
         } else {
-          renderizarProdutosPorCategoria(produtos);
+          // Se não há filtro, mostra todos os produtos
+          renderizarProdutos();
         }
       }
 
@@ -1175,14 +1334,29 @@
         preencherInformacoesCliente();
         carregarProdutos();
         
+        // Event listener para mudança de tabela de preços
+        const tabelaPrecosSelect = document.getElementById('tabela-precos-select');
+        tabelaPrecosSelect.addEventListener('change', renderizarProdutos);
+        
+        // Event listener para cliques nos botões de adicionar
+        produtosContainer.addEventListener('click', (e) => {
+          if (e.target.tagName === 'BUTTON') {
+            const ref = e.target.getAttribute('data-ref');
+            if (ref) {
+              adicionarAoPedido(ref);
+            }
+          }
+        });
+        
         // Busca de produtos
         const buscaProdutoInput = document.getElementById("busca-produto");
         buscaProdutoInput.addEventListener("input", (e) => {
           mostrarSugestoesProdutos(e.target.value);
           if (!e.target.value) {
-            renderizarProdutosPorCategoria(window.produtosData);
+            renderizarProdutos();
           }
         });
+        
         document.addEventListener("mousedown", (event) => {
           const sugestoesDiv = document.getElementById("sugestoes-produtos");
           const buscaProdutoInput = document.getElementById("busca-produto");
