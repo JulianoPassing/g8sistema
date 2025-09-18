@@ -702,17 +702,56 @@
   .table-responsive {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   
   .table-responsive table {
     min-width: 800px !important;
     font-size: 12px !important;
+    width: 100% !important;
+    table-layout: fixed !important;
   }
   
   .table-responsive th,
   .table-responsive td {
     padding: 8px 4px !important;
     white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  
+  /* Colunas específicas da tabela B2B */
+  .table-responsive th:nth-child(1),
+  .table-responsive td:nth-child(1) {
+    width: 60px !important; /* REF */
+  }
+  
+  .table-responsive th:nth-child(2),
+  .table-responsive td:nth-child(2) {
+    width: 120px !important; /* DESCRIÇÃO */
+  }
+  
+  .table-responsive th:nth-child(3),
+  .table-responsive td:nth-child(3) {
+    width: 80px !important; /* PREÇO */
+  }
+  
+  .table-responsive th:nth-child(4),
+  .table-responsive td:nth-child(4) {
+    width: 200px !important; /* Tamanhos & Quantidades */
+  }
+  
+  .table-responsive th:nth-child(5),
+  .table-responsive td:nth-child(5) {
+    width: 80px !important; /* Cor */
+  }
+  
+  .table-responsive th:nth-child(6),
+  .table-responsive td:nth-child(6) {
+    width: 100px !important; /* Ação */
   }
   
   /* Container de tamanhos */
@@ -811,8 +850,39 @@
   /* Responsividade para telas muito pequenas */
   @media screen and (max-width: 480px) {
     .table-responsive table {
-      min-width: 700px !important;
-      font-size: 11px !important;
+      min-width: 600px !important;
+      font-size: 10px !important;
+    }
+    
+    /* Ajustar larguras das colunas para telas pequenas */
+    .table-responsive th:nth-child(1),
+    .table-responsive td:nth-child(1) {
+      width: 50px !important; /* REF */
+    }
+    
+    .table-responsive th:nth-child(2),
+    .table-responsive td:nth-child(2) {
+      width: 100px !important; /* DESCRIÇÃO */
+    }
+    
+    .table-responsive th:nth-child(3),
+    .table-responsive td:nth-child(3) {
+      width: 70px !important; /* PREÇO */
+    }
+    
+    .table-responsive th:nth-child(4),
+    .table-responsive td:nth-child(4) {
+      width: 180px !important; /* Tamanhos & Quantidades */
+    }
+    
+    .table-responsive th:nth-child(5),
+    .table-responsive td:nth-child(5) {
+      width: 60px !important; /* Cor */
+    }
+    
+    .table-responsive th:nth-child(6),
+    .table-responsive td:nth-child(6) {
+      width: 80px !important; /* Ação */
     }
     
     .tamanho-input-container {
@@ -820,13 +890,13 @@
     }
     
     .tamanho-input-container input {
-      width: 35px !important;
-      font-size: 10px !important;
+      width: 30px !important;
+      font-size: 9px !important;
     }
     
     .btn-sm {
       padding: 4px 6px !important;
-      font-size: 10px !important;
+      font-size: 9px !important;
     }
     
     .header-center img {
@@ -835,6 +905,29 @@
     
     .card-header h2 {
       font-size: 1.1rem !important;
+    }
+  }
+  
+  /* Responsividade para telas extra pequenas */
+  @media screen and (max-width: 360px) {
+    .table-responsive table {
+      min-width: 500px !important;
+      font-size: 9px !important;
+    }
+    
+    .table-responsive th,
+    .table-responsive td {
+      padding: 4px 2px !important;
+    }
+    
+    .tamanho-input-container input {
+      width: 25px !important;
+      font-size: 8px !important;
+    }
+    
+    .btn-sm {
+      padding: 2px 4px !important;
+      font-size: 8px !important;
     }
   }
 } 
