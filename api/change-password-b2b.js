@@ -1,6 +1,4 @@
 // API para alteração de senha B2B
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
 
 // Função para gerar hash da senha
@@ -13,36 +11,21 @@ function verifyPassword(password, hash) {
   return hashPassword(password) === hash;
 }
 
-// Função para carregar senhas
+// Simulação de banco de dados em memória (para Vercel)
+// Em produção, isso deveria ser um banco de dados real
+let passwordsDatabase = {};
+
+// Função para carregar senhas (simulada)
 function loadPasswords() {
-  const passwordsPath = path.join(process.cwd(), 'api', 'passwords-b2b.json');
-  
-  if (!fs.existsSync(passwordsPath)) {
-    // Criar arquivo com senhas padrão se não existir
-    const defaultPasswords = {};
-    fs.writeFileSync(passwordsPath, JSON.stringify(defaultPasswords, null, 2));
-    return defaultPasswords;
-  }
-  
-  try {
-    const data = fs.readFileSync(passwordsPath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Erro ao carregar senhas:', error);
-    return {};
-  }
+  console.log('Carregando senhas do banco em memória');
+  return passwordsDatabase;
 }
 
-// Função para salvar senhas
+// Função para salvar senhas (simulada)
 function savePasswords(passwords) {
-  const passwordsPath = path.join(process.cwd(), 'api', 'passwords-b2b.json');
-  try {
-    fs.writeFileSync(passwordsPath, JSON.stringify(passwords, null, 2));
-    console.log('Senhas salvas com sucesso em:', passwordsPath);
-  } catch (error) {
-    console.error('Erro ao salvar senhas:', error);
-    throw error;
-  }
+  console.log('Salvando senhas no banco em memória');
+  passwordsDatabase = { ...passwords };
+  console.log('Senhas salvas com sucesso');
 }
 
 module.exports = async (req, res) => {
