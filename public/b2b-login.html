@@ -414,6 +414,10 @@
         });
 
         const data = await response.json();
+        console.log('Resposta do servidor:', data);
+        if (data.debug) {
+          console.log('Debug do login:', data.debug);
+        }
 
         if (data.success) {
           // Salvar dados do cliente no localStorage
