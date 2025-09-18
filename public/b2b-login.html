@@ -42,6 +42,15 @@
       position: relative;
     }
 
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 20px;
+      }
+    }
+
     /* Fundo animado sutil G8 */
     body::before {
       content: '';
@@ -88,6 +97,13 @@
       text-decoration: none;
     }
 
+    @media (max-width: 768px) {
+      .footer {
+        padding: 15px 10px;
+        font-size: 12px;
+        margin-top: 20px;
+      }
+    }
 
     .login-container {
       background: white;
@@ -101,7 +117,16 @@
       overflow: hidden;
       border: 2px solid transparent;
       transition: all 0.3s ease;
-      margin-bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+      .login-container {
+        padding: 25px 20px;
+        margin: 0 0 20px 0;
+        max-width: 100%;
+        border-radius: 15px;
+        width: calc(100% - 20px);
+      }
     }
 
     .login-container:hover {
@@ -127,17 +152,37 @@
     }
 
     .logo img {
-      width: 200px !important;
-      height: auto !important;
-      margin-bottom: 20px !important;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-      transition: all 0.3s ease;
+      width: 300px;
+      height: auto;
+      object-fit: contain;
+      max-width: 90%;
+    }
+
+    @media (max-width: 768px) {
+      .logo img {
+        width: 200px;
+        max-width: 80%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .logo img {
+        width: 150px;
+        max-width: 75%;
+      }
     }
 
     .subtitle {
       color: #666;
       margin-bottom: 30px;
       font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+      .subtitle {
+        font-size: 1rem;
+        margin-bottom: 20px;
+      }
     }
 
     .form-group {
@@ -162,6 +207,14 @@
       box-sizing: border-box;
     }
 
+    @media (max-width: 768px) {
+      input[type="text"], input[type="password"] {
+        padding: 12px;
+        font-size: 16px; /* Previne zoom no iOS */
+        border-radius: 8px;
+      }
+    }
+
     input[type="text"]:focus, input[type="password"]:focus {
       outline: none;
       border-color: var(--g8-red);
@@ -180,6 +233,15 @@
       cursor: pointer;
       transition: all 0.3s ease;
       margin-top: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .btn-login {
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 8px;
+        min-height: 48px; /* Melhora área de toque */
+      }
     }
 
     .btn-login:hover {
@@ -233,6 +295,14 @@
       text-align: left;
     }
 
+    @media (max-width: 768px) {
+      .info-box {
+        padding: 12px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+      }
+    }
+
     .info-box h3 {
       margin: 0 0 10px 0;
       color: #2d3748;
@@ -245,6 +315,17 @@
       font-size: 0.9rem;
     }
 
+    @media (max-width: 768px) {
+      .info-box h3 {
+        font-size: 1rem;
+        margin-bottom: 8px;
+      }
+
+      .info-box p {
+        font-size: 0.85rem;
+      }
+    }
+
     .remember-group {
       display: flex;
       align-items: center;
@@ -252,6 +333,13 @@
       margin-bottom: 15px;
       font-size: 14px;
       text-align: left;
+    }
+
+    @media (max-width: 768px) {
+      .remember-group {
+        margin-bottom: 12px;
+        font-size: 13px;
+      }
     }
 
     .remember-group input[type="checkbox"] {
@@ -273,35 +361,49 @@
       color: var(--g8-red);
     }
 
-    /* Responsive design - mesmo padrão do index.html */
     @media (max-width: 480px) {
       .login-container {
-        padding: 28.8px 21.6px;
-        margin: 14.4px;
-        border-radius: 18px;
+        padding: 20px 15px;
+        margin: 5px 0 15px 0;
+        width: calc(100% - 10px);
       }
-
+      
       .logo img {
-        width: 200px !important;
+        width: 150px;
+        max-width: 75%;
       }
 
       .subtitle {
-        font-size: 1.1rem;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+      }
+
+      .info-box {
+        padding: 10px;
+        margin-bottom: 15px;
+      }
+
+      .info-box h3 {
+        font-size: 0.9rem;
+      }
+
+      .info-box p {
+        font-size: 0.8rem;
       }
 
       input[type="text"], input[type="password"] {
-        padding: 14.4px;
-        font-size: 14.4px;
+        padding: 10px;
+        font-size: 16px;
       }
 
       .btn-login {
-        padding: 14.4px;
-        font-size: 14.4px;
+        padding: 10px;
+        font-size: 15px;
       }
 
-      .footer {
-        position: relative;
-        margin-top: 30px;
+      .remember-group {
+        font-size: 12px;
+        margin-bottom: 10px;
       }
     }
   </style>
