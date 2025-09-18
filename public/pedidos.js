@@ -1003,44 +1003,6 @@ function criarModalProdutos() {
         </div>
       </div>
     </div>
-    
-    <style>
-      @media (max-width: 768px) {
-        #modal-produtos > div {
-          width: 95% !important;
-          max-width: none !important;
-          max-height: 90vh !important;
-          margin: 10px !important;
-        }
-        
-        #modal-produtos .modal-header {
-          padding: 15px !important;
-        }
-        
-        #modal-produtos .modal-header h3 {
-          font-size: 1.1rem !important;
-        }
-        
-        #modal-produtos .modal-header p {
-          font-size: 0.8rem !important;
-        }
-        
-        #modal-produtos .modal-body {
-          padding: 15px !important;
-        }
-        
-        #lista-produtos-modal {
-          max-height: 60vh !important;
-          border: none !important;
-          border-radius: 0 !important;
-        }
-        
-        #busca-modal-produtos {
-          font-size: 16px !important;
-          padding: 14px !important;
-        }
-      }
-    </style>
   `;
   
   document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -1098,57 +1060,46 @@ function renderizarProdutosModal(produtos) {
     return;
   }
   
-  // Detectar se é mobile
-  const isMobile = window.innerWidth <= 768;
-  
   // Adicionar contador de produtos
   let html = `
     <div style="padding: 10px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; color: #64748b; text-align: center;">
       📊 ${produtos.length} produto${produtos.length !== 1 ? 's' : ''} encontrado${produtos.length !== 1 ? 's' : ''}
     </div>
+    <table style="width: 100%; border-collapse: collapse;">
   `;
   
-  if (isMobile) {
-    // Layout de cards para mobile
-    html += '<div style="display: flex; flex-direction: column; gap: 12px; padding: 12px;">';
+  // Cabeçalho específico por empresa
+  if (pedidoEditando.empresa === 'steitz') {
+    const tabelaNome = {
+      'a_vista': 'À Vista',
+      'p_30_45_60': '30/45/60 dias',
+      'p_30_60_90': '30/60/90 dias'
+    };
+    
+    html += `
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ref.</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Modelo</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Preço (${tabelaNome[tabelaPrecosSelecionada]})</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ação</th>
+        </tr>
+      </thead>
+    `;
   } else {
-    // Layout de tabela para desktop
-    html += '<table style="width: 100%; border-collapse: collapse;">';
+    html += `
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ref.</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Descrição</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Preço</th>
+          <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ação</th>
+        </tr>
+      </thead>
+    `;
   }
   
-  // Cabeçalho da tabela apenas para desktop
-  if (!isMobile) {
-    if (pedidoEditando.empresa === 'steitz') {
-      const tabelaNome = {
-        'a_vista': 'À Vista',
-        'p_30_45_60': '30/45/60 dias',
-        'p_30_60_90': '30/60/90 dias'
-      };
-      
-      html += `
-        <thead>
-          <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ref.</th>
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Modelo</th>
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Preço (${tabelaNome[tabelaPrecosSelecionada]})</th>
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ação</th>
-          </tr>
-        </thead>
-      `;
-    } else {
-      html += `
-        <thead>
-          <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ref.</th>
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Descrição</th>
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Preço</th>
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #1e293b;">Ação</th>
-          </tr>
-        </thead>
-      `;
-    }
-    html += '<tbody>';
-  }
+  html += '<tbody>';
   
   produtos.forEach((produto, index) => {
     const ref = produto.REFERENCIA || produto.REF || '';
@@ -1157,88 +1108,38 @@ function renderizarProdutosModal(produtos) {
       (produto.PRECOS?.[tabelaPrecosSelecionada] || produto.PRECOS?.a_vista || 0) : 
       (produto.PRECO || 0);
     
-    if (isMobile) {
-      // Layout de card para mobile
-      html += `
-        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s ease; position: relative; overflow: hidden;">
-          <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #3b82f6, #10b981, #f59e0b);"></div>
-          
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-            <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);">
-              ${ref}
-            </div>
-            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 1rem; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
-              R$ ${preco.toFixed(2)}
-            </div>
-          </div>
-          
-          <div style="margin-bottom: 16px; padding: 12px; background: rgba(248, 250, 252, 0.7); border-radius: 8px; border-left: 4px solid #3b82f6;">
-            <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem; line-height: 1.4; margin-bottom: 4px;">
-              📦 ${desc}
-            </div>
-          </div>
-          
+    html += `
+      <tr style="border-bottom: 1px solid #e2e8f0; transition: all 0.2s;" 
+          onmouseover="this.style.background='#f8fafc'; this.style.transform='translateX(2px)'" 
+          onmouseout="this.style.background='transparent'; this.style.transform='translateX(0)'">
+        <td style="padding: 12px; font-weight: 700; color: #2563eb; font-size: 0.95rem;">${ref}</td>
+        <td style="padding: 12px; color: #334155; line-height: 1.4;">${desc}</td>
+        <td style="padding: 12px; color: #059669; font-weight: 700; font-size: 1rem;">R$ ${preco.toFixed(2)}</td>
+        <td style="padding: 12px;">
           <button onclick="selecionarProdutoModal(${index})" 
-                  style="width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+                  style="background: linear-gradient(135deg, #059669 0%, #047857 100%); 
                          color: white; 
                          border: none; 
-                         padding: 14px 20px; 
-                         border-radius: 10px; 
+                         padding: 10px 20px; 
+                         border-radius: 8px; 
                          cursor: pointer; 
-                         font-weight: 700; 
-                         font-size: 1rem;
+                         font-weight: 600; 
+                         font-size: 0.9rem;
                          transition: all 0.3s;
-                         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+                         box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
                          position: relative;
-                         overflow: hidden;
-                         text-transform: uppercase;
-                         letter-spacing: 0.5px;"
-                  onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16, 185, 129, 0.4)'"
-                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.25)'"
+                         overflow: hidden;"
+                  onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(5, 150, 105, 0.4)'"
+                  onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 2px 6px rgba(5, 150, 105, 0.3)'"
                   title="Clique para adicionar este produto ao pedido">
-            ✓ Selecionar Produto
+            ✓ Selecionar
           </button>
-        </div>
-      `;
-    } else {
-      // Layout de tabela para desktop
-      html += `
-        <tr style="border-bottom: 1px solid #e2e8f0; transition: all 0.2s;" 
-            onmouseover="this.style.background='#f8fafc'; this.style.transform='translateX(2px)'" 
-            onmouseout="this.style.background='transparent'; this.style.transform='translateX(0)'">
-          <td style="padding: 12px; font-weight: 700; color: #2563eb; font-size: 0.95rem;">${ref}</td>
-          <td style="padding: 12px; color: #334155; line-height: 1.4;">${desc}</td>
-          <td style="padding: 12px; color: #059669; font-weight: 700; font-size: 1rem;">R$ ${preco.toFixed(2)}</td>
-          <td style="padding: 12px;">
-            <button onclick="selecionarProdutoModal(${index})" 
-                    style="background: linear-gradient(135deg, #059669 0%, #047857 100%); 
-                           color: white; 
-                           border: none; 
-                           padding: 10px 20px; 
-                           border-radius: 8px; 
-                           cursor: pointer; 
-                           font-weight: 600; 
-                           font-size: 0.9rem;
-                           transition: all 0.3s;
-                           box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
-                           position: relative;
-                           overflow: hidden;"
-                    onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(5, 150, 105, 0.4)'"
-                    onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 2px 6px rgba(5, 150, 105, 0.3)'"
-                    title="Clique para adicionar este produto ao pedido">
-              ✓ Selecionar
-            </button>
-          </td>
-        </tr>
-      `;
-    }
+        </td>
+      </tr>
+    `;
   });
   
-  if (isMobile) {
-    html += '</div>';
-  } else {
-    html += '</tbody></table>';
-  }
+  html += '</tbody></table>';
   lista.innerHTML = html;
 }
 

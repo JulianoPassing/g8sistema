@@ -632,6 +632,126 @@
         margin: 0;
       }
 
+      /* Estilos para cards de produtos mobile */
+      .produtos-mobile-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+      }
+
+      .produto-card-mobile {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 15px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .produto-card-mobile:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-2px);
+      }
+
+      .produto-header-mobile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .produto-ref-mobile {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+      }
+
+      .produto-preco-mobile {
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: var(--success-color);
+      }
+
+      .produto-descricao-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-descricao-mobile h4 {
+        margin: 0 0 5px 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        line-height: 1.3;
+      }
+
+      .produto-descricao-mobile small {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .produto-tamanhos-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-tamanhos-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-cor-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+      }
+
+      .btn-adicionar-mobile {
+        width: 100%;
+        background: var(--gradient-success);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-adicionar-mobile:hover {
+        background: var(--success-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
+      /* Ocultar tabelas em mobile */
+      .table-responsive {
+        display: block;
+      }
+
       @media (max-width: 768px) {
         .header-top {
           padding: 10px 15px;
@@ -649,6 +769,32 @@
         #logout-button, .btn {
           padding: 6px 12px;
           font-size: 0.8rem;
+        }
+
+        /* Ocultar tabelas em mobile */
+        .table-responsive {
+          display: none;
+        }
+
+        /* Mostrar container mobile */
+        .produtos-mobile-container {
+          display: flex;
+        }
+
+        /* Ajustar container de produtos */
+        #produtos-container {
+          max-height: none;
+          overflow: visible;
+        }
+
+        /* Ajustar cards */
+        .card {
+          padding: 15px;
+          margin-bottom: 20px;
+        }
+
+        .card-header h2 {
+          font-size: 1.3rem;
         }
       }
     </style>
@@ -2981,6 +3127,12 @@ window.produtosData = [
           if (!sugestoesDiv.contains(event.target) && event.target !== buscaProdutoInput) {
             sugestoesDiv.style.display = "none";
           }
+        });
+
+        // Event listener para redimensionamento da janela
+        window.addEventListener('resize', () => {
+          // Re-renderizar produtos quando a tela for redimensionada
+          renderizarProdutosPorCategoria(window.produtosData);
         });
       }
     </script>
