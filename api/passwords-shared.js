@@ -1,32 +1,21 @@
 // Banco de dados compartilhado para senhas B2B
 // Este arquivo é compartilhado entre auth-b2b.js e change-password-b2b.js
 
-// Para Vercel, usar uma abordagem diferente - armazenar no processo
-if (!process.env.PASSWORDS_DB) {
-  process.env.PASSWORDS_DB = JSON.stringify({});
-}
+// Usar uma variável estática no módulo para persistir entre requisições
+let passwordsDatabase = {};
 
 // Função para carregar senhas
 function loadPasswords() {
-  console.log('Carregando senhas do banco em memória (process.env)');
-  try {
-    return JSON.parse(process.env.PASSWORDS_DB || '{}');
-  } catch (error) {
-    console.error('Erro ao carregar senhas:', error);
-    return {};
-  }
+  console.log('Carregando senhas do banco em memória (módulo)');
+  console.log('Senhas atuais:', Object.keys(passwordsDatabase));
+  return passwordsDatabase;
 }
 
 // Função para salvar senhas
 function savePasswords(passwords) {
-  console.log('Salvando senhas no banco em memória (process.env)');
-  try {
-    process.env.PASSWORDS_DB = JSON.stringify(passwords);
-    console.log('Senhas salvas com sucesso no process.env:', Object.keys(passwords));
-  } catch (error) {
-    console.error('Erro ao salvar senhas:', error);
-    throw error;
-  }
+  console.log('Salvando senhas no banco em memória (módulo)');
+  passwordsDatabase = { ...passwords };
+  console.log('Senhas salvas com sucesso no módulo:', Object.keys(passwordsDatabase));
 }
 
 // Função para gerar hash da senha
