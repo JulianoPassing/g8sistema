@@ -6,9 +6,13 @@ Sistema **SUPER SIMPLES** para controlar acesso:
 - **Pantaneiro 5**: Apenas clientes selecionados ⚡
 - **Pantaneiro 7**: **SEMPRE LIBERADO** para todos (EXCETO se tiver Pantaneiro 5) ✅
 - **Steitz**: **SEMPRE LIBERADO** para todos ✅
+- **Senhas**: Padrão `123456` ou personalizadas por CNPJ 🔐
 
 ### 🔄 Regra Especial:
 **Se o cliente tem acesso ao Pantaneiro 5, o Pantaneiro 7 NÃO aparece** (evita confusão)
+
+### 🔐 Senhas Personalizadas:
+**CNPJs específicos podem ter senhas próprias** (sobrescreve a senha padrão)
 
 ## ⚙️ Como Configurar
 
@@ -103,6 +107,40 @@ const clientesComPantaneiro5 = [
 ### **🔄 Pantaneiro 7 e Steitz:**
 - **Não precisa fazer nada!**
 - **Sempre liberados automaticamente**
+
+## 🔐 Senhas Personalizadas
+
+### **⚡ SUPER FÁCIL: Definir senha personalizada**
+
+1. **Abra** o arquivo `api/auth-b2b.js`
+2. **Localize** a seção `senhasPersonalizadas` (linha 7)
+3. **Adicione** o CNPJ e senha:
+
+```javascript
+const senhasPersonalizadas = {
+  '30110818000128': 'gustavo',  // G8 Representações
+  '12345678000100': 'minhasenha123',  // ⬅️ ADICIONE AQUI
+  '98765432000111': 'outrasenha456',  // ⬅️ ADICIONE AQUI
+};
+```
+
+### **🎯 Como Funciona:**
+- **CNPJ com senha personalizada**: Usa a senha específica
+- **CNPJ sem senha personalizada**: Usa a senha padrão `123456`
+- **Sobrescreve automaticamente** a senha padrão
+
+### **✅ Exemplo Real:**
+```javascript
+const senhasPersonalizadas = {
+  '30110818000128': 'gustavo',  // G8 Representações
+  '11806675000149': 'empresa123',  // Outro cliente
+};
+```
+
+**Resultado:**
+- **CNPJ 30110818000128**: Senha `gustavo` (não aceita `123456`)
+- **CNPJ 11806675000149**: Senha `empresa123` (não aceita `123456`)
+- **Todos os outros**: Senha `123456` (padrão)
 
 ## ⚡ Exemplo Real
 

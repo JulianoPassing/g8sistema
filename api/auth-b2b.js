@@ -2,6 +2,15 @@
 const fs = require('fs');
 const path = require('path');
 
+// CONFIGURAÇÃO DE SENHAS PERSONALIZADAS
+// CNPJs com senhas específicas (sobrescreve a senha padrão 123456)
+const senhasPersonalizadas = {
+  '30110818000128': 'gustavo',  // G8 Representações
+  // Adicione mais CNPJs com senhas personalizadas aqui
+  // '12345678000100': 'minhasenha123',
+  // '98765432000111': 'outrasenha456',
+};
+
 // Função para definir acessos por cliente
 function getAcessosCliente(cnpj) {
   // Normalizar CNPJ para comparação
@@ -62,8 +71,11 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Verificar senha padrão
-    if (password !== '123456') {
+    // Verificar senha (padrão ou personalizada)
+    const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
+    const senhaEsperada = senhasPersonalizadas[cnpjNormalizado] || '123456';
+    
+    if (password !== senhaEsperada) {
       // Delay pequeno para prevenir ataques de força bruta
       await new Promise(resolve => setTimeout(resolve, 1000));
       return res.status(401).json({ 

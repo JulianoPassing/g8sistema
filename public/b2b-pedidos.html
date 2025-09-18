@@ -125,6 +125,24 @@
       box-shadow: var(--shadow);
     }
 
+    .btn-alterar-senha {
+      background: var(--secondary-color);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+      margin-right: 10px;
+    }
+
+    .btn-alterar-senha:hover {
+      background: #333333;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -387,6 +405,7 @@
       </div>
       <div class="user-info">
         <span id="clienteNome">Carregando...</span>
+        <button class="btn-alterar-senha" onclick="alterarSenha()">Alterar Senha</button>
         <button class="btn-logout" onclick="logout()">Sair</button>
       </div>
     </div>
@@ -433,6 +452,21 @@
       localStorage.removeItem('savedCnpjB2B');
       localStorage.removeItem('savedPasswordB2B');
       window.location.href = 'b2b-login.html';
+    }
+
+    // Função para alterar senha
+    function alterarSenha() {
+      if (!clienteData || !clienteData.cnpj) {
+        alert('Erro: Dados do cliente não encontrados.');
+        return;
+      }
+
+      const cnpj = clienteData.cnpj;
+      const mensagem = `Olá, gostaria de alterar minha senha. CNPJ: ${cnpj}`;
+      const numeroWhatsApp = '5548991267602';
+      const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+      
+      window.open(urlWhatsApp, '_blank');
     }
 
     // Carregar empresas baseadas nos acessos do cliente
