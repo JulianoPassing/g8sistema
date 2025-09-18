@@ -1359,7 +1359,11 @@ document.getElementById('gerar-pdf-edicao').addEventListener('click', function()
 });
 
 function gerarPDFPedidoEditado(pedido) {
-  const { cliente, itens, descontos, total, transporte, prazo } = pedido.dados;
+  const { cliente, itens, descontos, total } = pedido.dados;
+  
+  // Buscar transporte e prazo dos dados do pedido ou do cliente
+  const transporte = pedido.dados.transporte || pedido.dados.cliente?.transporte || 'A combinar';
+  const prazo = pedido.dados.prazo || pedido.dados.cliente?.prazo || 'A combinar';
   const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
