@@ -413,6 +413,12 @@
           body: JSON.stringify({ cnpj, password })
         });
 
+        // Verificar se a resposta é JSON válido
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Resposta do servidor não é JSON válido');
+        }
+
         const data = await response.json();
 
         if (data.success) {
@@ -435,7 +441,11 @@
         }
       } catch (error) {
         console.error('Erro no login:', error);
-        showError('Erro de conexão. Tente novamente.');
+        if (error.message.includes('JSON')) {
+          showError('Erro no servidor. Tente novamente em alguns instantes.');
+        } else {
+          showError('Erro de conexão. Tente novamente.');
+        }
       } finally {
         loadingDiv.style.display = 'none';
         loginBtn.disabled = false;

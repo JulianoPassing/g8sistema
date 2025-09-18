@@ -71,8 +71,10 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Verificar senha (padrão ou personalizada)
+    // Normalizar CNPJ (remover pontos, barras e espaços)
     const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
+    
+    // Verificar senha (padrão ou personalizada)
     const senhaEsperada = senhasPersonalizadas[cnpjNormalizado] || '123456';
     
     if (password !== senhaEsperada) {
@@ -88,9 +90,6 @@ module.exports = async (req, res) => {
     const clientesPath = path.join(process.cwd(), 'public', 'clientes.json');
     const clientesData = fs.readFileSync(clientesPath, 'utf8');
     const clientes = JSON.parse(clientesData);
-    
-    // Normalizar CNPJ (remover pontos, barras e espaços)
-    const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
     
     // Buscar cliente pelo CNPJ
     const cliente = clientes.find(c => {
@@ -131,9 +130,11 @@ module.exports = async (req, res) => {
     }
   } catch (error) {
     console.error('Erro na autenticação B2B:', error);
+    console.error('Stack trace:', error.stack);
     return res.status(500).json({ 
       success: false, 
-      message: 'Erro interno do servidor' 
+      message: 'Erro interno do servidor',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
