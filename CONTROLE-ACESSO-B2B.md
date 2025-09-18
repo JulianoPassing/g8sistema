@@ -110,17 +110,25 @@ Para dar acesso ao **Pantaneiro 5** para alguns clientes:
 
 ```javascript
 const clientesComPantaneiro5 = [
-  '14909309000103',  // Andre Luis Krailink de Melo
-  '33462113000168',  // Isabela Rosa
+  '30110818000128',  // G8 Representações
+  '11806675000149',  // 11.806.675/0001-49
+  '02179523000172',  // 02.179.523/0001-72
+  '02179523000253',  // 02.179.523/0002-53
+  '27735322000135',  // 27.735.322/0001-35
+  '02840209000199',  // 02.840.209/0001-99
+  '16715412000229',  // 16.715.412/0002-29
+  '16715412000300',  // 16.715.412/0003-00
+  '16715412000148',  // 16.715.412/0001-48
+  '07434744000163',  // 07.434.744/0001-63
+  '06086160000181',  // 06.086.160/0001-81
+  '78271327000195',  // 78.271.327/0001-95
   // Adicione mais CNPJs conforme necessário
 ];
 ```
 
 **Resultado:**
-- **Andre Luis**: Pantaneiro 5 + Steitz (Pantaneiro 7 oculto) ✅
-- **Isabela Rosa**: Pantaneiro 5 + Steitz (Pantaneiro 7 oculto) ✅
-- **Jose Rodrigo**: Pantaneiro 7 + Steitz (sem Pantaneiro 5) ✅
-- **Todos os outros**: Pantaneiro 7 + Steitz ✅
+- **Clientes da lista acima**: Pantaneiro 5 + Steitz (Pantaneiro 7 oculto) ✅
+- **Todos os outros clientes**: Pantaneiro 7 + Steitz (sem Pantaneiro 5) ✅
 
 ## 🔍 Como Testar
 
