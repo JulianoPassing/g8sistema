@@ -2619,29 +2619,91 @@ window.produtosData = [
           acc[produto.CATEGORIA].push(produto);
           return acc;
         }, {});
+        // Função para detectar se é mobile
+        function isMobile() {
+          return window.innerWidth <= 768;
+        }
+
+        // Função para gerar card de produto para mobile
+        function gerarCardProdutoMobile(produto) {
+          const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
+          let tamanhosHTML = '';
+          
+          if (tamanhosNormais) {
+            const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
+            tamanhosHTML = '<div class="tamanho-input-container">';
+            tamanhosProduto.forEach((tamanho) => {
+              const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+              tamanhosHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+            });
+            tamanhosHTML += '</div>';
+          } else {
+            tamanhosHTML = `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
+          }
+
+          return `
+            <div class="produto-card-mobile">
+              <div class="produto-header-mobile">
+                <div class="produto-ref-mobile">${produto.REFERENCIA}</div>
+                <div class="produto-preco-mobile">R$ ${produto.PRECO.toFixed(2)}</div>
+              </div>
+              <div class="produto-descricao-mobile">
+                <h4>${produto.DESCRIÇÃO}</h4>
+                <small>${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small>
+              </div>
+              <div class="produto-tamanhos-mobile">
+                <label>Tamanhos & Quantidades:</label>
+                ${tamanhosHTML}
+              </div>
+              <div class="produto-cor-mobile">
+                <label>Cor (opcional):</label>
+                <input type="text" placeholder="Ex: Preto, Azul..." id="cor-${produto.REFERENCIA}">
+              </div>
+              <div class="produto-actions-mobile">
+                <button class="btn-adicionar-mobile" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>
+                  ➕ Adicionar ao Pedido
+                </button>
+              </div>
+            </div>
+          `;
+        }
+
         categoriasOrdenadas.forEach((categoria) => {
           const categoriaProdutos = categoriasAgrupadas[categoria];
           if (!categoriaProdutos || categoriaProdutos.length === 0) return;
           const categoriaDiv = document.createElement("section");
           categoriaDiv.className = "card";
-          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
-          categoriaProdutos.forEach((produto) => {
-            const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
-            let tamanhosInputHTML = '<div class="tamanho-input-container">';
-            if (tamanhosNormais) {
-              const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
-              tamanhosProduto.forEach((tamanho) => {
-                const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
-                tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
-              });
-            } else {
-              tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
-            }
-            tamanhosInputHTML += "</div>";
-            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
-          });
-          tabelaHTML += `</tbody></table></div>`;
-          categoriaDiv.innerHTML = tabelaHTML;
+          
+          if (isMobile()) {
+            // Layout de cards para mobile
+            let cardsHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="produtos-mobile-container">`;
+            categoriaProdutos.forEach((produto) => {
+              cardsHTML += gerarCardProdutoMobile(produto);
+            });
+            cardsHTML += '</div>';
+            categoriaDiv.innerHTML = cardsHTML;
+          } else {
+            // Layout de tabela para desktop
+            let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
+            categoriaProdutos.forEach((produto) => {
+              const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
+              let tamanhosInputHTML = '<div class="tamanho-input-container">';
+              if (tamanhosNormais) {
+                const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
+                tamanhosProduto.forEach((tamanho) => {
+                  const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+                  tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+                });
+              } else {
+                tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
+              }
+              tamanhosInputHTML += "</div>";
+              tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+            });
+            tabelaHTML += `</tbody></table></div>`;
+            categoriaDiv.innerHTML = tabelaHTML;
+          }
+          
           produtosContainer.appendChild(categoriaDiv);
         });
       }

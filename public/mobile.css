@@ -698,60 +698,175 @@
     grid-column: unset !important;
   }
   
-  /* Tabelas de produtos B2B */
+  /* Layout de cards para produtos B2B no mobile */
   .table-responsive {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    display: none !important; /* Esconder tabela no mobile */
+  }
+  
+  /* Criar layout de cards para mobile */
+  .table-responsive::after {
+    content: '';
+    display: block;
+    width: 100%;
+  }
+  
+  /* Estilos para cards de produtos no mobile */
+  .produto-card-mobile {
+    background: white !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    margin-bottom: 15px !important;
+    padding: 15px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .produto-card-mobile:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+    transform: translateY(-2px) !important;
+  }
+  
+  .produto-header-mobile {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    margin-bottom: 12px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+  
+  .produto-ref-mobile {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .produto-preco-mobile {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+  }
+  
+  .produto-descricao-mobile {
+    margin-bottom: 12px !important;
+  }
+  
+  .produto-descricao-mobile h4 {
+    margin: 0 0 5px 0 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    line-height: 1.4 !important;
+  }
+  
+  .produto-descricao-mobile small {
+    color: #64748b !important;
+    font-size: 0.85rem !important;
+  }
+  
+  .produto-tamanhos-mobile {
+    margin-bottom: 12px !important;
+  }
+  
+  .produto-tamanhos-mobile label {
+    display: block !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin-bottom: 8px !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .tamanho-input-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .tamanho-input-container > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+  
+  .tamanho-input-container label {
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    color: #6b7280 !important;
     margin: 0 !important;
-    padding: 0 !important;
   }
   
-  .table-responsive table {
-    min-width: 800px !important;
-    font-size: 12px !important;
+  .tamanho-input-container input {
+    width: 50px !important;
+    padding: 6px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    text-align: center !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .manual-tamanho-input {
     width: 100% !important;
-    table-layout: fixed !important;
+    max-width: 200px !important;
+    padding: 8px 12px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    font-size: 0.9rem !important;
   }
   
-  .table-responsive th,
-  .table-responsive td {
-    padding: 8px 4px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+  .produto-cor-mobile {
+    margin-bottom: 15px !important;
   }
   
-  /* Colunas específicas da tabela B2B */
-  .table-responsive th:nth-child(1),
-  .table-responsive td:nth-child(1) {
-    width: 60px !important; /* REF */
+  .produto-cor-mobile label {
+    display: block !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin-bottom: 8px !important;
+    font-size: 0.9rem !important;
   }
   
-  .table-responsive th:nth-child(2),
-  .table-responsive td:nth-child(2) {
-    width: 120px !important; /* DESCRIÇÃO */
+  .produto-cor-mobile input {
+    width: 100% !important;
+    max-width: 200px !important;
+    padding: 8px 12px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    font-size: 0.9rem !important;
   }
   
-  .table-responsive th:nth-child(3),
-  .table-responsive td:nth-child(3) {
-    width: 80px !important; /* PREÇO */
+  .produto-actions-mobile {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: center !important;
   }
   
-  .table-responsive th:nth-child(4),
-  .table-responsive td:nth-child(4) {
-    width: 200px !important; /* Tamanhos & Quantidades */
+  .btn-adicionar-mobile {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 12px 20px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    flex: 1 !important;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3) !important;
   }
   
-  .table-responsive th:nth-child(5),
-  .table-responsive td:nth-child(5) {
-    width: 80px !important; /* Cor */
-  }
-  
-  .table-responsive th:nth-child(6),
-  .table-responsive td:nth-child(6) {
-    width: 100px !important; /* Ação */
+  .btn-adicionar-mobile:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
   }
   
   /* Container de tamanhos */
