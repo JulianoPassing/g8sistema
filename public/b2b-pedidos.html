@@ -60,18 +60,22 @@
     }
 
     .header {
-      background: var(--gradient-primary);
-      color: white;
-      padding: 20px 0;
-      box-shadow: var(--shadow-lg);
-      position: relative;
-      z-index: 10;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 25px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
+      width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -96,20 +100,27 @@
       display: flex;
       align-items: center;
       gap: 15px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.9rem;
+      color: var(--text-color);
+      font-weight: 500;
     }
 
     .btn-logout {
-      background: rgba(255, 255, 255, 0.2);
+      background: var(--gradient-primary);
       color: white;
       border: none;
       padding: 8px 16px;
-      border-radius: 6px;
+      border-radius: var(--border-radius);
       cursor: pointer;
       transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
     }
 
     .btn-logout:hover {
-      background: rgba(255, 255, 255, 0.3);
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
     }
 
     .container {
@@ -486,12 +497,19 @@
 
       try {
         const response = await fetch('/api/pedidos');
-        const pedidos = await response.json();
+        const todosPedidos = await response.json();
 
-        if (pedidos.length === 0) {
+        // Filtrar apenas os pedidos do cliente logado
+        const pedidosCliente = todosPedidos.filter(pedido => {
+          return pedido.dados && 
+                 pedido.dados.cliente && 
+                 pedido.dados.cliente.id === clienteData.id;
+        });
+
+        if (pedidosCliente.length === 0) {
           pedidosList.innerHTML = '<p style="text-align: center; color: #718096;">Nenhum pedido encontrado.</p>';
         } else {
-          pedidosList.innerHTML = pedidos.map(pedido => `
+          pedidosList.innerHTML = pedidosCliente.map(pedido => `
             <div class="pedido-item">
               <div class="pedido-header">
                 <span class="pedido-id">Pedido #${pedido.id}</span>
