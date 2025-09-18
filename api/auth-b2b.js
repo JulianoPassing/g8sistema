@@ -1,7 +1,6 @@
 // API de autenticação B2B para clientes
 const fs = require('fs');
 const path = require('path');
-const { loadPasswords, verifyPassword } = require('./passwords-shared');
 
 // Função para definir acessos por cliente
 function getAcessosCliente(cnpj) {
@@ -63,67 +62,23 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Verificar senha (padrão ou personalizada)
-    const passwords = loadPasswords();
-    const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
-    
-    console.log('Senhas carregadas:', Object.keys(passwords));
-    console.log('CNPJ normalizado:', cnpjNormalizado);
-    console.log('Cliente tem senha personalizada:', !!passwords[cnpjNormalizado]);
-    
-    let senhaValida = false;
-    
-    if (passwords[cnpjNormalizado]) {
-      // Cliente tem senha personalizada
-      console.log('Verificando senha personalizada');
-      senhaValida = verifyPassword(password, passwords[cnpjNormalizado]);
-    } else {
-      // Cliente ainda usa senha padrão
-      console.log('Verificando senha padrão');
-      senhaValida = (password === '123456');
-    }
-    
-    console.log('Senha válida:', senhaValida);
-    
-    if (!senhaValida) {
+    // Verificar senha padrão
+    if (password !== '123456') {
       // Delay pequeno para prevenir ataques de força bruta
       await new Promise(resolve => setTimeout(resolve, 1000));
       return res.status(401).json({ 
         success: false, 
-        message: 'Senha inválida',
-        debug: {
-          cnpj: cnpjNormalizado,
-          hasPersonalPassword: !!passwords[cnpjNormalizado],
-          passwordType: passwords[cnpjNormalizado] ? 'personalizada' : 'padrão',
-          savedPasswords: Object.keys(passwords)
-        }
+        message: 'Senha inválida' 
       });
     }
 
     // Carregar lista de clientes
     const clientesPath = path.join(process.cwd(), 'public', 'clientes.json');
+    const clientesData = fs.readFileSync(clientesPath, 'utf8');
+    const clientes = JSON.parse(clientesData);
     
-    if (!fs.existsSync(clientesPath)) {
-      console.error('Arquivo clientes.json não encontrado:', clientesPath);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Arquivo de clientes não encontrado' 
-      });
-    }
-    
-    let clientesData;
-    let clientes;
-    
-    try {
-      clientesData = fs.readFileSync(clientesPath, 'utf8');
-      clientes = JSON.parse(clientesData);
-    } catch (fileError) {
-      console.error('Erro ao carregar ou fazer parse do clientes.json:', fileError);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Erro ao processar arquivo de clientes' 
-      });
-    }
+    // Normalizar CNPJ (remover pontos, barras e espaços)
+    const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
     
     // Buscar cliente pelo CNPJ
     const cliente = clientes.find(c => {
@@ -164,11 +119,9 @@ module.exports = async (req, res) => {
     }
   } catch (error) {
     console.error('Erro na autenticação B2B:', error);
-    console.error('Stack trace:', error.stack);
     return res.status(500).json({ 
       success: false, 
-      message: 'Erro interno do servidor',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: 'Erro interno do servidor' 
     });
   }
 };
