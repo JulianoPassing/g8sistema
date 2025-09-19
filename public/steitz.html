@@ -473,10 +473,136 @@
         color: var(--success-color);
       }
 
+      /* Cards Mobile - Padrão B2B */
+      .produtos-mobile-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+      }
+
+      .produto-card-mobile {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 15px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .produto-card-mobile:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-2px);
+      }
+
+      .produto-header-mobile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .produto-ref-mobile {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+      }
+
+      .produto-preco-mobile {
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: var(--success-color);
+      }
+
+      .produto-descricao-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-descricao-mobile h4 {
+        margin: 0 0 5px 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        line-height: 1.3;
+      }
+
+      .produto-descricao-mobile small {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .produto-tamanhos-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-tamanhos-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-cor-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+      }
+
+      .btn-adicionar-mobile {
+        width: 100%;
+        background: var(--gradient-success);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-adicionar-mobile:hover {
+        background: var(--success-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
       @media (max-width: 768px) {
         body {
           padding: 90px 10px 10px 10px; /* Ajuste para mobile */
         }
+        
+        /* Mostrar container mobile */
+        .produtos-mobile-container {
+          display: flex;
+        }
+
+        /* Ocultar tabelas em mobile */
+        .table-responsive {
+          display: none;
+        }
+
         .card {
           padding: 15px;
         }
@@ -728,6 +854,7 @@
           </select>
         </div>
         <div id="produtos-container" class="table-responsive"></div>
+        <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
       </section>
 
       <section class="card">
@@ -959,20 +1086,33 @@
         const table = document.createElement("table");
         table.innerHTML = `<thead><tr><th>REF.</th><th>MODELO</th><th>PREÇO UNIT.</th><th>Desc. Extra</th><th>TAMANHOS</th><th>COR</th><th>AÇÃO</th></tr></thead>`;
         const tbody = document.createElement("tbody");
+        
+        // Mobile container
+        const mobileContainer = document.getElementById('produtos-mobile-container');
+        if (mobileContainer) mobileContainer.innerHTML = "";
+        
         produtosData.forEach((produto) => {
           const preco = produto.PRECOS[tabelaSelecionada];
           const row = document.createElement("tr");
           const tamanhosRange = parseTamanhoRange(produto.TAM);
           let tamanhosHtml = "";
+          let tamanhosMobileHtml = "";
+          
           if (tamanhosRange) {
             tamanhosHtml = '<div class="tamanho-input-container">';
+            tamanhosMobileHtml = '<div class="tamanho-input-container">';
             tamanhosRange.forEach((tamanho) => {
               tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
+              tamanhosMobileHtml += `<div class="tamanho-input-item"><label for="qty-mobile-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-mobile-${produto.REF}-${tamanho}" min="0" value=""></div>`;
             });
             tamanhosHtml += "</div>";
+            tamanhosMobileHtml += "</div>";
           } else {
             tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
+            tamanhosMobileHtml = `<input type="text" class="manual-input" id="tamanhos-manual-mobile-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
           }
+          
+          // Desktop row
           row.innerHTML = `<td>${produto.REF}</td><td>${
             produto.MODELO
           }</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${
@@ -983,10 +1123,101 @@
             produto.REF
           }" class="btn btn-success btn-sm">Adicionar</button></td>`;
           tbody.appendChild(row);
+          
+          // Mobile card
+          if (mobileContainer) {
+            const mobileCard = document.createElement("div");
+            mobileCard.className = "produto-card-mobile";
+            mobileCard.innerHTML = `
+              <div class="produto-header-mobile">
+                <div class="produto-ref-mobile">${produto.REF}</div>
+                <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
+              </div>
+              <div class="produto-descricao-mobile">
+                <h4>${produto.MODELO}</h4>
+                <small>${produto.TAM}</small>
+              </div>
+              <div class="produto-tamanhos-mobile">
+                <label>Tamanhos & Quantidades:</label>
+                ${tamanhosMobileHtml}
+              </div>
+              <div class="produto-cor-mobile">
+                <label>Cor (opcional):</label>
+                <input type="text" placeholder="Ex: Preto, Azul..." id="cor-mobile-${produto.REF}">
+              </div>
+              <div class="produto-actions-mobile">
+                <button class="btn-adicionar-mobile" onclick='adicionarAoPedidoMobile("${produto.REF}")'>
+                  ➕ Adicionar ao Pedido
+                </button>
+              </div>
+            `;
+            mobileContainer.appendChild(mobileCard);
+          }
         });
+        
         table.appendChild(tbody);
         produtosContainer.innerHTML = "";
         produtosContainer.appendChild(table);
+      }
+
+      function adicionarAoPedidoMobile(ref) {
+        const produto = produtosData.find((p) => p.REF === ref);
+        if (!produto) return;
+        const cor = document.getElementById(`cor-mobile-${ref}`).value.trim();
+        const tabelaSelecionada = tabelaPrecosSelect.value;
+        const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
+        let itensAdicionados = 0;
+        const tamanhosRange = parseTamanhoRange(produto.TAM);
+        
+        if (tamanhosRange) {
+          tamanhosRange.forEach((tamanho) => {
+            const quantidade = parseInt(document.getElementById(`qty-mobile-${ref}-${tamanho}`).value) || 0;
+            if (quantidade > 0) {
+              itensAdicionados++;
+              const item = {
+                referencia: produto.REF,
+                modelo: produto.MODELO,
+                preco: precoUnitarioBase,
+                tamanho: tamanho,
+                quantidade: quantidade,
+                cor: cor,
+                subtotal: precoUnitarioBase * quantidade
+              };
+              pedido.push(item);
+            }
+          });
+        } else {
+          const tamanhosManual = document.getElementById(`tamanhos-manual-mobile-${ref}`).value.trim();
+          if (tamanhosManual) {
+            itensAdicionados++;
+            const item = {
+              referencia: produto.REF,
+              modelo: produto.MODELO,
+              preco: precoUnitarioBase,
+              tamanho: tamanhosManual,
+              quantidade: 1,
+              cor: cor,
+              subtotal: precoUnitarioBase
+            };
+            pedido.push(item);
+          }
+        }
+        
+        if (itensAdicionados > 0) {
+          atualizarPedido();
+          mostrarNotificacao(`Produto ${produto.REF} adicionado ao pedido!`, "success");
+          // Limpar campos mobile
+          if (tamanhosRange) {
+            tamanhosRange.forEach((tamanho) => {
+              document.getElementById(`qty-mobile-${ref}-${tamanho}`).value = "";
+            });
+          } else {
+            document.getElementById(`tamanhos-manual-mobile-${ref}`).value = "";
+          }
+          document.getElementById(`cor-mobile-${ref}`).value = "";
+        } else {
+          mostrarNotificacao("Por favor, selecione pelo menos um tamanho e quantidade.", "warning");
+        }
       }
 
       function adicionarAoPedido(ref) {

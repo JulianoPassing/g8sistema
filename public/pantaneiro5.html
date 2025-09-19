@@ -516,10 +516,136 @@
         color: var(--success-color);
       }
 
+      /* Cards Mobile - Padrão B2B */
+      .produtos-mobile-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+      }
+
+      .produto-card-mobile {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 15px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .produto-card-mobile:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-2px);
+      }
+
+      .produto-header-mobile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .produto-ref-mobile {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+      }
+
+      .produto-preco-mobile {
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: var(--success-color);
+      }
+
+      .produto-descricao-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-descricao-mobile h4 {
+        margin: 0 0 5px 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        line-height: 1.3;
+      }
+
+      .produto-descricao-mobile small {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .produto-tamanhos-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-tamanhos-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-cor-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+      }
+
+      .btn-adicionar-mobile {
+        width: 100%;
+        background: var(--gradient-success);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-adicionar-mobile:hover {
+        background: var(--success-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
       @media (max-width: 768px) {
         body {
           padding: 90px 10px 10px 10px; /* Ajuste para mobile */
         }
+        
+        /* Mostrar container mobile */
+        .produtos-mobile-container {
+          display: flex;
+        }
+
+        /* Ocultar tabelas em mobile */
+        .table-responsive {
+          display: none;
+        }
+
         .card {
           padding: 15px;
         }
@@ -735,6 +861,7 @@
         </div>
       </div>
       <div id="produtos-container"></div>
+      <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
       <section class="card">
         <div class="card-header">
           <span role="img" aria-label="Seu Pedido" style="font-size: 1.8em"
@@ -2698,6 +2825,67 @@ window.produtosData = [
           produtosContainer.appendChild(categoriaDiv);
         });
       }
+      function adicionarAoPedidoMobile(produto) {
+        // Protege campos que podem ser undefined
+        produto.REFERENCIA = produto.REFERENCIA || '';
+        produto.DESCRIÇÃO = produto.DESCRIÇÃO || '';
+        produto.PRECO = typeof produto.PRECO === 'number' ? produto.PRECO : Number(produto.PRECO) || 0;
+        const corSelecionada = document
+          .getElementById(`cor-mobile-${produto.REFERENCIA}`)
+          .value.trim();
+        let itemAdicionado = false;
+        const handleItem = (tamanho, quantidade) => {
+          if (quantidade <= 0) return;
+          itemAdicionado = true;
+          const tamanhoNormalizado = tamanho.split("-")[0].trim().toUpperCase();
+          const item = {
+            referencia: produto.REFERENCIA,
+            descricao: produto.DESCRIÇÃO,
+            preco: produto.PRECO,
+            tamanho: tamanhoNormalizado,
+            quantidade: quantidade,
+            cor: corSelecionada,
+            subtotal: produto.PRECO * quantidade
+          };
+          pedido.push(item);
+        };
+        const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
+        if (tamanhosNormais) {
+          const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
+          tamanhosProduto.forEach((tamanho) => {
+            const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+            const quantidade = parseInt(
+              document.getElementById(`quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}`).value
+            ) || 0;
+            handleItem(tamanho, quantidade);
+          });
+        } else {
+          const tamanhoInput = document.getElementById(`tamanho-mobile-${produto.REFERENCIA}`);
+          const tamanho = tamanhoInput.value.trim();
+          const quantidade = 1;
+          if (tamanho) {
+            handleItem(tamanho, quantidade);
+          }
+        }
+        if (itemAdicionado) {
+          atualizarPedido();
+          mostrarNotificacao(`Produto ${produto.REFERENCIA} adicionado ao pedido!`, "success");
+          // Limpar campos mobile
+          if (tamanhosNormais) {
+            const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
+            tamanhosProduto.forEach((tamanho) => {
+              const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+              document.getElementById(`quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}`).value = 0;
+            });
+          } else {
+            document.getElementById(`tamanho-mobile-${produto.REFERENCIA}`).value = "";
+          }
+          document.getElementById(`cor-mobile-${produto.REFERENCIA}`).value = "";
+        } else {
+          mostrarNotificacao("Por favor, selecione pelo menos um tamanho e quantidade.", "warning");
+        }
+      }
+
       function adicionarAoPedido(produto) {
         // Protege campos que podem ser undefined
         produto.REFERENCIA = produto.REFERENCIA || '';
@@ -3297,36 +3485,88 @@ window.produtosData = [
       // Adaptar renderizarProdutosPorCategoria para aceitar filtro
       function renderizarProdutosPorCategoria(produtos = produtosData) {
         produtosContainer.innerHTML = "";
+        const mobileContainer = document.getElementById('produtos-mobile-container');
+        if (mobileContainer) mobileContainer.innerHTML = "";
+        
         const categoriasOrdenadas = ["Aventura", "PRO", "Urbano", "Estilo", "Acessórios"];
         const categoriasAgrupadas = produtos.reduce((acc, produto) => {
           acc[produto.CATEGORIA] = acc[produto.CATEGORIA] || [];
           acc[produto.CATEGORIA].push(produto);
           return acc;
         }, {});
+        
         categoriasOrdenadas.forEach((categoria) => {
           const categoriaProdutos = categoriasAgrupadas[categoria];
           if (!categoriaProdutos || categoriaProdutos.length === 0) return;
+          
+          // Desktop - Tabela
           const categoriaDiv = document.createElement("section");
           categoriaDiv.className = "card";
           let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
+          
+          // Mobile - Cards
+          let mobileHTML = `<div class="card-header"><h2>${categoria}</h2></div>`;
+          
           categoriaProdutos.forEach((produto) => {
             const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
             let tamanhosInputHTML = '<div class="tamanho-input-container">';
+            let tamanhosMobileHTML = '';
+            
             if (tamanhosNormais) {
               const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
               tamanhosProduto.forEach((tamanho) => {
                 const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
                 tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+                tamanhosMobileHTML += `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}"></div>`;
               });
             } else {
               tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
+              tamanhosMobileHTML = `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-mobile-${produto.REFERENCIA}">`;
             }
             tamanhosInputHTML += "</div>";
+            
+            // Desktop tabela
             tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+            
+            // Mobile card
+            mobileHTML += `
+              <div class="produto-card-mobile">
+                <div class="produto-header-mobile">
+                  <div class="produto-ref-mobile">${produto.REFERENCIA}</div>
+                  <div class="produto-preco-mobile">R$ ${produto.PRECO.toFixed(2)}</div>
+                </div>
+                <div class="produto-descricao-mobile">
+                  <h4>${produto.DESCRIÇÃO}</h4>
+                  <small>${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small>
+                </div>
+                <div class="produto-tamanhos-mobile">
+                  <label>Tamanhos & Quantidades:</label>
+                  ${tamanhosMobileHTML}
+                </div>
+                <div class="produto-cor-mobile">
+                  <label>Cor (opcional):</label>
+                  <input type="text" placeholder="Ex: Preto, Azul..." id="cor-mobile-${produto.REFERENCIA}">
+                </div>
+                <div class="produto-actions-mobile">
+                  <button class="btn-adicionar-mobile" onclick='adicionarAoPedidoMobile(${JSON.stringify(produto)})'>
+                    ➕ Adicionar ao Pedido
+                  </button>
+                </div>
+              </div>
+            `;
           });
+          
           tabelaHTML += `</tbody></table></div>`;
           categoriaDiv.innerHTML = tabelaHTML;
           produtosContainer.appendChild(categoriaDiv);
+          
+          // Adicionar cards mobile
+          if (mobileContainer) {
+            const mobileDiv = document.createElement("section");
+            mobileDiv.className = "card";
+            mobileDiv.innerHTML = mobileHTML;
+            mobileContainer.appendChild(mobileDiv);
+          }
         });
       }
     </script>
