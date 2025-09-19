@@ -558,18 +558,53 @@
           align-items: flex-start !important;
         }
         
-        /* Forçar posicionamento absoluto das checkboxes */
+        /* Ocultar checkboxes originais no mobile */
         .remember-group {
-          position: relative !important;
-          left: 0 !important;
-          transform: translateX(0) !important;
+          display: none !important;
+        }
+        
+        /* Novas checkboxes mobile - alinhadas à esquerda */
+        .remember-group-mobile {
+          display: flex !important;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 12px;
+          font-size: 13px;
+          text-align: left !important;
+          justify-content: flex-start !important;
+          width: 100%;
           margin-left: 0 !important;
           padding-left: 0 !important;
-          width: 100% !important;
-          display: flex !important;
-          justify-content: flex-start !important;
-          align-items: center !important;
         }
+        
+        .remember-group-mobile input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+          padding: 0;
+          cursor: pointer;
+          accent-color: var(--primary-color);
+        }
+        
+        .remember-group-mobile label {
+          cursor: pointer;
+          color: var(--text-color);
+          font-weight: 500;
+          margin-bottom: 0;
+          line-height: 1.2;
+          font-size: 13px;
+        }
+        
+        .remember-group-mobile label:hover {
+          color: var(--primary-color);
+        }
+      }
+      
+      /* Ocultar checkboxes mobile no desktop */
+      @media (min-width: 769px) {
+        .remember-group-mobile {
+          display: none !important;
+        }
+      }
 
         .remember-group input[type="checkbox"] {
           width: 18px;
@@ -647,6 +682,17 @@
           <label for="show-password">Visualizar senha</label>
         </div>
         
+        <!-- Checkboxes Mobile - Alinhadas à esquerda -->
+        <div class="remember-group-mobile">
+          <input type="checkbox" id="remember-me-mobile" />
+          <label for="remember-me-mobile">Lembrar usuário e senha</label>
+        </div>
+        
+        <div class="remember-group-mobile">
+          <input type="checkbox" id="show-password-mobile" />
+          <label for="show-password-mobile">Visualizar senha</label>
+        </div>
+        
         <button type="submit" class="login-btn btn-modern click-wave" id="login-btn">
           <span class="spinner" id="spinner"></span>
           <i class="fas fa-sign-in-alt" id="loginIcon"></i>
@@ -718,6 +764,24 @@
           const type = this.checked ? "text" : "password";
           passwordField.setAttribute("type", type);
         });
+        
+        // Sincronizar checkboxes mobile com as originais
+        const rememberMeMobile = document.getElementById('remember-me-mobile');
+        const showPasswordMobile = document.getElementById('show-password-mobile');
+        
+        if (rememberMeMobile) {
+          rememberMeMobile.addEventListener('change', function() {
+            rememberMeCheckbox.checked = this.checked;
+          });
+        }
+        
+        if (showPasswordMobile) {
+          showPasswordMobile.addEventListener('change', function() {
+            showPasswordCheckbox.checked = this.checked;
+            const type = this.checked ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+          });
+        }
 
         const savedUsername = localStorage.getItem("savedUsername");
         const savedPassword = localStorage.getItem("savedPassword");
