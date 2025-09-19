@@ -83,6 +83,99 @@
       gap: 12px;
     }
 
+    /* Menu hambúrguer */
+    .hamburger-menu {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      padding: 5px;
+      background: none;
+      border: none;
+      gap: 3px;
+    }
+
+    .hamburger-line {
+      width: 25px;
+      height: 3px;
+      background-color: var(--text-color);
+      transition: all 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .hamburger-menu.active .hamburger-line:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .hamburger-menu.active .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger-menu.active .hamburger-line:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    /* Menu lateral */
+    .sidebar-menu {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100vh;
+      background: white;
+      box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+      transition: right 0.3s ease;
+      z-index: 1001;
+      padding: 80px 20px 20px 20px;
+      overflow-y: auto;
+    }
+
+    .sidebar-menu.active {
+      right: 0;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .sidebar-menu h3 {
+      color: var(--text-color);
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 10px;
+    }
+
+    .sidebar-menu .menu-item {
+      display: block;
+      padding: 12px 15px;
+      color: var(--text-color);
+      text-decoration: none;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .sidebar-menu .menu-item:hover {
+      background: var(--card-bg);
+      border-color: var(--primary-color);
+      transform: translateX(5px);
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 90px 10px 10px 10px;
@@ -97,6 +190,15 @@
       
       .header-center img {
         height: 40px;
+      }
+
+      /* Mostrar menu hambúrguer no mobile */
+      .hamburger-menu {
+        display: flex;
+      }
+
+      .sidebar-menu {
+        width: 280px;
       }
     }
 
@@ -436,8 +538,26 @@
     <div class="header-center">
       <img src="https://i.imgur.com/vjq26ym.png" alt="Logo G8" />
     </div>
-    <div class="header-right"></div>
+    <div class="header-right">
+      <button class="hamburger-menu" onclick="toggleMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+      </button>
+    </div>
   </header>
+
+  <!-- Menu lateral -->
+  <div class="sidebar-overlay" onclick="closeMenu()"></div>
+  <div class="sidebar-menu" id="sidebarMenu">
+    <h3>Menu</h3>
+    <a href="#" class="menu-item" onclick="closeMenu();">
+      🏠 Portal B2B
+    </a>
+    <a href="#" class="menu-item" onclick="closeMenu();">
+      ℹ️ Informações
+    </a>
+  </div>
 
   <div class="login-container">
     <div class="subtitle">Portal B2B - Área do Cliente</div>
@@ -493,6 +613,27 @@
   </div>
 
   <script>
+    // Funções do menu hambúrguer
+    function toggleMenu() {
+      const sidebar = document.getElementById('sidebarMenu');
+      const overlay = document.querySelector('.sidebar-overlay');
+      const hamburger = document.querySelector('.hamburger-menu');
+      
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+      hamburger.classList.toggle('active');
+    }
+
+    function closeMenu() {
+      const sidebar = document.getElementById('sidebarMenu');
+      const overlay = document.querySelector('.sidebar-overlay');
+      const hamburger = document.querySelector('.hamburger-menu');
+      
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+      hamburger.classList.remove('active');
+    }
+
     // Elementos do formulário
     const cnpjField = document.getElementById('cnpj');
     const passwordField = document.getElementById('password');
