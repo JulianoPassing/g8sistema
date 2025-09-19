@@ -754,67 +754,53 @@
 
     /* === MOBILE STYLES === */
     @media (max-width: 768px) {
-      /* Header Mobile */
       .header-top {
-        height: 80px !important;
-        flex-direction: column !important;
-        padding: 8px 15px !important;
-        gap: 5px !important;
+        padding: 10px 15px;
+        height: 60px;
+        flex-direction: column;
+        gap: 8px;
       }
       
       .header-left {
-        display: none !important;
+        display: none;
       }
       
       .header-center {
-        position: static !important;
-        transform: none !important;
-        order: 1 !important;
-        margin-bottom: 5px !important;
+        position: static;
+        transform: none;
+        order: 1;
       }
       
       .header-center img {
-        height: 30px !important;
+        height: 35px;
       }
       
       .header-right {
-        order: 2 !important;
-        width: 100% !important;
-        justify-content: space-between !important;
-        gap: 8px !important;
-        align-items: center !important;
-        display: flex !important;
-        flex-direction: row !important;
+        order: 2;
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
       }
       
       #user-info {
-        font-size: 0.7rem !important;
-        flex: 1 !important;
-        text-align: center !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        margin: 0 5px !important;
+        font-size: 0.75rem;
+        flex: 1;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       
       #logout-button, .btn {
-        padding: 5px 8px !important;
-        font-size: 0.7rem !important;
-        min-width: auto !important;
-        flex-shrink: 0 !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        text-decoration: none !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        background: var(--gradient-primary) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 4px !important;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        min-width: auto;
+        flex-shrink: 0;
       }
-
-      body {
-        padding-top: 90px !important;
+      
+      .container {
+        padding: 20px 15px;
+        padding-top: 80px;
       }
 
       /* Ocultar tabelas em mobile */
