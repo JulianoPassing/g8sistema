@@ -1194,13 +1194,14 @@
             if (quantidade > 0) {
               itensAdicionados++;
               const item = {
-                referencia: produto.REF,
-                modelo: produto.MODELO,
+                REF: produto.REF,
+                MODELO: produto.MODELO,
                 preco: precoUnitarioBase,
                 tamanho: tamanho,
                 quantidade: quantidade,
                 cor: cor,
-                subtotal: precoUnitarioBase * quantidade
+                subtotal: precoUnitarioBase * quantidade,
+                descontoExtra: 0
               };
               window.pedidoItens.push(item);
             }
@@ -1210,13 +1211,14 @@
           if (tamanhosManual) {
             itensAdicionados++;
             const item = {
-              referencia: produto.REF,
-              modelo: produto.MODELO,
+              REF: produto.REF,
+              MODELO: produto.MODELO,
               preco: precoUnitarioBase,
               tamanho: tamanhosManual,
               quantidade: 1,
               cor: cor,
-              subtotal: precoUnitarioBase
+              subtotal: precoUnitarioBase,
+              descontoExtra: 0
             };
             window.pedidoItens.push(item);
           }

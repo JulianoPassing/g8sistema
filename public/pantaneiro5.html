@@ -2790,13 +2790,14 @@ window.produtosData = [
           else if (["4G", "5G"].includes(tamanhoNormalizado)) precoFinal *= 1.4;
           
           const item = {
-            referencia: produto.REFERENCIA,
-            descricao: produto.DESCRIÇÃO,
+            REFERENCIA: produto.REFERENCIA,
+            DESCRIÇÃO: produto.DESCRIÇÃO,
             preco: precoFinal,
             tamanho: tamanhoNormalizado,
             quantidade: quantidade,
             cor: corSelecionada,
-            subtotal: precoFinal * quantidade
+            subtotal: precoFinal * quantidade,
+            descontoExtra: 0
           };
           window.pedidoItens.push(item);
         };
