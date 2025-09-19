@@ -752,12 +752,14 @@
         display: block;
       }
 
+    /* === MOBILE STYLES === */
     @media (max-width: 768px) {
+      /* Header Mobile */
       .header-top {
-        padding: 10px 15px !important;
-        height: 60px !important;
+        height: 80px !important;
         flex-direction: column !important;
-        gap: 8px !important;
+        padding: 8px 15px !important;
+        gap: 5px !important;
       }
       
       .header-left {
@@ -768,10 +770,11 @@
         position: static !important;
         transform: none !important;
         order: 1 !important;
+        margin-bottom: 5px !important;
       }
       
       .header-center img {
-        height: 35px !important;
+        height: 30px !important;
       }
       
       .header-right {
@@ -779,26 +782,28 @@
         width: 100% !important;
         justify-content: space-between !important;
         gap: 8px !important;
+        align-items: center !important;
       }
       
       #user-info {
-        font-size: 0.75rem !important;
+        font-size: 0.7rem !important;
         flex: 1 !important;
         text-align: center !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
+        margin: 0 5px !important;
       }
       
       #logout-button, .btn {
-        padding: 6px 10px !important;
-        font-size: 0.75rem !important;
+        padding: 5px 8px !important;
+        font-size: 0.7rem !important;
         min-width: auto !important;
         flex-shrink: 0 !important;
       }
 
       body {
-        padding-top: 80px !important;
+        padding-top: 90px !important;
       }
 
       /* Ocultar tabelas em mobile */
