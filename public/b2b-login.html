@@ -37,17 +37,66 @@
       justify-content: center;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 90px 20px 20px 20px;
       box-sizing: border-box;
       position: relative;
     }
 
+    /* Header fixo igual às páginas B2B */
+    .header {
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+      height: 70px;
+      box-sizing: border-box;
+    }
+
+    .header-left {
+      flex: 0 0 auto;
+    }
+
+    .header-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .header-center img {
+      height: 45px;
+      width: auto;
+    }
+
+    .header-right {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     @media (max-width: 768px) {
       body {
-        padding: 10px;
+        padding: 90px 10px 10px 10px;
         align-items: center;
         justify-content: center;
-        padding-top: 0;
+      }
+      
+      .header {
+        padding: 10px 15px;
+        gap: 10px;
+      }
+      
+      .header-center img {
+        height: 40px;
       }
     }
 
@@ -144,33 +193,6 @@
       background: var(--gradient-primary);
     }
 
-    .logo {
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .logo img {
-      width: 300px;
-      height: auto;
-      object-fit: contain;
-      max-width: 90%;
-    }
-
-    @media (max-width: 768px) {
-      .logo img {
-        width: 200px;
-        max-width: 80%;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .logo img {
-        width: 150px;
-        max-width: 75%;
-      }
-    }
 
     .subtitle {
       color: #666;
@@ -409,10 +431,15 @@
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <div class="logo">
+  <header class="header">
+    <div class="header-left"></div>
+    <div class="header-center">
       <img src="https://i.imgur.com/vjq26ym.png" alt="Logo G8" />
     </div>
+    <div class="header-right"></div>
+  </header>
+
+  <div class="login-container">
     <div class="subtitle">Portal B2B - Área do Cliente</div>
     
     <div class="info-box">
