@@ -522,22 +522,35 @@
           font-size: 14.4px;
         }
 
-        /* Corrigir alinhamento das checkboxes no mobile */
+        /* Corrigir alinhamento das checkboxes no mobile - Padrão B2B */
         .remember-group {
+          display: flex;
           align-items: center;
           gap: 8px;
-          margin-bottom: 20px;
+          margin-bottom: 12px;
+          font-size: 13px;
+          text-align: left;
+        }
+
+        .remember-group input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+          padding: 0;
+          cursor: pointer;
+          accent-color: var(--primary-color);
         }
 
         .remember-group label {
+          cursor: pointer;
+          color: var(--text-color);
+          font-weight: 500;
+          margin-bottom: 0;
           line-height: 1.2;
-          margin-top: 0;
-          font-size: 11px;
-          flex: 1;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: calc(100% - 30px);
+          font-size: 13px;
+        }
+
+        .remember-group label:hover {
+          color: var(--primary-color);
         }
 
         .footer {
