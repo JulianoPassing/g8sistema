@@ -77,14 +77,15 @@
     }
 
     .header-left {
-      flex: 0 0 auto;
+      flex: 1;
+      display: flex;
+      justify-content: flex-start;
     }
 
     .header-center {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      flex: 1;
+      display: flex;
+      justify-content: center;
     }
 
     .header-center img {
@@ -93,9 +94,10 @@
     }
 
     .header-right {
-      flex: 0 0 auto;
+      flex: 1;
       display: flex;
       align-items: center;
+      justify-content: flex-end;
       gap: 12px;
     }
 
@@ -141,6 +143,9 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .page-title {
@@ -402,6 +407,7 @@
       .empresas-grid {
         grid-template-columns: 1fr;
         gap: 15px;
+        width: 100%;
         max-width: 400px;
         margin: 0 auto;
       }
@@ -409,6 +415,7 @@
       .empresa-card {
         padding: 20px;
         gap: 10px;
+        width: 100%;
       }
       
       .empresa-logo {
@@ -417,6 +424,23 @@
       
       .container {
         padding: 20px 15px;
+        width: 100%;
+      }
+      
+      .page-title {
+        text-align: center;
+        width: 100%;
+      }
+      
+      .empresas-container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .pedidos-history {
+        width: 100%;
       }
     }
   </style>
