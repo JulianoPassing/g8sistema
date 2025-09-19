@@ -1202,7 +1202,7 @@
                 cor: cor,
                 subtotal: precoUnitarioBase * quantidade
               };
-              pedido.push(item);
+              window.pedidoItens.push(item);
             }
           });
         } else {
@@ -1218,12 +1218,12 @@
               cor: cor,
               subtotal: precoUnitarioBase
             };
-            pedido.push(item);
+            window.pedidoItens.push(item);
           }
         }
         
         if (itensAdicionados > 0) {
-          atualizarPedido();
+          atualizarVisualizacaoPedido();
           mostrarNotificacao(`Produto ${produto.REF} adicionado ao pedido!`, "success");
           // Limpar campos mobile
           if (tamanhosRange) {

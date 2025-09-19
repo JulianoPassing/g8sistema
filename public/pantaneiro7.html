@@ -2789,7 +2789,7 @@ window.produtosData = [
             cor: corSelecionada,
             subtotal: produto.PRECO * quantidade
           };
-          pedido.push(item);
+          window.pedidoItens.push(item);
         };
         const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
         if (tamanhosNormais) {
@@ -2810,7 +2810,7 @@ window.produtosData = [
           }
         }
         if (itemAdicionado) {
-          atualizarPedido();
+          atualizarVisualizacaoPedido();
           mostrarNotificacao(`Produto ${produto.REFERENCIA} adicionado ao pedido!`, "success");
           // Limpar campos mobile
           if (tamanhosNormais) {
