@@ -794,7 +794,9 @@
       }
       
       .header-center img {
-        height: 35px;
+        width: 200px;
+        height: auto;
+        max-width: 80%;
       }
       
       .header-right {
@@ -848,6 +850,13 @@
 
       .card-header h2 {
         font-size: 1.3rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-center img {
+        width: 150px;
+        max-width: 75%;
       }
     }
     </style>
