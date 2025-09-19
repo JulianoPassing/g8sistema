@@ -1093,73 +1093,90 @@
         const mobileContainer = document.getElementById('produtos-mobile-container');
         if (mobileContainer) mobileContainer.innerHTML = "";
         
+        // Verificar se estamos no mobile
+        const isMobile = window.innerWidth <= 768;
+        
         produtosData.forEach((produto) => {
           const preco = produto.PRECOS[tabelaSelecionada];
-          const row = document.createElement("tr");
           const tamanhosRange = parseTamanhoRange(produto.TAM);
-          let tamanhosHtml = "";
-          let tamanhosMobileHtml = "";
           
-          if (tamanhosRange) {
-            tamanhosHtml = '<div class="tamanho-input-container">';
-            tamanhosMobileHtml = '<div class="tamanho-input-container">';
-            tamanhosRange.forEach((tamanho) => {
-              tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
-              tamanhosMobileHtml += `<div class="tamanho-input-item"><label for="qty-mobile-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-mobile-${produto.REF}-${tamanho}" min="0" value=""></div>`;
-            });
-            tamanhosHtml += "</div>";
-            tamanhosMobileHtml += "</div>";
+          if (isMobile) {
+            // Mobile - Cards
+            let tamanhosMobileHtml = "";
+            
+            if (tamanhosRange) {
+              tamanhosMobileHtml = '<div class="tamanho-input-container">';
+              tamanhosRange.forEach((tamanho) => {
+                tamanhosMobileHtml += `<div class="tamanho-input-item"><label for="qty-mobile-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-mobile-${produto.REF}-${tamanho}" min="0" value=""></div>`;
+              });
+              tamanhosMobileHtml += "</div>";
+            } else {
+              tamanhosMobileHtml = `<input type="text" class="manual-input" id="tamanhos-manual-mobile-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
+            }
+            
+            // Mobile card
+            if (mobileContainer) {
+              const mobileCard = document.createElement("div");
+              mobileCard.className = "produto-card-mobile";
+              mobileCard.innerHTML = `
+                <div class="produto-header-mobile">
+                  <div class="produto-ref-mobile">${produto.REF}</div>
+                  <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
+                </div>
+                <div class="produto-descricao-mobile">
+                  <h4>${produto.MODELO}</h4>
+                  <small>${produto.TAM}</small>
+                </div>
+                <div class="produto-tamanhos-mobile">
+                  <label>Tamanhos & Quantidades:</label>
+                  ${tamanhosMobileHtml}
+                </div>
+                <div class="produto-cor-mobile">
+                  <label>Cor (opcional):</label>
+                  <input type="text" placeholder="Ex: Preto, Azul..." id="cor-mobile-${produto.REF}">
+                </div>
+                <div class="produto-actions-mobile">
+                  <button class="btn-adicionar-mobile" onclick='adicionarAoPedidoMobile("${produto.REF}")'>
+                    ➕ Adicionar ao Pedido
+                  </button>
+                </div>
+              `;
+              mobileContainer.appendChild(mobileCard);
+            }
           } else {
-            tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
-            tamanhosMobileHtml = `<input type="text" class="manual-input" id="tamanhos-manual-mobile-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
-          }
-          
-          // Desktop row
-          row.innerHTML = `<td>${produto.REF}</td><td>${
-            produto.MODELO
-          }</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${
-            produto.REF
-          }" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td style="width: 15%;"><input type="text" class="manual-input" id="cor-${
-            produto.REF
-          }" placeholder="Opcional"></td><td><button data-ref="${
-            produto.REF
-          }" class="btn btn-success btn-sm">Adicionar</button></td>`;
-          tbody.appendChild(row);
-          
-          // Mobile card
-          if (mobileContainer) {
-            const mobileCard = document.createElement("div");
-            mobileCard.className = "produto-card-mobile";
-            mobileCard.innerHTML = `
-              <div class="produto-header-mobile">
-                <div class="produto-ref-mobile">${produto.REF}</div>
-                <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
-              </div>
-              <div class="produto-descricao-mobile">
-                <h4>${produto.MODELO}</h4>
-                <small>${produto.TAM}</small>
-              </div>
-              <div class="produto-tamanhos-mobile">
-                <label>Tamanhos & Quantidades:</label>
-                ${tamanhosMobileHtml}
-              </div>
-              <div class="produto-cor-mobile">
-                <label>Cor (opcional):</label>
-                <input type="text" placeholder="Ex: Preto, Azul..." id="cor-mobile-${produto.REF}">
-              </div>
-              <div class="produto-actions-mobile">
-                <button class="btn-adicionar-mobile" onclick='adicionarAoPedidoMobile("${produto.REF}")'>
-                  ➕ Adicionar ao Pedido
-                </button>
-              </div>
-            `;
-            mobileContainer.appendChild(mobileCard);
+            // Desktop - Tabela
+            const row = document.createElement("tr");
+            let tamanhosHtml = "";
+            
+            if (tamanhosRange) {
+              tamanhosHtml = '<div class="tamanho-input-container">';
+              tamanhosRange.forEach((tamanho) => {
+                tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
+              });
+              tamanhosHtml += "</div>";
+            } else {
+              tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
+            }
+            
+            // Desktop row
+            row.innerHTML = `<td>${produto.REF}</td><td>${
+              produto.MODELO
+            }</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${
+              produto.REF
+            }" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td style="width: 15%;"><input type="text" class="manual-input" id="cor-${
+              produto.REF
+            }" placeholder="Opcional"></td><td><button data-ref="${
+              produto.REF
+            }" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            tbody.appendChild(row);
           }
         });
         
-        table.appendChild(tbody);
-        produtosContainer.innerHTML = "";
-        produtosContainer.appendChild(table);
+        if (!isMobile) {
+          table.appendChild(tbody);
+          produtosContainer.innerHTML = "";
+          produtosContainer.appendChild(table);
+        }
       }
 
       function adicionarAoPedidoMobile(ref) {

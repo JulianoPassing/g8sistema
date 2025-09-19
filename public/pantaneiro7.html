@@ -2767,61 +2767,6 @@ window.produtosData = [
           }
         }
       }
-      function renderizarProdutosPorCategoria() {
-        const categoriasOrdenadas = [
-          "Aventura",
-          "PRO"
-        ];
-        const categoriasAgrupadas = produtosData.reduce((acc, produto) => {
-          acc[produto.CATEGORIA] = acc[produto.CATEGORIA] || [];
-          acc[produto.CATEGORIA].push(produto);
-          return acc;
-        }, {});
-        categoriasOrdenadas.forEach((categoria) => {
-          const categoriaProdutos = categoriasAgrupadas[categoria];
-          if (!categoriaProdutos || categoriaProdutos.length === 0) return;
-          const categoriaDiv = document.createElement("section");
-          categoriaDiv.className = "card";
-          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
-          categoriaProdutos.forEach((produto) => {
-            const tamanhosNormais =
-              produto.REFERENCIA !== "201" &&
-              produto.REFERENCIA !== "203" &&
-              produto.REFERENCIA !== "204";
-            let tamanhosInputHTML = '<div class="tamanho-input-container">';
-            if (tamanhosNormais) {
-              const tamanhosProduto = Array.isArray(produto.TAMANHOS)
-                ? produto.TAMANHOS
-                : [produto.TAMANHOS];
-              tamanhosProduto.forEach((tamanho) => {
-                const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
-                tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
-              });
-            } else {
-              tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
-            }
-            tamanhosInputHTML += "</div>";
-            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${
-              produto.DESCRIÇÃO
-            }<br><small style="color: #6c757d;">${
-              Array.isArray(produto.TAMANHOS)
-                ? produto.TAMANHOS.join(" / ")
-                : produto.TAMANHOS
-            }</small></td><td>R$ ${produto.PRECO.toFixed(
-              2
-            )}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${
-              produto.REFERENCIA
-            }" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${
-              produto.REFERENCIA
-            }" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(
-              produto
-            )})'>Adicionar</button></td></tr>`;
-          });
-          tabelaHTML += `</tbody></table></div>`;
-          categoriaDiv.innerHTML = tabelaHTML;
-          produtosContainer.appendChild(categoriaDiv);
-        });
-      }
       function adicionarAoPedidoMobile(produto) {
         // Protege campos que podem ser undefined
         produto.REFERENCIA = produto.REFERENCIA || '';
@@ -3492,77 +3437,94 @@ window.produtosData = [
           return acc;
         }, {});
         
+        // Verificar se estamos no mobile
+        const isMobile = window.innerWidth <= 768;
+        
         categoriasOrdenadas.forEach((categoria) => {
           const categoriaProdutos = categoriasAgrupadas[categoria];
           if (!categoriaProdutos || categoriaProdutos.length === 0) return;
           
-          // Desktop - Tabela
-          const categoriaDiv = document.createElement("section");
-          categoriaDiv.className = "card";
-          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
-          
-          // Mobile - Cards
-          let mobileHTML = `<div class="card-header"><h2>${categoria}</h2></div>`;
-          
-          categoriaProdutos.forEach((produto) => {
-            const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
-            let tamanhosInputHTML = '<div class="tamanho-input-container">';
-            let tamanhosMobileHTML = '';
+          if (isMobile) {
+            // Mobile - Cards
+            let mobileHTML = `<div class="card-header"><h2>${categoria}</h2></div>`;
             
-            if (tamanhosNormais) {
-              const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
-              tamanhosProduto.forEach((tamanho) => {
-                const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
-                tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
-                tamanhosMobileHTML += `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}"></div>`;
-              });
-            } else {
-              tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
-              tamanhosMobileHTML = `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-mobile-${produto.REFERENCIA}">`;
+            categoriaProdutos.forEach((produto) => {
+              const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
+              let tamanhosMobileHTML = '';
+              
+              if (tamanhosNormais) {
+                const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
+                tamanhosProduto.forEach((tamanho) => {
+                  const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+                  tamanhosMobileHTML += `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+                });
+              } else {
+                tamanhosMobileHTML = `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-mobile-${produto.REFERENCIA}">`;
+              }
+              
+              // Mobile card
+              mobileHTML += `
+                <div class="produto-card-mobile">
+                  <div class="produto-header-mobile">
+                    <div class="produto-ref-mobile">${produto.REFERENCIA}</div>
+                    <div class="produto-preco-mobile">R$ ${produto.PRECO.toFixed(2)}</div>
+                  </div>
+                  <div class="produto-descricao-mobile">
+                    <h4>${produto.DESCRIÇÃO}</h4>
+                    <small>${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small>
+                  </div>
+                  <div class="produto-tamanhos-mobile">
+                    <label>Tamanhos & Quantidades:</label>
+                    ${tamanhosMobileHTML}
+                  </div>
+                  <div class="produto-cor-mobile">
+                    <label>Cor (opcional):</label>
+                    <input type="text" placeholder="Ex: Preto, Azul..." id="cor-mobile-${produto.REFERENCIA}">
+                  </div>
+                  <div class="produto-actions-mobile">
+                    <button class="btn-adicionar-mobile" onclick='adicionarAoPedidoMobile(${JSON.stringify(produto)})'>
+                      ➕ Adicionar ao Pedido
+                    </button>
+                  </div>
+                </div>
+              `;
+            });
+            
+            // Adicionar cards mobile
+            if (mobileContainer) {
+              const mobileDiv = document.createElement("section");
+              mobileDiv.className = "card";
+              mobileDiv.innerHTML = mobileHTML;
+              mobileContainer.appendChild(mobileDiv);
             }
-            tamanhosInputHTML += "</div>";
+          } else {
+            // Desktop - Tabela
+            const categoriaDiv = document.createElement("section");
+            categoriaDiv.className = "card";
+            let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
             
-            // Desktop tabela
-            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+            categoriaProdutos.forEach((produto) => {
+              const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
+              let tamanhosInputHTML = '<div class="tamanho-input-container">';
+              
+              if (tamanhosNormais) {
+                const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
+                tamanhosProduto.forEach((tamanho) => {
+                  const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+                  tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+                });
+              } else {
+                tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
+              }
+              tamanhosInputHTML += "</div>";
+              
+              // Desktop tabela
+              tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+            });
             
-            // Mobile card
-            mobileHTML += `
-              <div class="produto-card-mobile">
-                <div class="produto-header-mobile">
-                  <div class="produto-ref-mobile">${produto.REFERENCIA}</div>
-                  <div class="produto-preco-mobile">R$ ${produto.PRECO.toFixed(2)}</div>
-                </div>
-                <div class="produto-descricao-mobile">
-                  <h4>${produto.DESCRIÇÃO}</h4>
-                  <small>${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small>
-                </div>
-                <div class="produto-tamanhos-mobile">
-                  <label>Tamanhos & Quantidades:</label>
-                  ${tamanhosMobileHTML}
-                </div>
-                <div class="produto-cor-mobile">
-                  <label>Cor (opcional):</label>
-                  <input type="text" placeholder="Ex: Preto, Azul..." id="cor-mobile-${produto.REFERENCIA}">
-                </div>
-                <div class="produto-actions-mobile">
-                  <button class="btn-adicionar-mobile" onclick='adicionarAoPedidoMobile(${JSON.stringify(produto)})'>
-                    ➕ Adicionar ao Pedido
-                  </button>
-                </div>
-              </div>
-            `;
-          });
-          
-          tabelaHTML += `</tbody></table></div>`;
-          categoriaDiv.innerHTML = tabelaHTML;
-          produtosContainer.appendChild(categoriaDiv);
-          
-          // Adicionar cards mobile
-          if (mobileContainer) {
-            const mobileDiv = document.createElement("section");
-            mobileDiv.className = "card";
-            mobileDiv.innerHTML = mobileHTML;
-            mobileContainer.appendChild(mobileDiv);
+            tabelaHTML += `</tbody></table></div>`;
+            categoriaDiv.innerHTML = tabelaHTML;
+            produtosContainer.appendChild(categoriaDiv);
           }
         });
       }
