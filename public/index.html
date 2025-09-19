@@ -524,13 +524,14 @@
 
         /* Corrigir alinhamento das checkboxes no mobile - Padrão B2B */
         .remember-group {
-          display: flex;
+          display: flex !important;
           align-items: center;
           gap: 8px;
           margin-bottom: 12px;
           font-size: 13px;
-          text-align: left;
-          justify-content: flex-start;
+          text-align: left !important;
+          justify-content: flex-start !important;
+          width: 100%;
         }
 
         .remember-group input[type="checkbox"] {
