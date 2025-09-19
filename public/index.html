@@ -469,16 +469,16 @@
         body {
           flex-direction: column;
           justify-content: flex-start;
-          padding: 20px 15px 80px 15px;
+          padding: 15px 10px 80px 10px;
           min-height: 100vh;
         }
 
         .login-container {
           margin: 0 auto 30px auto;
-          padding: 28.8px 21.6px;
+          padding: 20px 15px;
           border-radius: 18px;
           width: 100%;
-          max-width: 400px;
+          max-width: 350px;
         }
 
         .footer {
@@ -491,10 +491,15 @@
       }
 
       @media (max-width: 480px) {
+        body {
+          padding: 10px 8px 80px 8px;
+        }
+
         .login-container {
-          padding: 28.8px 21.6px;
-          margin: 0 auto 30px auto;
-          border-radius: 18px;
+          padding: 18px 12px;
+          margin: 0 auto 20px auto;
+          border-radius: 16px;
+          max-width: 320px;
         }
 
         .logo h2 {
