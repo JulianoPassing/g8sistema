@@ -2770,10 +2770,7 @@ window.produtosData = [
       function renderizarProdutosPorCategoria() {
         const categoriasOrdenadas = [
           "Aventura",
-          "PRO",
-          "Urbano",
-          "Estilo",
-          "Acessórios",
+          "PRO"
         ];
         const categoriasAgrupadas = produtosData.reduce((acc, produto) => {
           acc[produto.CATEGORIA] = acc[produto.CATEGORIA] || [];
@@ -3488,7 +3485,7 @@ window.produtosData = [
         const mobileContainer = document.getElementById('produtos-mobile-container');
         if (mobileContainer) mobileContainer.innerHTML = "";
         
-        const categoriasOrdenadas = ["Aventura", "PRO", "Urbano", "Estilo", "Acessórios"];
+        const categoriasOrdenadas = ["Aventura", "PRO"];
         const categoriasAgrupadas = produtos.reduce((acc, produto) => {
           acc[produto.CATEGORIA] = acc[produto.CATEGORIA] || [];
           acc[produto.CATEGORIA].push(produto);
