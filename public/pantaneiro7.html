@@ -2780,14 +2780,21 @@ window.produtosData = [
           if (quantidade <= 0) return;
           itemAdicionado = true;
           const tamanhoNormalizado = tamanho.split("-")[0].trim().toUpperCase();
+          let precoFinal = produto.PRECO;
+          
+          // Aplicar ajuste de preço por tamanho
+          if (["EXG", "2G", "3G"].includes(tamanhoNormalizado))
+            precoFinal *= 1.15;
+          else if (["4G", "5G"].includes(tamanhoNormalizado)) precoFinal *= 1.4;
+          
           const item = {
             referencia: produto.REFERENCIA,
             descricao: produto.DESCRIÇÃO,
-            preco: produto.PRECO,
+            preco: precoFinal,
             tamanho: tamanhoNormalizado,
             quantidade: quantidade,
             cor: corSelecionada,
-            subtotal: produto.PRECO * quantidade
+            subtotal: precoFinal * quantidade
           };
           window.pedidoItens.push(item);
         };
