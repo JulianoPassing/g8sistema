@@ -775,51 +775,81 @@
         display: block;
       }
 
-      @media (max-width: 768px) {
-        .header-top {
-          padding: 10px 15px;
-          gap: 10px;
-        }
-        
-        .header-center img {
-          height: 40px;
-        }
-        
-        #user-info {
-          font-size: 0.8rem;
-        }
-        
-        #logout-button, .btn {
-          padding: 6px 12px;
-          font-size: 0.8rem;
-        }
-
-        /* Ocultar tabelas em mobile */
-        .table-responsive {
-          display: none;
-        }
-
-        /* Mostrar container mobile */
-        .produtos-mobile-container {
-          display: flex;
-        }
-
-        /* Ajustar container de produtos */
-        #produtos-container {
-          max-height: none;
-          overflow: visible;
-        }
-
-        /* Ajustar cards */
-        .card {
-          padding: 15px;
-          margin-bottom: 20px;
-        }
-
-        .card-header h2 {
-          font-size: 1.3rem;
-        }
+    @media (max-width: 768px) {
+      .header-top {
+        padding: 10px 15px;
+        height: 60px;
+        flex-direction: column;
+        gap: 8px;
       }
+      
+      .header-left {
+        display: none;
+      }
+      
+      .header-center {
+        position: static;
+        transform: none;
+        order: 1;
+      }
+      
+      .header-center img {
+        height: 35px;
+      }
+      
+      .header-right {
+        order: 2;
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      
+      #user-info {
+        font-size: 0.75rem;
+        flex: 1;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      #logout-button, .btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        min-width: auto;
+        flex-shrink: 0;
+      }
+
+      body {
+        padding-top: 80px;
+      }
+
+      /* Ocultar tabelas em mobile */
+      .table-responsive {
+        display: none;
+      }
+
+      /* Mostrar container mobile */
+      .produtos-mobile-container {
+        display: flex;
+      }
+
+      /* Ajustar container de produtos */
+      #produtos-container {
+        max-height: none;
+        overflow: visible;
+      }
+
+      /* Ajustar cards */
+      .card {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .card-header h2 {
+        font-size: 1.3rem;
+      }
+    }
     </style>
   </head>
   <body class="g8-theme-g8-default">

@@ -151,117 +151,6 @@
         gap: 12px;
       }
 
-      /* Menu hambúrguer */
-      .hamburger-menu {
-        display: none;
-        flex-direction: column;
-        cursor: pointer;
-        padding: 5px;
-        background: none;
-        border: none;
-        gap: 3px;
-      }
-
-      .hamburger-line {
-        width: 25px;
-        height: 3px;
-        background-color: var(--text-color);
-        transition: all 0.3s ease;
-        border-radius: 2px;
-      }
-
-      .hamburger-menu.active .hamburger-line:nth-child(1) {
-        transform: rotate(45deg) translate(6px, 6px);
-      }
-
-      .hamburger-menu.active .hamburger-line:nth-child(2) {
-        opacity: 0;
-      }
-
-      .hamburger-menu.active .hamburger-line:nth-child(3) {
-        transform: rotate(-45deg) translate(6px, -6px);
-      }
-
-      /* Menu lateral */
-      .sidebar-menu {
-        position: fixed;
-        top: 0;
-        right: -300px;
-        width: 300px;
-        height: 100vh;
-        background: white;
-        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-        transition: right 0.3s ease;
-        z-index: 1001;
-        padding: 80px 20px 20px 20px;
-        overflow-y: auto;
-      }
-
-      .sidebar-menu.active {
-        right: 0;
-      }
-
-      .sidebar-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-      }
-
-      .sidebar-overlay.active {
-        opacity: 1;
-        visibility: visible;
-      }
-
-      .sidebar-menu h3 {
-        color: var(--text-color);
-        margin-bottom: 20px;
-        font-size: 1.2rem;
-        border-bottom: 2px solid var(--primary-color);
-        padding-bottom: 10px;
-      }
-
-      .sidebar-menu .user-info {
-        background: var(--card-bg);
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        border-left: 4px solid var(--primary-color);
-      }
-
-      .sidebar-menu .menu-item {
-        display: block;
-        padding: 12px 15px;
-        color: var(--text-color);
-        text-decoration: none;
-        border-radius: 8px;
-        margin-bottom: 5px;
-        transition: all 0.3s ease;
-        border: 1px solid transparent;
-      }
-
-      .sidebar-menu .menu-item:hover {
-        background: var(--card-bg);
-        border-color: var(--primary-color);
-        transform: translateX(5px);
-      }
-
-      .sidebar-menu .menu-item.logout {
-        background: var(--gradient-primary);
-        color: white;
-        margin-top: 20px;
-      }
-
-      .sidebar-menu .menu-item.logout:hover {
-        background: var(--primary-hover);
-      }
-
       .header-center {
         position: absolute;
         left: 50%;
@@ -878,67 +767,81 @@
         display: block;
       }
 
-      @media (max-width: 768px) {
-        .header-top {
-          padding: 10px 15px;
-          gap: 10px;
-        }
-        
-        .header-center img {
-          height: 40px;
-        }
-        
-        #user-info {
-          font-size: 0.8rem;
-        }
-        
-        #logout-button, .btn {
-          padding: 6px 12px;
-          font-size: 0.8rem;
-        }
-
-        /* Mostrar menu hambúrguer no mobile */
-        .hamburger-menu {
-          display: flex;
-        }
-
-        /* Esconder botões no header no mobile */
-        .header-right #user-info,
-        .header-right #logout-button,
-        .header-right .btn {
-          display: none;
-        }
-
-        .sidebar-menu {
-          width: 280px;
-        }
-
-        /* Ocultar tabelas em mobile */
-        .table-responsive {
-          display: none;
-        }
-
-        /* Mostrar container mobile */
-        .produtos-mobile-container {
-          display: flex;
-        }
-
-        /* Ajustar container de produtos */
-        #produtos-container {
-          max-height: none;
-          overflow: visible;
-        }
-
-        /* Ajustar cards */
-        .card {
-          padding: 15px;
-          margin-bottom: 20px;
-        }
-
-        .card-header h2 {
-          font-size: 1.3rem;
-        }
+    @media (max-width: 768px) {
+      .header-top {
+        padding: 10px 15px;
+        height: 60px;
+        flex-direction: column;
+        gap: 8px;
       }
+      
+      .header-left {
+        display: none;
+      }
+      
+      .header-center {
+        position: static;
+        transform: none;
+        order: 1;
+      }
+      
+      .header-center img {
+        height: 35px;
+      }
+      
+      .header-right {
+        order: 2;
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      
+      #user-info {
+        font-size: 0.75rem;
+        flex: 1;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      #logout-button, .btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        min-width: auto;
+        flex-shrink: 0;
+      }
+
+      body {
+        padding-top: 80px;
+      }
+
+      /* Ocultar tabelas em mobile */
+      .table-responsive {
+        display: none;
+      }
+
+      /* Mostrar container mobile */
+      .produtos-mobile-container {
+        display: flex;
+      }
+
+      /* Ajustar container de produtos */
+      #produtos-container {
+        max-height: none;
+        overflow: visible;
+      }
+
+      /* Ajustar cards */
+      .card {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .card-header h2 {
+        font-size: 1.3rem;
+      }
+    }
     </style>
   </head>
   <body class="g8-theme-g8-default">
@@ -955,29 +858,8 @@
         <div id="user-info">Carregando...</div>
         <button id="logout-button" onclick="logout()">Sair</button>
         <a href="b2b-pedidos.html" class="btn">⬅️ Voltar</a>
-        <button class="hamburger-menu" onclick="toggleMenu()">
-          <div class="hamburger-line"></div>
-          <div class="hamburger-line"></div>
-          <div class="hamburger-line"></div>
-        </button>
       </div>
     </header>
-
-    <!-- Menu lateral -->
-    <div class="sidebar-overlay" onclick="closeMenu()"></div>
-    <div class="sidebar-menu" id="sidebarMenu">
-      <h3>Menu</h3>
-      <div class="user-info">
-        <strong>Cliente:</strong><br>
-        <span id="user-info-sidebar">Carregando...</span>
-      </div>
-      <a href="b2b-pedidos.html" class="menu-item" onclick="closeMenu();">
-        ⬅️ Voltar
-      </a>
-      <a href="#" class="menu-item logout" onclick="logout(); closeMenu();">
-        🚪 Sair
-      </a>
-    </div>
 
     <main class="container">
       <section class="card">
@@ -1117,33 +999,11 @@
         window.location.href = 'b2b-login.html';
       }
 
-      // Funções do menu hambúrguer
-      function toggleMenu() {
-        const sidebar = document.getElementById('sidebarMenu');
-        const overlay = document.querySelector('.sidebar-overlay');
-        const hamburger = document.querySelector('.hamburger-menu');
-        
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-        hamburger.classList.toggle('active');
-      }
-
-      function closeMenu() {
-        const sidebar = document.getElementById('sidebarMenu');
-        const overlay = document.querySelector('.sidebar-overlay');
-        const hamburger = document.querySelector('.hamburger-menu');
-        
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-        hamburger.classList.remove('active');
-      }
-
       // Preencher informações do cliente
       function preencherInformacoesCliente() {
         if (!clienteData) return;
 
         document.getElementById('user-info').textContent = clienteData.razao;
-        document.getElementById('user-info-sidebar').textContent = clienteData.razao;
         document.getElementById('razao').value = clienteData.razao || '';
         document.getElementById('cnpj').value = clienteData.cnpj || '';
         document.getElementById('ie').value = clienteData.ie || '';

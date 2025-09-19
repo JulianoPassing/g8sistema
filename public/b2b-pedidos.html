@@ -99,117 +99,6 @@
       gap: 12px;
     }
 
-    /* Menu hambúrguer */
-    .hamburger-menu {
-      display: none;
-      flex-direction: column;
-      cursor: pointer;
-      padding: 5px;
-      background: none;
-      border: none;
-      gap: 3px;
-    }
-
-    .hamburger-line {
-      width: 25px;
-      height: 3px;
-      background-color: var(--text-color);
-      transition: all 0.3s ease;
-      border-radius: 2px;
-    }
-
-    .hamburger-menu.active .hamburger-line:nth-child(1) {
-      transform: rotate(45deg) translate(6px, 6px);
-    }
-
-    .hamburger-menu.active .hamburger-line:nth-child(2) {
-      opacity: 0;
-    }
-
-    .hamburger-menu.active .hamburger-line:nth-child(3) {
-      transform: rotate(-45deg) translate(6px, -6px);
-    }
-
-    /* Menu lateral */
-    .sidebar-menu {
-      position: fixed;
-      top: 0;
-      right: -300px;
-      width: 300px;
-      height: 100vh;
-      background: white;
-      box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-      transition: right 0.3s ease;
-      z-index: 1001;
-      padding: 80px 20px 20px 20px;
-      overflow-y: auto;
-    }
-
-    .sidebar-menu.active {
-      right: 0;
-    }
-
-    .sidebar-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .sidebar-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .sidebar-menu h3 {
-      color: var(--text-color);
-      margin-bottom: 20px;
-      font-size: 1.2rem;
-      border-bottom: 2px solid var(--primary-color);
-      padding-bottom: 10px;
-    }
-
-    .sidebar-menu .user-info {
-      background: var(--card-bg);
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border-left: 4px solid var(--primary-color);
-    }
-
-    .sidebar-menu .menu-item {
-      display: block;
-      padding: 12px 15px;
-      color: var(--text-color);
-      text-decoration: none;
-      border-radius: 8px;
-      margin-bottom: 5px;
-      transition: all 0.3s ease;
-      border: 1px solid transparent;
-    }
-
-    .sidebar-menu .menu-item:hover {
-      background: var(--card-bg);
-      border-color: var(--primary-color);
-      transform: translateX(5px);
-    }
-
-    .sidebar-menu .menu-item.logout {
-      background: var(--gradient-primary);
-      color: white;
-      margin-top: 20px;
-    }
-
-    .sidebar-menu .menu-item.logout:hover {
-      background: var(--primary-hover);
-    }
-
     .user-info {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 0.9rem;
@@ -494,20 +383,46 @@
     @media (max-width: 768px) {
       .header {
         padding: 10px 15px;
-        gap: 10px;
+        height: 60px;
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .header-left {
+        display: none;
+      }
+      
+      .header-center {
+        position: static;
+        transform: none;
+        order: 1;
       }
       
       .header-center img {
-        height: 40px;
+        height: 35px;
+      }
+      
+      .header-right {
+        order: 2;
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
       }
       
       .user-info {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
+        flex: 1;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       
       .btn-logout, .btn-alterar-senha, .btn {
-        padding: 6px 12px;
-        font-size: 0.8rem;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        min-width: auto;
+        flex-shrink: 0;
       }
       
       .empresas-grid {
@@ -517,22 +432,7 @@
       
       .container {
         padding: 20px 15px;
-      }
-
-      /* Mostrar menu hambúrguer no mobile */
-      .hamburger-menu {
-        display: flex;
-      }
-
-      /* Esconder botões no header no mobile */
-      .header-right .user-info,
-      .header-right .btn-logout,
-      .header-right .btn-alterar-senha {
-        display: none;
-      }
-
-      .sidebar-menu {
-        width: 280px;
+        padding-top: 80px;
       }
     }
   </style>
@@ -549,29 +449,8 @@
       </div>
       <button class="btn-alterar-senha" onclick="alterarSenha()">Alterar Senha</button>
       <button class="btn-logout" onclick="logout()">Sair</button>
-      <button class="hamburger-menu" onclick="toggleMenu()">
-        <div class="hamburger-line"></div>
-        <div class="hamburger-line"></div>
-        <div class="hamburger-line"></div>
-      </button>
     </div>
   </header>
-
-  <!-- Menu lateral -->
-  <div class="sidebar-overlay" onclick="closeMenu()"></div>
-  <div class="sidebar-menu" id="sidebarMenu">
-    <h3>Menu</h3>
-    <div class="user-info">
-      <strong>Cliente:</strong><br>
-      <span id="clienteNomeSidebar">Carregando...</span>
-    </div>
-    <a href="#" class="menu-item" onclick="alterarSenha(); closeMenu();">
-      🔐 Alterar Senha
-    </a>
-    <a href="#" class="menu-item logout" onclick="logout(); closeMenu();">
-      🚪 Sair
-    </a>
-  </div>
 
   <div class="container">
     <h1 class="page-title">Escolha a Empresa</h1>
@@ -605,29 +484,7 @@
       
       clienteData = JSON.parse(clienteStr);
       document.getElementById('clienteNome').textContent = clienteData.razao;
-      document.getElementById('clienteNomeSidebar').textContent = clienteData.razao;
       return true;
-    }
-
-    // Funções do menu hambúrguer
-    function toggleMenu() {
-      const sidebar = document.getElementById('sidebarMenu');
-      const overlay = document.querySelector('.sidebar-overlay');
-      const hamburger = document.querySelector('.hamburger-menu');
-      
-      sidebar.classList.toggle('active');
-      overlay.classList.toggle('active');
-      hamburger.classList.toggle('active');
-    }
-
-    function closeMenu() {
-      const sidebar = document.getElementById('sidebarMenu');
-      const overlay = document.querySelector('.sidebar-overlay');
-      const hamburger = document.querySelector('.hamburger-menu');
-      
-      sidebar.classList.remove('active');
-      overlay.classList.remove('active');
-      hamburger.classList.remove('active');
     }
 
     // Função de logout
