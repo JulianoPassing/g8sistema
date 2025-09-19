@@ -1224,7 +1224,7 @@
         
         if (itensAdicionados > 0) {
           atualizarVisualizacaoPedido();
-          mostrarNotificacao(`Produto ${produto.REF} adicionado ao pedido!`, "success");
+          // Produto adicionado com sucesso
           // Limpar campos mobile
           if (tamanhosRange) {
             tamanhosRange.forEach((tamanho) => {
@@ -1235,7 +1235,7 @@
           }
           document.getElementById(`cor-mobile-${ref}`).value = "";
         } else {
-          mostrarNotificacao("Por favor, selecione pelo menos um tamanho e quantidade.", "warning");
+          alert("Por favor, selecione pelo menos um tamanho e quantidade.");
         }
       }
 

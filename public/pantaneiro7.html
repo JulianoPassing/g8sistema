@@ -2818,7 +2818,7 @@ window.produtosData = [
         }
         if (itemAdicionado) {
           atualizarVisualizacaoPedido();
-          mostrarNotificacao(`Produto ${produto.REFERENCIA} adicionado ao pedido!`, "success");
+          // Produto adicionado com sucesso
           // Limpar campos mobile
           if (tamanhosNormais) {
             const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
@@ -2831,7 +2831,7 @@ window.produtosData = [
           }
           document.getElementById(`cor-mobile-${produto.REFERENCIA}`).value = "";
         } else {
-          mostrarNotificacao("Por favor, selecione pelo menos um tamanho e quantidade.", "warning");
+          alert("Por favor, selecione pelo menos um tamanho e quantidade.");
         }
       }
 
