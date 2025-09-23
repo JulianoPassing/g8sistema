@@ -87,22 +87,22 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Carregar lista de clientes do MySQL
-    let clientes = [];
+    // Buscar cliente no banco MySQL ou arquivo JSON (fallback)
     let cliente = null;
+    let connection = null;
     
     try {
-      // Tentar conectar ao MySQL primeiro
-      const connection = await mysql.createConnection({
+      // Tentar conectar com MySQL
+      connection = await mysql.createConnection({
         host: process.env.DB_HOST || 'localhost',
         user: process.env.DB_USER || 'julianopassing',
         password: process.env.DB_PASSWORD || 'Juliano@95',
         database: process.env.DB_NAME || 'sistemajuliano'
       });
       
-      // Buscar cliente diretamente pelo CNPJ no MySQL
+      // Buscar cliente no banco MySQL
       const [rows] = await connection.execute(
-        'SELECT * FROM clientes WHERE REPLACE(REPLACE(REPLACE(REPLACE(cnpj, ".", ""), "-", ""), "/", ""), " ", "") = ?', 
+        'SELECT * FROM clientes WHERE cnpj = ?',
         [cnpjNormalizado]
       );
       
@@ -110,23 +110,27 @@ module.exports = async (req, res) => {
         cliente = rows[0];
       }
       
-      await connection.end();
     } catch (dbError) {
-      console.log('Erro ao conectar com MySQL, tentando arquivo JSON:', dbError.message);
+      console.log('Erro ao conectar com MySQL, usando arquivo JSON:', dbError.message);
       
-      // Fallback para arquivo JSON se MySQL falhar
+      // Fallback: carregar do arquivo JSON
       try {
         const clientesPath = path.join(process.cwd(), 'public', 'clientes.json');
         const clientesData = fs.readFileSync(clientesPath, 'utf8');
-        clientes = JSON.parse(clientesData);
+        const clientes = JSON.parse(clientesData);
         
-        // Buscar cliente pelo CNPJ no JSON
+        // Buscar cliente pelo CNPJ no arquivo JSON
         cliente = clientes.find(c => {
           const clienteCnpj = c.cnpj ? c.cnpj.replace(/[.\-\/\s]/g, '') : '';
           return clienteCnpj === cnpjNormalizado;
         });
       } catch (jsonError) {
         console.error('Erro ao carregar clientes.json:', jsonError);
+      }
+    } finally {
+      // Fechar conexão se foi aberta
+      if (connection) {
+        await connection.end();
       }
     }
     
