@@ -1,6 +1,7 @@
 // API de autenticação B2B para clientes
 const fs = require('fs');
 const path = require('path');
+const mysql = require('mysql2/promise');
 
 // CONFIGURAÇÃO DE SENHAS PERSONALIZADAS
 // CNPJs com senhas específicas (sobrescreve a senha padrão 123456)
@@ -86,16 +87,48 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Carregar lista de clientes
-    const clientesPath = path.join(process.cwd(), 'public', 'clientes.json');
-    const clientesData = fs.readFileSync(clientesPath, 'utf8');
-    const clientes = JSON.parse(clientesData);
+    // Carregar lista de clientes do MySQL
+    let clientes = [];
+    let cliente = null;
     
-    // Buscar cliente pelo CNPJ
-    const cliente = clientes.find(c => {
-      const clienteCnpj = c.cnpj ? c.cnpj.replace(/[.\-\/\s]/g, '') : '';
-      return clienteCnpj === cnpjNormalizado;
-    });
+    try {
+      // Tentar conectar ao MySQL primeiro
+      const connection = await mysql.createConnection({
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER || 'julianopassing',
+        password: process.env.DB_PASSWORD || 'Juliano@95',
+        database: process.env.DB_NAME || 'sistemajuliano'
+      });
+      
+      // Buscar cliente diretamente pelo CNPJ no MySQL
+      const [rows] = await connection.execute(
+        'SELECT * FROM clientes WHERE REPLACE(REPLACE(REPLACE(REPLACE(cnpj, ".", ""), "-", ""), "/", ""), " ", "") = ?', 
+        [cnpjNormalizado]
+      );
+      
+      if (rows.length > 0) {
+        cliente = rows[0];
+      }
+      
+      await connection.end();
+    } catch (dbError) {
+      console.log('Erro ao conectar com MySQL, tentando arquivo JSON:', dbError.message);
+      
+      // Fallback para arquivo JSON se MySQL falhar
+      try {
+        const clientesPath = path.join(process.cwd(), 'public', 'clientes.json');
+        const clientesData = fs.readFileSync(clientesPath, 'utf8');
+        clientes = JSON.parse(clientesData);
+        
+        // Buscar cliente pelo CNPJ no JSON
+        cliente = clientes.find(c => {
+          const clienteCnpj = c.cnpj ? c.cnpj.replace(/[.\-\/\s]/g, '') : '';
+          return clienteCnpj === cnpjNormalizado;
+        });
+      } catch (jsonError) {
+        console.error('Erro ao carregar clientes.json:', jsonError);
+      }
+    }
     
     if (cliente) {
       return res.status(200).json({ 

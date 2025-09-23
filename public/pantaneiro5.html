@@ -3250,24 +3250,29 @@ window.produtosData = [
         }
         
         console.log('📤 Fazendo POST para criar novo pedido (modo normal)');
-        fetch('/api/pedidos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            empresa: 'pantaneiro5',
-            descricao: descricaoPedido,
-            dados: dadosPedido
-          })
-        })
-        .then(resp => {
-          if (resp.ok) {
-            alert('Pedido enviado e salvo com sucesso!');
+        
+        // Usar sistema offline
+        const orderData = {
+          empresa: 'pantaneiro5',
+          descricao: descricaoPedido,
+          dados: dadosPedido
+        };
+        
+        window.offlineSystem.tryToSendOrder(orderData)
+        .then(result => {
+          if (result.success) {
+            if (result.online) {
+              alert('✅ Pedido enviado e salvo com sucesso!');
+            } else {
+              alert('📱 Sem conexão! Pedido salvo localmente e será enviado automaticamente quando a conexão retornar.');
+            }
           } else {
-            alert('Erro ao salvar o pedido no banco.');
+            alert('❌ Erro ao processar o pedido.');
           }
         })
-        .catch(() => {
-          alert('Erro ao conectar com o servidor.');
+        .catch(error => {
+          console.error('Erro no sistema offline:', error);
+          alert('❌ Erro ao processar o pedido.');
         });
       }
 
@@ -3601,5 +3606,6 @@ window.produtosData = [
       }
     </script>
     <script src="editor-pedido.js"></script>
+    <script src="offline-system.js"></script>
   </body>
 </html>
