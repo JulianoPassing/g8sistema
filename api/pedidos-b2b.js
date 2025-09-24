@@ -1,5 +1,4 @@
 const mysql = require('mysql2/promise');
-const { enviarNotificacaoPedido } = require('./email-service');
 
 module.exports = async (req, res) => {
   const connection = await mysql.createConnection({
@@ -33,27 +32,6 @@ module.exports = async (req, res) => {
         `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
         [empresa, descricao, JSON.stringify(dadosCompletos)]
       );
-      
-      // Enviar notificação por e-mail após salvar o pedido
-      if (result.insertId) {
-        try {
-          console.log('📧 Enviando notificação por e-mail para o pedido #' + result.insertId);
-          
-          await enviarNotificacaoPedido({
-            id: result.insertId,
-            empresa,
-            descricao,
-            clienteInfo: dadosCompletos.clienteInfo,
-            data: new Date(),
-            observacoes: dadosCompletos.observacoes
-          });
-          
-          console.log('✅ Notificação por e-mail enviada com sucesso para o pedido #' + result.insertId);
-        } catch (emailError) {
-          console.error('❌ Erro ao enviar notificação por e-mail:', emailError);
-          // Não falha o pedido se o e-mail falhar - apenas loga o erro
-        }
-      }
       
       res.status(201).json({ 
         id: result.insertId, 
