@@ -32,6 +32,18 @@
     {
       "source": "/api/auth",
       "destination": "/api/auth.js"
+    },
+    {
+      "source": "/api/auth-b2b",
+      "destination": "/api/auth-b2b.js"
+    },
+    {
+      "source": "/api/pedidos-b2b",
+      "destination": "/api/pedidos-b2b.js"
+    },
+    {
+      "source": "/api/test-email",
+      "destination": "/api/test-email.js"
     }
   ],
   "headers": [

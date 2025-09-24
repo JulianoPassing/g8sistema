@@ -167,11 +167,39 @@ acessos: {
 - ✅ Interface responsiva e moderna
 - ✅ Documentação completa
 
+## 📧 Sistema de Notificação por E-mail
+
+### **Funcionalidade Implementada**
+- **Arquivo**: `api/email-service.js`
+- **Notificação Automática**: Quando um cliente cria um pedido B2B, você recebe um e-mail instantâneo
+- **E-mail de Destino**: `g8julianojr@gmail.com`
+- **Template Profissional**: E-mail HTML com todas as informações do pedido
+
+### **Como Funciona**
+1. Cliente cria pedido no B2B
+2. Pedido é salvo no banco de dados
+3. **Sistema envia e-mail automaticamente** para `g8julianojr@gmail.com`
+4. Você recebe notificação instantânea com todos os detalhes
+
+### **Informações no E-mail**
+- ✅ ID do pedido
+- ✅ Empresa (Pantaneiro 5/7, Steitz)
+- ✅ Dados completos do cliente (nome, CNPJ, cidade)
+- ✅ Descrição detalhada do pedido
+- ✅ Observações (se houver)
+- ✅ Data e hora do pedido
+- ✅ Link direto para o painel admin
+
+### **Teste do Sistema**
+- **URL de Teste**: `/api/test-email`
+- **GET**: Testa apenas a conexão
+- **POST**: Envia e-mail de teste completo
+
 ## 🚧 Próximos Passos (Opcionais)
 
 - [ ] Implementar sistema completo de busca de produtos
 - [ ] Adicionar mais funcionalidades de pedidos
-- [ ] Sistema de notificações por email
+- [x] ✅ **Sistema de notificações por email IMPLEMENTADO**
 - [ ] Relatórios de vendas B2B
 
 O sistema está **100% funcional e pronto** para uso em produção! 🎉
