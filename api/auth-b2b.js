@@ -51,11 +51,19 @@ function getAcessosCliente(cnpj) {
 }
 
 module.exports = async (req, res) => {
-  // Adicionar headers de segurança
+  // Headers de segurança e CORS
+  res.setHeader('Content-Type', 'application/json');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
@@ -64,8 +72,13 @@ module.exports = async (req, res) => {
   try {
     const { cnpj, password } = req.body;
     
+    // Log para debug
+    console.log('Auth B2B - CNPJ:', cnpj, 'Password:', password);
+    console.log('Auth B2B - Headers:', req.headers);
+    
     // Validação básica
     if (!cnpj || !password) {
+      console.log('Auth B2B - Validação falhou: CNPJ ou senha ausente');
       return res.status(400).json({ 
         success: false, 
         message: 'CNPJ e senha são obrigatórios' 
@@ -78,7 +91,12 @@ module.exports = async (req, res) => {
     // Verificar senha (padrão ou personalizada)
     const senhaEsperada = senhasPersonalizadas[cnpjNormalizado] || '123456';
     
+    console.log('Auth B2B - CNPJ normalizado:', cnpjNormalizado);
+    console.log('Auth B2B - Senha esperada:', senhaEsperada);
+    console.log('Auth B2B - Senha recebida:', password);
+    
     if (password !== senhaEsperada) {
+      console.log('Auth B2B - Senha inválida');
       // Delay pequeno para prevenir ataques de força bruta
       await new Promise(resolve => setTimeout(resolve, 1000));
       return res.status(401).json({ 
@@ -86,6 +104,8 @@ module.exports = async (req, res) => {
         message: 'Senha inválida' 
       });
     }
+    
+    console.log('Auth B2B - Senha válida, buscando cliente...');
 
     // Buscar cliente no banco MySQL ou arquivo JSON (fallback)
     let cliente = null;
