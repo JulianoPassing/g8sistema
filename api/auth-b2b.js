@@ -99,10 +99,14 @@ module.exports = async (req, res) => {
     // Normalizar CNPJ (remover pontos, barras e espaços)
     const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
     
+    console.log('Auth B2B - CNPJ original:', cnpj);
+    console.log('Auth B2B - CNPJ normalizado:', cnpjNormalizado);
+    console.log('Auth B2B - Tipo do CNPJ:', typeof cnpj);
+    console.log('Auth B2B - Length CNPJ normalizado:', cnpjNormalizado.length);
+    
     // Verificar senha (padrão ou personalizada)
     const senhaEsperada = senhasPersonalizadas[cnpjNormalizado] || '123456';
     
-    console.log('Auth B2B - CNPJ normalizado:', cnpjNormalizado);
     console.log('Auth B2B - Senha esperada:', senhaEsperada);
     console.log('Auth B2B - Senha recebida:', password);
     
@@ -159,11 +163,31 @@ module.exports = async (req, res) => {
         
         console.log('Auth B2B - JSON carregado, total de clientes:', clientes.length);
         
+        // Log de alguns CNPJs para debug
+        console.log('Auth B2B - Primeiros 3 CNPJs do arquivo:');
+        clientes.slice(0, 3).forEach((c, i) => {
+          console.log(`  ${i}: ${c.cnpj} -> ${c.cnpj?.replace(/[.\-\/\s]/g, '')}`);
+        });
+        
         // Buscar cliente pelo CNPJ no arquivo JSON
         cliente = clientes.find(c => {
           const clienteCnpj = c.cnpj ? c.cnpj.replace(/[.\-\/\s]/g, '') : '';
+          console.log('Auth B2B - Comparando:', clienteCnpj, 'com', cnpjNormalizado);
           return clienteCnpj === cnpjNormalizado;
         });
+        
+        // Se não encontrou, tentar busca alternativa
+        if (!cliente) {
+          console.log('Auth B2B - Tentando busca alternativa...');
+          cliente = clientes.find(c => {
+            if (!c.cnpj) return false;
+            // Normalizar ambos os CNPJs para comparação
+            const clienteCnpjNorm = c.cnpj.replace(/[.\-\/\s]/g, '');
+            const buscaCnpjNorm = cnpj.replace(/[.\-\/\s]/g, '');
+            console.log('Auth B2B - Busca alt:', clienteCnpjNorm, 'vs', buscaCnpjNorm);
+            return clienteCnpjNorm === buscaCnpjNorm;
+          });
+        }
         
         if (cliente) {
           console.log('Auth B2B - Cliente encontrado no JSON:', cliente.razao);
