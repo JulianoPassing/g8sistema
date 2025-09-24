@@ -180,12 +180,20 @@ module.exports = async (req, res) => {
         console.log('Auth B2B - Caminho completo:', clientesPath);
         
         const clientesData = fs.readFileSync(clientesPath, 'utf8');
-        console.log('Auth B2B - Arquivo lido, tamanho:', clientesData.length, 'bytes');
+        console.log('📄 Auth B2B - Arquivo lido, tamanho:', clientesData.length, 'bytes');
         
         const clientes = JSON.parse(clientesData);
-        console.log('Auth B2B - JSON parseado com sucesso');
+        console.log('✅ Auth B2B - JSON parseado com sucesso');
         
-        console.log('Auth B2B - JSON carregado, total de clientes:', clientes.length);
+        console.log('📊 Auth B2B - JSON carregado, total de clientes:', clientes.length);
+        
+        // Verificar se existe o cliente G8 especificamente
+        const clienteG8 = clientes.find(c => c.id === 183);
+        if (clienteG8) {
+          console.log('✅ Cliente G8 encontrado no JSON:', clienteG8.razao, 'CNPJ:', clienteG8.cnpj);
+        } else {
+          console.log('❌ Cliente G8 NÃO encontrado no JSON');
+        }
         
         // Log de alguns CNPJs para debug
         console.log('Auth B2B - Primeiros 3 CNPJs do arquivo:');
@@ -194,36 +202,44 @@ module.exports = async (req, res) => {
         });
         
         // Buscar cliente por CNPJ normalizado (método principal)
-        console.log('Auth B2B - Buscando cliente por CNPJ normalizado...');
+        console.log('🔍 Auth B2B - Buscando cliente por CNPJ normalizado...');
+        console.log('🔍 CNPJ procurado:', cnpjNormalizado);
+        console.log('🔍 Total de clientes no array:', clientes.length);
+        
         cliente = clientes.find(c => {
           if (!c.cnpj) return false;
           const clienteCnpj = c.cnpj.replace(/[.\-\/\s]/g, '');
           const match = clienteCnpj === cnpjNormalizado;
           if (match) {
-            console.log('Auth B2B - MATCH encontrado:', c.razao, 'CNPJ:', c.cnpj);
+            console.log('✅ Auth B2B - MATCH encontrado:', c.razao, 'CNPJ:', c.cnpj);
           }
           return match;
         });
         
+        console.log('🔍 Resultado da busca principal:', cliente ? 'ENCONTRADO' : 'NÃO ENCONTRADO');
+        
         // Se não encontrou, busca por CNPJ formatado original
         if (!cliente) {
-          console.log('Auth B2B - Buscando por CNPJ formatado original...');
+          console.log('🔍 Auth B2B - Buscando por CNPJ formatado original...');
+          console.log('🔍 CNPJ formatado procurado:', cnpj);
           cliente = clientes.find(c => {
             if (c.cnpj === cnpj) {
-              console.log('Auth B2B - Encontrado por CNPJ formatado:', c.razao);
+              console.log('✅ Auth B2B - Encontrado por CNPJ formatado:', c.razao);
               return true;
             }
             return false;
           });
+          console.log('🔍 Resultado busca formatada:', cliente ? 'ENCONTRADO' : 'NÃO ENCONTRADO');
         }
         
         // Fallback: buscar por ID específico para G8 (caso especial)
         if (!cliente && cnpjNormalizado === '30110818000128') {
-          console.log('Auth B2B - Fallback: buscando G8 por ID 183...');
+          console.log('🔍 Auth B2B - Fallback: buscando G8 por ID 183...');
           cliente = clientes.find(c => c.id === 183);
           if (cliente) {
-            console.log('Auth B2B - G8 encontrada por ID:', cliente.razao);
+            console.log('✅ Auth B2B - G8 encontrada por ID:', cliente.razao);
           }
+          console.log('🔍 Resultado busca por ID:', cliente ? 'ENCONTRADO' : 'NÃO ENCONTRADO');
         }
         
         if (cliente) {
