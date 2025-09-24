@@ -32,6 +32,10 @@
     {
       "source": "/api/auth",
       "destination": "/api/auth.js"
+    },
+    {
+      "source": "/api/auth-b2b",
+      "destination": "/api/auth-b2b.js"
     }
   ],
   "headers": [
