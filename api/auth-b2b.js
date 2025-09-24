@@ -109,9 +109,13 @@ module.exports = async (req, res) => {
     
     console.log('Auth B2B - Senha esperada:', senhaEsperada);
     console.log('Auth B2B - Senha recebida:', password);
+    console.log('Auth B2B - Senha personalizada configurada:', !!senhasPersonalizadas[cnpjNormalizado]);
+    console.log('Auth B2B - Comparação senhas (===):', password === senhaEsperada);
     
     if (password !== senhaEsperada) {
-      console.log('Auth B2B - Senha inválida');
+      console.log('Auth B2B - Senha inválida - não prosseguindo com busca do cliente');
+      console.log('Auth B2B - Tipo da senha esperada:', typeof senhaEsperada);
+      console.log('Auth B2B - Tipo da senha recebida:', typeof password);
       // Delay pequeno para prevenir ataques de força bruta
       await new Promise(resolve => setTimeout(resolve, 1000));
       return res.status(401).json({ 
@@ -175,36 +179,36 @@ module.exports = async (req, res) => {
           console.log(`  ${i}: ${c.cnpj} -> ${c.cnpj?.replace(/[.\-\/\s]/g, '')}`);
         });
         
-        // Buscar especificamente o cliente da G8 primeiro
-        if (cnpjNormalizado === '30110818000128') {
-          console.log('Auth B2B - Buscando especificamente G8 Representações...');
-          cliente = clientes.find(c => c.id === 183);
-          if (cliente) {
-            console.log('Auth B2B - G8 encontrada por ID:', cliente.razao);
-          } else {
-            console.log('Auth B2B - G8 não encontrada por ID 183');
+        // Buscar cliente por CNPJ normalizado (método principal)
+        console.log('Auth B2B - Buscando cliente por CNPJ normalizado...');
+        cliente = clientes.find(c => {
+          if (!c.cnpj) return false;
+          const clienteCnpj = c.cnpj.replace(/[.\-\/\s]/g, '');
+          const match = clienteCnpj === cnpjNormalizado;
+          if (match) {
+            console.log('Auth B2B - MATCH encontrado:', c.razao, 'CNPJ:', c.cnpj);
           }
-        }
+          return match;
+        });
         
-        // Se não encontrou, busca normal
+        // Se não encontrou, busca por CNPJ formatado original
         if (!cliente) {
-          console.log('Auth B2B - Fazendo busca normal por CNPJ...');
+          console.log('Auth B2B - Buscando por CNPJ formatado original...');
           cliente = clientes.find(c => {
-            const clienteCnpj = c.cnpj ? c.cnpj.replace(/[.\-\/\s]/g, '') : '';
-            if (clienteCnpj === cnpjNormalizado) {
-              console.log('Auth B2B - MATCH encontrado:', c.razao);
+            if (c.cnpj === cnpj) {
+              console.log('Auth B2B - Encontrado por CNPJ formatado:', c.razao);
               return true;
             }
             return false;
           });
         }
         
-        // Se ainda não encontrou, busca por texto exato
-        if (!cliente) {
-          console.log('Auth B2B - Buscando por CNPJ formatado...');
-          cliente = clientes.find(c => c.cnpj === cnpj);
+        // Fallback: buscar por ID específico para G8 (caso especial)
+        if (!cliente && cnpjNormalizado === '30110818000128') {
+          console.log('Auth B2B - Fallback: buscando G8 por ID 183...');
+          cliente = clientes.find(c => c.id === 183);
           if (cliente) {
-            console.log('Auth B2B - Encontrado por CNPJ formatado:', cliente.razao);
+            console.log('Auth B2B - G8 encontrada por ID:', cliente.razao);
           }
         }
         
@@ -271,11 +275,16 @@ module.exports = async (req, res) => {
       });
     } else {
       console.log('Auth B2B - Cliente não encontrado no sistema');
+      console.log('Auth B2B - CNPJ pesquisado:', cnpj);
+      console.log('Auth B2B - CNPJ normalizado:', cnpjNormalizado);
+      console.log('Auth B2B - Senha esperada:', senhasPersonalizadas[cnpjNormalizado] || '123456');
+      console.log('Auth B2B - Senha recebida:', password);
+      
       // Delay pequeno para prevenir ataques de força bruta
       await new Promise(resolve => setTimeout(resolve, 1000));
       return res.status(401).json({ 
         success: false, 
-        message: 'CNPJ não encontrado no sistema' 
+        message: 'Cliente não encontrado no sistema' 
       });
     }
   } catch (error) {
