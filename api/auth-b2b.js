@@ -112,6 +112,11 @@ module.exports = async (req, res) => {
     let connection = null;
     
     try {
+      console.log('Auth B2B - Tentando conectar com MySQL...');
+      console.log('Auth B2B - DB_HOST:', process.env.DB_HOST || 'localhost');
+      console.log('Auth B2B - DB_USER:', process.env.DB_USER || 'julianopassing');
+      console.log('Auth B2B - DB_NAME:', process.env.DB_NAME || 'sistemajuliano');
+      
       // Tentar conectar com MySQL
       connection = await mysql.createConnection({
         host: process.env.DB_HOST || 'localhost',
@@ -120,14 +125,19 @@ module.exports = async (req, res) => {
         database: process.env.DB_NAME || 'sistemajuliano'
       });
       
+      console.log('Auth B2B - Conexão MySQL estabelecida');
+      
       // Buscar cliente no banco MySQL
       const [rows] = await connection.execute(
         'SELECT * FROM clientes WHERE cnpj = ?',
         [cnpjNormalizado]
       );
       
+      console.log('Auth B2B - Query executada, linhas encontradas:', rows.length);
+      
       if (rows.length > 0) {
         cliente = rows[0];
+        console.log('Auth B2B - Cliente encontrado no MySQL:', cliente.razao);
       }
       
     } catch (dbError) {
@@ -135,17 +145,28 @@ module.exports = async (req, res) => {
       
       // Fallback: carregar do arquivo JSON
       try {
+        console.log('Auth B2B - Tentando carregar clientes.json...');
+        console.log('Auth B2B - process.cwd():', process.cwd());
+        
         const clientesPath = path.join(process.cwd(), 'public', 'clientes.json');
+        console.log('Auth B2B - Caminho do arquivo:', clientesPath);
+        
         const clientesData = fs.readFileSync(clientesPath, 'utf8');
+        console.log('Auth B2B - Arquivo carregado, tamanho:', clientesData.length);
+        
         const clientes = JSON.parse(clientesData);
+        console.log('Auth B2B - JSON parseado, total de clientes:', clientes.length);
         
         // Buscar cliente pelo CNPJ no arquivo JSON
         cliente = clientes.find(c => {
           const clienteCnpj = c.cnpj ? c.cnpj.replace(/[.\-\/\s]/g, '') : '';
           return clienteCnpj === cnpjNormalizado;
         });
+        
+        console.log('Auth B2B - Cliente encontrado no JSON:', !!cliente);
       } catch (jsonError) {
-        console.error('Erro ao carregar clientes.json:', jsonError);
+        console.error('Auth B2B - Erro ao carregar clientes.json:', jsonError);
+        console.error('Auth B2B - Stack trace JSON:', jsonError.stack);
       }
     } finally {
       // Fechar conexão se foi aberta
