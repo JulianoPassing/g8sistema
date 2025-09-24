@@ -746,6 +746,13 @@
           if (cliente) preencherFormularioEdicao(cliente);
         };
       });
+      document.querySelectorAll('.btn-remover').forEach(btn => {
+        btn.onclick = function() {
+          const id = this.getAttribute('data-id');
+          const cliente = clientes.find(c => String(c.id) === String(id));
+          if (cliente) confirmarRemocaoCliente(cliente);
+        };
+      });
     }
     function filtrarClientes(texto) {
       const termo = texto.trim().toLowerCase();
@@ -816,6 +823,51 @@
         }, 150);
       });
     });
+
+    // Função para confirmar remoção do cliente
+    function confirmarRemocaoCliente(cliente) {
+      const confirmacao = confirm(
+        `Tem certeza que deseja remover o cliente?\n\n` +
+        `Razão Social: ${cliente.razao}\n` +
+        `CNPJ: ${cliente.cnpj}\n\n` +
+        `Esta ação não pode ser desfeita.`
+      );
+      
+      if (confirmacao) {
+        removerCliente(cliente.id);
+      }
+    }
+
+    // Função para remover cliente via API
+    async function removerCliente(id) {
+      try {
+        console.log('Removendo cliente ID:', id);
+        
+        const response = await fetch(`${API_URL}/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('Cliente removido com sucesso:', result);
+        
+        alert('Cliente removido com sucesso!');
+        
+        // Recarregar a lista de clientes
+        await carregarClientes();
+        
+      } catch (error) {
+        console.error('Erro ao remover cliente:', error);
+        alert(`Erro ao remover cliente: ${error.message}`);
+      }
+    }
 
     function exportarClientesPDF() {
       const { jsPDF } = window.jspdf;
