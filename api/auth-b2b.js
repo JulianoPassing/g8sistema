@@ -52,12 +52,13 @@ function getAcessosCliente(cnpj) {
 
 module.exports = async (req, res) => {
   // Log inicial para debug
-  console.log('=== AUTH-B2B ORIGINAL ===');
+  console.log('=== AUTH-B2B VERSÃO ATUALIZADA ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Headers keys:', Object.keys(req.headers));
   console.log('Body type:', typeof req.body);
   console.log('Body:', req.body);
+  console.log('Timestamp:', new Date().toISOString());
   console.log('=========================');
   
   // Headers de segurança e CORS
@@ -107,10 +108,21 @@ module.exports = async (req, res) => {
     // Verificar senha (padrão ou personalizada)
     const senhaEsperada = senhasPersonalizadas[cnpjNormalizado] || '123456';
     
-    console.log('Auth B2B - Senha esperada:', senhaEsperada);
-    console.log('Auth B2B - Senha recebida:', password);
+    console.log('=== VERIFICAÇÃO DE SENHA ===');
+    console.log('Auth B2B - CNPJ normalizado:', cnpjNormalizado);
+    console.log('Auth B2B - Senha esperada:', `"${senhaEsperada}"`);
+    console.log('Auth B2B - Senha recebida:', `"${password}"`);
     console.log('Auth B2B - Senha personalizada configurada:', !!senhasPersonalizadas[cnpjNormalizado]);
     console.log('Auth B2B - Comparação senhas (===):', password === senhaEsperada);
+    console.log('Auth B2B - Length senha esperada:', senhaEsperada.length);
+    console.log('Auth B2B - Length senha recebida:', password.length);
+    console.log('Auth B2B - Tipo senha esperada:', typeof senhaEsperada);
+    console.log('Auth B2B - Tipo senha recebida:', typeof password);
+    
+    // Verificar caracteres especiais
+    console.log('Auth B2B - Senha esperada (bytes):', Buffer.from(senhaEsperada).toString('hex'));
+    console.log('Auth B2B - Senha recebida (bytes):', Buffer.from(password).toString('hex'));
+    console.log('========================');
     
     if (password !== senhaEsperada) {
       console.log('Auth B2B - Senha inválida - não prosseguindo com busca do cliente');
