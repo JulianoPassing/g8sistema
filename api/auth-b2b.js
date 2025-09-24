@@ -1,7 +1,7 @@
-// API de autenticação B2B para clientes
-const fs = require('fs');
-const path = require('path');
-const mysql = require('mysql2/promise');
+// API de autenticação B2B para clientes - VERSÃO SIMPLIFICADA PARA DEBUG
+// const fs = require('fs');
+// const path = require('path');
+// const mysql = require('mysql2/promise');
 
 // CONFIGURAÇÃO DE SENHAS PERSONALIZADAS
 // CNPJs com senhas específicas (sobrescreve a senha padrão 123456)
@@ -116,107 +116,52 @@ module.exports = async (req, res) => {
       });
     }
     
-    console.log('Auth B2B - Senha válida, buscando cliente...');
+    console.log('Auth B2B - Senha válida, criando cliente simulado...');
 
-    // Buscar cliente no banco MySQL ou arquivo JSON (fallback)
-    let cliente = null;
-    let connection = null;
+    // VERSÃO SIMPLIFICADA - SEM MySQL E SEM ARQUIVO JSON
+    // Criar cliente simulado para debug
+    let cliente = {
+      id: 1,
+      razao: 'Cliente Teste - ' + cnpj,
+      cnpj: cnpj,
+      cidade: 'Teste',
+      estado: 'SC',
+      email: 'teste@teste.com',
+      telefone: '123456789',
+      endereco: 'Rua Teste, 123',
+      bairro: 'Centro',
+      cep: '12345678',
+      ie: '123456789',
+      transporte: 'Transportadora Teste',
+      prazo: '30 dias',
+      obs: 'Cliente de teste - API simplificada'
+    };
     
-    try {
-      console.log('Auth B2B - Tentando conectar com MySQL...');
-      console.log('Auth B2B - DB_HOST:', process.env.DB_HOST || 'localhost');
-      console.log('Auth B2B - DB_USER:', process.env.DB_USER || 'julianopassing');
-      console.log('Auth B2B - DB_NAME:', process.env.DB_NAME || 'sistemajuliano');
-      
-      // Tentar conectar com MySQL
-      connection = await mysql.createConnection({
-        host: process.env.DB_HOST || 'localhost',
-        user: process.env.DB_USER || 'julianopassing',
-        password: process.env.DB_PASSWORD || 'Juliano@95',
-        database: process.env.DB_NAME || 'sistemajuliano'
-      });
-      
-      console.log('Auth B2B - Conexão MySQL estabelecida');
-      
-      // Buscar cliente no banco MySQL
-      const [rows] = await connection.execute(
-        'SELECT * FROM clientes WHERE cnpj = ?',
-        [cnpjNormalizado]
-      );
-      
-      console.log('Auth B2B - Query executada, linhas encontradas:', rows.length);
-      
-      if (rows.length > 0) {
-        cliente = rows[0];
-        console.log('Auth B2B - Cliente encontrado no MySQL:', cliente.razao);
-      }
-      
-    } catch (dbError) {
-      console.log('Erro ao conectar com MySQL, usando arquivo JSON:', dbError.message);
-      
-      // Fallback: carregar do arquivo JSON
-      try {
-        console.log('Auth B2B - Tentando carregar clientes.json...');
-        console.log('Auth B2B - process.cwd():', process.cwd());
-        
-        const clientesPath = path.join(process.cwd(), 'public', 'clientes.json');
-        console.log('Auth B2B - Caminho do arquivo:', clientesPath);
-        
-        const clientesData = fs.readFileSync(clientesPath, 'utf8');
-        console.log('Auth B2B - Arquivo carregado, tamanho:', clientesData.length);
-        
-        const clientes = JSON.parse(clientesData);
-        console.log('Auth B2B - JSON parseado, total de clientes:', clientes.length);
-        
-        // Buscar cliente pelo CNPJ no arquivo JSON
-        cliente = clientes.find(c => {
-          const clienteCnpj = c.cnpj ? c.cnpj.replace(/[.\-\/\s]/g, '') : '';
-          return clienteCnpj === cnpjNormalizado;
-        });
-        
-        console.log('Auth B2B - Cliente encontrado no JSON:', !!cliente);
-      } catch (jsonError) {
-        console.error('Auth B2B - Erro ao carregar clientes.json:', jsonError);
-        console.error('Auth B2B - Stack trace JSON:', jsonError.stack);
-      }
-    } finally {
-      // Fechar conexão se foi aberta
-      if (connection) {
-        await connection.end();
-      }
-    }
+    console.log('Auth B2B - Cliente simulado criado:', cliente.razao);
     
-    if (cliente) {
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Login realizado com sucesso',
-        cliente: {
-          id: cliente.id,
-          razao: cliente.razao,
-          cnpj: cliente.cnpj,
-          cidade: cliente.cidade,
-          estado: cliente.estado,
-          email: cliente.email,
-          telefone: cliente.telefone,
-          endereco: cliente.endereco,
-          bairro: cliente.bairro,
-          cep: cliente.cep,
-          ie: cliente.ie,
-          transporte: cliente.transporte,
-          prazo: cliente.prazo,
-          obs: cliente.obs,
-          // Controle de acesso às tabelas
-          acessos: getAcessosCliente(cliente.cnpj)
-        }
-      });
-    } else {
-      // Delay pequeno para prevenir ataques de força bruta
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return res.status(401).json({ 
-        success: false, 
-        message: 'CNPJ não encontrado no sistema' 
-      });
-    }
+    // Cliente sempre existe na versão simplificada
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Login realizado com sucesso',
+      cliente: {
+        id: cliente.id,
+        razao: cliente.razao,
+        cnpj: cliente.cnpj,
+        cidade: cliente.cidade,
+        estado: cliente.estado,
+        email: cliente.email,
+        telefone: cliente.telefone,
+        endereco: cliente.endereco,
+        bairro: cliente.bairro,
+        cep: cliente.cep,
+        ie: cliente.ie,
+        transporte: cliente.transporte,
+        prazo: cliente.prazo,
+        obs: cliente.obs,
+        // Controle de acesso às tabelas
+        acessos: getAcessosCliente(cliente.cnpj)
+      }
+    });
   } catch (error) {
     console.error('Erro na autenticação B2B:', error);
     console.error('Stack trace:', error.stack);
