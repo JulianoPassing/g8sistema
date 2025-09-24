@@ -1,220 +1,245 @@
-// ========== SISTEMA DE CACHE INTELIGENTE ==========
+/**
+ * Sistema de Cache Offline - G8 Sistema
+ * Gerencia o Service Worker e funcionalidades offline
+ */
 
 class CacheSystem {
   constructor() {
-    this.cache = new Map();
-    this.cacheExpiry = new Map();
-    this.defaultTTL = 5 * 60 * 1000; // 5 minutos
+    this.isServiceWorkerSupported = 'serviceWorker' in navigator;
+    this.registration = null;
+    this.init();
   }
 
-  // Definir item no cache com TTL
-  set(key, value, ttl = this.defaultTTL) {
-    this.cache.set(key, value);
-    this.cacheExpiry.set(key, Date.now() + ttl);
-    
-    // Limpar cache expirado automaticamente
-    setTimeout(() => this.cleanup(key), ttl);
-  }
-
-  // Obter item do cache
-  get(key) {
-    if (!this.cache.has(key)) return null;
-    
-    const expiry = this.cacheExpiry.get(key);
-    if (Date.now() > expiry) {
-      this.cleanup(key);
-      return null;
-    }
-    
-    return this.cache.get(key);
-  }
-
-  // Limpar item específico
-  cleanup(key) {
-    this.cache.delete(key);
-    this.cacheExpiry.delete(key);
-  }
-
-  // Limpar todo o cache
-  clear() {
-    this.cache.clear();
-    this.cacheExpiry.clear();
-  }
-
-  // Wrapper para fetch com cache automático
-  async fetchWithCache(url, options = {}, ttl = this.defaultTTL) {
-    const cacheKey = `fetch_${url}_${JSON.stringify(options)}`;
-    
-    // Verificar se existe no cache
-    const cached = this.get(cacheKey);
-    if (cached) {
-      console.log(`Cache hit para: ${url}`);
-      return cached;
+  async init() {
+    if (!this.isServiceWorkerSupported) {
+      console.log('⚠️ Service Worker não suportado neste navegador');
+      return;
     }
 
+    await this.registerServiceWorker();
+    this.setupUpdateHandlers();
+  }
+
+  async registerServiceWorker() {
     try {
-      console.log(`Fazendo requisição para: ${url}`);
-      const response = await fetch(url, options);
+      this.registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/'
+      });
+
+      console.log('✅ Service Worker registrado:', this.registration.scope);
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      // Verificar se há atualizações pendentes
+      if (this.registration.waiting) {
+        this.showUpdateNotification();
       }
-      
-      const data = await response.json();
-      
-      // Armazenar no cache
-      this.set(cacheKey, data, ttl);
-      
-      return data;
+
+      return this.registration;
     } catch (error) {
-      console.error(`Erro na requisição para ${url}:`, error);
-      throw error;
+      console.error('❌ Erro ao registrar Service Worker:', error);
     }
   }
 
-  // Cache para dados de clientes
-  async getClientes(forceRefresh = false) {
-    const cacheKey = 'clientes_data';
-    
-    if (!forceRefresh) {
-      const cached = this.get(cacheKey);
-      if (cached) return cached;
-    }
+  setupUpdateHandlers() {
+    if (!this.registration) return;
 
-    try {
-      const data = await this.fetchWithCache('/api/clientes', {}, 10 * 60 * 1000); // 10 minutos
-      return data;
-    } catch (error) {
-      // Fallback para dados locais se a API falhar
-      console.log('API indisponível, tentando carregar dados locais...');
-      return this.loadLocalClientes();
-    }
-  }
-
-  // Carregar clientes do arquivo local (fallback)
-  async loadLocalClientes() {
-    try {
-      const response = await fetch('clientes.json');
-      const data = await response.json();
-      this.set('clientes_data', data, 5 * 60 * 1000); // Cache por 5 minutos
-      return data;
-    } catch (error) {
-      console.error('Erro ao carregar clientes locais:', error);
-      return [];
-    }
-  }
-
-  // Invalidar cache específico
-  invalidate(pattern) {
-    for (const key of this.cache.keys()) {
-      if (key.includes(pattern)) {
-        this.cleanup(key);
-      }
-    }
-  }
-
-  // Estatísticas do cache
-  getStats() {
-    return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys()),
-      memoryUsage: JSON.stringify(Object.fromEntries(this.cache)).length
-    };
-  }
-}
-
-// Sistema de debounce para otimizar pesquisas
-class DebounceSystem {
-  constructor() {
-    this.timeouts = new Map();
-  }
-
-  // Debounce para funções
-  debounce(key, func, delay = 300) {
-    // Limpar timeout anterior se existir
-    if (this.timeouts.has(key)) {
-      clearTimeout(this.timeouts.get(key));
-    }
-
-    // Criar novo timeout
-    const timeoutId = setTimeout(func, delay);
-    this.timeouts.set(key, timeoutId);
-  }
-
-  // Cancelar debounce específico
-  cancel(key) {
-    if (this.timeouts.has(key)) {
-      clearTimeout(this.timeouts.get(key));
-      this.timeouts.delete(key);
-    }
-  }
-}
-
-// Otimizações para imagens
-class ImageOptimizer {
-  constructor() {
-    this.loadedImages = new Set();
-  }
-
-  // Lazy loading para imagens
-  setupLazyLoading() {
-    if ('IntersectionObserver' in window) {
-      const imageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            this.loadImage(img);
-            imageObserver.unobserve(img);
+    // Detectar quando uma nova versão está disponível
+    this.registration.addEventListener('updatefound', () => {
+      const newWorker = this.registration.installing;
+      
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed') {
+          if (navigator.serviceWorker.controller) {
+            // Nova versão disponível
+            this.showUpdateNotification();
+          } else {
+            // Primeira instalação
+            console.log('✅ Service Worker instalado pela primeira vez');
           }
-        });
+        }
       });
+    });
 
-      // Observar todas as imagens com data-src
-      document.querySelectorAll('img[data-src]').forEach(img => {
-        imageObserver.observe(img);
-      });
-    } else {
-      // Fallback para navegadores sem IntersectionObserver
-      document.querySelectorAll('img[data-src]').forEach(img => {
-        this.loadImage(img);
-      });
-    }
-  }
-
-  // Carregar imagem com otimizações
-  loadImage(img) {
-    if (this.loadedImages.has(img.dataset.src)) return;
-
-    const tempImg = new Image();
-    tempImg.onload = () => {
-      img.src = img.dataset.src;
-      img.classList.add('loaded');
-      this.loadedImages.add(img.dataset.src);
-    };
-    tempImg.onerror = () => {
-      img.classList.add('error');
-    };
-    tempImg.src = img.dataset.src;
-  }
-
-  // Precarregar imagens críticas
-  preloadImages(urls) {
-    urls.forEach(url => {
-      if (!this.loadedImages.has(url)) {
-        const img = new Image();
-        img.src = url;
-        this.loadedImages.add(url);
-      }
+    // Detectar quando o Service Worker assume controle
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('🔄 Service Worker assumiu controle');
+      // Recarregar página para usar nova versão
+      window.location.reload();
     });
   }
+
+  showUpdateNotification() {
+    // Criar notificação de atualização
+    const notification = document.createElement('div');
+    notification.id = 'update-notification';
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      max-width: 300px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      animation: slideInRight 0.3s ease;
+    `;
+
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="flex: 1;">
+          <strong>🔄 Atualização Disponível</strong>
+          <div style="font-size: 0.9rem; margin-top: 4px; opacity: 0.9;">
+            Nova versão do sistema disponível
+          </div>
+        </div>
+        <button id="update-btn" style="
+          background: rgba(255,255,255,0.2);
+          border: none;
+          color: white;
+          padding: 8px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 0.85rem;
+        ">Atualizar</button>
+        <button id="close-update" style="
+          background: none;
+          border: none;
+          color: white;
+          font-size: 18px;
+          cursor: pointer;
+          padding: 4px;
+          line-height: 1;
+        ">×</button>
+      </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Adicionar CSS para animação
+    if (!document.getElementById('update-notification-style')) {
+      const style = document.createElement('style');
+      style.id = 'update-notification-style';
+      style.textContent = `
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Event listeners
+    document.getElementById('update-btn').addEventListener('click', () => {
+      this.applyUpdate();
+    });
+
+    document.getElementById('close-update').addEventListener('click', () => {
+      this.hideUpdateNotification();
+    });
+
+    // Auto-hide após 10 segundos
+    setTimeout(() => {
+      this.hideUpdateNotification();
+    }, 10000);
+  }
+
+  hideUpdateNotification() {
+    const notification = document.getElementById('update-notification');
+    if (notification) {
+      notification.style.animation = 'slideOutRight 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }
+  }
+
+  async applyUpdate() {
+    if (this.registration && this.registration.waiting) {
+      // Instruir o Service Worker para pular a espera e assumir controle
+      this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      
+      // Mostrar loading
+      const btn = document.getElementById('update-btn');
+      if (btn) {
+        btn.textContent = 'Atualizando...';
+        btn.disabled = true;
+      }
+    }
+  }
+
+  // Método público para verificar status do cache
+  async getCacheStatus() {
+    if (!this.isServiceWorkerSupported) {
+      return { supported: false };
+    }
+
+    const caches = await caches.keys();
+    const cacheSize = await this.getCacheSize();
+
+    return {
+      supported: true,
+      registered: !!this.registration,
+      caches: caches,
+      size: cacheSize,
+      isOnline: navigator.onLine
+    };
+  }
+
+  async getCacheSize() {
+    let totalSize = 0;
+    const cacheNames = await caches.keys();
+
+    for (const cacheName of cacheNames) {
+      const cache = await caches.open(cacheName);
+      const keys = await cache.keys();
+      
+      for (const key of keys) {
+        const response = await cache.match(key);
+        if (response) {
+          const blob = await response.blob();
+          totalSize += blob.size;
+        }
+      }
+    }
+
+    return this.formatBytes(totalSize);
+  }
+
+  formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Limpar cache
+  async clearCache() {
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+    console.log('🗑️ Cache limpo');
+  }
+
+  // Forçar atualização do cache
+  async updateCache() {
+    if (this.registration) {
+      await this.registration.update();
+      console.log('🔄 Cache atualizado');
+    }
+  }
 }
 
-// Exportar para uso global
-window.CacheSystem = CacheSystem;
-window.DebounceSystem = DebounceSystem;
-window.ImageOptimizer = ImageOptimizer;
+// Instância global
+window.cacheSystem = new CacheSystem();
 
-// Instanciar sistemas globais
-window.globalCache = new CacheSystem();
-window.globalDebounce = new DebounceSystem();
-window.globalImageOptimizer = new ImageOptimizer();
+// Expor métodos globalmente
+window.clearCache = () => window.cacheSystem.clearCache();
+window.updateCache = () => window.cacheSystem.updateCache();
+window.getCacheStatus = () => window.cacheSystem.getCacheStatus();
+
+console.log('🚀 Sistema de Cache inicializado');

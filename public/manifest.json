@@ -4,8 +4,8 @@
   "description": "Sistema de gestão de pedidos e clientes G8 Representações",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#002f4b",
-  "theme_color": "#005a9f",
+  "background_color": "#ffffff",
+  "theme_color": "#ff0000",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "pt-BR",
@@ -43,6 +43,30 @@
       "short_name": "Clientes",
       "description": "Gerenciar clientes",
       "url": "/painel-clientes.html",
+      "icons": [
+        {
+          "src": "https://i.imgur.com/WveVVY5.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "B2B Login",
+      "short_name": "B2B",
+      "description": "Acesso B2B para clientes",
+      "url": "/b2b-login.html",
+      "icons": [
+        {
+          "src": "https://i.imgur.com/WveVVY5.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Pantaneiro 5",
+      "short_name": "P5",
+      "description": "Catálogo Pantaneiro 5",
+      "url": "/pantaneiro5.html",
       "icons": [
         {
           "src": "https://i.imgur.com/WveVVY5.png",

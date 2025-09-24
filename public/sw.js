@@ -1,23 +1,54 @@
 // ========== SERVICE WORKER G8SISTEMA ==========
 
-const CACHE_NAME = 'g8sistema-v1.0.0';
-const STATIC_CACHE = 'g8sistema-static-v1';
-const DYNAMIC_CACHE = 'g8sistema-dynamic-v1';
+const CACHE_NAME = 'g8sistema-v1.1.0';
+const STATIC_CACHE = 'g8sistema-static-v2';
+const DYNAMIC_CACHE = 'g8sistema-dynamic-v2';
 
 // Arquivos para cache estático
 const STATIC_FILES = [
   '/',
   '/index.html',
   '/painel.html',
+  '/painel-clientes.html',
+  '/pantaneiro5.html',
+  '/pantaneiro7.html',
+  '/steitz.html',
+  '/b2b-login.html',
+  '/b2b-pantaneiro5.html',
+  '/b2b-pantaneiro7.html',
+  '/b2b-steitz.html',
+  '/b2b-pedidos.html',
+  '/pedidos.html',
   '/mobile.css',
+  '/modern-design.css',
   '/mobile-menu.js',
   '/auth.js',
   '/cache-system.js',
   '/notification-system.js',
   '/loading-system.js',
   '/common-utils.js',
+  '/offline-system.js',
+  '/advanced-notifications.js',
+  '/animations.js',
+  '/theme-system.js',
+  '/visual-feedback.js',
+  '/visibility-fix.js',
+  '/light-theme-only.js',
+  '/dashboard-metrics.js',
+  '/editor-pedido.js',
+  '/pedidos.js',
+  '/clientes.json',
+  '/users.json',
+  '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+  'https://i.imgur.com/WveVVY5.png',
+  'https://i.imgur.com/vjq26ym.png'
 ];
 
 // Instalar Service Worker
@@ -73,13 +104,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // SERVICE WORKER DESABILITADO PARA DEBUG
-  return;
-  
-  // Estratégia para diferentes tipos de requisição (DESABILITADO)
+  // Estratégia para diferentes tipos de requisição
   if (request.url.includes('/api/')) {
     // APIs: Network First (tentar rede primeiro, fallback para cache)
     event.respondWith(networkFirstStrategy(request));
+  } else if (request.destination === 'document' || request.headers.get('accept')?.includes('text/html')) {
+    // Páginas HTML: Cache First com fallback offline
+    event.respondWith(cacheFirstStrategy(request));
   } else if (STATIC_FILES.some(file => request.url.includes(file))) {
     // Arquivos estáticos: Cache First
     event.respondWith(cacheFirstStrategy(request));
@@ -92,29 +123,95 @@ self.addEventListener('fetch', (event) => {
 // Estratégia Cache First
 async function cacheFirstStrategy(request) {
   try {
+    // Primeiro, tentar buscar do cache
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
+      console.log('📦 Servindo do cache:', request.url);
+      
+      // Tentar atualizar em background se for uma página HTML
+      if (request.destination === 'document') {
+        updateCacheInBackground(request);
+      }
+      
       return cachedResponse;
     }
     
+    // Se não estiver no cache, buscar da rede
+    console.log('🌐 Buscando da rede:', request.url);
     const networkResponse = await fetch(request);
     
     // Adicionar ao cache se a resposta for válida
     if (networkResponse.status === 200) {
       const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, networkResponse.clone());
+      await cache.put(request, networkResponse.clone());
+      console.log('💾 Adicionado ao cache:', request.url);
     }
     
     return networkResponse;
   } catch (error) {
-    console.error('Cache First falhou:', error);
+    console.error('❌ Cache First falhou:', error);
     
-    // Fallback para página offline se disponível
-    if (request.destination === 'document') {
-      return caches.match('/index.html');
+    // Fallback para páginas HTML
+    if (request.destination === 'document' || request.headers.get('accept')?.includes('text/html')) {
+      // Tentar servir página similar do cache
+      const fallbackPages = [
+        '/index.html',
+        '/painel.html',
+        '/b2b-login.html'
+      ];
+      
+      for (const fallback of fallbackPages) {
+        const fallbackResponse = await caches.match(fallback);
+        if (fallbackResponse) {
+          console.log('🔄 Servindo fallback:', fallback);
+          return fallbackResponse;
+        }
+      }
+      
+      // Último recurso: página offline básica
+      return new Response(`
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>G8 Sistema - Offline</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+            .offline-message { color: #666; margin: 20px 0; }
+            .retry-btn { background: #ff0000; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+          </style>
+        </head>
+        <body>
+          <h1>🚫 Sem Conexão</h1>
+          <div class="offline-message">
+            <p>Você está offline. Algumas funcionalidades podem não estar disponíveis.</p>
+            <p>Tente conectar à internet e recarregar a página.</p>
+          </div>
+          <button class="retry-btn" onclick="location.reload()">🔄 Tentar Novamente</button>
+        </body>
+        </html>
+      `, {
+        headers: { 'Content-Type': 'text/html' }
+      });
     }
     
     throw error;
+  }
+}
+
+// Atualizar cache em background
+async function updateCacheInBackground(request) {
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.status === 200) {
+      const cache = await caches.open(STATIC_CACHE);
+      await cache.put(request, networkResponse.clone());
+      console.log('🔄 Cache atualizado em background:', request.url);
+    }
+  } catch (error) {
+    // Ignorar erros de atualização em background
+    console.log('⚠️ Falha na atualização em background:', request.url);
   }
 }
 
