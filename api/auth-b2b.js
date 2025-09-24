@@ -171,21 +171,25 @@ module.exports = async (req, res) => {
     } catch (dbError) {
       console.log('Auth B2B - Erro MySQL, usando arquivo JSON:', dbError.message);
       
-      // Fallback: carregar do arquivo JSON
+      // Fallback: carregar do arquivo JSON (mesma função do api/clientes.js)
+      const carregarClientesJSON = () => {
+        try {
+          const jsonPath = path.join(__dirname, '../public/clientes.json');
+          console.log('🔍 Auth B2B - Caminho do JSON:', jsonPath);
+          const data = fs.readFileSync(jsonPath, 'utf8');
+          console.log('📄 Auth B2B - Arquivo lido, tamanho:', data.length, 'bytes');
+          const clientesData = JSON.parse(data);
+          console.log('📊 Auth B2B - Total de clientes:', clientesData.length);
+          return clientesData;
+        } catch (error) {
+          console.error('❌ Auth B2B - Erro ao carregar clientes.json:', error);
+          return [];
+        }
+      };
+      
       try {
-        console.log('Auth B2B - Carregando clientes.json...');
-        console.log('Auth B2B - process.cwd():', process.cwd());
-        
-        const clientesPath = path.join(process.cwd(), 'public', 'clientes.json');
-        console.log('Auth B2B - Caminho completo:', clientesPath);
-        
-        const clientesData = fs.readFileSync(clientesPath, 'utf8');
-        console.log('📄 Auth B2B - Arquivo lido, tamanho:', clientesData.length, 'bytes');
-        
-        const clientes = JSON.parse(clientesData);
-        console.log('✅ Auth B2B - JSON parseado com sucesso');
-        
-        console.log('📊 Auth B2B - JSON carregado, total de clientes:', clientes.length);
+        console.log('📁 Auth B2B - Carregando dados do JSON...');
+        const clientes = carregarClientesJSON();
         
         // Verificar se existe o cliente G8 especificamente
         const clienteG8 = clientes.find(c => c.id === 183);
