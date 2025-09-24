@@ -51,6 +51,15 @@ function getAcessosCliente(cnpj) {
 }
 
 module.exports = async (req, res) => {
+  // Log inicial para debug
+  console.log('=== AUTH-B2B ORIGINAL ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Headers keys:', Object.keys(req.headers));
+  console.log('Body type:', typeof req.body);
+  console.log('Body:', req.body);
+  console.log('=========================');
+  
   // Headers de segurança e CORS
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -62,10 +71,12 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
   if (req.method === 'OPTIONS') {
+    console.log('Respondendo OPTIONS');
     return res.status(200).end();
   }
   
   if (req.method !== 'POST') {
+    console.log('Método não permitido:', req.method);
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
