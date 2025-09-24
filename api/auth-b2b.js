@@ -52,6 +52,7 @@ function getAcessosCliente(cnpj) {
 
 module.exports = async (req, res) => {
   // Log inicial para debug
+  console.log('🚀 FUNÇÃO EXECUTANDO - VERSÃO ATUALIZADA');
   console.log('=== AUTH-B2B VERSÃO ATUALIZADA ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
@@ -125,9 +126,10 @@ module.exports = async (req, res) => {
     console.log('========================');
     
     if (password !== senhaEsperada) {
-      console.log('Auth B2B - Senha inválida - não prosseguindo com busca do cliente');
+      console.log('🔒 Auth B2B - Senha inválida - não prosseguindo com busca do cliente');
       console.log('Auth B2B - Tipo da senha esperada:', typeof senhaEsperada);
       console.log('Auth B2B - Tipo da senha recebida:', typeof password);
+      console.log('🚫 RETORNANDO ERRO 401 - Senha inválida');
       // Delay pequeno para prevenir ataques de força bruta
       await new Promise(resolve => setTimeout(resolve, 1000));
       return res.status(401).json({ 
@@ -262,7 +264,8 @@ module.exports = async (req, res) => {
     }
     
     if (cliente) {
-      console.log('Auth B2B - Retornando dados do cliente:', cliente.razao);
+      console.log('✅ Auth B2B - Retornando dados do cliente:', cliente.razao);
+      console.log('🎉 LOGIN BEM-SUCEDIDO - Redirecionando cliente');
       return res.status(200).json({ 
         success: true, 
         message: 'Login realizado com sucesso',
@@ -286,11 +289,12 @@ module.exports = async (req, res) => {
         }
       });
     } else {
-      console.log('Auth B2B - Cliente não encontrado no sistema');
+      console.log('❌ Auth B2B - Cliente não encontrado no sistema');
       console.log('Auth B2B - CNPJ pesquisado:', cnpj);
       console.log('Auth B2B - CNPJ normalizado:', cnpjNormalizado);
       console.log('Auth B2B - Senha esperada:', senhasPersonalizadas[cnpjNormalizado] || '123456');
       console.log('Auth B2B - Senha recebida:', password);
+      console.log('🚫 RETORNANDO ERRO 401 - Cliente não encontrado');
       
       // Delay pequeno para prevenir ataques de força bruta
       await new Promise(resolve => setTimeout(resolve, 1000));
