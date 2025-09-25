@@ -5,6 +5,12 @@ class ConnectionMonitor {
   constructor() {
     this.statusElement = null;
     this.isOnline = navigator.onLine;
+    
+    // Marcar instância global para evitar duplicação
+    if (!window.connectionMonitorInstance) {
+      window.connectionMonitorInstance = this;
+    }
+    
     this.init();
   }
 
@@ -19,7 +25,15 @@ class ConnectionMonitor {
 
   setup() {
     this.statusElement = document.getElementById('connection-status');
-    if (!this.statusElement) return;
+    if (!this.statusElement) {
+      return;
+    }
+
+    // Verificar se o elemento tem a estrutura esperada
+    const statusText = this.statusElement.querySelector('span');
+    if (!statusText) {
+      return;
+    }
 
     // Verificar se o offline-system já está controlando este elemento
     if (window.offlineSystem && window.offlineSystem.statusIndicator === this.statusElement) {
@@ -43,6 +57,11 @@ class ConnectionMonitor {
 
     this.isOnline = online;
     const statusText = this.statusElement.querySelector('span');
+    
+    // Verificar se o elemento span existe
+    if (!statusText) {
+      return;
+    }
     
     if (online) {
       this.statusElement.className = 'status-indicator';
@@ -101,8 +120,24 @@ class ConnectionMonitor {
 
 // Auto-inicializar quando o script for carregado
 document.addEventListener('DOMContentLoaded', () => {
+  // Tentar inicializar imediatamente
   if (document.getElementById('connection-status')) {
     new ConnectionMonitor();
+  } else {
+    // Se não encontrou, tentar novamente após um delay
+    setTimeout(() => {
+      if (document.getElementById('connection-status')) {
+        new ConnectionMonitor();
+      }
+    }, 100);
+  }
+});
+
+// Também tentar quando a janela carregar completamente
+window.addEventListener('load', () => {
+  // Só criar se ainda não existe uma instância
+  if (!window.connectionMonitorInstance && document.getElementById('connection-status')) {
+    window.connectionMonitorInstance = new ConnectionMonitor();
   }
 });
 
