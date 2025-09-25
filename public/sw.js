@@ -53,7 +53,6 @@ const STATIC_FILES = [
 
 // Instalar Service Worker
 self.addEventListener('install', (event) => {
-  
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
@@ -66,7 +65,7 @@ self.addEventListener('install', (event) => {
         }));
       })
       .catch((error) => {
-        console.error('Erro ao criar cache estático:', error);
+        // Erro silencioso
       })
   );
   
@@ -76,7 +75,6 @@ self.addEventListener('install', (event) => {
 
 // Ativar Service Worker
 self.addEventListener('activate', (event) => {
-  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -126,8 +124,6 @@ async function cacheFirstStrategy(request) {
     // Primeiro, tentar buscar do cache
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
-      console.log('📦 Servindo do cache:', request.url);
-      
       // Tentar atualizar em background se for uma página HTML
       if (request.destination === 'document') {
         updateCacheInBackground(request);
@@ -137,20 +133,16 @@ async function cacheFirstStrategy(request) {
     }
     
     // Se não estiver no cache, buscar da rede
-    console.log('🌐 Buscando da rede:', request.url);
     const networkResponse = await fetch(request);
     
     // Adicionar ao cache se a resposta for válida
     if (networkResponse.status === 200) {
       const cache = await caches.open(STATIC_CACHE);
       await cache.put(request, networkResponse.clone());
-      console.log('💾 Adicionado ao cache:', request.url);
     }
     
     return networkResponse;
   } catch (error) {
-    console.error('❌ Cache First falhou:', error);
-    
     // Fallback para páginas HTML
     if (request.destination === 'document' || request.headers.get('accept')?.includes('text/html')) {
       // Tentar servir página similar do cache
@@ -163,7 +155,6 @@ async function cacheFirstStrategy(request) {
       for (const fallback of fallbackPages) {
         const fallbackResponse = await caches.match(fallback);
         if (fallbackResponse) {
-          console.log('🔄 Servindo fallback:', fallback);
           return fallbackResponse;
         }
       }
@@ -207,11 +198,9 @@ async function updateCacheInBackground(request) {
     if (networkResponse.status === 200) {
       const cache = await caches.open(STATIC_CACHE);
       await cache.put(request, networkResponse.clone());
-      console.log('🔄 Cache atualizado em background:', request.url);
     }
   } catch (error) {
     // Ignorar erros de atualização em background
-    console.log('⚠️ Falha na atualização em background:', request.url);
   }
 }
 
@@ -228,7 +217,6 @@ async function networkFirstStrategy(request) {
     
     return networkResponse;
   } catch (error) {
-    
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       return cachedResponse;

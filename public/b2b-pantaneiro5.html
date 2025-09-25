@@ -2778,7 +2778,6 @@ window.produtosData = [
       // Carregar produtos
       function carregarProdutos() {
         produtosData = window.produtosData;
-        console.log('Produtos carregados:', produtosData.length);
         // Renderizar produtos após carregar
         renderizarProdutosPorCategoria(produtosData);
       }
@@ -2834,9 +2833,7 @@ window.produtosData = [
 
       // Função para renderizar produtos por categoria
       function renderizarProdutosPorCategoria(produtos = produtosData) {
-        console.log('Renderizando produtos:', produtos.length, 'produtos');
         if (!produtosContainer) {
-          console.error('Elemento produtos-container não encontrado!');
           return;
         }
         produtosContainer.innerHTML = "";

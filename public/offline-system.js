@@ -51,7 +51,9 @@ class OfflineSystem {
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     `;
     
-    document.body.appendChild(this.statusIndicator);
+    if (document.body) {
+      document.body.appendChild(this.statusIndicator);
+    }
     this.updateStatusIndicator();
   }
 
