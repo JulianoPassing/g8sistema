@@ -247,49 +247,202 @@
 
     .pedidos-history {
       background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
     }
 
     .pedidos-history h2 {
-      color: #2d3748;
-      margin-bottom: 20px;
+      color: #1a202c;
+      margin-bottom: 30px;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-align: center;
+      position: relative;
+    }
+
+    .pedidos-history h2::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: var(--gradient-primary);
+      border-radius: 2px;
+    }
+
+    .pedidos-grid {
+      display: grid;
+      gap: 25px;
+      margin-top: 30px;
     }
 
     .pedido-item {
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 15px;
-      background: #f9fafb;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid rgba(255, 0, 0, 0.1);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .pedido-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--gradient-primary);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+
+    .pedido-item:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(255, 0, 0, 0.15);
+      border-color: rgba(255, 0, 0, 0.3);
+    }
+
+    .pedido-item:hover::before {
+      transform: scaleX(1);
     }
 
     .pedido-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .pedido-id {
-      font-weight: bold;
-      color: #667eea;
+      font-weight: 700;
+      color: #ff0000;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #ff0000, #cc0000);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pedido-id::before {
+      content: '📋';
+      font-size: 1.2rem;
+      -webkit-text-fill-color: initial;
     }
 
     .pedido-date {
       color: #718096;
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: rgba(113, 128, 150, 0.1);
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pedido-date::before {
+      content: '📅';
       font-size: 0.9rem;
     }
 
     .pedido-empresa {
       font-weight: 600;
       color: #2d3748;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pedido-empresa::before {
+      content: '🏢';
+      font-size: 1.1rem;
     }
 
     .pedido-descricao {
       color: #4a5568;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      background: rgba(74, 85, 104, 0.05);
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid var(--g8-red);
+      margin: 10px 0;
+    }
+
+    .pedido-observacoes {
+      margin-top: 15px;
+      font-style: italic;
+      color: #718096;
+      background: rgba(113, 128, 150, 0.08);
+      padding: 12px 15px;
+      border-radius: 8px;
+      border-left: 3px solid #38a169;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .pedido-observacoes::before {
+      content: '💭';
+      font-size: 1rem;
+      margin-top: 2px;
+    }
+
+    .pedido-status {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: var(--gradient-primary);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #718096;
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.6;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      color: #2d3748;
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      font-size: 1rem;
+      max-width: 400px;
+      margin: 0 auto;
       line-height: 1.5;
     }
 
@@ -312,6 +465,93 @@
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      50% {
+        box-shadow: 0 8px 30px rgba(255, 0, 0, 0.2);
+      }
+      100% {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+    }
+
+    .pedido-item.expanded {
+      transform: scale(1.02);
+      z-index: 10;
+      animation: pulse 2s infinite;
+    }
+
+    .pedido-detalhes {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(255, 0, 0, 0.02);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 0, 0, 0.1);
+      display: none;
+      animation: slideInLeft 0.4s ease;
+    }
+
+    .pedido-detalhes.show {
+      display: block;
+    }
+
+    .detalhe-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .detalhe-item:last-child {
+      border-bottom: none;
+    }
+
+    .detalhe-label {
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .detalhe-valor {
+      color: #4a5568;
+      font-family: 'Courier New', monospace;
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
     }
 
     .empresas-container {
@@ -433,6 +673,67 @@
       .container {
         padding: 20px 15px;
         padding-top: 80px;
+      }
+      
+      .pedido-item {
+        padding: 20px;
+        margin-bottom: 15px;
+      }
+      
+      .pedido-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      .pedido-id {
+        font-size: 1rem;
+      }
+      
+      .pedido-date {
+        align-self: flex-end;
+        font-size: 0.8rem;
+      }
+      
+      .pedido-status {
+        position: static;
+        align-self: flex-start;
+        margin-bottom: 10px;
+        font-size: 0.7rem;
+        padding: 4px 8px;
+      }
+      
+      .pedido-descricao {
+        font-size: 0.9rem;
+        padding: 12px;
+      }
+      
+      .detalhe-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 10px 0;
+      }
+      
+      .detalhe-valor {
+        font-size: 0.9rem;
+        word-break: break-all;
+      }
+      
+      .empty-state {
+        padding: 40px 15px;
+      }
+      
+      .empty-state-icon {
+        font-size: 3rem;
+      }
+      
+      .empty-state h3 {
+        font-size: 1.3rem;
+      }
+      
+      .empty-state p {
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -621,19 +922,56 @@
         console.log('Pedidos filtrados:', pedidosCliente);
 
         if (pedidosCliente.length === 0) {
-          pedidosList.innerHTML = '<p style="text-align: center; color: #718096;">Nenhum pedido encontrado.</p>';
-        } else {
-          pedidosList.innerHTML = pedidosCliente.map(pedido => `
-            <div class="pedido-item">
-              <div class="pedido-header">
-                <span class="pedido-id">Pedido #${pedido.id}</span>
-                <span class="pedido-date">${new Date(pedido.data_pedido).toLocaleDateString('pt-BR')}</span>
-              </div>
-              <div class="pedido-empresa">Empresa: ${pedido.empresa}</div>
-              <div class="pedido-descricao">${pedido.descricao}</div>
-              ${pedido.dados && pedido.dados.observacoes ? `<div style="margin-top: 10px; font-style: italic; color: #718096;">Obs: ${pedido.dados.observacoes}</div>` : ''}
+          pedidosList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <h3>Nenhum pedido encontrado</h3>
+              <p>Você ainda não fez nenhum pedido. Acesse uma das empresas acima para fazer seu primeiro pedido!</p>
             </div>
-          `).join('');
+          `;
+        } else {
+          // Ordenar pedidos por data (mais recentes primeiro)
+          pedidosCliente.sort((a, b) => new Date(b.data_pedido) - new Date(a.data_pedido));
+          
+          pedidosList.innerHTML = `
+            <div class="pedidos-grid">
+              ${pedidosCliente.map((pedido, index) => {
+                const dataFormatada = new Date(pedido.data_pedido).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit', 
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
+                
+                return `
+                  <div class="pedido-item" style="animation-delay: ${index * 0.1}s" onclick="expandirPedido(${pedido.id})">
+                    <div class="pedido-status">Enviado</div>
+                    <div class="pedido-header">
+                      <span class="pedido-id">Pedido #${pedido.id}</span>
+                      <span class="pedido-date">${dataFormatada}</span>
+                    </div>
+                    <div class="pedido-empresa">${pedido.empresa}</div>
+                    <div class="pedido-descricao">${pedido.descricao}</div>
+                    ${pedido.dados && pedido.dados.observacoes ? `
+                      <div class="pedido-observacoes">
+                        ${pedido.dados.observacoes}
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+          
+          // Adicionar animação de entrada aos cards
+          setTimeout(() => {
+            document.querySelectorAll('.pedido-item').forEach((item, index) => {
+              item.style.opacity = '0';
+              item.style.transform = 'translateY(20px)';
+              item.style.animation = `fadeInUp 0.6s ease forwards ${index * 0.1}s`;
+            });
+          }, 100);
         }
       } catch (error) {
         console.error('Erro ao carregar pedidos:', error);
@@ -641,6 +979,73 @@
       } finally {
         loadingDiv.style.display = 'none';
       }
+    }
+
+    // Função para expandir/contrair pedido
+    function expandirPedido(pedidoId) {
+      const pedidoElement = document.querySelector(`[onclick="expandirPedido(${pedidoId})"]`);
+      if (!pedidoElement) return;
+      
+      const detalhesExistentes = pedidoElement.querySelector('.pedido-detalhes');
+      
+      if (detalhesExistentes) {
+        // Já existe, então vamos remover
+        pedidoElement.classList.remove('expanded');
+        detalhesExistentes.style.animation = 'fadeOut 0.3s ease forwards';
+        setTimeout(() => {
+          detalhesExistentes.remove();
+        }, 300);
+      } else {
+        // Adicionar detalhes
+        pedidoElement.classList.add('expanded');
+        
+        const detalhesHTML = `
+          <div class="pedido-detalhes show">
+            <div class="detalhe-item">
+              <span class="detalhe-label">🆔 ID do Pedido:</span>
+              <span class="detalhe-valor">#${pedidoId}</span>
+            </div>
+            <div class="detalhe-item">
+              <span class="detalhe-label">📊 Status:</span>
+              <span class="detalhe-valor" style="color: #38a169; font-weight: 600;">✅ Enviado</span>
+            </div>
+            <div class="detalhe-item">
+              <span class="detalhe-label">👤 Cliente:</span>
+              <span class="detalhe-valor">${clienteData.razao}</span>
+            </div>
+            <div class="detalhe-item">
+              <span class="detalhe-label">📧 Email:</span>
+              <span class="detalhe-valor">${clienteData.email || 'Não informado'}</span>
+            </div>
+            <div class="detalhe-item">
+              <span class="detalhe-label">📱 Telefone:</span>
+              <span class="detalhe-valor">${clienteData.telefone || 'Não informado'}</span>
+            </div>
+            <div class="detalhe-item">
+              <span class="detalhe-label">🏢 CNPJ:</span>
+              <span class="detalhe-valor">${clienteData.cnpj}</span>
+            </div>
+          </div>
+        `;
+        
+        pedidoElement.insertAdjacentHTML('beforeend', detalhesHTML);
+      }
+    }
+
+    // Função para animar elementos quando entram na viewport
+    function animateOnScroll() {
+      const elements = document.querySelectorAll('.pedido-item');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
+          }
+        });
+      }, { threshold: 0.1 });
+
+      elements.forEach(element => {
+        observer.observe(element);
+      });
     }
 
     // Inicializar página
