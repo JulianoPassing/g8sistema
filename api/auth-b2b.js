@@ -85,16 +85,37 @@ module.exports = async (req, res) => {
   try {
     const { cnpj, password } = req.body;
     
-    // Log para debug
-    console.log('Auth B2B - CNPJ:', cnpj, 'Password:', password);
-    console.log('Auth B2B - Headers:', req.headers);
+    // Log detalhado para debug
+    console.log('=== DADOS RECEBIDOS ===');
+    console.log('Auth B2B - CNPJ recebido:', `"${cnpj}"`);
+    console.log('Auth B2B - Password recebido:', `"${password}"`);
+    console.log('Auth B2B - Tipo CNPJ:', typeof cnpj);
+    console.log('Auth B2B - Tipo Password:', typeof password);
+    console.log('Auth B2B - Length CNPJ:', cnpj ? cnpj.length : 'undefined');
+    console.log('Auth B2B - Length Password:', password ? password.length : 'undefined');
+    console.log('Auth B2B - User-Agent:', req.headers['user-agent']);
+    console.log('Auth B2B - Content-Type:', req.headers['content-type']);
+    console.log('======================');
     
     // Validação básica
     if (!cnpj || !password) {
-      console.log('Auth B2B - Validação falhou: CNPJ ou senha ausente');
+      console.log('❌ Auth B2B - Validação falhou: CNPJ ou senha ausente');
+      console.log('Auth B2B - CNPJ presente:', !!cnpj);
+      console.log('Auth B2B - Password presente:', !!password);
       return res.status(400).json({ 
         success: false, 
         message: 'CNPJ e senha são obrigatórios' 
+      });
+    }
+    
+    // Validação adicional
+    if (typeof cnpj !== 'string' || typeof password !== 'string') {
+      console.log('❌ Auth B2B - Tipo de dados inválido');
+      console.log('Auth B2B - CNPJ é string:', typeof cnpj === 'string');
+      console.log('Auth B2B - Password é string:', typeof password === 'string');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Dados de entrada inválidos' 
       });
     }
 
@@ -157,10 +178,10 @@ module.exports = async (req, res) => {
       
       console.log('Auth B2B - Conexão MySQL estabelecida');
       
-      // Buscar cliente no banco MySQL
+      // Buscar cliente no banco MySQL por CNPJ normalizado
       const [rows] = await connection.execute(
-        'SELECT * FROM clientes WHERE cnpj = ?',
-        [cnpjNormalizado]
+        'SELECT * FROM clientes WHERE cnpj = ? OR REPLACE(REPLACE(REPLACE(REPLACE(cnpj, ".", ""), "/", ""), "-", ""), " ", "") = ?',
+        [cnpj, cnpjNormalizado]
       );
       
       if (rows.length > 0) {
@@ -205,55 +226,89 @@ module.exports = async (req, res) => {
           console.log(`  ${i}: ${c.cnpj} -> ${c.cnpj?.replace(/[.\-\/\s]/g, '')}`);
         });
         
-        // Buscar cliente por CNPJ normalizado (método principal)
-        console.log('🔍 Auth B2B - Buscando cliente por CNPJ normalizado...');
-        console.log('🔍 CNPJ procurado:', cnpjNormalizado);
+        // Buscar cliente por CNPJ - múltiplas estratégias
+        console.log('🔍 Auth B2B - Buscando cliente por CNPJ...');
+        console.log('🔍 CNPJ original:', cnpj);
+        console.log('🔍 CNPJ normalizado:', cnpjNormalizado);
         console.log('🔍 Total de clientes no array:', clientes.length);
         
+        // Estratégia 1: CNPJ normalizado (sem formatação)
         cliente = clientes.find(c => {
           if (!c.cnpj) return false;
           const clienteCnpj = c.cnpj.replace(/[.\-\/\s]/g, '');
           const match = clienteCnpj === cnpjNormalizado;
           if (match) {
-            console.log('✅ Auth B2B - MATCH encontrado:', c.razao, 'CNPJ:', c.cnpj);
+            console.log('✅ Auth B2B - MATCH encontrado (normalizado):', c.razao, 'CNPJ:', c.cnpj);
           }
           return match;
         });
         
-        console.log('🔍 Resultado da busca principal:', cliente ? 'ENCONTRADO' : 'NÃO ENCONTRADO');
-        
-        // Se não encontrou, busca por CNPJ formatado original
+        // Estratégia 2: CNPJ formatado original
         if (!cliente) {
-          console.log('🔍 Auth B2B - Buscando por CNPJ formatado original...');
-          console.log('🔍 CNPJ formatado procurado:', cnpj);
+          console.log('🔍 Auth B2B - Tentando busca por CNPJ formatado...');
           cliente = clientes.find(c => {
-            if (c.cnpj === cnpj) {
-              console.log('✅ Auth B2B - Encontrado por CNPJ formatado:', c.razao);
-              return true;
+            const match = c.cnpj === cnpj;
+            if (match) {
+              console.log('✅ Auth B2B - MATCH encontrado (formatado):', c.razao, 'CNPJ:', c.cnpj);
             }
-            return false;
+            return match;
           });
-          console.log('🔍 Resultado busca formatada:', cliente ? 'ENCONTRADO' : 'NÃO ENCONTRADO');
         }
         
-        // Fallback: buscar por ID específico para G8 (caso especial)
+        // Estratégia 3: Busca case-insensitive e flexível
+        if (!cliente) {
+          console.log('🔍 Auth B2B - Tentando busca flexível...');
+          cliente = clientes.find(c => {
+            if (!c.cnpj) return false;
+            const clienteCnpjNorm = c.cnpj.toLowerCase().replace(/[.\-\/\s]/g, '');
+            const cnpjNorm = cnpjNormalizado.toLowerCase();
+            const match = clienteCnpjNorm === cnpjNorm;
+            if (match) {
+              console.log('✅ Auth B2B - MATCH encontrado (flexível):', c.razao, 'CNPJ:', c.cnpj);
+            }
+            return match;
+          });
+        }
+        
+        // Estratégia 4: Fallback por ID específico para G8
         if (!cliente && cnpjNormalizado === '30110818000128') {
-          console.log('🔍 Auth B2B - Fallback: buscando G8 por ID 183...');
+          console.log('🔍 Auth B2B - Fallback G8: buscando por ID 183...');
           cliente = clientes.find(c => c.id === 183);
           if (cliente) {
             console.log('✅ Auth B2B - G8 encontrada por ID:', cliente.razao);
           }
-          console.log('🔍 Resultado busca por ID:', cliente ? 'ENCONTRADO' : 'NÃO ENCONTRADO');
         }
         
+        console.log('🔍 Resultado final da busca:', cliente ? `ENCONTRADO: ${cliente.razao}` : 'NÃO ENCONTRADO');
+        
         if (cliente) {
-          console.log('Auth B2B - Cliente encontrado no JSON:', cliente.razao);
+          console.log('✅ Auth B2B - Cliente encontrado no JSON:', cliente.razao);
+          console.log('Auth B2B - Dados do cliente encontrado:');
+          console.log('  - ID:', cliente.id);
+          console.log('  - Razão:', cliente.razao);
+          console.log('  - CNPJ:', cliente.cnpj);
+          console.log('  - CNPJ normalizado:', cliente.cnpj ? cliente.cnpj.replace(/[.\-\/\s]/g, '') : 'N/A');
+          console.log('  - Cidade:', cliente.cidade);
+          console.log('  - Email:', cliente.email);
         } else {
-          console.log('Auth B2B - Cliente não encontrado no JSON');
+          console.log('❌ Auth B2B - Cliente não encontrado no JSON');
+          
+          // Debug: Verificar alguns clientes próximos para comparação
+          console.log('🔍 Debug: Verificando CNPJs similares...');
+          const cnpjsSimilares = clientes.filter(c => {
+            if (!c.cnpj) return false;
+            const clienteCnpj = c.cnpj.replace(/[.\-\/\s]/g, '');
+            return clienteCnpj.includes('30110818') || cnpjNormalizado.includes(clienteCnpj.substring(0, 8));
+          });
+          
+          console.log('CNPJs similares encontrados:', cnpjsSimilares.length);
+          cnpjsSimilares.slice(0, 3).forEach(c => {
+            console.log(`  - ${c.cnpj} (${c.cnpj.replace(/[.\-\/\s]/g, '')}) - ${c.razao}`);
+          });
           
           // FALLBACK TEMPORÁRIO - Se for G8, criar cliente hardcoded
           if (cnpjNormalizado === '30110818000128') {
-            console.log('Auth B2B - Criando cliente G8 hardcoded...');
+            console.log('🔧 Auth B2B - Aplicando fallback G8...');
             cliente = {
               id: 183,
               razao: 'GUSTAVO THOMAZ DA SILVA REPRESENTACOES LTDA',
@@ -268,9 +323,9 @@ module.exports = async (req, res) => {
               telefone: '4832411470',
               transporte: 'CIF',
               prazo: '30',
-              obs: 'Cliente hardcoded temporário'
+              obs: 'Cliente fallback temporário'
             };
-            console.log('Auth B2B - Cliente G8 hardcoded criado');
+            console.log('✅ Auth B2B - Cliente G8 fallback criado');
           }
         }
       } catch (jsonError) {
