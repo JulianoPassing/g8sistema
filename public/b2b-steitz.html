@@ -20,11 +20,13 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-    <link rel="stylesheet" href="modern-design.css">
-    <link rel="stylesheet" href="mobile.css">
-    <script src="advanced-notifications.js"></script>
-    <script src="animations.js"></script>
-    <script src="offline-system.js"></script>
+      <link rel="stylesheet" href="modern-design.css">
+      <link rel="stylesheet" href="mobile.css">
+      <link rel="stylesheet" href="connection-status.css">
+      <script src="advanced-notifications.js"></script>
+      <script src="animations.js"></script>
+      <script src="offline-system.js"></script>
+      <script src="connection-monitor.js"></script>
 
     <style>
       :root {
@@ -131,6 +133,9 @@
 
       .header-left {
         flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 15px;
       }
 
       .header-center {
@@ -804,7 +809,7 @@
       }
       
       .header-left {
-        display: none;
+        display: flex;
       }
       
       .header-center {
@@ -883,7 +888,12 @@
   </head>
   <body class="g8-theme-g8-default">
     <header class="header-top">
-      <div class="header-left"></div>
+      <div class="header-left">
+        <div class="status-indicator" id="connection-status">
+          <div class="status-dot"></div>
+          <span>Online</span>
+        </div>
+      </div>
       <div class="header-center">
         <img
           id="logo"
