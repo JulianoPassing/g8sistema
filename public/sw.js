@@ -29,6 +29,7 @@ const STATIC_FILES = [
   '/common-utils.js',
   '/offline-system.js',
   '/advanced-notifications.js',
+  '/console-protection.js',
   '/animations.js',
   '/theme-system.js',
   '/visual-feedback.js',
