@@ -21,6 +21,12 @@ class ConnectionMonitor {
     this.statusElement = document.getElementById('connection-status');
     if (!this.statusElement) return;
 
+    // Verificar se o offline-system já está controlando este elemento
+    if (window.offlineSystem && window.offlineSystem.statusIndicator === this.statusElement) {
+      // Deixar o offline-system controlar
+      return;
+    }
+
     // Listeners para eventos de conexão
     window.addEventListener('online', () => this.updateStatus(true));
     window.addEventListener('offline', () => this.updateStatus(false));

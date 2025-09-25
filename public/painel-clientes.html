@@ -7,11 +7,13 @@
   <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="mobile.css">
-  <link rel="stylesheet" href="modern-design.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="modern-design.css">
+    <link rel="stylesheet" href="connection-status.css">
   <script src="mobile-menu.js"></script>
   <script src="advanced-notifications.js"></script>
   <script src="animations.js"></script>
+  <script src="connection-monitor.js"></script>
   <style>
     :root {
       /* === CORES G8 === */
@@ -103,6 +105,9 @@
 
     .header-left {
       flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
 
     .header-center {
@@ -579,7 +584,12 @@
 </head>
   <body class="g8-theme-g8-default">
   <header class="header-top">
-    <div class="header-left"></div>
+    <div class="header-left">
+      <div class="status-indicator" id="connection-status">
+        <div class="status-dot"></div>
+        <span>Online</span>
+      </div>
+    </div>
     <div class="header-center">
       <img id="logo" src="https://i.imgur.com/vjq26ym.png" alt="Logo G8 Pantaneiro" />
     </div>

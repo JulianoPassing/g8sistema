@@ -32,12 +32,18 @@ class OfflineSystem {
   }
 
   createStatusIndicator() {
-    // Remover indicador existente se houver
-    const existing = document.getElementById('connection-status');
-    if (existing) existing.remove();
+    // Verificar se já existe um indicador no header
+    const existingHeaderIndicator = document.getElementById('connection-status');
+    if (existingHeaderIndicator) {
+      // Usar o indicador do header em vez de criar um novo
+      this.statusIndicator = existingHeaderIndicator;
+      this.updateStatusIndicator();
+      return;
+    }
 
+    // Criar indicador próprio apenas se não existir um no header
     this.statusIndicator = document.createElement('div');
-    this.statusIndicator.id = 'connection-status';
+    this.statusIndicator.id = 'connection-status-offline';
     this.statusIndicator.style.cssText = `
       position: fixed;
       top: 10px;
@@ -62,25 +68,43 @@ class OfflineSystem {
     
     const pendingCount = this.pendingOrders.length;
     
+    // Verificar se é o indicador do header (tem span) ou o indicador flutuante
+    const isHeaderIndicator = this.statusIndicator.id === 'connection-status';
+    const statusText = isHeaderIndicator ? this.statusIndicator.querySelector('span') : null;
+    
     if (this.isOnline) {
       if (pendingCount > 0) {
-        this.statusIndicator.innerHTML = `🔄 Enviando ${pendingCount} pedido(s)...`;
-        this.statusIndicator.style.backgroundColor = '#f59e0b';
-        this.statusIndicator.style.color = 'white';
+        if (isHeaderIndicator) {
+          this.statusIndicator.className = 'status-indicator connecting';
+          if (statusText) statusText.textContent = `Enviando ${pendingCount}...`;
+        } else {
+          this.statusIndicator.innerHTML = `🔄 Enviando ${pendingCount} pedido(s)...`;
+          this.statusIndicator.style.backgroundColor = '#f59e0b';
+          this.statusIndicator.style.color = 'white';
+        }
       } else {
-        this.statusIndicator.innerHTML = '🟢 Online';
-        this.statusIndicator.style.backgroundColor = '#10b981';
-        this.statusIndicator.style.color = 'white';
+        if (isHeaderIndicator) {
+          this.statusIndicator.className = 'status-indicator';
+          if (statusText) statusText.textContent = 'Online';
+        } else {
+          this.statusIndicator.innerHTML = '🟢 Online';
+          this.statusIndicator.style.backgroundColor = '#10b981';
+          this.statusIndicator.style.color = 'white';
+        }
       }
     } else {
-      this.statusIndicator.innerHTML = `🔴 Offline${pendingCount > 0 ? ` (${pendingCount} pendente(s))` : ''}`;
-      this.statusIndicator.style.backgroundColor = '#ef4444';
-      this.statusIndicator.style.color = 'white';
+      if (isHeaderIndicator) {
+        this.statusIndicator.className = 'status-indicator offline';
+        if (statusText) statusText.textContent = pendingCount > 0 ? `Offline (${pendingCount})` : 'Offline';
+      } else {
+        this.statusIndicator.innerHTML = `🔴 Offline${pendingCount > 0 ? ` (${pendingCount} pendente(s))` : ''}`;
+        this.statusIndicator.style.backgroundColor = '#ef4444';
+        this.statusIndicator.style.color = 'white';
+      }
     }
   }
 
   handleOnline() {
-    console.log('🌐 Conexão restaurada');
     this.isOnline = true;
     this.updateStatusIndicator();
     
@@ -92,7 +116,6 @@ class OfflineSystem {
   }
 
   handleOffline() {
-    console.log('🚫 Conexão perdida');
     this.isOnline = false;
     this.updateStatusIndicator();
     
