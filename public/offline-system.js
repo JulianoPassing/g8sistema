@@ -399,4 +399,4 @@ document.head.appendChild(style);
 // Instância global
 window.offlineSystem = new OfflineSystem();
 
-console.log('🚀 Sistema Offline inicializado');
+// Sistema Offline inicializado
