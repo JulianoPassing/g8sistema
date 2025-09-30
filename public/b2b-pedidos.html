@@ -1039,6 +1039,35 @@
                   minute: '2-digit'
                 });
                 
+                // Extrair itens com detalhes
+                let itensHTML = '';
+                if (pedido.dados && pedido.dados.itens && Array.isArray(pedido.dados.itens)) {
+                  const itensDetalhados = pedido.dados.itens.map(item => {
+                    const ref = item.REFERENCIA || item.REF || '';
+                    const qtd = item.quantidade || 0;
+                    const tam = item.tamanho || '';
+                    const cor = item.cor || '';
+                    
+                    let itemStr = `${ref} x${qtd}`;
+                    if (tam) itemStr += ` - T:${tam}`;
+                    if (cor) itemStr += ` - C:${cor}`;
+                    
+                    return itemStr;
+                  });
+                  
+                  itensHTML = `
+                    <div style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.02); border-radius: 8px; border-left: 3px solid #ff0000;">
+                      <div style="font-weight: 600; margin-bottom: 8px; color: #2d3748; font-size: 0.9rem;">📦 Itens do Pedido (${itensDetalhados.length}):</div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${itensDetalhados.slice(0, 5).map(item => `
+                          <span style="padding: 4px 10px; background: linear-gradient(135deg, #f8f9fa 0%, #e2e8f0 100%); border: 1px solid #cbd5e1; border-radius: 12px; font-size: 0.8rem; font-weight: 500; color: #334155;">${item}</span>
+                        `).join('')}
+                        ${itensDetalhados.length > 5 ? `<span style="padding: 4px 10px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: white; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">+${itensDetalhados.length - 5} mais</span>` : ''}
+                      </div>
+                    </div>
+                  `;
+                }
+                
                 return `
                   <div class="pedido-item" style="animation-delay: ${index * 0.1}s" onclick="expandirPedido(${pedido.id})">
                     <div class="pedido-header">
@@ -1050,6 +1079,7 @@
                     </div>
                     <div class="pedido-empresa">${pedido.empresa}</div>
                     <div class="pedido-descricao">${pedido.descricao}</div>
+                    ${itensHTML}
                     ${pedido.dados && pedido.dados.observacoes ? `
                       <div class="pedido-observacoes">
                         ${pedido.dados.observacoes}

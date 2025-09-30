@@ -83,21 +83,28 @@ async function carregarPedidos() {
       if (dados && dados.cliente) {
         info.cliente = dados.cliente.razao || dados.cliente.nome || 'N/A';
         
-        if (dados.itens && Array.isArray(dados.itens)) {
-          info.itens = dados.itens.map(item => {
-            const ref = item.REFERENCIA || item.ref || item.REF || '';
-            const qtd = item.quantidade || 0;
-            return `${ref} x${qtd}`;
-          });
-        }
-        
-        if (dados.total) {
-          info.total = `R$ ${parseFloat(dados.total).toFixed(2)}`;
-        }
-        
-        console.log('✅ Informações extraídas dos dados estruturados:', info);
-        return info;
+      if (dados.itens && Array.isArray(dados.itens)) {
+        info.itens = dados.itens.map(item => {
+          const ref = item.REFERENCIA || item.ref || item.REF || '';
+          const qtd = item.quantidade || 0;
+          const tam = item.tamanho || '';
+          const cor = item.cor || '';
+          
+          let itemStr = `${ref} x${qtd}`;
+          if (tam) itemStr += ` - T:${tam}`;
+          if (cor) itemStr += ` - C:${cor}`;
+          
+          return itemStr;
+        });
       }
+      
+      if (dados.total) {
+        info.total = `R$ ${parseFloat(dados.total).toFixed(2)}`;
+      }
+      
+      console.log('✅ Informações extraídas dos dados estruturados:', info);
+      return info;
+    }
       
       // Fallback: extrair da descrição (pedidos antigos)
       // Extrair cliente - versões mais flexíveis da regex
@@ -358,7 +365,14 @@ function renderizarPedidos(pedidos) {
         info.itens = dados.itens.map(item => {
           const ref = item.REFERENCIA || item.ref || item.REF || '';
           const qtd = item.quantidade || 0;
-          return `${ref} x${qtd}`;
+          const tam = item.tamanho || '';
+          const cor = item.cor || '';
+          
+          let itemStr = `${ref} x${qtd}`;
+          if (tam) itemStr += ` - T:${tam}`;
+          if (cor) itemStr += ` - C:${cor}`;
+          
+          return itemStr;
         });
       }
       
