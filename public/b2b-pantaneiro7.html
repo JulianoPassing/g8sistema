@@ -3041,11 +3041,40 @@ window.produtosData = [
         if (window.pedidoItens.length > 0) {
           const totalDiv = document.createElement("div");
           totalDiv.className = "pedido-total";
+          
+          // Verificar pedido mínimo
+          const PEDIDO_MINIMO = 2000.00;
+          const faltaParaMinimo = PEDIDO_MINIMO - subtotalPedido;
+          const atingiuMinimo = subtotalPedido >= PEDIDO_MINIMO;
+          
+          let avisoMinimoHTML = '';
+          if (!atingiuMinimo) {
+            avisoMinimoHTML = `
+              <div style="background: linear-gradient(135deg, #fee 0%, #fdd 100%); border: 1px solid #fcc; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #c53030; font-size: 0.95rem; line-height: 1.5; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(197, 48, 48, 0.1);">
+                <span style="font-size: 1.2em;">⚠️</span>
+                <div>
+                  <strong>Atenção:</strong> O pedido mínimo é de <strong>R$ ${PEDIDO_MINIMO.toFixed(2)}</strong>.<br>
+                  Faltam <strong>R$ ${faltaParaMinimo.toFixed(2)}</strong> para atingir o valor mínimo.
+                </div>
+              </div>
+            `;
+          } else {
+            avisoMinimoHTML = `
+              <div style="background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%); border: 1px solid #9ae6b4; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #22543d; font-size: 0.95rem; line-height: 1.5; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(34, 84, 61, 0.1);">
+                <span style="font-size: 1.2em;">✅</span>
+                <div>
+                  <strong>Pedido válido!</strong> Valor mínimo de R$ ${PEDIDO_MINIMO.toFixed(2)} atingido.
+                </div>
+              </div>
+            `;
+          }
+          
           totalDiv.innerHTML = `
             <div class="pedido-total-header">
               <h3>Total do Pedido:</h3>
               <span class="pedido-total-value">R$ ${subtotalPedido.toFixed(2)}</span>
             </div>
+            ${avisoMinimoHTML}
             <div class="pedido-info-message">
               <span style="font-size: 1.2em;">ℹ️</span>
               <div>
@@ -3066,6 +3095,13 @@ window.produtosData = [
       async function enviarPedido() {
         if (window.pedidoItens.length === 0) {
           alert('Adicione pelo menos um produto ao pedido para enviar.');
+          return;
+        }
+
+        // Validar pedido mínimo de R$ 2.000,00
+        const PEDIDO_MINIMO = 2000.00;
+        if (subtotalPedido < PEDIDO_MINIMO) {
+          alert(`❌ O pedido mínimo para Pantaneiro 7 é de R$ ${PEDIDO_MINIMO.toFixed(2)}.\n\nTotal atual: R$ ${subtotalPedido.toFixed(2)}\nFaltam: R$ ${(PEDIDO_MINIMO - subtotalPedido).toFixed(2)}`);
           return;
         }
 
