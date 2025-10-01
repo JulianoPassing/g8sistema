@@ -184,42 +184,123 @@
       }
 
       .container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* Melhorar visual geral */
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+      }
+
+      .card {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        margin-bottom: 30px;
+        overflow: hidden;
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #ff4444 100%);
+        color: white;
+        padding: 20px 24px;
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 20px rgba(255, 0, 0, 0.2);
+      }
+
+      .card-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 800;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Animações suaves */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .produto-card {
+        animation: fadeInUp 0.6s ease forwards;
+      }
+
+      /* Melhorar inputs */
+      input:focus, select:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1) !important;
+        transform: translateY(-2px);
+      }
+
+      /* Efeitos de hover nos cards de filtro */
+      .form-group input:hover, .form-group select:hover {
+        border-color: rgba(255, 0, 0, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       /* Grid de produtos */
       .produtos-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 20px;
         margin-bottom: 30px;
       }
 
-      @media (min-width: 1200px) {
+      @media (min-width: 768px) {
         .produtos-grid {
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .produtos-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 24px;
+        }
+      }
+
+      @media (min-width: 1400px) {
+        .produtos-grid {
+          grid-template-columns: repeat(4, 1fr);
           gap: 24px;
         }
       }
 
       /* Cards de produtos */
       .produto-card {
-        background: var(--card-bg);
-        border-radius: var(--border-radius-lg);
-        padding: 18px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
         height: fit-content;
+        backdrop-filter: blur(10px);
       }
 
       .produto-card:hover {
-        box-shadow: var(--shadow-lg);
-        transform: translateY(-4px);
+        box-shadow: 0 8px 40px rgba(255, 0, 0, 0.15);
+        transform: translateY(-8px) scale(1.02);
         border-color: var(--primary-color);
+        background: linear-gradient(145deg, #ffffff 0%, #fff5f5 100%);
       }
 
       .produto-card::before {
@@ -229,89 +310,123 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: var(--gradient-primary);
+        background: linear-gradient(90deg, var(--primary-color) 0%, #ff4444 100%);
         transform: scaleX(0);
-        transition: transform 0.3s ease;
+        transition: transform 0.4s ease;
+        border-radius: 16px 16px 0 0;
       }
 
       .produto-card:hover::before {
         transform: scaleX(1);
       }
 
+      .produto-card::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 0, 0, 0.05) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+      }
+
+      .produto-card:hover::after {
+        opacity: 1;
+      }
+
       .produto-imagem {
         width: 100%;
-        height: 180px;
+        height: 160px;
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: var(--border-radius);
-        margin-bottom: 12px;
+        border-radius: 12px;
+        margin-bottom: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: var(--text-muted);
-        font-size: 2.5rem;
-        border: 2px dashed var(--border-color);
-        transition: all 0.3s ease;
+        font-size: 2rem;
+        border: 2px solid rgba(255, 0, 0, 0.1);
+        transition: all 0.4s ease;
         overflow: hidden;
+        position: relative;
       }
 
       .produto-imagem img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: var(--border-radius);
+        border-radius: 12px;
+        transition: transform 0.4s ease;
       }
 
       .produto-imagem:hover {
         border-color: var(--primary-color);
         background: linear-gradient(135deg, #fff0f0 0%, #ffe6e6 100%);
+        transform: scale(1.05);
+      }
+
+      .produto-imagem:hover img {
+        transform: scale(1.1);
+      }
+
+      .produto-categoria {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%);
+        padding: 6px 12px;
+        border-radius: 20px;
+        margin-bottom: 12px;
+        text-align: center;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: 1px solid rgba(255, 0, 0, 0.2);
       }
 
       .produto-ref {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         color: var(--primary-color);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         text-align: center;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       }
 
       .produto-descricao {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         font-weight: 600;
         color: var(--text-color);
-        margin-bottom: 8px;
-        line-height: 1.3;
+        margin-bottom: 12px;
+        line-height: 1.4;
         text-align: center;
-        min-height: 2.6rem;
+        min-height: 2.8rem;
         display: flex;
         align-items: center;
         justify-content: center;
       }
 
-      .produto-categoria {
+      .produto-tamanhos {
         font-size: 0.8rem;
         color: var(--text-muted);
-        background: rgba(0, 0, 0, 0.05);
-        padding: 4px 8px;
-        border-radius: 12px;
-        margin-bottom: 8px;
+        margin-bottom: 16px;
         text-align: center;
+        line-height: 1.3;
         font-weight: 500;
       }
 
-      .produto-tamanhos {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-bottom: 12px;
-        text-align: center;
-        line-height: 1.2;
-      }
-
       .produto-preco {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: var(--success-color);
-        margin-bottom: 12px;
+        font-size: 1.4rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--success-color) 0%, #00a86b 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 16px;
         text-align: center;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       /* Sistema de tamanhos como Pantaneiro5 */
@@ -395,31 +510,50 @@
 
       .btn-adicionar {
         width: 100%;
-        background: var(--gradient-success);
+        background: linear-gradient(135deg, var(--success-color) 0%, #00a86b 100%);
         color: white;
         border: none;
-        padding: 10px;
-        border-radius: var(--border-radius);
+        padding: 12px 16px;
+        border-radius: 12px;
         font-size: 0.95rem;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-adicionar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
       }
 
       .btn-adicionar:hover {
-        background: var(--success-hover);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow);
+        background: linear-gradient(135deg, #00a86b 0%, var(--success-color) 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+      }
+
+      .btn-adicionar:hover::before {
+        left: 100%;
       }
 
       .btn-adicionar:disabled {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
       }
 
       /* Carrinho lateral */
@@ -824,16 +958,21 @@
           <h2>Filtros e Busca</h2>
         </div>
         
-        <div style="padding: 20px;">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+        <div style="padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; align-items: end;">
             <div class="form-group">
-              <label for="busca-produto">🔍 Buscar Produto:</label>
-              <input type="text" id="busca-produto" placeholder="Digite referência ou descrição..." style="width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.9rem; transition: all 0.3s ease;">
+              <label for="busca-produto" style="display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-color); font-size: 0.95rem;">
+                🔍 Buscar Produto
+              </label>
+              <input type="text" id="busca-produto" placeholder="Digite referência, descrição ou categoria..." 
+                     style="width: 100%; padding: 14px 16px; border: 2px solid rgba(255, 0, 0, 0.1); border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
             </div>
             
             <div class="form-group">
-              <label for="filtro-categoria">📦 Categoria:</label>
-              <select id="filtro-categoria" style="width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.9rem; transition: all 0.3s ease;">
+              <label for="filtro-categoria" style="display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-color); font-size: 0.95rem;">
+                📦 Categoria
+              </label>
+              <select id="filtro-categoria" style="width: 100%; padding: 14px 16px; border: 2px solid rgba(255, 0, 0, 0.1); border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); cursor: pointer;">
                 <option value="">Todas as categorias</option>
                 <option value="PVC">PVC</option>
                 <option value="Nylon">Nylon</option>
@@ -844,35 +983,13 @@
                 <option value="Motos">Motos</option>
               </select>
             </div>
-            
-            <div class="form-group">
-              <label for="filtro-preco">💰 Faixa de Preço:</label>
-              <select id="filtro-preco" style="width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.9rem; transition: all 0.3s ease;">
-                <option value="">Todos os preços</option>
-                <option value="0-50">Até R$ 50,00</option>
-                <option value="50-100">R$ 50,00 - R$ 100,00</option>
-                <option value="100-150">R$ 100,00 - R$ 150,00</option>
-                <option value="150-200">R$ 150,00 - R$ 200,00</option>
-                <option value="200+">Acima de R$ 200,00</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="ordenar-por">📊 Ordenar por:</label>
-              <select id="ordenar-por" style="width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.9rem; transition: all 0.3s ease;">
-                <option value="nome">Nome A-Z</option>
-                <option value="preco-asc">Menor Preço</option>
-                <option value="preco-desc">Maior Preço</option>
-                <option value="categoria">Categoria</option>
-              </select>
-            </div>
           </div>
           
-          <div style="text-align: center;">
-            <button onclick="limparFiltros()" style="background: var(--gradient-secondary); color: white; border: none; padding: 10px 20px; border-radius: var(--border-radius); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-right: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid rgba(255, 0, 0, 0.1);">
+            <button onclick="limparFiltros()" style="background: linear-gradient(135deg, var(--secondary-color) 0%, #6c757d 100%); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);">
               🗑️ Limpar Filtros
             </button>
-            <span id="contador-produtos" style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;"></span>
+            <span id="contador-produtos" style="color: var(--text-muted); font-size: 1rem; font-weight: 700; background: rgba(255, 0, 0, 0.1); padding: 8px 16px; border-radius: 20px;"></span>
           </div>
         </div>
       </section>
@@ -1590,16 +1707,12 @@
         // Adicionar event listeners para filtros
         document.getElementById('busca-produto').addEventListener('input', aplicarFiltros);
         document.getElementById('filtro-categoria').addEventListener('change', aplicarFiltros);
-        document.getElementById('filtro-preco').addEventListener('change', aplicarFiltros);
-        document.getElementById('ordenar-por').addEventListener('change', aplicarFiltros);
       }
 
       // Sistema de filtros
       function aplicarFiltros() {
         const busca = document.getElementById('busca-produto').value.toLowerCase();
         const categoria = document.getElementById('filtro-categoria').value;
-        const preco = document.getElementById('filtro-preco').value;
-        const ordenar = document.getElementById('ordenar-por').value;
 
         produtosFiltrados = produtosLoja.filter(produto => {
           // Filtro de busca
@@ -1611,47 +1724,16 @@
           // Filtro de categoria
           const matchCategoria = !categoria || produto.CATEGORIA === categoria;
 
-          // Filtro de preço
-          let matchPreco = true;
-          if (preco) {
-            const precoProduto = produto.PRECO;
-            switch (preco) {
-              case '0-50':
-                matchPreco = precoProduto <= 50;
-                break;
-              case '50-100':
-                matchPreco = precoProduto > 50 && precoProduto <= 100;
-                break;
-              case '100-150':
-                matchPreco = precoProduto > 100 && precoProduto <= 150;
-                break;
-              case '150-200':
-                matchPreco = precoProduto > 150 && precoProduto <= 200;
-                break;
-              case '200+':
-                matchPreco = precoProduto > 200;
-                break;
-            }
-          }
-
-          return matchBusca && matchCategoria && matchPreco;
+          return matchBusca && matchCategoria;
         });
 
-        // Ordenação
-        switch (ordenar) {
-          case 'nome':
-            produtosFiltrados.sort((a, b) => a.DESCRIÇÃO.localeCompare(b.DESCRIÇÃO));
-            break;
-          case 'preco-asc':
-            produtosFiltrados.sort((a, b) => a.PRECO - b.PRECO);
-            break;
-          case 'preco-desc':
-            produtosFiltrados.sort((a, b) => b.PRECO - a.PRECO);
-            break;
-          case 'categoria':
-            produtosFiltrados.sort((a, b) => a.CATEGORIA.localeCompare(b.CATEGORIA));
-            break;
-        }
+        // Ordenação padrão por categoria e depois por nome
+        produtosFiltrados.sort((a, b) => {
+          if (a.CATEGORIA !== b.CATEGORIA) {
+            return a.CATEGORIA.localeCompare(b.CATEGORIA);
+          }
+          return a.DESCRIÇÃO.localeCompare(b.DESCRIÇÃO);
+        });
 
         renderizarProdutos();
       }
@@ -1673,8 +1755,6 @@
       function limparFiltros() {
         document.getElementById('busca-produto').value = '';
         document.getElementById('filtro-categoria').value = '';
-        document.getElementById('filtro-preco').value = '';
-        document.getElementById('ordenar-por').value = 'nome';
         
         produtosFiltrados = [...produtosLoja];
         renderizarProdutos();
