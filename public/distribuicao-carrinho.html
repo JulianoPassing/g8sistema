@@ -191,21 +191,29 @@
       /* Grid de produtos */
       .produtos-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 20px;
         margin-bottom: 30px;
+      }
+
+      @media (min-width: 1200px) {
+        .produtos-grid {
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 24px;
+        }
       }
 
       /* Cards de produtos */
       .produto-card {
         background: var(--card-bg);
         border-radius: var(--border-radius-lg);
-        padding: 20px;
+        padding: 18px;
         box-shadow: var(--shadow);
         border: 1px solid var(--border-color);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
+        height: fit-content;
       }
 
       .produto-card:hover {
@@ -232,17 +240,25 @@
 
       .produto-imagem {
         width: 100%;
-        height: 200px;
+        height: 180px;
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         border-radius: var(--border-radius);
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: var(--text-muted);
-        font-size: 3rem;
+        font-size: 2.5rem;
         border: 2px dashed var(--border-color);
         transition: all 0.3s ease;
+        overflow: hidden;
+      }
+
+      .produto-imagem img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: var(--border-radius);
       }
 
       .produto-imagem:hover {
@@ -251,74 +267,127 @@
       }
 
       .produto-ref {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         font-weight: 700;
         color: var(--primary-color);
-        margin-bottom: 8px;
+        margin-bottom: 6px;
+        text-align: center;
       }
 
       .produto-descricao {
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 600;
         color: var(--text-color);
         margin-bottom: 8px;
         line-height: 1.3;
+        text-align: center;
+        min-height: 2.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .produto-categoria {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        background: rgba(0, 0, 0, 0.05);
+        padding: 4px 8px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        text-align: center;
+        font-weight: 500;
       }
 
       .produto-tamanhos {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: var(--text-muted);
-        margin-bottom: 15px;
+        margin-bottom: 12px;
+        text-align: center;
+        line-height: 1.2;
       }
 
       .produto-preco {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         font-weight: 700;
         color: var(--success-color);
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         text-align: center;
       }
 
-      .quantidade-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
+      /* Sistema de tamanhos como Pantaneiro5 */
+      .tamanhos-container {
         margin-bottom: 15px;
       }
 
-      .quantidade-btn {
-        background: var(--gradient-primary);
-        color: white;
-        border: none;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 1.2rem;
+      .tamanhos-container label {
+        display: block;
+        margin-bottom: 8px;
         font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      .tamanho-input-container {
         display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
         align-items: center;
         justify-content: center;
+      }
+
+      .tamanho-input-container > div {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
         transition: all 0.3s ease;
       }
 
-      .quantidade-btn:hover {
-        background: var(--primary-hover);
-        transform: scale(1.1);
+      .tamanho-input-container > div:hover {
+        border-color: var(--primary-color);
+        background: rgba(255, 0, 0, 0.05);
       }
 
-      .quantidade-input {
-        width: 60px;
+      .tamanho-input-container label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-color);
+        white-space: nowrap;
+      }
+
+      .tamanho-input-container input[type="number"] {
+        width: 45px;
+        padding: 4px 6px;
         text-align: center;
-        padding: 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: white;
+      }
+
+      .tamanho-input-container input[type="number"]:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+      }
+
+      .manual-tamanho-input {
+        width: 100%;
+        padding: 8px 12px;
         border: 2px solid var(--border-color);
         border-radius: var(--border-radius);
-        font-size: 1rem;
-        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        text-align: center;
       }
 
-      .quantidade-input:focus {
+      .manual-tamanho-input:focus {
         outline: none;
         border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
@@ -329,22 +398,28 @@
         background: var(--gradient-success);
         color: white;
         border: none;
-        padding: 12px;
+        padding: 10px;
         border-radius: var(--border-radius);
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
       }
 
       .btn-adicionar:hover {
         background: var(--success-hover);
         transform: translateY(-2px);
         box-shadow: var(--shadow);
+      }
+
+      .btn-adicionar:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
       }
 
       /* Carrinho lateral */
@@ -742,14 +817,81 @@
     </header>
 
     <main class="container">
+      <!-- Seção de Filtros -->
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Filtros" style="font-size: 1.8em">🔍</span>
+          <h2>Filtros e Busca</h2>
+        </div>
+        
+        <div style="padding: 20px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+            <div class="form-group">
+              <label for="busca-produto">🔍 Buscar Produto:</label>
+              <input type="text" id="busca-produto" placeholder="Digite referência ou descrição..." style="width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.9rem; transition: all 0.3s ease;">
+            </div>
+            
+            <div class="form-group">
+              <label for="filtro-categoria">📦 Categoria:</label>
+              <select id="filtro-categoria" style="width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.9rem; transition: all 0.3s ease;">
+                <option value="">Todas as categorias</option>
+                <option value="PVC">PVC</option>
+                <option value="Nylon">Nylon</option>
+                <option value="Feminino">Feminino</option>
+                <option value="Premium">Premium</option>
+                <option value="Luxo">Luxo</option>
+                <option value="Calçados">Calçados</option>
+                <option value="Motos">Motos</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="filtro-preco">💰 Faixa de Preço:</label>
+              <select id="filtro-preco" style="width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.9rem; transition: all 0.3s ease;">
+                <option value="">Todos os preços</option>
+                <option value="0-50">Até R$ 50,00</option>
+                <option value="50-100">R$ 50,00 - R$ 100,00</option>
+                <option value="100-150">R$ 100,00 - R$ 150,00</option>
+                <option value="150-200">R$ 150,00 - R$ 200,00</option>
+                <option value="200+">Acima de R$ 200,00</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="ordenar-por">📊 Ordenar por:</label>
+              <select id="ordenar-por" style="width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.9rem; transition: all 0.3s ease;">
+                <option value="nome">Nome A-Z</option>
+                <option value="preco-asc">Menor Preço</option>
+                <option value="preco-desc">Maior Preço</option>
+                <option value="categoria">Categoria</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style="text-align: center;">
+            <button onclick="limparFiltros()" style="background: var(--gradient-secondary); color: white; border: none; padding: 10px 20px; border-radius: var(--border-radius); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-right: 10px;">
+              🗑️ Limpar Filtros
+            </button>
+            <span id="contador-produtos" style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção de Produtos -->
       <section class="card">
         <div class="card-header">
           <span role="img" aria-label="Loja" style="font-size: 1.8em">🛒</span>
-          <h2>Loja Distribuição - Produtos Disponíveis</h2>
+          <h2>Produtos Disponíveis</h2>
         </div>
         
         <div class="produtos-grid" id="produtos-grid">
           <!-- Produtos serão carregados aqui -->
+        </div>
+        
+        <div id="nenhum-produto" style="display: none; text-align: center; padding: 40px 20px; color: var(--text-muted);">
+          <div style="font-size: 3rem; margin-bottom: 15px;">🔍</div>
+          <h3>Nenhum produto encontrado</h3>
+          <p style="margin-top: 10px;">Tente ajustar os filtros para encontrar o que procura.</p>
         </div>
       </section>
     </main>
@@ -845,64 +987,254 @@
         document.getElementById('user-info').textContent = clienteData.razao;
       }
 
-      // Produtos da loja (mesmo padrão do Pantaneiro5, mas com preços diferentes)
+      // Produtos da loja de distribuição
       const produtosLoja = [
+        // Conjuntos PVC
         {
-          REFERENCIA: "201",
-          DESCRIÇÃO: "JARDINEIRA PVC COM BOTA",
-          TAMANHOS: ["P - EX / BOTAS 35 - 46"],
-          PRECO: 158.50,
-          CATEGORIA: "Aventura",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=JARDINEIRA+PVC"
+          REFERENCIA: "2900",
+          DESCRIÇÃO: "CONJUNTO PVC TORNADO COM GOLA E BOLSO",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EX", "EXG", "2G", "3G"],
+          PRECO: 85.00,
+          PRECO_ESPECIAL: 97.50,
+          CATEGORIA: "PVC",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CONJUNTO+PVC+TORNADO"
         },
         {
-          REFERENCIA: "209",
-          DESCRIÇÃO: "JAQUETA PVC PESCADOR",
-          TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"],
-          PRECO: 52.80,
-          CATEGORIA: "Aventura",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=JAQUETA+PVC"
+          REFERENCIA: "2902",
+          DESCRIÇÃO: "JAQUETA PVC TORNADO COM GOLA E BOLSO",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG", "2G", "3G"],
+          PRECO: 49.00,
+          PRECO_ESPECIAL: 57.00,
+          CATEGORIA: "PVC",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=JAQUETA+PVC+TORNADO"
         },
+        {
+          REFERENCIA: "2904",
+          DESCRIÇÃO: "CALÇA PVC TORNADO",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG", "2G", "3G"],
+          PRECO: 38.00,
+          PRECO_ESPECIAL: 44.00,
+          CATEGORIA: "PVC",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CALÇA+PVC+TORNADO"
+        },
+        {
+          REFERENCIA: "3000",
+          DESCRIÇÃO: "CONJUNTO PVC FEMININO COM GOLA - PRETO",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG"],
+          PRECO: 87.00,
+          PRECO_ESPECIAL: 100.00,
+          CATEGORIA: "Feminino",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CONJUNTO+FEMININO+PRETO"
+        },
+        {
+          REFERENCIA: "3000PT/RP",
+          DESCRIÇÃO: "CONJUNTO PVC FEMININO COM GOLA - PRETO COM CORES",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG"],
+          PRECO: 91.00,
+          PRECO_ESPECIAL: 105.00,
+          CATEGORIA: "Feminino",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CONJUNTO+FEMININO+CORES"
+        },
+        {
+          REFERENCIA: "2000",
+          DESCRIÇÃO: "CONJUNTO PVC PREMIUM COM GOLA, BOLSO E REFLETIVO",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG", "2G", "3G"],
+          PRECO: 114.00,
+          PRECO_ESPECIAL: 131.00,
+          CATEGORIA: "Premium",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CONJUNTO+PVC+PREMIUM"
+        },
+        
+        // Conjuntos Nylon
         {
           REFERENCIA: "1000",
-          DESCRIÇÃO: "CONJUNTO NYLON COM GOLA",
-          TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"],
-          PRECO: 145.90,
-          CATEGORIA: "Urbano",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CONJUNTO+NYLON"
+          DESCRIÇÃO: "CONJUNTO NYLON C/GOLA",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG"],
+          PRECO: 156.00,
+          PRECO_ESPECIAL: 180.00,
+          CATEGORIA: "Nylon",
+          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=CONJUNTO+NYLON"
         },
         {
           REFERENCIA: "1002",
-          DESCRIÇÃO: "JAQUETA NYLON COM GOLA",
-          TAMANHOS: ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G"],
-          PRECO: 89.50,
-          CATEGORIA: "Urbano",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=JAQUETA+NYLON"
+          DESCRIÇÃO: "JAQUELA DE NYLON C/GOLA",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG"],
+          PRECO: 92.00,
+          PRECO_ESPECIAL: 105.00,
+          CATEGORIA: "Nylon",
+          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=JAQUETA+NYLON"
         },
+        {
+          REFERENCIA: "1004",
+          DESCRIÇÃO: "CALÇA NYLON",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG"],
+          PRECO: 59.00,
+          PRECO_ESPECIAL: 68.00,
+          CATEGORIA: "Nylon",
+          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=CALÇA+NYLON"
+        },
+        {
+          REFERENCIA: "1100",
+          DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM GOLA",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG"],
+          PRECO: 151.00,
+          PRECO_ESPECIAL: 174.00,
+          CATEGORIA: "Feminino",
+          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=CONJUNTO+NYLON+FEMININO"
+        },
+        {
+          REFERENCIA: "1100PT/RP",
+          DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM GOLA ROSA",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG"],
+          PRECO: 156.00,
+          PRECO_ESPECIAL: 180.00,
+          CATEGORIA: "Feminino",
+          IMAGEM: "https://via.placeholder.com/300x200/ff69b4/ffffff?text=CONJUNTO+NYLON+ROSA"
+        },
+        {
+          REFERENCIA: "1200",
+          DESCRIÇÃO: "CONJUNTO NYLON LUXO COM FORRO E GOLA",
+          TAMANHOS: ["P", "M", "G", "GG", "EX"],
+          TAMANHOS_ESPECIAIS: ["EXG"],
+          PRECO: 184.00,
+          PRECO_ESPECIAL: 212.00,
+          CATEGORIA: "Luxo",
+          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=CONJUNTO+NYLON+LUXO"
+        },
+        
+        // Botas PVC
         {
           REFERENCIA: "360",
           DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL - PRETA",
           TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44"],
-          PRECO: 75.20,
-          CATEGORIA: "Acessórios",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=BOTA+PVC"
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 84.00,
+          PRECO_ESPECIAL: 84.00,
+          CATEGORIA: "Calçados",
+          IMAGEM: "https://via.placeholder.com/300x200/333333/ffffff?text=BOTA+PVC+PRETA"
         },
         {
-          REFERENCIA: "380",
-          DESCRIÇÃO: "BOTA DE COURO CANO CURTO COM ZÍPER - CITY",
-          TAMANHOS: ["37", "38", "39", "40", "41", "42", "43", "44", "45"],
-          PRECO: 335.80,
-          CATEGORIA: "Acessórios",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=BOTA+COURO"
+          REFERENCIA: "360C/RS",
+          DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL - ROSA",
+          TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44"],
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 92.00,
+          PRECO_ESPECIAL: 92.00,
+          CATEGORIA: "Calçados",
+          IMAGEM: "https://via.placeholder.com/300x200/ff69b4/ffffff?text=BOTA+PVC+ROSA"
+        },
+        {
+          REFERENCIA: "360C/AMF",
+          DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL - AMARELO",
+          TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44"],
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 92.00,
+          PRECO_ESPECIAL: 92.00,
+          CATEGORIA: "Calçados",
+          IMAGEM: "https://via.placeholder.com/300x200/ffd700/333333?text=BOTA+PVC+AMARELO"
+        },
+        {
+          REFERENCIA: "370",
+          DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL CANO MÉDIO",
+          TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44", "45/46"],
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 91.00,
+          PRECO_ESPECIAL: 91.00,
+          CATEGORIA: "Calçados",
+          IMAGEM: "https://via.placeholder.com/300x200/333333/ffffff?text=BOTA+PVC+CANO+MÉDIO"
+        },
+        
+        // Capas de Moto
+        {
+          REFERENCIA: "2410",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - P - ATÉ 125CC",
+          TAMANHOS: ["P"],
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 117.00,
+          PRECO_ESPECIAL: 117.00,
+          CATEGORIA: "Motos",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+P"
+        },
+        {
+          REFERENCIA: "2411",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - M -125CC - 150CC",
+          TAMANHOS: ["M"],
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 121.00,
+          PRECO_ESPECIAL: 121.00,
+          CATEGORIA: "Motos",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+M"
+        },
+        {
+          REFERENCIA: "2412",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - G - 250CC - 450CC",
+          TAMANHOS: ["G"],
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 125.00,
+          PRECO_ESPECIAL: 125.00,
+          CATEGORIA: "Motos",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+G"
+        },
+        {
+          REFERENCIA: "2413",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - GG - 450CC - 500CC - 750CC",
+          TAMANHOS: ["GG"],
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 132.00,
+          PRECO_ESPECIAL: 132.00,
+          CATEGORIA: "Motos",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+GG"
+        },
+        {
+          REFERENCIA: "2414",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - EX - 750CC - 1200CC",
+          TAMANHOS: ["EX"],
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 140.00,
+          PRECO_ESPECIAL: 140.00,
+          CATEGORIA: "Motos",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+EX"
+        },
+        {
+          REFERENCIA: "2415",
+          DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - EXG - ACIMA 1200CC",
+          TAMANHOS: ["EXG"],
+          TAMANHOS_ESPECIAIS: [],
+          PRECO: 170.00,
+          PRECO_ESPECIAL: 170.00,
+          CATEGORIA: "Motos",
+          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+EXG"
         }
       ];
+
+      let produtosFiltrados = [...produtosLoja];
 
       // Renderizar produtos
       function renderizarProdutos() {
         const grid = document.getElementById('produtos-grid');
+        const nenhumProduto = document.getElementById('nenhum-produto');
+        
+        if (produtosFiltrados.length === 0) {
+          grid.innerHTML = '';
+          nenhumProduto.style.display = 'block';
+          return;
+        }
+        
+        nenhumProduto.style.display = 'none';
         grid.innerHTML = '';
 
-        produtosLoja.forEach(produto => {
+        produtosFiltrados.forEach(produto => {
           const card = document.createElement('div');
           card.className = 'produto-card';
           
@@ -910,19 +1242,45 @@
             ? produto.TAMANHOS.join(', ') 
             : produto.TAMANHOS;
 
+          // Combinar tamanhos normais e especiais
+          const todosTamanhos = [...produto.TAMANHOS, ...produto.TAMANHOS_ESPECIAIS];
+          
+          let tamanhosHTML = `
+            <div class="tamanhos-container">
+              <label>Tamanhos & Quantidades:</label>
+              <div class="tamanho-input-container">
+                ${produto.TAMANHOS.map(tamanho => {
+                  const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+                  return `
+                    <div>
+                      <label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label>
+                      <input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}" data-preco="${produto.PRECO}">
+                    </div>
+                  `;
+                }).join('')}
+                ${produto.TAMANHOS_ESPECIAIS.map(tamanho => {
+                  const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+                  return `
+                    <div style="border: 2px solid var(--warning-color); background: rgba(255, 193, 7, 0.1);">
+                      <label for="quantidade-${produto.REFERENCIA}-${tamanhoId}" style="color: var(--warning-color); font-weight: 700;">${tamanho} ⭐</label>
+                      <input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}" data-preco="${produto.PRECO_ESPECIAL}">
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+
           card.innerHTML = `
             <div class="produto-imagem">
               <img src="${produto.IMAGEM}" alt="${produto.DESCRIÇÃO}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'; this.parentElement.innerHTML='📦';">
             </div>
+            <div class="produto-categoria">${produto.CATEGORIA}</div>
             <div class="produto-ref">Ref: ${produto.REFERENCIA}</div>
             <div class="produto-descricao">${produto.DESCRIÇÃO}</div>
             <div class="produto-tamanhos">Tamanhos: ${tamanhosTexto}</div>
             <div class="produto-preco">R$ ${produto.PRECO.toFixed(2)}</div>
-            <div class="quantidade-container">
-              <button class="quantidade-btn" onclick="alterarQuantidade('${produto.REFERENCIA}', -1)">-</button>
-              <input type="number" class="quantidade-input" id="qty-${produto.REFERENCIA}" value="0" min="0" onchange="atualizarQuantidade('${produto.REFERENCIA}')">
-              <button class="quantidade-btn" onclick="alterarQuantidade('${produto.REFERENCIA}', 1)">+</button>
-            </div>
+            ${tamanhosHTML}
             <button class="btn-adicionar" onclick="adicionarAoCarrinho('${produto.REFERENCIA}')">
               ➕ Adicionar ao Carrinho
             </button>
@@ -930,6 +1288,8 @@
 
           grid.appendChild(card);
         });
+        
+        atualizarContadorProdutos();
       }
 
       // Alterar quantidade
@@ -951,37 +1311,78 @@
         }
       }
 
-      // Adicionar ao carrinho
+      // Adicionar ao carrinho (sistema atualizado)
       function adicionarAoCarrinho(referencia) {
-        const input = document.getElementById(`qty-${referencia}`);
-        const quantidade = parseInt(input.value) || 0;
-        
-        if (quantidade === 0) {
-          alert('Por favor, selecione uma quantidade para adicionar ao carrinho.');
-          return;
-        }
-
         const produto = produtosLoja.find(p => p.REFERENCIA === referencia);
         if (!produto) return;
 
-        // Verificar se já existe no carrinho
-        const itemExistente = carrinhoItens.find(item => item.REFERENCIA === referencia);
-        
-        if (itemExistente) {
-          itemExistente.quantidade += quantidade;
-        } else {
-          carrinhoItens.push({
-            ...produto,
-            quantidade: quantidade
-          });
-        }
+        let itemAdicionado = false;
 
-        // Zerar quantidade no input
-        input.value = 0;
-        
-        // Atualizar carrinho
-        atualizarCarrinho();
-        mostrarNotificacao(`${produto.DESCRIÇÃO} adicionado ao carrinho!`);
+        const handleItem = (tamanho, quantidade, preco) => {
+          if (quantidade <= 0) return;
+          
+          itemAdicionado = true;
+          const itemDesc = tamanho;
+          const itemExistente = carrinhoItens.find(
+            (item) =>
+              item.REFERENCIA === produto.REFERENCIA &&
+              item.tamanho === itemDesc &&
+              item.preco === preco
+          );
+
+          if (itemExistente) {
+            itemExistente.quantidade += quantidade;
+          } else {
+            carrinhoItens.push({
+              REFERENCIA: produto.REFERENCIA,
+              DESCRIÇÃO: produto.DESCRIÇÃO,
+              tamanho: itemDesc,
+              preco: preco,
+              quantidade: quantidade,
+              categoria: produto.CATEGORIA,
+              imagem: produto.IMAGEM
+            });
+          }
+        };
+
+        // Processar tamanhos normais
+        produto.TAMANHOS.forEach((tamanho) => {
+          const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+          const input = document.getElementById(`quantidade-${referencia}-${tamanhoId}`);
+          if (input) {
+            const quantidade = parseInt(input.value) || 0;
+            const preco = parseFloat(input.dataset.preco) || produto.PRECO;
+            handleItem(tamanho, quantidade, preco);
+            
+            // Limpar campo após adicionar
+            if (quantidade > 0) {
+              input.value = 0;
+            }
+          }
+        });
+
+        // Processar tamanhos especiais
+        produto.TAMANHOS_ESPECIAIS.forEach((tamanho) => {
+          const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
+          const input = document.getElementById(`quantidade-${referencia}-${tamanhoId}`);
+          if (input) {
+            const quantidade = parseInt(input.value) || 0;
+            const preco = parseFloat(input.dataset.preco) || produto.PRECO_ESPECIAL;
+            handleItem(tamanho, quantidade, preco);
+            
+            // Limpar campo após adicionar
+            if (quantidade > 0) {
+              input.value = 0;
+            }
+          }
+        });
+
+        if (itemAdicionado) {
+          atualizarCarrinho();
+          mostrarNotificacao(`${produto.DESCRIÇÃO} adicionado ao carrinho!`);
+        } else {
+          alert(`Por favor, informe a quantidade para pelo menos um tamanho do produto ${produto.DESCRIÇÃO}.`);
+        }
       }
 
       // Remover do carrinho
@@ -990,16 +1391,23 @@
         atualizarCarrinho();
       }
 
-      // Atualizar quantidade no carrinho
-      function atualizarQuantidadeCarrinho(referencia, quantidade) {
-        if (quantidade <= 0) {
-          removerDoCarrinho(referencia);
+      // Atualizar quantidade no carrinho por índice
+      function atualizarQuantidadeCarrinhoPorIndex(index, novaQuantidade) {
+        if (novaQuantidade <= 0) {
+          removerDoCarrinhoPorIndex(index);
           return;
         }
+        
+        if (carrinhoItens[index]) {
+          carrinhoItens[index].quantidade = novaQuantidade;
+          atualizarCarrinho();
+        }
+      }
 
-        const item = carrinhoItens.find(item => item.REFERENCIA === referencia);
-        if (item) {
-          item.quantidade = quantidade;
+      // Remover do carrinho por índice
+      function removerDoCarrinhoPorIndex(index) {
+        if (carrinhoItens[index]) {
+          carrinhoItens.splice(index, 1);
           atualizarCarrinho();
         }
       }
@@ -1026,32 +1434,32 @@
 
         // Renderizar itens do carrinho
         content.innerHTML = '';
-        carrinhoItens.forEach(item => {
-          const itemDiv = document.createElement('div');
-          itemDiv.className = 'carrinho-item';
-          
-          itemDiv.innerHTML = `
-            <div class="carrinho-item-imagem">
-              <img src="${item.IMAGEM}" alt="${item.DESCRIÇÃO}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'; this.parentElement.innerHTML='📦';">
-            </div>
-            <div class="carrinho-item-info">
-              <div class="carrinho-item-nome">${item.DESCRIÇÃO}</div>
-              <div class="carrinho-item-detalhes">Ref: ${item.REFERENCIA}</div>
-              <div class="carrinho-item-preco">R$ ${(item.PRECO * item.quantidade).toFixed(2)}</div>
-              <div class="carrinho-item-quantidade">
-                <button class="quantidade-btn" onclick="atualizarQuantidadeCarrinho('${item.REFERENCIA}', ${item.quantidade - 1})">-</button>
-                <input type="number" value="${item.quantidade}" min="1" onchange="atualizarQuantidadeCarrinho('${item.REFERENCIA}', parseInt(this.value))">
-                <button class="quantidade-btn" onclick="atualizarQuantidadeCarrinho('${item.REFERENCIA}', ${item.quantidade + 1})">+</button>
-                <button class="btn-remover-item" onclick="removerDoCarrinho('${item.REFERENCIA}')">🗑️</button>
+          carrinhoItens.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'carrinho-item';
+            
+            itemDiv.innerHTML = `
+              <div class="carrinho-item-imagem">
+                <img src="${item.imagem}" alt="${item.DESCRIÇÃO}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'; this.parentElement.innerHTML='📦';">
               </div>
-            </div>
-          `;
-          
-          content.appendChild(itemDiv);
-        });
+              <div class="carrinho-item-info">
+                <div class="carrinho-item-nome">${item.DESCRIÇÃO}</div>
+                <div class="carrinho-item-detalhes">Ref: ${item.REFERENCIA} | ${item.tamanho}</div>
+                <div class="carrinho-item-preco">R$ ${(item.preco * item.quantidade).toFixed(2)}</div>
+                <div class="carrinho-item-quantidade">
+                  <button class="quantidade-btn" onclick="atualizarQuantidadeCarrinhoPorIndex(${index}, ${item.quantidade - 1})">-</button>
+                  <input type="number" value="${item.quantidade}" min="1" onchange="atualizarQuantidadeCarrinhoPorIndex(${index}, parseInt(this.value))">
+                  <button class="quantidade-btn" onclick="atualizarQuantidadeCarrinhoPorIndex(${index}, ${item.quantidade + 1})">+</button>
+                  <button class="btn-remover-item" onclick="removerDoCarrinhoPorIndex(${index})">🗑️</button>
+                </div>
+              </div>
+            `;
+            
+            content.appendChild(itemDiv);
+          });
 
         // Calcular total
-        const subtotal = carrinhoItens.reduce((total, item) => total + (item.PRECO * item.quantidade), 0);
+        const subtotal = carrinhoItens.reduce((total, item) => total + (item.preco * item.quantidade), 0);
         const desconto = formaPagamento === 'vista' ? subtotal * 0.05 : 0;
         const totalFinal = subtotal - desconto;
 
@@ -1178,6 +1586,98 @@
         preencherInformacoesCliente();
         renderizarProdutos();
         atualizarCarrinho();
+        
+        // Adicionar event listeners para filtros
+        document.getElementById('busca-produto').addEventListener('input', aplicarFiltros);
+        document.getElementById('filtro-categoria').addEventListener('change', aplicarFiltros);
+        document.getElementById('filtro-preco').addEventListener('change', aplicarFiltros);
+        document.getElementById('ordenar-por').addEventListener('change', aplicarFiltros);
+      }
+
+      // Sistema de filtros
+      function aplicarFiltros() {
+        const busca = document.getElementById('busca-produto').value.toLowerCase();
+        const categoria = document.getElementById('filtro-categoria').value;
+        const preco = document.getElementById('filtro-preco').value;
+        const ordenar = document.getElementById('ordenar-por').value;
+
+        produtosFiltrados = produtosLoja.filter(produto => {
+          // Filtro de busca
+          const matchBusca = !busca || 
+            produto.REFERENCIA.toLowerCase().includes(busca) ||
+            produto.DESCRIÇÃO.toLowerCase().includes(busca) ||
+            produto.CATEGORIA.toLowerCase().includes(busca);
+
+          // Filtro de categoria
+          const matchCategoria = !categoria || produto.CATEGORIA === categoria;
+
+          // Filtro de preço
+          let matchPreco = true;
+          if (preco) {
+            const precoProduto = produto.PRECO;
+            switch (preco) {
+              case '0-50':
+                matchPreco = precoProduto <= 50;
+                break;
+              case '50-100':
+                matchPreco = precoProduto > 50 && precoProduto <= 100;
+                break;
+              case '100-150':
+                matchPreco = precoProduto > 100 && precoProduto <= 150;
+                break;
+              case '150-200':
+                matchPreco = precoProduto > 150 && precoProduto <= 200;
+                break;
+              case '200+':
+                matchPreco = precoProduto > 200;
+                break;
+            }
+          }
+
+          return matchBusca && matchCategoria && matchPreco;
+        });
+
+        // Ordenação
+        switch (ordenar) {
+          case 'nome':
+            produtosFiltrados.sort((a, b) => a.DESCRIÇÃO.localeCompare(b.DESCRIÇÃO));
+            break;
+          case 'preco-asc':
+            produtosFiltrados.sort((a, b) => a.PRECO - b.PRECO);
+            break;
+          case 'preco-desc':
+            produtosFiltrados.sort((a, b) => b.PRECO - a.PRECO);
+            break;
+          case 'categoria':
+            produtosFiltrados.sort((a, b) => a.CATEGORIA.localeCompare(b.CATEGORIA));
+            break;
+        }
+
+        renderizarProdutos();
+      }
+
+      // Atualizar contador de produtos
+      function atualizarContadorProdutos() {
+        const contador = document.getElementById('contador-produtos');
+        const total = produtosLoja.length;
+        const filtrados = produtosFiltrados.length;
+        
+        if (filtrados === total) {
+          contador.textContent = `Mostrando todos os ${total} produtos`;
+        } else {
+          contador.textContent = `Mostrando ${filtrados} de ${total} produtos`;
+        }
+      }
+
+      // Limpar filtros
+      function limparFiltros() {
+        document.getElementById('busca-produto').value = '';
+        document.getElementById('filtro-categoria').value = '';
+        document.getElementById('filtro-preco').value = '';
+        document.getElementById('ordenar-por').value = 'nome';
+        
+        produtosFiltrados = [...produtosLoja];
+        renderizarProdutos();
       }
     </script>
   </body>
