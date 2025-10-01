@@ -852,7 +852,7 @@
           font-size: 0.95rem !important;
         }
 
-        /* Cards de produtos mobile */
+        /* Cards de produtos mobile - APENAS para mobile */
         .produtos-grid {
           grid-template-columns: 1fr !important;
           gap: 16px !important;
@@ -1051,6 +1051,190 @@
 
         .carrinho-content {
           padding: 12px !important;
+        }
+      }
+
+      /* DESKTOP - Sobrescrever mobile para telas maiores */
+      @media (min-width: 769px) {
+        .produtos-grid {
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 20px !important;
+          padding: 0 !important;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .produtos-grid {
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 24px !important;
+        }
+      }
+
+      @media (min-width: 1400px) {
+        .produtos-grid {
+          grid-template-columns: repeat(4, 1fr) !important;
+          gap: 24px !important;
+        }
+      }
+
+      /* Desktop - Resetar estilos mobile */
+      @media (min-width: 769px) {
+        .produto-card {
+          padding: 20px !important;
+        }
+
+        .produto-imagem {
+          height: 250px !important;
+          margin-bottom: 16px !important;
+        }
+
+        .produto-ref {
+          font-size: 1rem !important;
+        }
+
+        .produto-descricao {
+          font-size: 0.95rem !important;
+          line-height: 1.5 !important;
+          margin-bottom: 12px !important;
+        }
+
+        .produto-tamanhos {
+          font-size: 0.9rem !important;
+          margin-bottom: 12px !important;
+        }
+
+        .produto-preco {
+          font-size: 1.3rem !important;
+          margin-bottom: 16px !important;
+        }
+
+        .tamanho-input-container {
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 12px !important;
+        }
+
+        .tamanho-input-container > div {
+          padding: 12px !important;
+        }
+
+        .tamanho-input-container label {
+          font-size: 0.9rem !important;
+        }
+
+        .tamanho-input-container input {
+          padding: 10px !important;
+          font-size: 1rem !important;
+        }
+
+        .btn-adicionar {
+          padding: 14px !important;
+          font-size: 1rem !important;
+          min-height: auto !important;
+        }
+
+        .filtros-container > div {
+          grid-template-columns: 2fr 1fr 1fr !important;
+          gap: 24px !important;
+        }
+
+        .form-group label {
+          font-size: 0.95rem !important;
+        }
+
+        .form-group input,
+        .form-group select {
+          padding: 14px 16px !important;
+          font-size: 1rem !important;
+        }
+
+        .filtros-container {
+          padding: 24px !important;
+        }
+
+        .header-top {
+          padding: 20px !important;
+          height: auto !important;
+          flex-direction: row !important;
+          gap: 0 !important;
+        }
+
+        .header-center img {
+          width: 250px !important;
+          max-width: none !important;
+        }
+
+        .header-right {
+          width: auto !important;
+          justify-content: flex-end !important;
+          gap: 12px !important;
+        }
+
+        #user-info {
+          font-size: 0.9rem !important;
+          text-align: right !important;
+        }
+
+        #logout-button {
+          padding: 10px 16px !important;
+          font-size: 0.9rem !important;
+        }
+
+        .carrinho-lateral {
+          width: 400px !important;
+          right: -400px !important;
+        }
+
+        .carrinho-lateral.ativo {
+          right: 0 !important;
+        }
+
+        .carrinho-header {
+          padding: 20px !important;
+        }
+
+        .carrinho-content {
+          padding: 20px !important;
+        }
+
+        .pedido-card {
+          padding: 20px !important;
+        }
+
+        .pedido-header {
+          flex-direction: row !important;
+          align-items: center !important;
+          gap: 0 !important;
+        }
+
+        .pedido-id {
+          font-size: 1.1rem !important;
+        }
+
+        .pedido-data {
+          font-size: 0.9rem !important;
+        }
+
+        .pedido-status {
+          font-size: 0.85rem !important;
+          padding: 6px 12px !important;
+        }
+
+        .pedido-item {
+          padding: 12px !important;
+        }
+
+        .pedido-item-desc {
+          font-size: 0.9rem !important;
+        }
+
+        .pedido-item-qty,
+        .pedido-item-preco {
+          font-size: 0.85rem !important;
+        }
+
+        .pedido-total {
+          font-size: 1.2rem !important;
+          padding: 16px !important;
         }
       }
         
