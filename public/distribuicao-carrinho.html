@@ -915,6 +915,143 @@
         }
       }
 
+      /* Estilos para pedidos */
+      .pedido-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .pedido-card:hover {
+        box-shadow: 0 8px 40px rgba(255, 0, 0, 0.15);
+        transform: translateY(-4px);
+        border-color: var(--primary-color);
+      }
+
+      .pedido-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid rgba(255, 0, 0, 0.1);
+      }
+
+      .pedido-id {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+      }
+
+      .pedido-data {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+
+      .pedido-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .pedido-status.pendente {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+        border: 1px solid #ffeaa7;
+      }
+
+      .pedido-status.processando {
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+
+      .pedido-status.concluido {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .pedido-total {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--success-color);
+        text-align: right;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px solid rgba(255, 0, 0, 0.1);
+      }
+
+      .pedido-itens {
+        margin: 15px 0;
+      }
+
+      .pedido-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .pedido-item:last-child {
+        border-bottom: none;
+      }
+
+      .pedido-item-desc {
+        flex: 1;
+        font-size: 0.9rem;
+        color: var(--text-color);
+      }
+
+      .pedido-item-qty {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin: 0 10px;
+      }
+
+      .pedido-item-preco {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--success-color);
+      }
+
+      .pedido-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px solid rgba(255, 0, 0, 0.1);
+      }
+
+      .pedido-info-item {
+        text-align: center;
+      }
+
+      .pedido-info-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+      }
+
+      .pedido-info-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-color);
+      }
+
       /* Rodapé G8 */
       footer {
         width: 100%;
@@ -1009,6 +1146,33 @@
           <div style="font-size: 3rem; margin-bottom: 15px;">🔍</div>
           <h3>Nenhum produto encontrado</h3>
           <p style="margin-top: 10px;">Tente ajustar os filtros para encontrar o que procura.</p>
+        </div>
+      </section>
+
+      <!-- Seção Meus Pedidos -->
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Pedidos" style="font-size: 1.8em">📋</span>
+          <h2>Meus Pedidos</h2>
+        </div>
+        
+        <div style="padding: 24px;">
+          <div id="pedidos-container">
+            <div id="carregando-pedidos" style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+              <div style="font-size: 3rem; margin-bottom: 15px;">⏳</div>
+              <h3>Carregando seus pedidos...</h3>
+            </div>
+            
+            <div id="nenhum-pedido" style="display: none; text-align: center; padding: 40px 20px; color: var(--text-muted);">
+              <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
+              <h3>Nenhum pedido encontrado</h3>
+              <p style="margin-top: 10px;">Você ainda não fez nenhum pedido na loja de distribuição.</p>
+            </div>
+            
+            <div id="lista-pedidos" style="display: none;">
+              <!-- Pedidos serão carregados aqui -->
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -1115,7 +1279,7 @@
           PRECO: 85.00,
           PRECO_ESPECIAL: 97.50,
           CATEGORIA: "PVC",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CONJUNTO+PVC+TORNADO"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "2902",
@@ -1125,7 +1289,7 @@
           PRECO: 49.00,
           PRECO_ESPECIAL: 57.00,
           CATEGORIA: "PVC",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=JAQUETA+PVC+TORNADO"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "2904",
@@ -1135,7 +1299,7 @@
           PRECO: 38.00,
           PRECO_ESPECIAL: 44.00,
           CATEGORIA: "PVC",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CALÇA+PVC+TORNADO"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "3000",
@@ -1145,7 +1309,7 @@
           PRECO: 87.00,
           PRECO_ESPECIAL: 100.00,
           CATEGORIA: "Feminino",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CONJUNTO+FEMININO+PRETO"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "3000PT/RP",
@@ -1155,7 +1319,7 @@
           PRECO: 91.00,
           PRECO_ESPECIAL: 105.00,
           CATEGORIA: "Feminino",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CONJUNTO+FEMININO+CORES"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "2000",
@@ -1165,7 +1329,7 @@
           PRECO: 114.00,
           PRECO_ESPECIAL: 131.00,
           CATEGORIA: "Premium",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CONJUNTO+PVC+PREMIUM"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         
         // Conjuntos Nylon
@@ -1177,7 +1341,7 @@
           PRECO: 156.00,
           PRECO_ESPECIAL: 180.00,
           CATEGORIA: "Nylon",
-          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=CONJUNTO+NYLON"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "1002",
@@ -1187,7 +1351,7 @@
           PRECO: 92.00,
           PRECO_ESPECIAL: 105.00,
           CATEGORIA: "Nylon",
-          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=JAQUETA+NYLON"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "1004",
@@ -1197,7 +1361,7 @@
           PRECO: 59.00,
           PRECO_ESPECIAL: 68.00,
           CATEGORIA: "Nylon",
-          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=CALÇA+NYLON"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "1100",
@@ -1207,7 +1371,7 @@
           PRECO: 151.00,
           PRECO_ESPECIAL: 174.00,
           CATEGORIA: "Feminino",
-          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=CONJUNTO+NYLON+FEMININO"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "1100PT/RP",
@@ -1217,7 +1381,7 @@
           PRECO: 156.00,
           PRECO_ESPECIAL: 180.00,
           CATEGORIA: "Feminino",
-          IMAGEM: "https://via.placeholder.com/300x200/ff69b4/ffffff?text=CONJUNTO+NYLON+ROSA"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "1200",
@@ -1227,7 +1391,7 @@
           PRECO: 184.00,
           PRECO_ESPECIAL: 212.00,
           CATEGORIA: "Luxo",
-          IMAGEM: "https://via.placeholder.com/300x200/0066cc/ffffff?text=CONJUNTO+NYLON+LUXO"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         
         // Botas PVC
@@ -1239,7 +1403,7 @@
           PRECO: 84.00,
           PRECO_ESPECIAL: 84.00,
           CATEGORIA: "Calçados",
-          IMAGEM: "https://via.placeholder.com/300x200/333333/ffffff?text=BOTA+PVC+PRETA"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "360C/RS",
@@ -1249,7 +1413,7 @@
           PRECO: 92.00,
           PRECO_ESPECIAL: 92.00,
           CATEGORIA: "Calçados",
-          IMAGEM: "https://via.placeholder.com/300x200/ff69b4/ffffff?text=BOTA+PVC+ROSA"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "360C/AMF",
@@ -1259,7 +1423,7 @@
           PRECO: 92.00,
           PRECO_ESPECIAL: 92.00,
           CATEGORIA: "Calçados",
-          IMAGEM: "https://via.placeholder.com/300x200/ffd700/333333?text=BOTA+PVC+AMARELO"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "370",
@@ -1269,7 +1433,7 @@
           PRECO: 91.00,
           PRECO_ESPECIAL: 91.00,
           CATEGORIA: "Calçados",
-          IMAGEM: "https://via.placeholder.com/300x200/333333/ffffff?text=BOTA+PVC+CANO+MÉDIO"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         
         // Capas de Moto
@@ -1281,7 +1445,7 @@
           PRECO: 117.00,
           PRECO_ESPECIAL: 117.00,
           CATEGORIA: "Motos",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+P"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "2411",
@@ -1291,7 +1455,7 @@
           PRECO: 121.00,
           PRECO_ESPECIAL: 121.00,
           CATEGORIA: "Motos",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+M"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "2412",
@@ -1301,7 +1465,7 @@
           PRECO: 125.00,
           PRECO_ESPECIAL: 125.00,
           CATEGORIA: "Motos",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+G"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "2413",
@@ -1311,7 +1475,7 @@
           PRECO: 132.00,
           PRECO_ESPECIAL: 132.00,
           CATEGORIA: "Motos",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+GG"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "2414",
@@ -1321,7 +1485,7 @@
           PRECO: 140.00,
           PRECO_ESPECIAL: 140.00,
           CATEGORIA: "Motos",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+EX"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         },
         {
           REFERENCIA: "2415",
@@ -1331,7 +1495,7 @@
           PRECO: 170.00,
           PRECO_ESPECIAL: 170.00,
           CATEGORIA: "Motos",
-          IMAGEM: "https://via.placeholder.com/300x200/ff0000/ffffff?text=CAPA+MOTO+EXG"
+          IMAGEM: "https://i.imgur.com/WveVVY5.png"
         }
       ];
 
@@ -1379,7 +1543,7 @@
                   const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
                   return `
                     <div style="border: 2px solid var(--warning-color); background: rgba(255, 193, 7, 0.1);">
-                      <label for="quantidade-${produto.REFERENCIA}-${tamanhoId}" style="color: var(--warning-color); font-weight: 700;">${tamanho} ⭐</label>
+                      <label for="quantidade-${produto.REFERENCIA}-${tamanhoId}" style="color: var(--warning-color); font-weight: 700;">${tamanho} ⬆️</label>
                       <input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}" data-preco="${produto.PRECO_ESPECIAL}">
                     </div>
                   `;
@@ -1698,11 +1862,161 @@
         }
       }
 
+      // Carregar pedidos do cliente
+      async function carregarPedidos() {
+        const carregando = document.getElementById('carregando-pedidos');
+        const nenhumPedido = document.getElementById('nenhum-pedido');
+        const listaPedidos = document.getElementById('lista-pedidos');
+        
+        try {
+          carregando.style.display = 'block';
+          nenhumPedido.style.display = 'none';
+          listaPedidos.style.display = 'none';
+          
+          // Buscar pedidos do cliente na API
+          const response = await fetch('/api/pedidos');
+          const pedidos = await response.json();
+          
+          // Filtrar apenas pedidos de distribuição do cliente atual
+          const pedidosDistribuicao = pedidos.filter(pedido => {
+            if (pedido.empresa !== 'distribuicao') return false;
+            
+            // Verificar se o pedido pertence ao cliente atual
+            if (pedido.dados) {
+              try {
+                const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
+                return dados.cliente && dados.cliente.cnpj === clienteData.cnpj;
+              } catch (e) {
+                return false;
+              }
+            }
+            return false;
+          });
+          
+          carregando.style.display = 'none';
+          
+          if (pedidosDistribuicao.length === 0) {
+            nenhumPedido.style.display = 'block';
+            return;
+          }
+          
+          // Ordenar por data (mais recente primeiro)
+          pedidosDistribuicao.sort((a, b) => new Date(b.data) - new Date(a.data));
+          
+          // Renderizar pedidos
+          renderizarPedidos(pedidosDistribuicao);
+          
+        } catch (error) {
+          console.error('Erro ao carregar pedidos:', error);
+          carregando.style.display = 'none';
+          nenhumPedido.style.display = 'block';
+          nenhumPedido.innerHTML = `
+            <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+            <h3>Erro ao carregar pedidos</h3>
+            <p style="margin-top: 10px;">Não foi possível carregar seus pedidos. Tente novamente mais tarde.</p>
+          `;
+        }
+      }
+
+      // Renderizar lista de pedidos
+      function renderizarPedidos(pedidos) {
+        const listaPedidos = document.getElementById('lista-pedidos');
+        const nenhumPedido = document.getElementById('nenhum-pedido');
+        
+        nenhumPedido.style.display = 'none';
+        listaPedidos.style.display = 'block';
+        listaPedidos.innerHTML = '';
+        
+        pedidos.forEach(pedido => {
+          const card = document.createElement('div');
+          card.className = 'pedido-card';
+          
+          // Parse dos dados do pedido
+          let dados = {};
+          try {
+            dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
+          } catch (e) {
+            dados = {};
+          }
+          
+          // Determinar status do pedido
+          let status = 'pendente';
+          let statusText = 'Pendente';
+          if (pedido.status === 'processando' || pedido.status === 'em_andamento') {
+            status = 'processando';
+            statusText = 'Processando';
+          } else if (pedido.status === 'concluido' || pedido.status === 'finalizado') {
+            status = 'concluido';
+            statusText = 'Concluído';
+          }
+          
+          // Formatar data
+          const dataPedido = new Date(pedido.data);
+          const dataFormatada = dataPedido.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          // Renderizar itens do pedido
+          let itensHTML = '';
+          if (dados.itens && Array.isArray(dados.itens)) {
+            itensHTML = dados.itens.map(item => `
+              <div class="pedido-item">
+                <div class="pedido-item-desc">
+                  ${item.DESCRIÇÃO} - ${item.tamanho || 'N/A'}
+                </div>
+                <div class="pedido-item-qty">
+                  Qty: ${item.quantidade}
+                </div>
+                <div class="pedido-item-preco">
+                  R$ ${(item.preco * item.quantidade).toFixed(2)}
+                </div>
+              </div>
+            `).join('');
+          }
+          
+          card.innerHTML = `
+            <div class="pedido-header">
+              <div>
+                <div class="pedido-id">Pedido #${pedido.id}</div>
+                <div class="pedido-data">${dataFormatada}</div>
+              </div>
+              <div class="pedido-status ${status}">${statusText}</div>
+            </div>
+            
+            <div class="pedido-itens">
+              ${itensHTML}
+            </div>
+            
+            <div class="pedido-info">
+              <div class="pedido-info-item">
+                <div class="pedido-info-label">Forma de Pagamento</div>
+                <div class="pedido-info-value">${dados.formaPagamento === 'vista' ? 'À Vista' : 'A Prazo'}</div>
+              </div>
+              <div class="pedido-info-item">
+                <div class="pedido-info-label">Desconto</div>
+                <div class="pedido-info-value">${dados.desconto ? `R$ ${dados.desconto.toFixed(2)}` : 'R$ 0,00'}</div>
+              </div>
+            </div>
+            
+            <div class="pedido-total">
+              Total: R$ ${dados.total ? dados.total.toFixed(2) : '0,00'}
+            </div>
+          `;
+          
+          listaPedidos.appendChild(card);
+        });
+      }
+
       // Inicializar página
       if (checkAuth()) {
         preencherInformacoesCliente();
         renderizarProdutos();
         atualizarCarrinho();
+        carregarPedidos();
         
         // Adicionar event listeners para filtros
         document.getElementById('busca-produto').addEventListener('input', aplicarFiltros);
