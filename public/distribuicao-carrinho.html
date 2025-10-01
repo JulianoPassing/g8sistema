@@ -1552,12 +1552,9 @@
           const card = document.createElement('div');
           card.className = 'produto-card';
           
-          const tamanhosTexto = Array.isArray(produto.TAMANHOS) 
-            ? produto.TAMANHOS.join(', ') 
-            : produto.TAMANHOS;
-
-          // Combinar tamanhos normais e especiais
+          // Combinar tamanhos normais e especiais para exibição
           const todosTamanhos = [...produto.TAMANHOS, ...produto.TAMANHOS_ESPECIAIS];
+          const tamanhosTexto = todosTamanhos.join(', ');
           
           let tamanhosHTML = `
             <div class="tamanhos-container">
