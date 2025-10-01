@@ -74,19 +74,19 @@
         margin: 0;
         padding: 0;
       }
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        line-height: 1.6;
-        color: var(--text-color);
-        background: var(--bg-color);
-        margin: 0;
-        padding: 80px 20px 0 20px;
-        font-size: 14px;
-        min-height: 100vh;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-      }
+       body {
+         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+         line-height: 1.6;
+         color: var(--text-color);
+         background: var(--bg-color);
+         margin: 0;
+         padding: 90px 20px 0 20px;
+         font-size: 14px;
+         min-height: 100vh;
+         position: relative;
+         display: flex;
+         flex-direction: column;
+       }
 
       /* Fundo animado sutil */
       body::before {
@@ -110,22 +110,22 @@
       }
 
       /* --- HEADER DE USUÁRIO E LOGOUT --- */
-      .header-top {
-        width: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 25px;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        box-shadow: var(--shadow);
-        z-index: 1000;
-        border-bottom: 1px solid var(--border-color);
-        height: 70px;
-        box-sizing: border-box;
-      }
+       .header-top {
+         width: 100%;
+         position: fixed;
+         top: 0;
+         left: 0;
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         padding: 15px 25px;
+         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+         box-shadow: var(--shadow);
+         z-index: 1000;
+         border-bottom: 1px solid var(--border-color);
+         height: 70px;
+         box-sizing: border-box;
+       }
 
       .header-left {
         flex: 0 0 auto;
@@ -283,18 +283,18 @@
       }
 
       /* Cards de produtos */
-      .produto-card {
-        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(255, 0, 0, 0.1);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-        height: fit-content;
-        backdrop-filter: blur(10px);
-      }
+       .produto-card {
+         background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+         border-radius: 16px;
+         padding: 16px;
+         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+         border: 1px solid rgba(255, 0, 0, 0.1);
+         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+         position: relative;
+         overflow: hidden;
+         height: fit-content;
+         backdrop-filter: blur(10px);
+       }
 
       .produto-card:hover {
         box-shadow: 0 8px 40px rgba(255, 0, 0, 0.15);
@@ -337,30 +337,34 @@
         opacity: 1;
       }
 
-      .produto-imagem {
-        width: 100%;
-        height: 160px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 12px;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-        font-size: 2rem;
-        border: 2px solid rgba(255, 0, 0, 0.1);
-        transition: all 0.4s ease;
-        overflow: hidden;
-        position: relative;
-      }
+       .produto-imagem {
+         width: 100%;
+         height: 0;
+         padding-bottom: 200%; /* 1:2 aspect ratio (altura = 2x largura) */
+         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+         border-radius: 12px;
+         margin-bottom: 12px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         color: var(--text-muted);
+         font-size: 2rem;
+         border: 2px solid rgba(255, 0, 0, 0.1);
+         transition: all 0.4s ease;
+         overflow: hidden;
+         position: relative;
+       }
 
-      .produto-imagem img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 12px;
-        transition: transform 0.4s ease;
-      }
+       .produto-imagem img {
+         position: absolute;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         object-fit: cover;
+         border-radius: 12px;
+         transition: transform 0.4s ease;
+       }
 
       .produto-imagem:hover {
         border-color: var(--primary-color);
@@ -429,62 +433,62 @@
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
-      /* Sistema de tamanhos como Pantaneiro5 */
-      .tamanhos-container {
-        margin-bottom: 15px;
-      }
+       /* Sistema de tamanhos como Pantaneiro5 */
+       .tamanhos-container {
+         margin-bottom: 10px;
+       }
 
-      .tamanhos-container label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: var(--text-color);
-        font-size: 0.9rem;
-        text-align: center;
-      }
+       .tamanhos-container label {
+         display: block;
+         margin-bottom: 6px;
+         font-weight: 600;
+         color: var(--text-color);
+         font-size: 0.8rem;
+         text-align: center;
+       }
 
-      .tamanho-input-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        align-items: center;
-        justify-content: center;
-      }
+       .tamanho-input-container {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 4px;
+         align-items: center;
+         justify-content: center;
+       }
 
-      .tamanho-input-container > div {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        background: rgba(255, 255, 255, 0.8);
-        padding: 6px 8px;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
-      }
+       .tamanho-input-container > div {
+         display: flex;
+         align-items: center;
+         gap: 3px;
+         background: rgba(255, 255, 255, 0.8);
+         padding: 4px 6px;
+         border-radius: 6px;
+         border: 1px solid var(--border-color);
+         transition: all 0.3s ease;
+       }
 
       .tamanho-input-container > div:hover {
         border-color: var(--primary-color);
         background: rgba(255, 0, 0, 0.05);
       }
 
-      .tamanho-input-container label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin: 0;
-        color: var(--text-color);
-        white-space: nowrap;
-      }
+       .tamanho-input-container label {
+         font-size: 0.7rem;
+         font-weight: 600;
+         margin: 0;
+         color: var(--text-color);
+         white-space: nowrap;
+       }
 
-      .tamanho-input-container input[type="number"] {
-        width: 45px;
-        padding: 4px 6px;
-        text-align: center;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        background: white;
-      }
+       .tamanho-input-container input[type="number"] {
+         width: 40px;
+         padding: 3px 4px;
+         text-align: center;
+         border: 1px solid var(--border-color);
+         border-radius: 4px;
+         font-size: 0.75rem;
+         font-weight: 600;
+         background: white;
+       }
 
       .tamanho-input-container input[type="number"]:focus {
         outline: none;
@@ -508,25 +512,25 @@
         box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
       }
 
-      .btn-adicionar {
-        width: 100%;
-        background: linear-gradient(135deg, var(--success-color) 0%, #00a86b 100%);
-        color: white;
-        border: none;
-        padding: 12px 16px;
-        border-radius: 12px;
-        font-size: 0.95rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        position: relative;
-        overflow: hidden;
-      }
+       .btn-adicionar {
+         width: 100%;
+         background: linear-gradient(135deg, var(--success-color) 0%, #00a86b 100%);
+         color: white;
+         border: none;
+         padding: 10px 12px;
+         border-radius: 12px;
+         font-size: 0.9rem;
+         font-weight: 700;
+         cursor: pointer;
+         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         gap: 6px;
+         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+         position: relative;
+         overflow: hidden;
+       }
 
       .btn-adicionar::before {
         content: '';
@@ -864,10 +868,11 @@
           margin-bottom: 0 !important;
         }
 
-        .produto-imagem {
-          height: 200px !important;
-          margin-bottom: 12px !important;
-        }
+         .produto-imagem {
+           height: 0 !important;
+           padding-bottom: 200% !important; /* 1:2 aspect ratio */
+           margin-bottom: 12px !important;
+         }
 
         .produto-ref {
           font-size: 0.9rem !important;
@@ -1028,9 +1033,10 @@
           padding: 12px !important;
         }
 
-        .produto-imagem {
-          height: 180px !important;
-        }
+         .produto-imagem {
+           height: 0 !important;
+           padding-bottom: 200% !important; /* 1:2 aspect ratio */
+         }
 
         .produto-descricao {
           font-size: 0.8rem !important;
@@ -1066,57 +1072,58 @@
       /* Desktop - Resetar estilos mobile */
       @media (min-width: 769px) {
         .produto-card {
-          padding: 12px !important;
+          padding: 16px !important;
         }
 
-        .produto-imagem {
-          height: 120px !important;
-          margin-bottom: 8px !important;
-        }
+         .produto-imagem {
+           height: 0 !important;
+           padding-bottom: 200% !important; /* 1:2 aspect ratio */
+           margin-bottom: 10px !important;
+         }
 
         .produto-ref {
-          font-size: 0.8rem !important;
+          font-size: 0.9rem !important;
         }
 
         .produto-descricao {
-          font-size: 0.75rem !important;
-          line-height: 1.3 !important;
-          margin-bottom: 6px !important;
-        }
-
-        .produto-tamanhos {
-          font-size: 0.7rem !important;
-          margin-bottom: 6px !important;
-        }
-
-        .produto-preco {
-          font-size: 1rem !important;
+          font-size: 0.85rem !important;
+          line-height: 1.4 !important;
           margin-bottom: 8px !important;
         }
 
-        .tamanho-input-container {
-          grid-template-columns: repeat(2, 1fr) !important;
-          gap: 6px !important;
-        }
-
-        .tamanho-input-container > div {
-          padding: 6px !important;
-        }
-
-        .tamanho-input-container label {
-          font-size: 0.7rem !important;
-        }
-
-        .tamanho-input-container input {
-          padding: 6px !important;
+        .produto-tamanhos {
           font-size: 0.8rem !important;
+          margin-bottom: 8px !important;
         }
 
-        .btn-adicionar {
-          padding: 8px !important;
-          font-size: 0.8rem !important;
-          min-height: auto !important;
+        .produto-preco {
+          font-size: 1.1rem !important;
+          margin-bottom: 12px !important;
         }
+
+         .tamanho-input-container {
+           grid-template-columns: repeat(2, 1fr) !important;
+           gap: 6px !important;
+         }
+
+         .tamanho-input-container > div {
+           padding: 6px !important;
+         }
+
+         .tamanho-input-container label {
+           font-size: 0.75rem !important;
+         }
+
+         .tamanho-input-container input {
+           padding: 6px !important;
+           font-size: 0.8rem !important;
+         }
+
+         .btn-adicionar {
+           padding: 10px !important;
+           font-size: 0.85rem !important;
+           min-height: auto !important;
+         }
 
         .filtros-container > div {
           grid-template-columns: 2fr 1fr 1fr !important;
@@ -1135,19 +1142,16 @@
 
         .filtros-container {
           padding: 24px !important;
-          margin-top: 20px !important;
         }
 
-        .header-top {
-          padding: 15px 40px !important;
-          height: 60px !important;
-          flex-direction: row !important;
-          gap: 0 !important;
-          align-items: center !important;
-          justify-content: space-between !important;
-          position: relative !important;
-          z-index: 1000 !important;
-        }
+         .header-top {
+           padding: 20px 40px !important;
+           height: 70px !important;
+           flex-direction: row !important;
+           gap: 0 !important;
+           align-items: center !important;
+           justify-content: space-between !important;
+         }
 
         .header-left {
           display: flex !important;
@@ -1320,10 +1324,11 @@
           padding: 15px;
         }
 
-        .produto-imagem {
-          height: 150px;
-          font-size: 2rem;
-        }
+         .produto-imagem {
+           height: 0;
+           padding-bottom: 200%; /* 1:2 aspect ratio */
+           font-size: 2rem;
+         }
       }
 
       /* Estilos para pedidos */
