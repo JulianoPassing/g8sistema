@@ -171,13 +171,19 @@ async function carregarPedidos() {
     for (const pedido of pedidos) {
       let info = extrairInfoPedido(pedido.descricao, pedido.dados);
       
-      // Verificar se é um pedido B2B
+      // Verificar se é um pedido B2B ou Distribuição
       let isB2B = false;
+      let isDistribuicao = false;
       let clienteB2BInfo = null;
       
       // Verificar se é pedido B2B pelo campo empresa
       if (pedido.empresa && pedido.empresa.startsWith('b2b-')) {
         isB2B = true;
+      }
+      
+      // Verificar se é pedido Distribuição pelo campo empresa
+      if (pedido.empresa && pedido.empresa === 'distribuicao') {
+        isDistribuicao = true;
       }
       
       if (pedido.dados) {
@@ -192,6 +198,16 @@ async function carregarPedidos() {
             // Para pedidos B2B, usar as informações do cliente B2B
             if (clienteB2BInfo && clienteB2BInfo.razao) {
               info.cliente = clienteB2BInfo.razao;
+            }
+          }
+          
+          // Verificar se é pedido Distribuição pelos dados
+          if (dados.origem && dados.origem.includes('Loja Distribuição')) {
+            isDistribuicao = true;
+            
+            // Para pedidos Distribuição, usar as informações do cliente
+            if (dados.cliente && dados.cliente.razao) {
+              info.cliente = dados.cliente.razao;
             }
           }
           
@@ -213,7 +229,7 @@ async function carregarPedidos() {
       const dataFormatada = formatarData(pedido.data_pedido);
       
       html += `
-        <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''}">
+        <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''} ${isDistribuicao ? 'pedido-distribuicao' : ''}">
           <div class="pedido-header">
             <div class="pedido-id-badge">
               <span class="id-label">Pedido</span>
@@ -221,9 +237,10 @@ async function carregarPedidos() {
             </div>
             <div class="pedido-badges">
               <div class="pedido-empresa-badge">
-                <span class="empresa-name">${isB2B ? pedido.empresa.toUpperCase() : pedido.empresa.toUpperCase()}</span>
+                <span class="empresa-name">${isDistribuicao ? 'DISTRIBUIÇÃO' : (isB2B ? pedido.empresa.toUpperCase() : pedido.empresa.toUpperCase())}</span>
               </div>
               ${isB2B ? '<div class="pedido-b2b-badge"><span class="b2b-label">🌐 B2B</span></div>' : ''}
+              ${isDistribuicao ? '<div class="pedido-distribuicao-badge"><span class="distribuicao-label">🛒 LOJA</span></div>' : ''}
             </div>
           </div>
           
@@ -449,13 +466,19 @@ function renderizarPedidos(pedidos) {
   for (const pedido of pedidos) {
     let info = extrairInfoPedido(pedido.descricao, pedido.dados);
     
-    // Verificar se é um pedido B2B
+    // Verificar se é um pedido B2B ou Distribuição
     let isB2B = false;
+    let isDistribuicao = false;
     let clienteB2BInfo = null;
     
     // Verificar se é pedido B2B pelo campo empresa
     if (pedido.empresa && pedido.empresa.startsWith('b2b-')) {
       isB2B = true;
+    }
+    
+    // Verificar se é pedido Distribuição pelo campo empresa
+    if (pedido.empresa && pedido.empresa === 'distribuicao') {
+      isDistribuicao = true;
     }
     
     if (pedido.dados) {
@@ -470,6 +493,16 @@ function renderizarPedidos(pedidos) {
           // Para pedidos B2B, usar as informações do cliente B2B
           if (clienteB2BInfo && clienteB2BInfo.razao) {
             info.cliente = clienteB2BInfo.razao;
+          }
+        }
+        
+        // Verificar se é pedido Distribuição pelos dados
+        if (dados.origem && dados.origem.includes('Loja Distribuição')) {
+          isDistribuicao = true;
+          
+          // Para pedidos Distribuição, usar as informações do cliente
+          if (dados.cliente && dados.cliente.razao) {
+            info.cliente = dados.cliente.razao;
           }
         }
         
@@ -491,7 +524,7 @@ function renderizarPedidos(pedidos) {
     const dataFormatada = formatarData(pedido.data_pedido);
     
     html += `
-      <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''}">
+      <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''} ${isDistribuicao ? 'pedido-distribuicao' : ''}">
         <div class="pedido-header">
           <div class="pedido-id-badge">
             <span class="id-label">Pedido</span>
@@ -499,9 +532,10 @@ function renderizarPedidos(pedidos) {
           </div>
           <div class="pedido-badges">
             <div class="pedido-empresa-badge">
-              <span class="empresa-name">${isB2B ? pedido.empresa.toUpperCase() : pedido.empresa.toUpperCase()}</span>
+              <span class="empresa-name">${isDistribuicao ? 'DISTRIBUIÇÃO' : (isB2B ? pedido.empresa.toUpperCase() : pedido.empresa.toUpperCase())}</span>
             </div>
             ${isB2B ? '<div class="pedido-b2b-badge"><span class="b2b-label">🌐 B2B</span></div>' : ''}
+            ${isDistribuicao ? '<div class="pedido-distribuicao-badge"><span class="distribuicao-label">🛒 LOJA</span></div>' : ''}
           </div>
         </div>
         

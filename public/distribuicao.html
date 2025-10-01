@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G8 Representações - Loja Distribuição</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+    <link rel="apple-touch-icon" href="https://i.imgur.com/WveVVY5.png" />
+    <link rel="stylesheet" href="modern-design.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+      :root {
+        /* === CORES G8 === */
+        --g8-red: #ff0000;
+        --g8-black: #000000;
+        --g8-white: #ffffff;
+        --primary-color: #ff0000;
+        --primary-hover: #cc0000;
+        --secondary-color: #000000;
+        --text-color: #000000;
+        --text-muted: #666666;
+        --bg-color: #ffffff;
+        --card-bg: #fafafa;
+        --border-color: #e0e0e0;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --gradient-primary: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+        --gradient-bg: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+      }
+
+      body {
+        background: linear-gradient(135deg, #ff0000 0%, #990000 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+        position: relative;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+          align-items: center;
+          justify-content: center;
+          padding-top: 0;
+        }
+      }
+
+      /* Fundo animado sutil G8 */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+          radial-gradient(circle at 20% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.08) 0%, transparent 50%),
+          radial-gradient(circle at 40% 40%, rgba(255, 0, 0, 0.03) 0%, transparent 50%);
+        animation: backgroundFloat 25s ease-in-out infinite;
+        z-index: -1;
+      }
+
+      @keyframes backgroundFloat {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        50% { transform: translateX(-15px) translateY(15px); }
+      }
+
+      .footer {
+        width: 100%;
+        text-align: center;
+        padding: 20px 0;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 13px;
+        background: transparent;
+        font-family: 'Segoe UI', sans-serif;
+        letter-spacing: 0.02em;
+        position: relative;
+        margin-top: 30px;
+      }
+
+      .footer a {
+        color: rgba(255, 255, 255, 1);
+        text-decoration: underline;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .footer a:hover {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+      }
+
+      @media (max-width: 768px) {
+        .footer {
+          padding: 15px 10px;
+          font-size: 12px;
+          margin-top: 10px;
+        }
+      }
+
+      .login-container {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: var(--shadow-lg);
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      @media (max-width: 768px) {
+        .login-container {
+          padding: 25px 20px;
+          margin: 20px 0;
+          max-width: 100%;
+          border-radius: 15px;
+          width: calc(100% - 20px);
+        }
+      }
+
+      .login-container:hover {
+        border-color: var(--g8-red);
+        box-shadow: 0 20px 25px -5px rgba(255, 0, 0, 0.25), 0 10px 10px -5px rgba(255, 0, 0, 0.1);
+      }
+
+      .login-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: var(--gradient-primary);
+      }
+
+      .logo {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo img {
+        width: 300px;
+        height: auto;
+        object-fit: contain;
+        max-width: 90%;
+      }
+
+      @media (max-width: 768px) {
+        .logo img {
+          width: 200px;
+          max-width: 80%;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .logo img {
+          width: 150px;
+          max-width: 75%;
+        }
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+      }
+
+      @media (max-width: 768px) {
+        .subtitle {
+          font-size: 1rem;
+          margin-bottom: 20px;
+        }
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      input[type="text"], input[type="password"] {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      @media (max-width: 768px) {
+        input[type="text"], input[type="password"] {
+          padding: 12px;
+          font-size: 16px; /* Previne zoom no iOS */
+          border-radius: 8px;
+        }
+      }
+
+      input[type="text"]:focus, input[type="password"]:focus {
+        outline: none;
+        border-color: var(--g8-red);
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+      }
+
+      .btn-login {
+        width: 100%;
+        padding: 15px;
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+      }
+
+      @media (max-width: 768px) {
+        .btn-login {
+          padding: 12px;
+          font-size: 16px;
+          border-radius: 8px;
+          min-height: 48px; /* Melhora área de toque */
+        }
+      }
+
+      .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(255, 0, 0, 0.3);
+        background: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+      }
+
+      .btn-login:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .error-message {
+        background: #fee;
+        color: #c53030;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #c53030;
+        display: none;
+      }
+
+      .loading {
+        display: none;
+        margin-top: 10px;
+      }
+
+      .loading-spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid var(--g8-red);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .info-box {
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 25px;
+        text-align: left;
+      }
+
+      @media (max-width: 768px) {
+        .info-box {
+          padding: 12px;
+          margin-bottom: 20px;
+          border-radius: 8px;
+        }
+      }
+
+      .info-box h3 {
+        margin: 0 0 10px 0;
+        color: #2d3748;
+        font-size: 1.1rem;
+      }
+
+      .info-box p {
+        margin: 0;
+        color: #4a5568;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
+        .info-box h3 {
+          font-size: 1rem;
+          margin-bottom: 8px;
+        }
+
+        .info-box p {
+          font-size: 0.85rem;
+        }
+      }
+
+      .remember-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        text-align: left;
+      }
+
+      @media (max-width: 768px) {
+        .remember-group {
+          margin-bottom: 12px;
+          font-size: 13px;
+        }
+      }
+
+      .remember-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        cursor: pointer;
+        accent-color: var(--g8-red);
+      }
+
+      .remember-group label {
+        cursor: pointer;
+        color: var(--text-color);
+        font-weight: 500;
+        margin-bottom: 0;
+      }
+
+      .remember-group label:hover {
+        color: var(--g8-red);
+      }
+
+      @media (max-width: 480px) {
+        .login-container {
+          padding: 20px 15px;
+          margin: 15px 0;
+          width: calc(100% - 10px);
+        }
+        
+        .logo img {
+          width: 150px;
+          max-width: 75%;
+        }
+
+        .subtitle {
+          font-size: 0.9rem;
+          margin-bottom: 15px;
+        }
+
+        .info-box {
+          padding: 10px;
+          margin-bottom: 15px;
+        }
+
+        .info-box h3 {
+          font-size: 0.9rem;
+        }
+
+        .info-box p {
+          font-size: 0.8rem;
+        }
+
+        input[type="text"], input[type="password"] {
+          padding: 10px;
+          font-size: 16px;
+        }
+
+        .btn-login {
+          padding: 10px;
+          font-size: 15px;
+        }
+
+        .remember-group {
+          font-size: 12px;
+          margin-bottom: 10px;
+        }
+      }
+    </style>
+    <script src="cache-system.js"></script>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="logo">
+        <img src="https://i.imgur.com/vjq26ym.png" alt="Logo G8" />
+      </div>
+      <div class="subtitle">Loja Distribuição - Área do Cliente</div>
+      
+      <div class="info-box">
+        <h3>🛒 Acesso à Loja</h3>
+        <p>Digite seu CNPJ e a senha fornecida para acessar nossa loja online e fazer seus pedidos.</p>
+      </div>
+
+      <div id="errorMessage" class="error-message"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="cnpj">CNPJ</label>
+          <input 
+            type="text" 
+            id="cnpj" 
+            placeholder="00.000.000/0001-00" 
+            required
+            maxlength="18"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="Digite sua senha" 
+            required
+          >
+        </div>
+
+        <div class="remember-group">
+          <input type="checkbox" id="remember-me" />
+          <label for="remember-me">Lembrar CNPJ e senha</label>
+        </div>
+        
+        <div class="remember-group">
+          <input type="checkbox" id="show-password" />
+          <label for="show-password">Visualizar senha</label>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginBtn">
+          Entrar na Loja
+        </button>
+      </form>
+
+      <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Verificando credenciais...</p>
+      </div>
+    </div>
+
+    <script>
+      // Elementos do formulário
+      const cnpjField = document.getElementById('cnpj');
+      const passwordField = document.getElementById('password');
+      const rememberMeCheckbox = document.getElementById('remember-me');
+      const showPasswordCheckbox = document.getElementById('show-password');
+
+      // Máscara para CNPJ
+      cnpjField.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 14) {
+          value = value.replace(/(\d{2})(\d)/, '$1.$2');
+          value = value.replace(/(\d{3})(\d)/, '$1.$2');
+          value = value.replace(/(\d{3})(\d)/, '$1/$2');
+          value = value.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+          e.target.value = value;
+        }
+      });
+
+      // Funcionalidade de visualizar senha
+      showPasswordCheckbox.addEventListener('change', function() {
+        const type = this.checked ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+      });
+
+      // Carregar dados salvos
+      const savedCnpj = localStorage.getItem('savedCnpjDistribuicao');
+      const savedPassword = localStorage.getItem('savedPasswordDistribuicao');
+
+      if (savedCnpj && savedPassword) {
+        cnpjField.value = savedCnpj;
+        passwordField.value = savedPassword;
+        rememberMeCheckbox.checked = true;
+      }
+
+      // Função de login
+      document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const cnpj = document.getElementById('cnpj').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const errorDiv = document.getElementById('errorMessage');
+        const loadingDiv = document.getElementById('loading');
+        const loginBtn = document.getElementById('loginBtn');
+
+        // Validações básicas
+        if (!cnpj || !password) {
+          showError('Por favor, preencha todos os campos.');
+          return;
+        }
+
+        // Mostrar loading
+        loadingDiv.style.display = 'block';
+        loginBtn.disabled = true;
+        errorDiv.style.display = 'none';
+
+        try {
+          const response = await fetch('/api/auth-b2b', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ cnpj, password })
+          });
+
+          // Verificar se a resposta é JSON válido
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Resposta do servidor não é JSON válido');
+          }
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Salvar dados do cliente no localStorage
+            localStorage.setItem('clienteDistribuicao', JSON.stringify(data.cliente));
+            
+            // Gerenciar dados salvos baseado no checkbox "Lembrar"
+            if (rememberMeCheckbox.checked) {
+              localStorage.setItem('savedCnpjDistribuicao', cnpj);
+              localStorage.setItem('savedPasswordDistribuicao', password);
+            } else {
+              localStorage.removeItem('savedCnpjDistribuicao');
+              localStorage.removeItem('savedPasswordDistribuicao');
+            }
+            
+            // Redirecionar para a página da loja
+            window.location.href = 'distribuicao-carrinho.html';
+          } else {
+            showError(data.message || 'Erro ao fazer login. Verifique suas credenciais.');
+          }
+        } catch (error) {
+          console.error('Erro no login:', error);
+          if (error.message.includes('JSON')) {
+            showError('Erro no servidor. Tente novamente em alguns instantes.');
+          } else {
+            showError('Erro de conexão. Tente novamente.');
+          }
+        } finally {
+          loadingDiv.style.display = 'none';
+          loginBtn.disabled = false;
+        }
+      });
+
+      function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+      }
+
+      // Verificar se já está logado
+      if (localStorage.getItem('clienteDistribuicao')) {
+        window.location.href = 'distribuicao-carrinho.html';
+      }
+    </script>
+
+    <footer class="footer">
+      © 2025 J.P Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
+    </footer>
+  </body>
+</html>
