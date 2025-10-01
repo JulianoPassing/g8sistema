@@ -1054,81 +1054,67 @@
         }
       }
 
-      /* DESKTOP - Sobrescrever mobile para telas maiores */
+      /* DESKTOP - 4 produtos por linha em todos os desktops */
       @media (min-width: 769px) {
         .produtos-grid {
-          grid-template-columns: repeat(2, 1fr) !important;
+          grid-template-columns: repeat(4, 1fr) !important;
           gap: 20px !important;
           padding: 0 !important;
-        }
-      }
-
-      @media (min-width: 1024px) {
-        .produtos-grid {
-          grid-template-columns: repeat(3, 1fr) !important;
-          gap: 24px !important;
-        }
-      }
-
-      @media (min-width: 1400px) {
-        .produtos-grid {
-          grid-template-columns: repeat(4, 1fr) !important;
-          gap: 24px !important;
         }
       }
 
       /* Desktop - Resetar estilos mobile */
       @media (min-width: 769px) {
         .produto-card {
-          padding: 20px !important;
+          padding: 16px !important;
         }
 
         .produto-imagem {
-          height: 250px !important;
-          margin-bottom: 16px !important;
+          height: 180px !important;
+          margin-bottom: 12px !important;
         }
 
         .produto-ref {
-          font-size: 1rem !important;
+          font-size: 0.9rem !important;
         }
 
         .produto-descricao {
-          font-size: 0.95rem !important;
-          line-height: 1.5 !important;
-          margin-bottom: 12px !important;
+          font-size: 0.85rem !important;
+          line-height: 1.4 !important;
+          margin-bottom: 8px !important;
         }
 
         .produto-tamanhos {
-          font-size: 0.9rem !important;
-          margin-bottom: 12px !important;
+          font-size: 0.8rem !important;
+          margin-bottom: 8px !important;
         }
 
         .produto-preco {
-          font-size: 1.3rem !important;
-          margin-bottom: 16px !important;
+          font-size: 1.1rem !important;
+          margin-bottom: 12px !important;
         }
 
         .tamanho-input-container {
-          grid-template-columns: repeat(3, 1fr) !important;
-          gap: 12px !important;
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 8px !important;
         }
 
         .tamanho-input-container > div {
-          padding: 12px !important;
+          padding: 8px !important;
         }
 
         .tamanho-input-container label {
-          font-size: 0.9rem !important;
+          font-size: 0.8rem !important;
         }
 
         .tamanho-input-container input {
-          padding: 10px !important;
-          font-size: 1rem !important;
+          padding: 8px !important;
+          font-size: 0.9rem !important;
         }
 
         .btn-adicionar {
-          padding: 14px !important;
-          font-size: 1rem !important;
+          padding: 12px !important;
+          font-size: 0.9rem !important;
           min-height: auto !important;
         }
 
@@ -1152,31 +1138,51 @@
         }
 
         .header-top {
-          padding: 20px !important;
-          height: auto !important;
+          padding: 20px 40px !important;
+          height: 80px !important;
           flex-direction: row !important;
           gap: 0 !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+        }
+
+        .header-left {
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .header-center {
+          position: absolute !important;
+          left: 50% !important;
+          transform: translateX(-50%) !important;
+          order: 0 !important;
         }
 
         .header-center img {
-          width: 250px !important;
+          width: 200px !important;
           max-width: none !important;
+          height: auto !important;
         }
 
         .header-right {
           width: auto !important;
           justify-content: flex-end !important;
           gap: 12px !important;
+          display: flex !important;
+          align-items: center !important;
         }
 
         #user-info {
           font-size: 0.9rem !important;
           text-align: right !important;
+          white-space: nowrap !important;
         }
 
         #logout-button {
           padding: 10px 16px !important;
           font-size: 0.9rem !important;
+          min-width: auto !important;
+          flex-shrink: 0 !important;
         }
 
         .carrinho-lateral {
