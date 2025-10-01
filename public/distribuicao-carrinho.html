@@ -831,6 +831,26 @@
           align-items: center;
           justify-content: center;
         }
+
+        /* Filtros mobile */
+        .filtros-container {
+          display: block !important;
+        }
+
+        .filtros-container > div {
+          grid-template-columns: 1fr !important;
+          gap: 16px !important;
+        }
+
+        .form-group label {
+          font-size: 0.9rem !important;
+        }
+
+        .form-group input,
+        .form-group select {
+          padding: 12px 14px !important;
+          font-size: 0.95rem !important;
+        }
         
         .header-left {
           display: flex;
@@ -1095,8 +1115,8 @@
           <h2>Filtros e Busca</h2>
         </div>
         
-        <div style="padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
-          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; align-items: end;">
+        <div class="filtros-container" style="padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; margin-bottom: 24px; align-items: end;">
             <div class="form-group">
               <label for="busca-produto" style="display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-color); font-size: 0.95rem;">
                 🔍 Buscar Produto
@@ -1118,6 +1138,19 @@
                 <option value="Luxo">Luxo</option>
                 <option value="Calçados">Calçados</option>
                 <option value="Motos">Motos</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="ordenar-por" style="display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-color); font-size: 0.95rem;">
+                📊 Ordenar por
+              </label>
+              <select id="ordenar-por" style="width: 100%; padding: 14px 16px; border: 2px solid rgba(255, 0, 0, 0.1); border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); cursor: pointer;">
+                <option value="referencia">Referência</option>
+                <option value="nome">Nome A-Z</option>
+                <option value="preco-asc">Menor Preço</option>
+                <option value="preco-desc">Maior Preço</option>
+                <option value="categoria">Categoria</option>
               </select>
             </div>
           </div>
@@ -2021,12 +2054,14 @@
         // Adicionar event listeners para filtros
         document.getElementById('busca-produto').addEventListener('input', aplicarFiltros);
         document.getElementById('filtro-categoria').addEventListener('change', aplicarFiltros);
+        document.getElementById('ordenar-por').addEventListener('change', aplicarFiltros);
       }
 
       // Sistema de filtros
       function aplicarFiltros() {
         const busca = document.getElementById('busca-produto').value.toLowerCase();
         const categoria = document.getElementById('filtro-categoria').value;
+        const ordenarPor = document.getElementById('ordenar-por').value;
 
         produtosFiltrados = produtosLoja.filter(produto => {
           // Filtro de busca
@@ -2041,12 +2076,25 @@
           return matchBusca && matchCategoria;
         });
 
-        // Ordenação padrão por categoria e depois por nome
+        // Aplicar ordenação
         produtosFiltrados.sort((a, b) => {
-          if (a.CATEGORIA !== b.CATEGORIA) {
-            return a.CATEGORIA.localeCompare(b.CATEGORIA);
+          switch (ordenarPor) {
+            case 'referencia':
+              return a.REFERENCIA.localeCompare(b.REFERENCIA);
+            case 'nome':
+              return a.DESCRIÇÃO.localeCompare(b.DESCRIÇÃO);
+            case 'preco-asc':
+              return a.PRECO - b.PRECO;
+            case 'preco-desc':
+              return b.PRECO - a.PRECO;
+            case 'categoria':
+              if (a.CATEGORIA !== b.CATEGORIA) {
+                return a.CATEGORIA.localeCompare(b.CATEGORIA);
+              }
+              return a.REFERENCIA.localeCompare(b.REFERENCIA);
+            default:
+              return a.REFERENCIA.localeCompare(b.REFERENCIA);
           }
-          return a.DESCRIÇÃO.localeCompare(b.DESCRIÇÃO);
         });
 
         renderizarProdutos();
