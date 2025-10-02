@@ -79,12 +79,24 @@ async function carregarPedidos() {
         total: 'R$ 0,00'
       };
       
-    // Se tem dados estruturados (pedidos B2B, Distribuição, etc), usar eles primeiro
-    if (dados && dados.cliente) {
-      info.cliente = dados.cliente.razao || dados.cliente.nome || 'N/A';
+      // Parse dos dados se for string JSON
+      let dadosParsed = dados;
+      if (typeof dados === 'string') {
+        try {
+          dadosParsed = JSON.parse(dados);
+          console.log('📋 Dados parseados:', dadosParsed);
+        } catch (e) {
+          console.log('❌ Erro ao parsear dados:', e);
+          dadosParsed = null;
+        }
+      }
       
-      if (dados.itens && Array.isArray(dados.itens)) {
-        info.itens = dados.itens.map(item => {
+    // Se tem dados estruturados (pedidos B2B, Distribuição, etc), usar eles primeiro
+    if (dadosParsed && dadosParsed.cliente) {
+      info.cliente = dadosParsed.cliente.razao || dadosParsed.cliente.nome || 'N/A';
+      
+      if (dadosParsed.itens && Array.isArray(dadosParsed.itens)) {
+        info.itens = dadosParsed.itens.map(item => {
           const ref = item.REFERENCIA || item.ref || item.REF || '';
           const qtd = item.quantidade || 0;
           const tam = item.tamanho || '';
@@ -98,9 +110,9 @@ async function carregarPedidos() {
         });
       }
       
-      // Para pedidos da distribuição, o total está em dados.total
-      if (dados.total !== undefined && dados.total !== null) {
-        info.total = `R$ ${parseFloat(dados.total).toFixed(2)}`;
+      // Para pedidos da distribuição, o total está em dadosParsed.total
+      if (dadosParsed.total !== undefined && dadosParsed.total !== null) {
+        info.total = `R$ ${parseFloat(dadosParsed.total).toFixed(2)}`;
       }
       
       console.log('✅ Informações extraídas dos dados estruturados:', info);
@@ -388,12 +400,24 @@ function renderizarPedidos(pedidos) {
       total: 'R$ 0,00'
     };
     
+    // Parse dos dados se for string JSON
+    let dadosParsed = dados;
+    if (typeof dados === 'string') {
+      try {
+        dadosParsed = JSON.parse(dados);
+        console.log('📋 Dados parseados:', dadosParsed);
+      } catch (e) {
+        console.log('❌ Erro ao parsear dados:', e);
+        dadosParsed = null;
+      }
+    }
+    
     // Se tem dados estruturados (pedidos B2B, Distribuição, etc), usar eles primeiro
-    if (dados && dados.cliente) {
-      info.cliente = dados.cliente.razao || dados.cliente.nome || 'N/A';
+    if (dadosParsed && dadosParsed.cliente) {
+      info.cliente = dadosParsed.cliente.razao || dadosParsed.cliente.nome || 'N/A';
       
-      if (dados.itens && Array.isArray(dados.itens)) {
-        info.itens = dados.itens.map(item => {
+      if (dadosParsed.itens && Array.isArray(dadosParsed.itens)) {
+        info.itens = dadosParsed.itens.map(item => {
           const ref = item.REFERENCIA || item.ref || item.REF || '';
           const qtd = item.quantidade || 0;
           const tam = item.tamanho || '';
@@ -407,9 +431,9 @@ function renderizarPedidos(pedidos) {
         });
       }
       
-      // Para pedidos da distribuição, o total está em dados.total
-      if (dados.total !== undefined && dados.total !== null) {
-        info.total = `R$ ${parseFloat(dados.total).toFixed(2)}`;
+      // Para pedidos da distribuição, o total está em dadosParsed.total
+      if (dadosParsed.total !== undefined && dadosParsed.total !== null) {
+        info.total = `R$ ${parseFloat(dadosParsed.total).toFixed(2)}`;
       }
       
       console.log('✅ Informações extraídas dos dados estruturados:', info);
