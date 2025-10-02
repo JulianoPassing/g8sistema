@@ -255,7 +255,7 @@ async function carregarPedidos() {
       const dataFormatada = formatarData(pedido.data_pedido);
       
       html += `
-        <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''} ${isDistribuicao ? 'pedido-distribuicao' : ''}">
+        <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''} ${isDistribuicao ? 'pedido-distribuicao' : ''}" data-pedido-id="${pedido.id}">
           <div class="pedido-header">
             <div class="pedido-id-badge">
               <span class="id-label">Pedido</span>
@@ -2677,39 +2677,278 @@ window.editarPedido = async function(pedidoId) {
       return;
     }
 
-    // Para outros pedidos, usar sistema existente
-    const modalEdicao = document.getElementById('modal-edicao');
-    if (!modalEdicao) {
-      alert('❌ Modal de edição não encontrado. Sistema de edição não disponível para este tipo de pedido.');
-      return;
-    }
+    // Para pedidos B2B e normais, usar edição inline (sem modal)
+    editarPedidoInline(pedido);
     
-    pedidoEditando = pedido;
-    
-    // Verificar se os elementos existem antes de acessá-los
-    const elementos = {
-      'edicao-pedido-id': document.getElementById('edicao-pedido-id'),
-      'edicao-pedido-data': document.getElementById('edicao-pedido-data'),
-      'edicao-cliente': document.getElementById('edicao-cliente'),
-      'edicao-itens': document.getElementById('edicao-itens'),
-      'edicao-total': document.getElementById('edicao-total'),
-      'edicao-observacoes': document.getElementById('edicao-observacoes')
-    };
-    
-    // Preencher apenas os elementos que existem
-    if (elementos['edicao-pedido-id']) elementos['edicao-pedido-id'].value = pedido.id;
-    if (elementos['edicao-pedido-data']) elementos['edicao-pedido-data'].value = formatarData(pedido.data);
-    if (elementos['edicao-cliente']) elementos['edicao-cliente'].value = pedido.cliente || '';
-    if (elementos['edicao-itens']) elementos['edicao-itens'].value = pedido.itens || '';
-    if (elementos['edicao-total']) elementos['edicao-total'].value = pedido.total || '';
-    if (elementos['edicao-observacoes']) elementos['edicao-observacoes'].value = pedido.observacoes || '';
-    
-    modalEdicao.style.display = 'block';
   } catch (error) {
     console.error('Erro ao editar pedido:', error);
     alert('❌ Erro ao carregar dados do pedido.');
   }
 };
+
+// Função para edição inline de pedidos B2B e normais
+function editarPedidoInline(pedido) {
+  // Encontrar o card do pedido
+  const pedidoCard = document.querySelector(`[data-pedido-id="${pedido.id}"]`);
+  if (!pedidoCard) {
+    alert('❌ Card do pedido não encontrado.');
+    return;
+  }
+
+  // Verificar se já está em modo de edição
+  if (pedidoCard.classList.contains('editando')) {
+    alert('❌ Pedido já está sendo editado.');
+    return;
+  }
+
+  // Marcar como editando
+  pedidoCard.classList.add('editando');
+  pedidoEditando = pedido;
+
+  // Criar interface de edição inline
+  const edicaoHTML = `
+    <div class="edicao-inline">
+      <div class="edicao-header">
+        <h3>✏️ Editando Pedido #${pedido.id}</h3>
+        <div class="edicao-botoes">
+          <button class="btn-salvar" onclick="salvarEdicaoInline(${pedido.id})">💾 Salvar</button>
+          <button class="btn-cancelar" onclick="cancelarEdicaoInline(${pedido.id})">❌ Cancelar</button>
+        </div>
+      </div>
+      
+      <div class="edicao-campos">
+        <div class="campo-edicao">
+          <label>Cliente:</label>
+          <input type="text" id="edit-cliente-${pedido.id}" value="${pedido.cliente || ''}" class="input-edicao">
+        </div>
+        
+        <div class="campo-edicao">
+          <label>Itens:</label>
+          <textarea id="edit-itens-${pedido.id}" class="input-edicao textarea-edicao" rows="4">${pedido.itens || ''}</textarea>
+        </div>
+        
+        <div class="campo-edicao">
+          <label>Total:</label>
+          <input type="text" id="edit-total-${pedido.id}" value="${pedido.total || ''}" class="input-edicao">
+        </div>
+        
+        <div class="campo-edicao">
+          <label>Observações:</label>
+          <textarea id="edit-observacoes-${pedido.id}" class="input-edicao textarea-edicao" rows="3">${pedido.observacoes || ''}</textarea>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Adicionar estilos se não existirem
+  if (!document.getElementById('estilos-edicao-inline')) {
+    const style = document.createElement('style');
+    style.id = 'estilos-edicao-inline';
+    style.textContent = `
+      .edicao-inline {
+        background: #f8f9fa;
+        border: 2px solid #ff0000;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        box-shadow: 0 4px 12px rgba(255, 0, 0, 0.1);
+      }
+      
+      .edicao-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e9ecef;
+      }
+      
+      .edicao-header h3 {
+        margin: 0;
+        color: #ff0000;
+        font-size: 1.2rem;
+        font-weight: 700;
+      }
+      
+      .edicao-botoes {
+        display: flex;
+        gap: 10px;
+      }
+      
+      .btn-salvar, .btn-cancelar {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .btn-salvar {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+      }
+      
+      .btn-salvar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+      
+      .btn-cancelar {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+      }
+      
+      .btn-cancelar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      }
+      
+      .edicao-campos {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+      
+      .campo-edicao {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .campo-edicao label {
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+        font-size: 0.9rem;
+      }
+      
+      .input-edicao {
+        padding: 10px 12px;
+        border: 2px solid #e9ecef;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+      
+      .input-edicao:focus {
+        outline: none;
+        border-color: #ff0000;
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+      }
+      
+      .textarea-edicao {
+        resize: vertical;
+        min-height: 80px;
+      }
+      
+      .pedido-card.editando {
+        border: 2px solid #ff0000;
+        box-shadow: 0 4px 12px rgba(255, 0, 0, 0.2);
+      }
+      
+      @media (max-width: 768px) {
+        .edicao-campos {
+          grid-template-columns: 1fr;
+        }
+        
+        .edicao-header {
+          flex-direction: column;
+          gap: 15px;
+          align-items: stretch;
+        }
+        
+        .edicao-botoes {
+          justify-content: center;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Inserir interface de edição no card
+  const pedidoInfo = pedidoCard.querySelector('.pedido-info');
+  if (pedidoInfo) {
+    pedidoInfo.insertAdjacentHTML('afterend', edicaoHTML);
+  } else {
+    pedidoCard.insertAdjacentHTML('beforeend', edicaoHTML);
+  }
+}
+
+// Função para salvar edição inline
+async function salvarEdicaoInline(pedidoId) {
+  try {
+    const pedido = todosPedidos.find(p => p.id == pedidoId);
+    if (!pedido) {
+      alert('❌ Pedido não encontrado.');
+      return;
+    }
+
+    // Coletar dados do formulário
+    const dadosAtualizados = {
+      cliente: document.getElementById(`edit-cliente-${pedidoId}`).value,
+      itens: document.getElementById(`edit-itens-${pedidoId}`).value,
+      total: document.getElementById(`edit-total-${pedidoId}`).value,
+      observacoes: document.getElementById(`edit-observacoes-${pedidoId}`).value
+    };
+
+    // Atualizar pedido na API
+    const response = await fetch(`/api/pedidos/${pedidoId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id: pedidoId,
+        empresa: pedido.empresa,
+        descricao: pedido.descricao,
+        dados: JSON.stringify(dadosAtualizados)
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao atualizar pedido');
+    }
+
+    // Atualizar dados locais
+    pedido.cliente = dadosAtualizados.cliente;
+    pedido.itens = dadosAtualizados.itens;
+    pedido.total = dadosAtualizados.total;
+    pedido.observacoes = dadosAtualizados.observacoes;
+
+    // Remover interface de edição
+    cancelarEdicaoInline(pedidoId);
+
+    // Recarregar pedidos
+    await carregarPedidos();
+
+    // Mostrar sucesso
+    if (window.advancedNotifications) {
+      window.advancedNotifications.success('Pedido atualizado com sucesso!', {
+        title: 'Sucesso',
+        duration: 3000
+      });
+    } else {
+      alert('✅ Pedido atualizado com sucesso!');
+    }
+
+  } catch (error) {
+    console.error('Erro ao salvar edição:', error);
+    alert('❌ Erro ao salvar alterações. Tente novamente.');
+  }
+}
+
+// Função para cancelar edição inline
+function cancelarEdicaoInline(pedidoId) {
+  const pedidoCard = document.querySelector(`[data-pedido-id="${pedidoId}"]`);
+  if (pedidoCard) {
+    pedidoCard.classList.remove('editando');
+    const edicaoInline = pedidoCard.querySelector('.edicao-inline');
+    if (edicaoInline) {
+      edicaoInline.remove();
+    }
+  }
+  pedidoEditando = null;
+}
 
 // Função para editar pedido da distribuição
 async function editarPedidoDistribuicao(pedido) {
