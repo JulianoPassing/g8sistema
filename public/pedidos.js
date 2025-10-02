@@ -2663,32 +2663,48 @@ async function carregarProdutosDistribuicao() {
 }
 
 // Função para editar pedido (modificada para suportar distribuição)
-window.editarPedido = async function(pedidoId) {
-  try {
-    const pedido = todosPedidos.find(p => p.id == pedidoId);
-    if (!pedido) {
-      alert('❌ Pedido não encontrado.');
-      return;
-    }
-
-    // Se for pedido da distribuição, usar modal específico
-    if (pedido.empresa === 'distribuicao') {
-      await editarPedidoDistribuicao(pedido);
-      return;
-    }
-
-    // Para pedidos B2B e normais, redirecionar para página da empresa
-    if (pedido.empresa === 'b2b') {
-      window.location.href = `b2b-pedidos.html?editar=${pedidoId}`;
-    } else {
-      // Pedidos normais - redirecionar para página principal de pedidos com parâmetro de edição
-      window.location.href = `pedidos.html?editar=${pedidoId}`;
-    }
-    
-  } catch (error) {
-    console.error('Erro ao editar pedido:', error);
-    alert('❌ Erro ao carregar dados do pedido.');
-  }
+window.editarPedido = function(id) {
+  fetch('/api/pedidos')
+    .then(resp => resp.json())
+    .then(pedidos => {
+      const pedido = pedidos.find(p => p.id == id);
+      if (!pedido) {
+        alert('Pedido não encontrado.');
+        return;
+      }
+      
+      // Se for pedido da distribuição, usar modal específico
+      if (pedido.empresa === 'distribuicao') {
+        editarPedidoDistribuicao(pedido);
+        return;
+      }
+      
+      // Salvar dados do pedido no localStorage para edição
+      localStorage.setItem('pedidoParaEdicao', JSON.stringify(pedido));
+      
+      // Redirecionar para a página da empresa
+      let paginaEmpresa = '';
+      switch(pedido.empresa) {
+        case 'pantaneiro5':
+        case 'b2b-pantaneiro5':
+          paginaEmpresa = 'pantaneiro5.html';
+          break;
+        case 'pantaneiro7':
+        case 'b2b-pantaneiro7':
+          paginaEmpresa = 'pantaneiro7.html';
+          break;
+        case 'steitz':
+        case 'b2b-steitz':
+          paginaEmpresa = 'steitz.html';
+          break;
+        default:
+          alert('Empresa não reconhecida.');
+          return;
+      }
+      
+      // Redirecionar para a página da empresa
+      window.location.href = paginaEmpresa + '?modo=edicao&id=' + id;
+    });
 };
 
 
