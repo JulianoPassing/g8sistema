@@ -1456,11 +1456,22 @@ document.getElementById('gerar-pdf-edicao').addEventListener('click', function()
 });
 
 function gerarPDFPedidoEditado(pedido) {
-  const { cliente, itens, descontos, total } = pedido.dados;
+  // Parse dos dados se for string JSON
+  let dadosParsed = pedido.dados;
+  if (typeof pedido.dados === 'string') {
+    try {
+      dadosParsed = JSON.parse(pedido.dados);
+    } catch (e) {
+      console.log('❌ Erro ao parsear dados do pedido:', e);
+      dadosParsed = {};
+    }
+  }
+  
+  const { cliente, itens, descontos, total } = dadosParsed;
   
   // Buscar transporte e prazo dos dados do pedido ou do cliente
-  const transporte = pedido.dados.transporte || pedido.dados.cliente?.transporte || 'A combinar';
-  const prazo = pedido.dados.prazo || pedido.dados.cliente?.prazo || 'A combinar';
+  const transporte = dadosParsed.transporte || dadosParsed.cliente?.transporte || 'A combinar';
+  const prazo = dadosParsed.prazo || dadosParsed.cliente?.prazo || 'A combinar';
   const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -1473,6 +1484,8 @@ function gerarPDFPedidoEditado(pedido) {
     tituloEmpresa = 'Pedido de Venda - Pantaneiro';
   } else if (pedido.empresa === 'steitz') {
     tituloEmpresa = 'Pedido de Venda - Steitz';
+  } else if (pedido.empresa === 'distribuicao') {
+    tituloEmpresa = 'Pedido de Venda - Distribuição';
   }
 
   // Cabeçalho e rodapé
@@ -1658,6 +1671,8 @@ function gerarPDFPedidoEditado(pedido) {
     nomeArquivo = `G8 Pedido Pantaneiro - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else if (pedido.empresa === 'steitz') {
     nomeArquivo = `G8 Pedido Steitz - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  } else if (pedido.empresa === 'distribuicao') {
+    nomeArquivo = `G8 Pedido Distribuição - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else {
     nomeArquivo = `Pedido_${pedido.id}_${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   }
