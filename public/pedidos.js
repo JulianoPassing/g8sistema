@@ -79,10 +79,10 @@ async function carregarPedidos() {
         total: 'R$ 0,00'
       };
       
-      // Se tem dados estruturados (pedidos B2B), usar eles primeiro
-      if (dados && dados.cliente) {
-        info.cliente = dados.cliente.razao || dados.cliente.nome || 'N/A';
-        
+    // Se tem dados estruturados (pedidos B2B, Distribuição, etc), usar eles primeiro
+    if (dados && dados.cliente) {
+      info.cliente = dados.cliente.razao || dados.cliente.nome || 'N/A';
+      
       if (dados.itens && Array.isArray(dados.itens)) {
         info.itens = dados.itens.map(item => {
           const ref = item.REFERENCIA || item.ref || item.REF || '';
@@ -98,7 +98,8 @@ async function carregarPedidos() {
         });
       }
       
-      if (dados.total) {
+      // Para pedidos da distribuição, o total está em dados.total
+      if (dados.total !== undefined && dados.total !== null) {
         info.total = `R$ ${parseFloat(dados.total).toFixed(2)}`;
       }
       
@@ -374,7 +375,7 @@ function renderizarPedidos(pedidos) {
       total: 'R$ 0,00'
     };
     
-    // Se tem dados estruturados (pedidos B2B), usar eles primeiro
+    // Se tem dados estruturados (pedidos B2B, Distribuição, etc), usar eles primeiro
     if (dados && dados.cliente) {
       info.cliente = dados.cliente.razao || dados.cliente.nome || 'N/A';
       
@@ -393,7 +394,8 @@ function renderizarPedidos(pedidos) {
         });
       }
       
-      if (dados.total) {
+      // Para pedidos da distribuição, o total está em dados.total
+      if (dados.total !== undefined && dados.total !== null) {
         info.total = `R$ ${parseFloat(dados.total).toFixed(2)}`;
       }
       
