@@ -682,6 +682,14 @@
         padding: 4px;
         border: 1px solid var(--border-color);
         border-radius: 4px;
+        appearance: textfield; /* Standard */
+        -moz-appearance: textfield; /* Firefox */
+      }
+      
+      .carrinho-item-quantidade input::-webkit-outer-spin-button,
+      .carrinho-item-quantidade input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
       }
 
       .btn-remover-item {
@@ -1917,9 +1925,7 @@
                 <div class="carrinho-item-detalhes">Ref: ${item.REFERENCIA} | ${item.tamanho}</div>
                 <div class="carrinho-item-preco">R$ ${(item.preco * item.quantidade).toFixed(2)}</div>
                 <div class="carrinho-item-quantidade">
-                  <button class="quantidade-btn" onclick="atualizarQuantidadeCarrinhoPorIndex(${index}, ${item.quantidade - 1})">-</button>
-                  <input type="number" value="${item.quantidade}" min="1" onchange="atualizarQuantidadeCarrinhoPorIndex(${index}, parseInt(this.value))">
-                  <button class="quantidade-btn" onclick="atualizarQuantidadeCarrinhoPorIndex(${index}, ${item.quantidade + 1})">+</button>
+                  <input type="number" value="${item.quantidade}" min="1" onchange="atualizarQuantidadeCarrinhoPorIndex(${index}, parseInt(this.value))" placeholder="Qty">
                   <button class="btn-remover-item" onclick="removerDoCarrinhoPorIndex(${index})">🗑️</button>
                 </div>
               </div>
