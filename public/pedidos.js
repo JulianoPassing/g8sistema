@@ -1929,7 +1929,7 @@ window.gerarPDFPedido = async function(pedidoId) {
     }
 
     const info = extrairInfoPedido(pedido.descricao);
-    const dataFormatada = new Date(pedido.data_pedido).toLocaleDateString('pt-BR');
+    const dataFormatada = formatarData(pedido.data_pedido);
 
     // Criar PDF
     const { jsPDF } = window.jspdf;
@@ -2079,6 +2079,7 @@ window.visualizarPDFPedido = async function(pedidoId) {
 let modalEdicaoDistribuicao = null;
 let pedidoEditandoDistribuicao = null;
 let produtosDistribuicao = [];
+let ultimoCampoDescontoAlterado = null; // 'percentual' ou 'valor'
 
 // Inicializar modal de edição da distribuição
 function inicializarModalEdicaoDistribuicao() {
@@ -2145,11 +2146,11 @@ function inicializarModalEdicaoDistribuicao() {
             </div>
             <div class="form-group">
               <label>Desconto (%):</label>
-              <input type="number" id="edicao-desconto-percentual" step="0.01" min="0" max="100" onchange="calcularTotalEdicao()">
+              <input type="number" id="edicao-desconto-percentual" step="0.01" min="0" max="100" onchange="marcarCampoDesconto('percentual'); calcularTotalEdicao()">
             </div>
             <div class="form-group">
               <label>Desconto (R$):</label>
-              <input type="number" id="edicao-desconto-valor" step="0.01" min="0" onchange="calcularTotalEdicao()">
+              <input type="number" id="edicao-desconto-valor" step="0.01" min="0" onchange="marcarCampoDesconto('valor'); calcularTotalEdicao()">
             </div>
             <div class="form-group">
               <label>Total:</label>
@@ -2679,7 +2680,7 @@ window.editarPedido = async function(pedidoId) {
     // Para outros pedidos, usar sistema existente
     pedidoEditando = pedido;
     document.getElementById('edicao-pedido-id').value = pedido.id;
-    document.getElementById('edicao-pedido-data').value = new Date(pedido.data).toLocaleDateString('pt-BR');
+    document.getElementById('edicao-pedido-data').value = formatarData(pedido.data);
     document.getElementById('edicao-cliente').value = pedido.cliente || '';
     document.getElementById('edicao-itens').value = pedido.itens || '';
     document.getElementById('edicao-total').value = pedido.total || '';
@@ -2713,7 +2714,7 @@ async function editarPedidoDistribuicao(pedido) {
     
     // Preencher informações básicas
     document.getElementById('edicao-pedido-id').value = pedido.id;
-    document.getElementById('edicao-pedido-data').value = new Date(pedido.data).toLocaleDateString('pt-BR');
+    document.getElementById('edicao-pedido-data').value = formatarData(pedido.data);
     document.getElementById('edicao-cliente-razao').value = dados.cliente?.razao || 'N/A';
     document.getElementById('edicao-cliente-cnpj').value = dados.cliente?.cnpj || 'N/A';
     document.getElementById('edicao-forma-pagamento').value = dados.formaPagamento || 'prazo';
@@ -2910,6 +2911,11 @@ function adicionarProdutoEdicao() {
   container.appendChild(produtoDiv);
 }
 
+// Marcar qual campo de desconto foi alterado por último
+function marcarCampoDesconto(tipo) {
+  ultimoCampoDescontoAlterado = tipo;
+}
+
 // Calcular total na edição
 function calcularTotalEdicao() {
   const container = document.getElementById('produtos-edicao-lista');
@@ -2932,17 +2938,39 @@ function calcularTotalEdicao() {
   // Atualizar subtotal
   document.getElementById('edicao-subtotal').value = subtotal.toFixed(2);
   
-  // Calcular desconto
+  // Calcular desconto baseado no último campo alterado
   const descontoPercentual = parseFloat(document.getElementById('edicao-desconto-percentual').value) || 0;
   const descontoValor = parseFloat(document.getElementById('edicao-desconto-valor').value) || 0;
   
   let descontoFinal = 0;
-  if (descontoPercentual > 0) {
+  
+  // Se subtotal for 0, zerar ambos os campos
+  if (subtotal === 0) {
+    document.getElementById('edicao-desconto-percentual').value = '';
+    document.getElementById('edicao-desconto-valor').value = '';
+    document.getElementById('edicao-total').value = '0.00';
+    return;
+  }
+  
+  // Usar o último campo alterado como prioridade
+  if (ultimoCampoDescontoAlterado === 'percentual' && descontoPercentual > 0) {
+    // Calcular valor baseado no percentual
+    descontoFinal = subtotal * (descontoPercentual / 100);
+    document.getElementById('edicao-desconto-valor').value = descontoFinal.toFixed(2);
+  } else if (ultimoCampoDescontoAlterado === 'valor' && descontoValor > 0) {
+    // Calcular percentual baseado no valor
+    descontoFinal = descontoValor;
+    const percentualCalculado = (descontoValor / subtotal) * 100;
+    document.getElementById('edicao-desconto-percentual').value = percentualCalculado.toFixed(2);
+  } else if (descontoPercentual > 0) {
+    // Fallback: usar percentual se valor não foi alterado
     descontoFinal = subtotal * (descontoPercentual / 100);
     document.getElementById('edicao-desconto-valor').value = descontoFinal.toFixed(2);
   } else if (descontoValor > 0) {
+    // Fallback: usar valor se percentual não foi alterado
     descontoFinal = descontoValor;
-    document.getElementById('edicao-desconto-percentual').value = ((descontoValor / subtotal) * 100).toFixed(2);
+    const percentualCalculado = (descontoValor / subtotal) * 100;
+    document.getElementById('edicao-desconto-percentual').value = percentualCalculado.toFixed(2);
   }
   
   // Calcular total final
@@ -2956,6 +2984,7 @@ function fecharModalEdicaoDistribuicao() {
     modalEdicaoDistribuicao.classList.remove('show');
   }
   pedidoEditandoDistribuicao = null;
+  ultimoCampoDescontoAlterado = null;
 }
 
 // Salvar edição da distribuição
@@ -3033,20 +3062,38 @@ async function salvarEdicaoDistribuicao() {
       dataAtualizacao: new Date().toISOString()
     };
     
+    console.log('Dados que serão enviados para a API:', {
+      id: pedidoEditandoDistribuicao.id,
+      empresa: 'distribuicao',
+      descricao: `Pedido Distribuição - ${produtosAtualizados.length} itens`,
+      dados: dadosAtualizados
+    });
+    
     // Atualizar pedido na API
+    const operationId = `edit_${pedidoEditandoDistribuicao.id}_${Date.now()}`;
     const response = await fetch(`/api/pedidos/${pedidoEditandoDistribuicao.id}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-operation-id': operationId
       },
       body: JSON.stringify({
-        dados: JSON.stringify(dadosAtualizados),
-        descricao: `Pedido Distribuição - ${produtosAtualizados.length} itens`
+        id: pedidoEditandoDistribuicao.id,
+        empresa: 'distribuicao',
+        descricao: `Pedido Distribuição - ${produtosAtualizados.length} itens`,
+        dados: dadosAtualizados,
+        operationId: operationId
       })
     });
     
     if (!response.ok) {
-      throw new Error('Erro ao atualizar pedido');
+      const errorText = await response.text();
+      console.error('Erro na API:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Erro ao atualizar pedido: ${response.status} - ${errorText}`);
     }
     
     // Fechar modal
