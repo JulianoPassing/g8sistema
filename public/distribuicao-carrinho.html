@@ -503,6 +503,15 @@
         font-size: 0.65rem;
         font-weight: 600;
         background: white;
+        appearance: textfield !important; /* Standard */
+        -moz-appearance: textfield !important; /* Firefox */
+      }
+      
+      .tamanho-input-container input[type="number"]::-webkit-outer-spin-button,
+      .tamanho-input-container input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+        display: none;
       }
 
       .tamanho-input-container input[type="number"]:focus {
@@ -1215,6 +1224,19 @@
       .produto-imagem:hover {
         transform: scale(1.02);
         box-shadow: 0 8px 25px rgba(255, 0, 0, 0.2);
+      }
+
+      /* Remover setas de todos os inputs numéricos */
+      input[type="number"] {
+        appearance: textfield !important;
+        -moz-appearance: textfield !important;
+      }
+
+      input[type="number"]::-webkit-outer-spin-button,
+      input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+        display: none;
       }
 
       /* Rodapé G8 */
