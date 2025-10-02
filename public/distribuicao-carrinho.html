@@ -1091,6 +1091,118 @@
         color: var(--text-color);
       }
 
+      /* Modal de imagem */
+      .modal-imagem {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(5px);
+      }
+
+      .modal-imagem.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      .modal-conteudo {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .modal-imagem img {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: zoomIn 0.3s ease;
+      }
+
+      @keyframes zoomIn {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
+      .modal-fechar {
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        color: white;
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+        background: rgba(255, 0, 0, 0.8);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        border: 2px solid white;
+      }
+
+      .modal-fechar:hover {
+        background: rgba(255, 0, 0, 1);
+        transform: scale(1.1);
+      }
+
+      .modal-info {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+        text-align: center;
+        max-width: 500px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .modal-info h3 {
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+      }
+
+      .modal-info p {
+        color: var(--text-color);
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+      }
+
+      .modal-info .preco {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--success-color);
+        margin-top: 10px;
+      }
+
+      /* Cursor pointer para imagens clicáveis */
+      .produto-imagem {
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .produto-imagem:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 25px rgba(255, 0, 0, 0.2);
+      }
+
       /* Rodapé G8 */
       footer {
         width: 100%;
@@ -1243,6 +1355,21 @@
 
     <!-- Overlay -->
     <div class="overlay" id="overlay" onclick="toggleCarrinho()"></div>
+
+    <!-- Modal de Imagem -->
+    <div class="modal-imagem" id="modal-imagem" onclick="fecharModalImagem()">
+      <div class="modal-conteudo" onclick="event.stopPropagation()">
+        <span class="modal-fechar" onclick="fecharModalImagem()">&times;</span>
+        <img id="modal-imagem-src" src="" alt="">
+        <div class="modal-info" id="modal-info">
+          <h3 id="modal-titulo"></h3>
+          <p id="modal-descricao"></p>
+          <p id="modal-referencia"></p>
+          <p id="modal-categoria"></p>
+          <p class="preco" id="modal-preco"></p>
+        </div>
+      </div>
+    </div>
 
     <!-- Carrinho lateral -->
     <div class="carrinho-sidebar" id="carrinho-sidebar">
@@ -1604,7 +1731,7 @@
           `;
 
           card.innerHTML = `
-            <div class="produto-imagem">
+            <div class="produto-imagem" onclick="abrirModalImagem('${produto.REFERENCIA}')">
               <img src="${produto.IMAGEM}" alt="${produto.DESCRIÇÃO}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'; this.parentElement.innerHTML='📦';">
             </div>
             <div class="produto-categoria">${produto.CATEGORIA}</div>
@@ -2139,6 +2266,44 @@
         produtosFiltrados = [...produtosLoja];
         renderizarProdutos();
       }
+
+      // Funções do modal de imagem
+      function abrirModalImagem(referencia) {
+        const produto = produtosLoja.find(p => p.REFERENCIA === referencia);
+        if (!produto) return;
+
+        const modal = document.getElementById('modal-imagem');
+        const img = document.getElementById('modal-imagem-src');
+        const titulo = document.getElementById('modal-titulo');
+        const descricao = document.getElementById('modal-descricao');
+        const ref = document.getElementById('modal-referencia');
+        const categoria = document.getElementById('modal-categoria');
+        const preco = document.getElementById('modal-preco');
+
+        img.src = produto.IMAGEM;
+        img.alt = produto.DESCRIÇÃO;
+        titulo.textContent = produto.DESCRIÇÃO;
+        descricao.textContent = `Referência: ${produto.REFERENCIA}`;
+        ref.textContent = `Categoria: ${produto.CATEGORIA}`;
+        categoria.textContent = `Tamanhos: ${[...produto.TAMANHOS, ...produto.TAMANHOS_ESPECIAIS].join(', ')}`;
+        preco.textContent = `R$ ${produto.PRECO.toFixed(2)}`;
+
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function fecharModalImagem() {
+        const modal = document.getElementById('modal-imagem');
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+      }
+
+      // Fechar modal com ESC
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+          fecharModalImagem();
+        }
+      });
     </script>
   </body>
 </html>
