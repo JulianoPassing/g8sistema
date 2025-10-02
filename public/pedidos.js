@@ -178,6 +178,9 @@ async function carregarPedidos() {
         console.log('Descrição:', pedido.descricao);
         console.log('Dados (raw):', pedido.dados);
         console.log('Tipo dos dados:', typeof pedido.dados);
+        console.log('Dados tem cliente?', !!pedido.dados?.cliente);
+        console.log('Dados tem itens?', !!pedido.dados?.itens);
+        console.log('Dados tem total?', pedido.dados?.total !== undefined);
       }
       
       let info = extrairInfoPedido(pedido.descricao, pedido.dados);
