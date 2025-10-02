@@ -1985,7 +1985,7 @@
 
         try {
           // Calcular totais
-          const subtotal = carrinhoItens.reduce((total, item) => total + (item.PRECO * item.quantidade), 0);
+          const subtotal = carrinhoItens.reduce((total, item) => total + (item.preco * item.quantidade), 0);
           const desconto = formaPagamento === 'vista' ? subtotal * 0.05 : 0;
           const totalFinal = subtotal - desconto;
 
@@ -2011,17 +2011,17 @@
           
           if (result.success) {
             if (result.online) {
-              alert('✅ Pedido enviado com sucesso! Você será redirecionado para seus pedidos.');
+              alert('✅ Pedido enviado com sucesso! Você será redirecionado para a loja.');
             } else {
-              alert('📱 Sem conexão! Pedido salvo localmente e será enviado automaticamente quando a conexão retornar. Você será redirecionado para seus pedidos.');
+              alert('📱 Sem conexão! Pedido salvo localmente e será enviado automaticamente quando a conexão retornar. Você será redirecionado para a loja.');
             }
             
             // Limpar carrinho
             carrinhoItens = [];
             atualizarCarrinho();
             
-            // Redirecionar para a página de pedidos
-            window.location.href = 'pedidos.html';
+            // Redirecionar para a página de distribuição-carrinho
+            window.location.href = 'distribuicao-carrinho.html';
           } else {
             throw new Error('Erro ao processar pedido');
           }
