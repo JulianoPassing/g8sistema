@@ -3,6 +3,17 @@
 // Variável global para armazenar todos os pedidos
 let todosPedidos = [];
 
+// Função global para formatar data
+function formatarData(data) {
+  if (!data) return 'N/A';
+  try {
+    const date = new Date(data);
+    return date.toLocaleDateString('pt-BR');
+  } catch {
+    return 'N/A';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Mensagem de boas-vindas
   const loggedInUser = sessionStorage.getItem('loggedInUser');
@@ -167,15 +178,6 @@ async function carregarPedidos() {
     }
 
     // Função para formatar data
-    function formatarData(data) {
-      if (!data) return 'N/A';
-      try {
-        const date = new Date(data);
-        return date.toLocaleDateString('pt-BR');
-      } catch {
-        return 'N/A';
-      }
-    }
 
     // Ordenar pedidos do ID mais alto para o mais baixo
     pedidos.sort((a, b) => parseInt(b.id) - parseInt(a.id));
@@ -488,15 +490,6 @@ function renderizarPedidos(pedidos) {
   }
 
   // Função para formatar data
-  function formatarData(data) {
-    if (!data) return 'N/A';
-    try {
-      const date = new Date(data);
-      return date.toLocaleDateString('pt-BR');
-    } catch {
-      return 'N/A';
-    }
-  }
 
   // Ordenar pedidos do ID mais alto para o mais baixo
   pedidos.sort((a, b) => parseInt(b.id) - parseInt(a.id));
