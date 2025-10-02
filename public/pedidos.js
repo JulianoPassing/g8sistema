@@ -2073,4 +2073,1000 @@ window.visualizarPDFPedido = async function(pedidoId) {
       alert('❌ Erro ao gerar PDF para visualização');
     }
   }
-}; 
+};
+
+// Modal de edição para pedidos da distribuição
+let modalEdicaoDistribuicao = null;
+let pedidoEditandoDistribuicao = null;
+let produtosDistribuicao = [];
+
+// Inicializar modal de edição da distribuição
+function inicializarModalEdicaoDistribuicao() {
+  if (modalEdicaoDistribuicao) return;
+  
+  // Criar modal
+  modalEdicaoDistribuicao = document.createElement('div');
+  modalEdicaoDistribuicao.id = 'modal-edicao-distribuicao';
+  modalEdicaoDistribuicao.className = 'modal-edicao';
+  modalEdicaoDistribuicao.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>✏️ Editar Pedido da Distribuição</h2>
+        <button class="btn-fechar" onclick="fecharModalEdicaoDistribuicao()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="edicao-secao">
+          <h3>📋 Informações do Pedido</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>ID do Pedido:</label>
+              <input type="text" id="edicao-pedido-id" readonly>
+            </div>
+            <div class="form-group">
+              <label>Data do Pedido:</label>
+              <input type="text" id="edicao-pedido-data" readonly>
+            </div>
+          </div>
+        </div>
+        
+        <div class="edicao-secao">
+          <h3>👤 Dados do Cliente</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Razão Social:</label>
+              <input type="text" id="edicao-cliente-razao" readonly>
+            </div>
+            <div class="form-group">
+              <label>CNPJ:</label>
+              <input type="text" id="edicao-cliente-cnpj" readonly>
+            </div>
+          </div>
+        </div>
+        
+        <div class="edicao-secao">
+          <h3>🛒 Produtos do Pedido</h3>
+          <div class="produtos-edicao-container">
+            <div id="produtos-edicao-lista">
+              <!-- Produtos serão carregados aqui -->
+            </div>
+            <button class="btn-adicionar-produto" onclick="adicionarProdutoEdicao()">
+              ➕ Adicionar Produto
+            </button>
+          </div>
+        </div>
+        
+        <div class="edicao-secao">
+          <h3>💰 Valores e Pagamento</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Subtotal:</label>
+              <input type="number" id="edicao-subtotal" step="0.01" readonly>
+            </div>
+            <div class="form-group">
+              <label>Desconto (%):</label>
+              <input type="number" id="edicao-desconto-percentual" step="0.01" min="0" max="100" onchange="calcularTotalEdicao()">
+            </div>
+            <div class="form-group">
+              <label>Desconto (R$):</label>
+              <input type="number" id="edicao-desconto-valor" step="0.01" min="0" onchange="calcularTotalEdicao()">
+            </div>
+            <div class="form-group">
+              <label>Total:</label>
+              <input type="number" id="edicao-total" step="0.01" readonly>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Forma de Pagamento:</label>
+              <select id="edicao-forma-pagamento">
+                <option value="vista">À Vista</option>
+                <option value="prazo">A Prazo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="edicao-secao">
+          <h3>📝 Observações</h3>
+          <div class="form-group">
+            <label>Observações do Pedido:</label>
+            <textarea id="edicao-observacoes" rows="3" placeholder="Digite observações adicionais..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-cancelar" onclick="fecharModalEdicaoDistribuicao()">
+          ❌ Cancelar
+        </button>
+        <button class="btn-salvar" onclick="salvarEdicaoDistribuicao()">
+          💾 Salvar Alterações
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Adicionar estilos CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    .modal-edicao {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+    }
+    
+    .modal-edicao.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 90%;
+      max-height: 90%;
+      width: 1000px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .modal-header {
+      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    
+    .btn-fechar {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-fechar:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    
+    .edicao-secao {
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .edicao-secao h3 {
+      margin: 0 0 16px 0;
+      color: #ff0000;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #333;
+      font-size: 0.9rem;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 10px 12px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #ff0000;
+      box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+    }
+    
+    .form-group input[readonly] {
+      background: #f8f9fa;
+      color: #6c757d;
+    }
+    
+    .produtos-edicao-container {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .produto-edicao-item {
+      display: grid;
+      grid-template-columns: 1fr 120px 100px 100px 80px 40px;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .produto-edicao-item select,
+    .produto-edicao-item input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+    
+    .btn-remover-produto {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    
+    .btn-remover-produto:hover {
+      background: #c82333;
+    }
+    
+    .btn-adicionar-produto {
+      width: 100%;
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-adicionar-produto:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    .modal-footer {
+      padding: 20px 24px;
+      background: #f8f9fa;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    
+    .btn-cancelar,
+    .btn-salvar {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-cancelar {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .btn-cancelar:hover {
+      background: #5a6268;
+    }
+    
+    .btn-salvar {
+      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      color: white;
+    }
+    
+    .btn-salvar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  `;
+  
+  document.head.appendChild(style);
+  document.body.appendChild(modalEdicaoDistribuicao);
+}
+
+// Carregar produtos da distribuição
+async function carregarProdutosDistribuicao() {
+  if (produtosDistribuicao.length > 0) return;
+  
+  // Produtos da loja de distribuição (mesmos do distribuicao-carrinho.html)
+  produtosDistribuicao = [
+    // Conjuntos PVC
+    {
+      REFERENCIA: "2900",
+      DESCRIÇÃO: "CONJUNTO PVC TORNADO COM GOLA E BOLSO",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EX", "EXG", "2G", "3G"],
+      PRECO: 85.00,
+      PRECO_ESPECIAL: 97.50,
+      CATEGORIA: "PVC",
+      IMAGEM: "https://i.imgur.com/G5xYOB9.png"
+    },
+    {
+      REFERENCIA: "2902",
+      DESCRIÇÃO: "JAQUETA PVC TORNADO COM GOLA E BOLSO",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG", "2G", "3G"],
+      PRECO: 49.00,
+      PRECO_ESPECIAL: 57.00,
+      CATEGORIA: "PVC",
+      IMAGEM: "https://i.imgur.com/bJUlUXo.png"
+    },
+    {
+      REFERENCIA: "2904",
+      DESCRIÇÃO: "CALÇA PVC TORNADO",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG", "2G", "3G"],
+      PRECO: 38.00,
+      PRECO_ESPECIAL: 44.00,
+      CATEGORIA: "PVC",
+      IMAGEM: "https://i.imgur.com/aX66rhK.png"
+    },
+    {
+      REFERENCIA: "3000",
+      DESCRIÇÃO: "CONJUNTO PVC FEMININO COM GOLA - PRETO",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG"],
+      PRECO: 87.00,
+      PRECO_ESPECIAL: 100.00,
+      CATEGORIA: "Feminino",
+      IMAGEM: "https://i.imgur.com/9NPau3y.png"
+    },
+    {
+      REFERENCIA: "3000PT/RP",
+      DESCRIÇÃO: "CONJUNTO PVC FEMININO COM GOLA - PRETO COM CORES",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG"],
+      PRECO: 91.00,
+      PRECO_ESPECIAL: 105.00,
+      CATEGORIA: "Feminino",
+      IMAGEM: "https://i.imgur.com/HBFLazW.png"
+    },
+    {
+      REFERENCIA: "2000",
+      DESCRIÇÃO: "CONJUNTO PVC PREMIUM COM GOLA, BOLSO E REFLETIVO",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG", "2G", "3G"],
+      PRECO: 114.00,
+      PRECO_ESPECIAL: 131.00,
+      CATEGORIA: "Premium",
+      IMAGEM: "https://i.imgur.com/4c2SWyG.png"
+    },
+    
+    // Conjuntos Nylon
+    {
+      REFERENCIA: "1000",
+      DESCRIÇÃO: "CONJUNTO NYLON C/GOLA",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG"],
+      PRECO: 156.00,
+      PRECO_ESPECIAL: 180.00,
+      CATEGORIA: "Nylon",
+      IMAGEM: "https://i.imgur.com/8YzBKYU.png"
+    },
+    {
+      REFERENCIA: "1002",
+      DESCRIÇÃO: "JAQUELA DE NYLON C/GOLA",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG"],
+      PRECO: 92.00,
+      PRECO_ESPECIAL: 105.00,
+      CATEGORIA: "Nylon",
+      IMAGEM: "https://i.imgur.com/XQnxANM.png"
+    },
+    {
+      REFERENCIA: "1004",
+      DESCRIÇÃO: "CALÇA NYLON",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG"],
+      PRECO: 59.00,
+      PRECO_ESPECIAL: 68.00,
+      CATEGORIA: "Nylon",
+      IMAGEM: "https://i.imgur.com/O1Riu3k.png"
+    },
+    {
+      REFERENCIA: "1100",
+      DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM GOLA",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG"],
+      PRECO: 151.00,
+      PRECO_ESPECIAL: 174.00,
+      CATEGORIA: "Feminino",
+      IMAGEM: "https://i.imgur.com/17kE5JX.png"
+    },
+    {
+      REFERENCIA: "1100PT/RP",
+      DESCRIÇÃO: "CONJUNTO NYLON FEMININO COM GOLA ROSA",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG"],
+      PRECO: 156.00,
+      PRECO_ESPECIAL: 180.00,
+      CATEGORIA: "Feminino",
+      IMAGEM: "https://i.imgur.com/W8NNt0V.png"
+    },
+    {
+      REFERENCIA: "1200",
+      DESCRIÇÃO: "CONJUNTO NYLON LUXO COM FORRO E GOLA",
+      TAMANHOS: ["P", "M", "G", "GG", "EX"],
+      TAMANHOS_ESPECIAIS: ["EXG"],
+      PRECO: 184.00,
+      PRECO_ESPECIAL: 212.00,
+      CATEGORIA: "Luxo",
+      IMAGEM: "https://i.imgur.com/PBe0ewa.png"
+    },
+    
+    // Botas PVC
+    {
+      REFERENCIA: "360",
+      DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL - PRETA",
+      TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 84.00,
+      PRECO_ESPECIAL: 84.00,
+      CATEGORIA: "Calçados",
+      IMAGEM: "https://i.imgur.com/rCySTtx.png"
+    },
+    {
+      REFERENCIA: "360C/RS",
+      DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL - ROSA",
+      TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 92.00,
+      PRECO_ESPECIAL: 92.00,
+      CATEGORIA: "Calçados",
+      IMAGEM: "https://i.imgur.com/zVkgVa8.png"
+    },
+    {
+      REFERENCIA: "360C/AMF",
+      DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL - AMARELO",
+      TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 92.00,
+      PRECO_ESPECIAL: 92.00,
+      CATEGORIA: "Calçados",
+      IMAGEM: "https://i.imgur.com/piGfHOW.png"
+    },
+    {
+      REFERENCIA: "370",
+      DESCRIÇÃO: "BOTA DE PVC IMPERMEÁVEL CANO MÉDIO",
+      TAMANHOS: ["35/36", "37/38", "39/40", "41/42", "43/44", "45/46"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 91.00,
+      PRECO_ESPECIAL: 91.00,
+      CATEGORIA: "Calçados",
+      IMAGEM: "https://i.imgur.com/bIOCG8I.png"
+    },
+    
+    // Capas de Moto
+    {
+      REFERENCIA: "2410",
+      DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - P - ATÉ 125CC",
+      TAMANHOS: ["P"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 117.00,
+      PRECO_ESPECIAL: 117.00,
+      CATEGORIA: "Motos",
+      IMAGEM: "https://i.imgur.com/MQicg6i.png"
+    },
+    {
+      REFERENCIA: "2411",
+      DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - M -125CC - 150CC",
+      TAMANHOS: ["M"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 121.00,
+      PRECO_ESPECIAL: 121.00,
+      CATEGORIA: "Motos",
+      IMAGEM: "https://i.imgur.com/MQicg6i.png"
+    },
+    {
+      REFERENCIA: "2412",
+      DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - G - 250CC - 450CC",
+      TAMANHOS: ["G"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 125.00,
+      PRECO_ESPECIAL: 125.00,
+      CATEGORIA: "Motos",
+      IMAGEM: "https://i.imgur.com/MQicg6i.png"
+    },
+    {
+      REFERENCIA: "2413",
+      DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - GG - 450CC - 500CC - 750CC",
+      TAMANHOS: ["GG"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 132.00,
+      PRECO_ESPECIAL: 132.00,
+      CATEGORIA: "Motos",
+      IMAGEM: "https://i.imgur.com/MQicg6i.png"
+    },
+    {
+      REFERENCIA: "2414",
+      DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - EX - 750CC - 1200CC",
+      TAMANHOS: ["EX"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 140.00,
+      PRECO_ESPECIAL: 140.00,
+      CATEGORIA: "Motos",
+      IMAGEM: "https://i.imgur.com/MQicg6i.png"
+    },
+    {
+      REFERENCIA: "2415",
+      DESCRIÇÃO: "CAPA DE MOTO PVC FORRADA COM FELTRO - EXG - ACIMA 1200CC",
+      TAMANHOS: ["EXG"],
+      TAMANHOS_ESPECIAIS: [],
+      PRECO: 170.00,
+      PRECO_ESPECIAL: 170.00,
+      CATEGORIA: "Motos",
+      IMAGEM: "https://i.imgur.com/MQicg6i.png"
+    }
+  ];
+}
+
+// Função para editar pedido (modificada para suportar distribuição)
+window.editarPedido = async function(pedidoId) {
+  try {
+    const pedido = todosPedidos.find(p => p.id == pedidoId);
+    if (!pedido) {
+      alert('❌ Pedido não encontrado.');
+      return;
+    }
+
+    // Se for pedido da distribuição, usar modal específico
+    if (pedido.empresa === 'distribuicao') {
+      await editarPedidoDistribuicao(pedido);
+      return;
+    }
+
+    // Para outros pedidos, usar sistema existente
+    pedidoEditando = pedido;
+    document.getElementById('edicao-pedido-id').value = pedido.id;
+    document.getElementById('edicao-pedido-data').value = new Date(pedido.data).toLocaleDateString('pt-BR');
+    document.getElementById('edicao-cliente').value = pedido.cliente || '';
+    document.getElementById('edicao-itens').value = pedido.itens || '';
+    document.getElementById('edicao-total').value = pedido.total || '';
+    document.getElementById('edicao-observacoes').value = pedido.observacoes || '';
+    
+    document.getElementById('modal-edicao').style.display = 'block';
+  } catch (error) {
+    console.error('Erro ao editar pedido:', error);
+    alert('❌ Erro ao carregar dados do pedido.');
+  }
+};
+
+// Função para editar pedido da distribuição
+async function editarPedidoDistribuicao(pedido) {
+  try {
+    // Inicializar modal se necessário
+    inicializarModalEdicaoDistribuicao();
+    await carregarProdutosDistribuicao();
+    
+    pedidoEditandoDistribuicao = pedido;
+    
+    // Parse dos dados do pedido
+    let dados = {};
+    try {
+      dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
+    } catch (e) {
+      console.error('Erro ao parsear dados do pedido:', e);
+      alert('❌ Erro ao carregar dados do pedido.');
+      return;
+    }
+    
+    // Preencher informações básicas
+    document.getElementById('edicao-pedido-id').value = pedido.id;
+    document.getElementById('edicao-pedido-data').value = new Date(pedido.data).toLocaleDateString('pt-BR');
+    document.getElementById('edicao-cliente-razao').value = dados.cliente?.razao || 'N/A';
+    document.getElementById('edicao-cliente-cnpj').value = dados.cliente?.cnpj || 'N/A';
+    document.getElementById('edicao-forma-pagamento').value = dados.formaPagamento || 'prazo';
+    document.getElementById('edicao-observacoes').value = dados.observacoes || '';
+    
+    // Preencher produtos
+    renderizarProdutosEdicao(dados.itens || []);
+    
+    // Calcular totais
+    calcularTotalEdicao();
+    
+    // Mostrar modal
+    modalEdicaoDistribuicao.classList.add('show');
+    
+  } catch (error) {
+    console.error('Erro ao editar pedido da distribuição:', error);
+    alert('❌ Erro ao carregar dados do pedido.');
+  }
+}
+
+// Renderizar produtos na edição
+function renderizarProdutosEdicao(itens) {
+  const container = document.getElementById('produtos-edicao-lista');
+  container.innerHTML = '';
+  
+  itens.forEach((item, index) => {
+    const produtoDiv = document.createElement('div');
+    produtoDiv.className = 'produto-edicao-item';
+    produtoDiv.innerHTML = `
+      <select onchange="atualizarProdutoEdicao(${index}, this.value)" data-index="${index}">
+        <option value="">Selecione um produto</option>
+        ${produtosDistribuicao.map(produto => 
+          `<option value="${produto.REFERENCIA}" ${item.REFERENCIA === produto.REFERENCIA ? 'selected' : ''}>
+            ${produto.REFERENCIA} - ${produto.DESCRIÇÃO}
+          </option>`
+        ).join('')}
+      </select>
+      <select onchange="atualizarTamanhoEdicao(${index}, this.value)" data-index="${index}">
+        <option value="">Tamanho</option>
+      </select>
+      <input type="number" min="1" value="${item.quantidade || 1}" onchange="atualizarQuantidadeEdicao(${index}, this.value)" placeholder="Qtd">
+      <input type="number" step="0.01" value="${item.preco || 0}" onchange="atualizarPrecoEdicao(${index}, this.value)" placeholder="Preço">
+      <input type="number" step="0.01" value="${(item.preco * item.quantidade).toFixed(2)}" readonly placeholder="Total">
+      <button class="btn-remover-produto" onclick="removerProdutoEdicao(${index})">🗑️</button>
+    `;
+    
+    container.appendChild(produtoDiv);
+    
+    // Carregar tamanhos do produto selecionado
+    if (item.REFERENCIA) {
+      atualizarTamanhosEdicao(index, item.REFERENCIA, item.tamanho);
+    }
+  });
+}
+
+// Atualizar produto na edição
+function atualizarProdutoEdicao(index, referencia) {
+  const produto = produtosDistribuicao.find(p => p.REFERENCIA === referencia);
+  if (!produto) return;
+  
+  const itemDiv = document.querySelector(`[data-index="${index}"]`).closest('.produto-edicao-item');
+  const tamanhoSelect = itemDiv.querySelector('select[onchange*="atualizarTamanhoEdicao"]');
+  const precoInput = itemDiv.querySelector('input[onchange*="atualizarPrecoEdicao"]');
+  
+  // Limpar tamanhos
+  tamanhoSelect.innerHTML = '<option value="">Tamanho</option>';
+  
+  // Adicionar tamanhos normais
+  produto.TAMANHOS.forEach(tamanho => {
+    const option = document.createElement('option');
+    option.value = tamanho;
+    option.textContent = tamanho;
+    tamanhoSelect.appendChild(option);
+  });
+  
+  // Adicionar tamanhos especiais
+  produto.TAMANHOS_ESPECIAIS.forEach(tamanho => {
+    const option = document.createElement('option');
+    option.value = tamanho;
+    option.textContent = `${tamanho} (Especial)`;
+    tamanhoSelect.appendChild(option);
+  });
+  
+  // Definir preço padrão
+  precoInput.value = produto.PRECO.toFixed(2);
+  
+  // Atualizar total
+  calcularTotalEdicao();
+}
+
+// Atualizar tamanhos na edição
+function atualizarTamanhosEdicao(index, referencia, tamanhoSelecionado) {
+  const produto = produtosDistribuicao.find(p => p.REFERENCIA === referencia);
+  if (!produto) return;
+  
+  const itemDiv = document.querySelector(`[data-index="${index}"]`).closest('.produto-edicao-item');
+  const tamanhoSelect = itemDiv.querySelector('select[onchange*="atualizarTamanhoEdicao"]');
+  const precoInput = itemDiv.querySelector('input[onchange*="atualizarPrecoEdicao"]');
+  
+  // Limpar tamanhos
+  tamanhoSelect.innerHTML = '<option value="">Tamanho</option>';
+  
+  // Adicionar tamanhos normais
+  produto.TAMANHOS.forEach(tamanho => {
+    const option = document.createElement('option');
+    option.value = tamanho;
+    option.textContent = tamanho;
+    if (tamanho === tamanhoSelecionado) option.selected = true;
+    tamanhoSelect.appendChild(option);
+  });
+  
+  // Adicionar tamanhos especiais
+  produto.TAMANHOS_ESPECIAIS.forEach(tamanho => {
+    const option = document.createElement('option');
+    option.value = tamanho;
+    option.textContent = `${tamanho} (Especial)`;
+    if (tamanho === tamanhoSelecionado) option.selected = true;
+    tamanhoSelect.appendChild(option);
+  });
+  
+  // Definir preço baseado no tamanho
+  if (tamanhoSelecionado && produto.TAMANHOS_ESPECIAIS.includes(tamanhoSelecionado)) {
+    precoInput.value = produto.PRECO_ESPECIAL.toFixed(2);
+  } else {
+    precoInput.value = produto.PRECO.toFixed(2);
+  }
+}
+
+// Atualizar tamanho na edição
+function atualizarTamanhoEdicao(index, tamanho) {
+  const itemDiv = document.querySelector(`[data-index="${index}"]`).closest('.produto-edicao-item');
+  const produtoSelect = itemDiv.querySelector('select[onchange*="atualizarProdutoEdicao"]');
+  const precoInput = itemDiv.querySelector('input[onchange*="atualizarPrecoEdicao"]');
+  
+  const referencia = produtoSelect.value;
+  const produto = produtosDistribuicao.find(p => p.REFERENCIA === referencia);
+  if (!produto) return;
+  
+  // Definir preço baseado no tamanho
+  if (tamanho && produto.TAMANHOS_ESPECIAIS.includes(tamanho)) {
+    precoInput.value = produto.PRECO_ESPECIAL.toFixed(2);
+  } else {
+    precoInput.value = produto.PRECO.toFixed(2);
+  }
+  
+  calcularTotalEdicao();
+}
+
+// Atualizar quantidade na edição
+function atualizarQuantidadeEdicao(index, quantidade) {
+  calcularTotalEdicao();
+}
+
+// Atualizar preço na edição
+function atualizarPrecoEdicao(index, preco) {
+  calcularTotalEdicao();
+}
+
+// Remover produto da edição
+function removerProdutoEdicao(index) {
+  const container = document.getElementById('produtos-edicao-lista');
+  const itemDiv = container.children[index];
+  if (itemDiv) {
+    itemDiv.remove();
+    calcularTotalEdicao();
+  }
+}
+
+// Adicionar produto na edição
+function adicionarProdutoEdicao() {
+  const container = document.getElementById('produtos-edicao-lista');
+  const index = container.children.length;
+  
+  const produtoDiv = document.createElement('div');
+  produtoDiv.className = 'produto-edicao-item';
+  produtoDiv.innerHTML = `
+    <select onchange="atualizarProdutoEdicao(${index}, this.value)" data-index="${index}">
+      <option value="">Selecione um produto</option>
+      ${produtosDistribuicao.map(produto => 
+        `<option value="${produto.REFERENCIA}">
+          ${produto.REFERENCIA} - ${produto.DESCRIÇÃO}
+        </option>`
+      ).join('')}
+    </select>
+    <select onchange="atualizarTamanhoEdicao(${index}, this.value)" data-index="${index}">
+      <option value="">Tamanho</option>
+    </select>
+    <input type="number" min="1" value="1" onchange="atualizarQuantidadeEdicao(${index}, this.value)" placeholder="Qtd">
+    <input type="number" step="0.01" value="0" onchange="atualizarPrecoEdicao(${index}, this.value)" placeholder="Preço">
+    <input type="number" step="0.01" value="0" readonly placeholder="Total">
+    <button class="btn-remover-produto" onclick="removerProdutoEdicao(${index})">🗑️</button>
+  `;
+  
+  container.appendChild(produtoDiv);
+}
+
+// Calcular total na edição
+function calcularTotalEdicao() {
+  const container = document.getElementById('produtos-edicao-lista');
+  const itens = container.querySelectorAll('.produto-edicao-item');
+  
+  let subtotal = 0;
+  
+  itens.forEach(itemDiv => {
+    const quantidade = parseFloat(itemDiv.querySelector('input[onchange*="atualizarQuantidadeEdicao"]').value) || 0;
+    const preco = parseFloat(itemDiv.querySelector('input[onchange*="atualizarPrecoEdicao"]').value) || 0;
+    const total = quantidade * preco;
+    
+    // Atualizar total do item
+    const totalInput = itemDiv.querySelector('input[readonly]');
+    totalInput.value = total.toFixed(2);
+    
+    subtotal += total;
+  });
+  
+  // Atualizar subtotal
+  document.getElementById('edicao-subtotal').value = subtotal.toFixed(2);
+  
+  // Calcular desconto
+  const descontoPercentual = parseFloat(document.getElementById('edicao-desconto-percentual').value) || 0;
+  const descontoValor = parseFloat(document.getElementById('edicao-desconto-valor').value) || 0;
+  
+  let descontoFinal = 0;
+  if (descontoPercentual > 0) {
+    descontoFinal = subtotal * (descontoPercentual / 100);
+    document.getElementById('edicao-desconto-valor').value = descontoFinal.toFixed(2);
+  } else if (descontoValor > 0) {
+    descontoFinal = descontoValor;
+    document.getElementById('edicao-desconto-percentual').value = ((descontoValor / subtotal) * 100).toFixed(2);
+  }
+  
+  // Calcular total final
+  const totalFinal = subtotal - descontoFinal;
+  document.getElementById('edicao-total').value = totalFinal.toFixed(2);
+}
+
+// Fechar modal de edição da distribuição
+function fecharModalEdicaoDistribuicao() {
+  if (modalEdicaoDistribuicao) {
+    modalEdicaoDistribuicao.classList.remove('show');
+  }
+  pedidoEditandoDistribuicao = null;
+}
+
+// Salvar edição da distribuição
+async function salvarEdicaoDistribuicao() {
+  try {
+    if (!pedidoEditandoDistribuicao) {
+      alert('❌ Nenhum pedido selecionado para edição.');
+      return;
+    }
+    
+    // Coletar dados do formulário
+    const container = document.getElementById('produtos-edicao-lista');
+    const itens = container.querySelectorAll('.produto-edicao-item');
+    
+    const produtosAtualizados = [];
+    
+    itens.forEach(itemDiv => {
+      const produtoSelect = itemDiv.querySelector('select[onchange*="atualizarProdutoEdicao"]');
+      const tamanhoSelect = itemDiv.querySelector('select[onchange*="atualizarTamanhoEdicao"]');
+      const quantidadeInput = itemDiv.querySelector('input[onchange*="atualizarQuantidadeEdicao"]');
+      const precoInput = itemDiv.querySelector('input[onchange*="atualizarPrecoEdicao"]');
+      
+      const referencia = produtoSelect.value;
+      const tamanho = tamanhoSelect.value;
+      const quantidade = parseInt(quantidadeInput.value) || 0;
+      const preco = parseFloat(precoInput.value) || 0;
+      
+      if (referencia && tamanho && quantidade > 0 && preco > 0) {
+        const produto = produtosDistribuicao.find(p => p.REFERENCIA === referencia);
+        if (produto) {
+          produtosAtualizados.push({
+            REFERENCIA: referencia,
+            DESCRIÇÃO: produto.DESCRIÇÃO,
+            tamanho: tamanho,
+            quantidade: quantidade,
+            preco: preco,
+            categoria: produto.CATEGORIA,
+            imagem: produto.IMAGEM
+          });
+        }
+      }
+    });
+    
+    if (produtosAtualizados.length === 0) {
+      alert('❌ Adicione pelo menos um produto ao pedido.');
+      return;
+    }
+    
+    // Calcular totais
+    const subtotal = produtosAtualizados.reduce((total, item) => total + (item.preco * item.quantidade), 0);
+    const desconto = parseFloat(document.getElementById('edicao-desconto-valor').value) || 0;
+    const totalFinal = subtotal - desconto;
+    const formaPagamento = document.getElementById('edicao-forma-pagamento').value;
+    const observacoes = document.getElementById('edicao-observacoes').value;
+    
+    // Parse dos dados originais
+    let dadosOriginais = {};
+    try {
+      dadosOriginais = typeof pedidoEditandoDistribuicao.dados === 'string' 
+        ? JSON.parse(pedidoEditandoDistribuicao.dados) 
+        : pedidoEditandoDistribuicao.dados;
+    } catch (e) {
+      console.error('Erro ao parsear dados originais:', e);
+    }
+    
+    // Atualizar dados do pedido
+    const dadosAtualizados = {
+      ...dadosOriginais,
+      itens: produtosAtualizados,
+      subtotal: subtotal,
+      desconto: desconto,
+      total: totalFinal,
+      formaPagamento: formaPagamento,
+      observacoes: observacoes,
+      dataAtualizacao: new Date().toISOString()
+    };
+    
+    // Atualizar pedido na API
+    const response = await fetch(`/api/pedidos/${pedidoEditandoDistribuicao.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        dados: JSON.stringify(dadosAtualizados),
+        descricao: `Pedido Distribuição - ${produtosAtualizados.length} itens`
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Erro ao atualizar pedido');
+    }
+    
+    // Fechar modal
+    fecharModalEdicaoDistribuicao();
+    
+    // Recarregar pedidos
+    await carregarPedidos();
+    
+    // Mostrar sucesso
+    if (window.advancedNotifications) {
+      window.advancedNotifications.success('Pedido atualizado com sucesso!', {
+        title: 'Sucesso',
+        duration: 3000
+      });
+    } else {
+      alert('✅ Pedido atualizado com sucesso!');
+    }
+    
+  } catch (error) {
+    console.error('Erro ao salvar edição:', error);
+    alert('❌ Erro ao salvar alterações. Tente novamente.');
+  }
+} 
