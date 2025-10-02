@@ -2678,15 +2678,33 @@ window.editarPedido = async function(pedidoId) {
     }
 
     // Para outros pedidos, usar sistema existente
-    pedidoEditando = pedido;
-    document.getElementById('edicao-pedido-id').value = pedido.id;
-    document.getElementById('edicao-pedido-data').value = formatarData(pedido.data);
-    document.getElementById('edicao-cliente').value = pedido.cliente || '';
-    document.getElementById('edicao-itens').value = pedido.itens || '';
-    document.getElementById('edicao-total').value = pedido.total || '';
-    document.getElementById('edicao-observacoes').value = pedido.observacoes || '';
+    const modalEdicao = document.getElementById('modal-edicao');
+    if (!modalEdicao) {
+      alert('❌ Modal de edição não encontrado. Sistema de edição não disponível para este tipo de pedido.');
+      return;
+    }
     
-    document.getElementById('modal-edicao').style.display = 'block';
+    pedidoEditando = pedido;
+    
+    // Verificar se os elementos existem antes de acessá-los
+    const elementos = {
+      'edicao-pedido-id': document.getElementById('edicao-pedido-id'),
+      'edicao-pedido-data': document.getElementById('edicao-pedido-data'),
+      'edicao-cliente': document.getElementById('edicao-cliente'),
+      'edicao-itens': document.getElementById('edicao-itens'),
+      'edicao-total': document.getElementById('edicao-total'),
+      'edicao-observacoes': document.getElementById('edicao-observacoes')
+    };
+    
+    // Preencher apenas os elementos que existem
+    if (elementos['edicao-pedido-id']) elementos['edicao-pedido-id'].value = pedido.id;
+    if (elementos['edicao-pedido-data']) elementos['edicao-pedido-data'].value = formatarData(pedido.data);
+    if (elementos['edicao-cliente']) elementos['edicao-cliente'].value = pedido.cliente || '';
+    if (elementos['edicao-itens']) elementos['edicao-itens'].value = pedido.itens || '';
+    if (elementos['edicao-total']) elementos['edicao-total'].value = pedido.total || '';
+    if (elementos['edicao-observacoes']) elementos['edicao-observacoes'].value = pedido.observacoes || '';
+    
+    modalEdicao.style.display = 'block';
   } catch (error) {
     console.error('Erro ao editar pedido:', error);
     alert('❌ Erro ao carregar dados do pedido.');
