@@ -1993,7 +1993,7 @@
           const pedidoData = {
             empresa: 'distribuicao',
             descricao: `Pedido Distribuição - ${carrinhoItens.length} itens`,
-            dados: {
+            dados: JSON.stringify({
               cliente: clienteData,
               itens: carrinhoItens,
               subtotal: subtotal,
@@ -2002,8 +2002,8 @@
               formaPagamento: formaPagamento,
               data: new Date().toISOString(),
               origem: 'Loja Distribuição',
-              observacoes: `Pedido via Loja Distribuição - Pagamento ${formaPagamento === 'vista' ? 'à vista com 5% desconto' : 'a prazo'}`
-            }
+              observacoes: `DISTRIBUICAO`
+            })
           };
 
           // Usar sistema offline
@@ -2113,6 +2113,18 @@
           let dados = {};
           try {
             dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
+            
+            // Sempre recalcular o total a partir dos itens para garantir consistência
+            if (dados.itens && Array.isArray(dados.itens) && dados.itens.length > 0) {
+              const subtotalCalculado = dados.itens.reduce((total, item) => {
+                const preco = parseFloat(item.preco) || 0;
+                const quantidade = parseInt(item.quantidade) || 0;
+                return total + (preco * quantidade);
+              }, 0);
+              const descontoCalculado = parseFloat(dados.desconto) || 0;
+              dados.total = subtotalCalculado - descontoCalculado;
+              dados.subtotal = subtotalCalculado;
+            }
           } catch (e) {
             dados = {};
           }
