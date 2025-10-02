@@ -170,6 +170,16 @@ async function carregarPedidos() {
 
     let html = '<div class="pedidos-grid">';
     for (const pedido of pedidos) {
+      // Debug temporário para pedidos da distribuição
+      if (pedido.empresa === 'distribuicao') {
+        console.log('🔍 === PEDIDO DISTRIBUIÇÃO DEBUG ===');
+        console.log('ID:', pedido.id);
+        console.log('Empresa:', pedido.empresa);
+        console.log('Descrição:', pedido.descricao);
+        console.log('Dados (raw):', pedido.dados);
+        console.log('Tipo dos dados:', typeof pedido.dados);
+      }
+      
       let info = extrairInfoPedido(pedido.descricao, pedido.dados);
       
       // Verificar se é um pedido B2B ou Distribuição
@@ -466,6 +476,16 @@ function renderizarPedidos(pedidos) {
 
   let html = '<div class="pedidos-grid">';
   for (const pedido of pedidos) {
+    // Debug temporário para pedidos da distribuição
+    if (pedido.empresa === 'distribuicao') {
+      console.log('🔍 === PEDIDO DISTRIBUIÇÃO DEBUG (renderizarPedidos) ===');
+      console.log('ID:', pedido.id);
+      console.log('Empresa:', pedido.empresa);
+      console.log('Descrição:', pedido.descricao);
+      console.log('Dados (raw):', pedido.dados);
+      console.log('Tipo dos dados:', typeof pedido.dados);
+    }
+    
     let info = extrairInfoPedido(pedido.descricao, pedido.dados);
     
     // Verificar se é um pedido B2B ou Distribuição

@@ -1020,6 +1020,12 @@
         border: 1px solid #c3e6cb;
       }
 
+      .pedido-status.enviado {
+        background: linear-gradient(135deg, #e2e3e5 0%, #d1d3d4 100%);
+        color: #495057;
+        border: 1px solid #d1d3d4;
+      }
+
       .pedido-total {
         font-size: 1rem;
         font-weight: 800;
@@ -2130,8 +2136,8 @@
           }
           
           // Determinar status do pedido
-          let status = 'pendente';
-          let statusText = 'Pendente';
+          let status = 'enviado';
+          let statusText = 'ENVIADO';
           if (pedido.status === 'processando' || pedido.status === 'em_andamento') {
             status = 'processando';
             statusText = 'Processando';
