@@ -2146,12 +2146,21 @@
             statusText = 'Concluído';
           }
           
-          // Formatar data
+          // Formatar data - tentar múltiplas fontes
           let dataFormatada = 'Data não disponível';
-          if (pedido.data) {
-            const dataPedido = new Date(pedido.data);
+          console.log('🔍 Debug data do pedido:', {
+            id: pedido.id,
+            data: pedido.data,
+            tipo: typeof pedido.data,
+            dados: pedido.dados
+          });
+          
+          // Função para tentar formatar uma data
+          function tentarFormatarData(dataString) {
+            if (!dataString) return null;
+            const dataPedido = new Date(dataString);
             if (!isNaN(dataPedido.getTime())) {
-              dataFormatada = dataPedido.toLocaleDateString('pt-BR', {
+              return dataPedido.toLocaleDateString('pt-BR', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
@@ -2159,6 +2168,40 @@
                 minute: '2-digit'
               });
             }
+            return null;
+          }
+          
+          // Tentar diferentes fontes de data
+          const fontesData = [
+            pedido.data,
+            pedido.data_pedido,
+            dados.data,
+            dados.dataAtualizacao,
+            dados.dataPedido
+          ];
+          
+          for (const fonte of fontesData) {
+            if (fonte) {
+              console.log('🔍 Tentando fonte de data:', fonte);
+              const dataFormatadaTeste = tentarFormatarData(fonte);
+              if (dataFormatadaTeste) {
+                dataFormatada = dataFormatadaTeste;
+                console.log('✅ Data encontrada:', dataFormatada);
+                break;
+              }
+            }
+          }
+          
+          // Se ainda não encontrou, usar data atual como fallback
+          if (dataFormatada === 'Data não disponível') {
+            console.log('⚠️ Nenhuma data válida encontrada, usando data atual');
+            dataFormatada = new Date().toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
           }
           
           // Renderizar itens do pedido
