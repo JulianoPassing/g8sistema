@@ -1745,6 +1745,11 @@
             <div class="produto-descricao">${produto.DESCRIÇÃO}</div>
             <div class="produto-tamanhos">Tamanhos: ${tamanhosTexto}</div>
             <div class="produto-preco">R$ ${produto.PRECO.toFixed(2)}</div>
+            ${produto.TAMANHOS_ESPECIAIS && produto.TAMANHOS_ESPECIAIS.length > 0 ? `
+              <div class="produto-preco-especial" style="font-size: 0.8rem; color: var(--warning-color); font-weight: 600; text-align: center; margin-top: 4px;">
+                Tamanhos Especiais: R$ ${produto.PRECO_ESPECIAL.toFixed(2)}
+              </div>
+            ` : ''}
             ${tamanhosHTML}
             <button class="btn-adicionar" onclick="adicionarAoCarrinho('${produto.REFERENCIA}')">
               ➕ Adicionar ao Carrinho
