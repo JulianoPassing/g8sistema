@@ -1375,14 +1375,17 @@
             itemDiv.classList.add("pedido-item");
             const precoTotalItem = item.preco * item.quantidade;
             subtotalPedido += precoTotalItem;
+            // Log para debug
+            console.log('Renderizando item do pedido Steitz:', index, item);
+            
             itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${
-              item.MODELO
-            }</strong> (Ref: ${item.REF})<br><small>Tam: <strong>${
-              item.tamanho
-            }</strong> | Cor: <strong>${item.cor}</strong> | Qtd: <input type="number" min="1" value="${item.quantidade}" 
+              item.MODELO || item.DESCRIÇÃO || 'Produto'
+            }</strong> (Ref: ${item.REF || item.REFERENCIA || 'N/A'})<br><small>Tam: <strong>${
+              item.tamanho || 'N/A'
+            }</strong> | Cor: <strong>${item.cor || '-'}</strong> | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" 
             onchange="alterarQuantidadeItem(${index}, this.value)" 
             style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> 
-            | Unit: R$ ${item.preco.toFixed(2)}${
+            | Unit: R$ ${(item.preco || 0).toFixed(2)}${
               item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
             } | Total: <strong>R$ ${precoTotalItem.toFixed(
               2
