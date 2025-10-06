@@ -1311,11 +1311,30 @@
       // Função para adicionar produto ao pedido
       function adicionarAoPedido(ref) {
         const produto = window.produtosData.find((p) => p.REF === ref);
-        if (!produto) return;
+        if (!produto) {
+          console.error('Produto não encontrado:', ref);
+          alert('Erro: Produto não encontrado.');
+          return;
+        }
+        
+        // Verificar se o produto tem dados válidos
+        if (!produto.REF || !produto.MODELO || !produto.PRECOS) {
+          console.error('Produto com dados inválidos:', produto);
+          alert('Erro: Dados do produto estão incompletos.');
+          return;
+        }
         
         const cor = document.getElementById(`cor-${ref}`).value.trim();
         const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
         const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
+        
+        // Verificar se o preço é válido
+        if (!precoUnitarioBase || isNaN(precoUnitarioBase)) {
+          console.error('Preço inválido para produto:', produto.REF, 'tabela:', tabelaSelecionada);
+          alert('Erro: Preço não encontrado para a tabela selecionada.');
+          return;
+        }
+        
         let itensAdicionados = 0;
         
         const tamanhosRange = parseTamanhoRange(produto.TAM);
@@ -1335,14 +1354,19 @@
           if (itemExistente) {
             itemExistente.quantidade += quantidade;
           } else {
-            window.pedidoItens.push({
-                  REF: produto.REF,
-                  MODELO: produto.MODELO,
-                  tamanho: tamanho,
+            const novoItem = {
+              REF: produto.REF,
+              MODELO: produto.MODELO,
+              tamanho: tamanho,
               quantidade: quantidade,
-                  cor: cor || "-",
-                  preco: precoFinal,
-                });
+              cor: cor || "-",
+              preco: precoFinal,
+            };
+            
+            // Log para debug
+            console.log('Adicionando item ao pedido:', novoItem);
+            
+            window.pedidoItens.push(novoItem);
               }
               input.value = "";
               itensAdicionados++;
@@ -1364,14 +1388,19 @@
               if (itemExistente) {
                 itemExistente.quantidade += itemGrade.quantidade;
               } else {
-                window.pedidoItens.push({
+                const novoItem = {
                   REF: produto.REF,
                   MODELO: produto.MODELO,
                   tamanho: itemGrade.tamanho,
                   quantidade: itemGrade.quantidade,
                   cor: cor || "-",
                   preco: precoFinal,
-                });
+                };
+                
+                // Log para debug
+                console.log('Adicionando item manual ao pedido:', novoItem);
+                
+                window.pedidoItens.push(novoItem);
               }
               itensAdicionados++;
             });
@@ -1421,22 +1450,24 @@
         if (window.pedidoItens.length > 0) {
           if (pedidoVazio) pedidoVazio.style.display = "none";
           window.pedidoItens.forEach((item, index) => {
+            // Log para debug
+            console.log('Renderizando item do pedido:', index, item);
             const itemDiv = document.createElement("div");
             itemDiv.className = "pedido-item";
             const precoTotalItem = item.preco * item.quantidade;
             subtotalPedido += precoTotalItem;
             itemDiv.innerHTML = `
               <div class="pedido-item-info">
-                <strong>${item.MODELO}</strong>
-                <span>Ref: ${item.REF}</span>
+                <strong>${item.MODELO || 'Produto'}</strong>
+                <span>(Ref: ${item.REF || 'N/A'})</span>
                 <span>•</span>
-                <span>Tam: ${item.tamanho}</span>
+                <span>Tam: ${item.tamanho || 'N/A'}</span>
                 <span>•</span>
-                <span>Cor: ${item.cor}</span>
+                <span>Cor: ${item.cor || '-'}</span>
                 <span>•</span>
-                <span>Qtd: <input type="number" min="1" value="${item.quantidade}" onchange="alterarQuantidade(${index}, this.value)"></span>
+                <span>Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidade(${index}, this.value)"></span>
                 <span>•</span>
-                <span>Unit: R$ ${item.preco.toFixed(2)}</span>
+                <span>Unit: R$ ${(item.preco || 0).toFixed(2)}</span>
                 <span>•</span>
                 <span style="font-weight: 600; color: var(--primary-color);">Total: R$ ${precoTotalItem.toFixed(2)}</span>
                 <div class="pedido-item-actions">
