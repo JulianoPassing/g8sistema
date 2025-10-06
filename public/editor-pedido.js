@@ -145,7 +145,12 @@
     }
     // Adiciona todos os itens diretamente ao array, sem depender do DOM
     itens.forEach((item) => {
-      window.pedidoItens.push({
+      // Manter compatibilidade com ambos os formatos (steitz.html usa REF/MODELO, outros usam REFERENCIA/DESCRIÇÃO)
+      const novoItem = {
+        // Campos para steitz.html e b2b-steitz.html
+        REF: (item.REF || item.REFERENCIA || '').toString(),
+        MODELO: (item.MODELO || item.DESCRIÇÃO || '').toString(),
+        // Campos para outros sistemas
         REFERENCIA: (item.REFERENCIA || item.REF || '').toString(),
         DESCRIÇÃO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
         tamanho: item.tamanho || '',
@@ -153,7 +158,10 @@
         preco: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0,
         quantidade: item.quantidade || 1,
         descontoExtra: item.descontoExtra || 0
-      });
+      };
+      
+      console.log('Carregando item para edição:', novoItem);
+      window.pedidoItens.push(novoItem);
     });
     // Atualiza a visualização do pedido
     if (typeof window.atualizarVisualizacaoPedido === 'function') {
