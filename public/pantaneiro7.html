@@ -2724,6 +2724,7 @@ window.produtosData = [
             (cliente.razao && String(cliente.razao).toLowerCase().includes(filtroLower)) ||
             (cliente.cnpj && String(cliente.cnpj).toLowerCase().includes(filtroLower)) ||
             (cliente.cidade && String(cliente.cidade).toLowerCase().includes(filtroLower)) ||
+            (cliente.estado && String(cliente.estado).toLowerCase().includes(filtroLower)) ||
             (cliente.email && String(cliente.email).toLowerCase().includes(filtroLower)) ||
             (cliente.telefone && String(cliente.telefone).toLowerCase().includes(filtroLower))
           );
@@ -3329,6 +3330,7 @@ window.produtosData = [
             (cliente.razao && String(cliente.razao).toLowerCase().includes(filtroLower)) ||
             (cliente.cnpj && String(cliente.cnpj).toLowerCase().includes(filtroLower)) ||
             (cliente.cidade && String(cliente.cidade).toLowerCase().includes(filtroLower)) ||
+            (cliente.estado && String(cliente.estado).toLowerCase().includes(filtroLower)) ||
             (cliente.email && String(cliente.email).toLowerCase().includes(filtroLower)) ||
             (cliente.telefone && String(cliente.telefone).toLowerCase().includes(filtroLower))
           );
@@ -3338,7 +3340,7 @@ window.produtosData = [
           return;
         }
         sugestoesDiv.style.display = "block";
-        clientesFiltrados.slice(0, 5).forEach((cliente) => {
+        clientesFiltrados.slice(0, 8).forEach((cliente) => {
           const item = document.createElement("div");
           item.className = "sugestao-cliente-item";
           item.innerHTML = `<strong>${cliente.razao}</strong><br><small>${cliente.cidade || ""} | CNPJ: ${cliente.cnpj || ""} | Tel: ${cliente.telefone || ""}</small>`;
