@@ -61,6 +61,10 @@
    │ Key:   EMAIL_TO                                         │
    │ Value: destinatario@gmail.com (quem recebe os e-mails) │
    │ Environment: ✅ Production ✅ Preview ✅ Development     │
+   │                                                         │
+   │ 💡 MÚLTIPLOS E-MAILS:                                   │
+   │ Para enviar para vários e-mails, separe por vírgula:   │
+   │ email1@gmail.com, email2@hotmail.com, email3@gmail.com │
    └─────────────────────────────────────────────────────────┘
 
 
@@ -143,6 +147,7 @@ Leia: CONFIGURACAO_VERCEL.md
 ✅ SEMPRE faça redeploy após adicionar variáveis
 ✅ Verifique SPAM na primeira vez
 ✅ Limite: 500 e-mails/dia (Gmail gratuito)
+✅ MÚLTIPLOS E-MAILS: separe por vírgula no EMAIL_TO
 
 
 🔗 LINKS ÚTEIS
