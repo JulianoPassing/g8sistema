@@ -12,6 +12,9 @@ EMAIL_USER=seuemail@gmail.com
 EMAIL_PASS=xxxx xxxx xxxx xxxx
 EMAIL_TO=destinatario@gmail.com
 
+💡 Para múltiplos destinatários, separe por vírgula:
+EMAIL_TO=email1@gmail.com, email2@hotmail.com, email3@outlook.com
+
 
 🔐 COMO GERAR SENHA DE APLICATIVO DO GMAIL
 ────────────────────────────────────────────────────────────────
@@ -55,6 +58,9 @@ DB_NAME=sistemajuliano
 EMAIL_USER=juliano@gmail.com
 EMAIL_PASS=abcd efgh ijkl mnop
 EMAIL_TO=juliano@gmail.com
+
+# Múltiplos destinatários (opcional):
+# EMAIL_TO=email1@gmail.com, email2@hotmail.com, email3@outlook.com
 
 
 🧪 TESTANDO A CONFIGURAÇÃO
