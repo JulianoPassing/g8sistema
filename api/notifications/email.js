@@ -8,12 +8,16 @@ const nodemailer = require('nodemailer');
  * 1. Configure as variáveis de ambiente:
  *    - EMAIL_USER: seu e-mail do Gmail (ex: seuemail@gmail.com)
  *    - EMAIL_PASS: senha de aplicativo do Gmail (não use sua senha normal!)
- *    - EMAIL_TO: e-mail que receberá as notificações
+ *    - EMAIL_TO: e-mail(s) que receberá(ão) as notificações
  * 
  * 2. Para gerar senha de aplicativo no Gmail:
  *    - Acesse: https://myaccount.google.com/apppasswords
  *    - Selecione "Outro" e dê um nome (ex: "Sistema G8")
  *    - Use a senha de 16 dígitos gerada
+ * 
+ * 3. MÚLTIPLOS DESTINATÁRIOS:
+ *    Para enviar para vários e-mails, separe-os por vírgula:
+ *    EMAIL_TO=email1@gmail.com, email2@gmail.com, email3@hotmail.com
  */
 
 class EmailNotification {
@@ -63,6 +67,8 @@ class EmailNotification {
     }
 
     try {
+      // Suporta múltiplos e-mails separados por vírgula
+      // Exemplo: email1@gmail.com, email2@gmail.com, email3@gmail.com
       const emailTo = process.env.EMAIL_TO || process.env.EMAIL_USER;
       const { id, empresa, descricao, dados, origem } = pedidoData;
 

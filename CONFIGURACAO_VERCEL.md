@@ -31,6 +31,17 @@
 | `EMAIL_PASS` | `abcd efgh ijkl mnop` | Production, Preview, Development |
 | `EMAIL_TO` | `destinatario@gmail.com` | Production, Preview, Development |
 
+**💡 MÚLTIPLOS DESTINATÁRIOS:**
+Para enviar notificações para **vários e-mails ao mesmo tempo**, basta separar os e-mails por vírgula:
+
+| Name | Value | Environment |
+|------|-------|-------------|
+| `EMAIL_TO` | `email1@gmail.com, email2@hotmail.com, email3@outlook.com` | Production, Preview, Development |
+
+✅ **Todos os e-mails receberão a mesma notificação**
+✅ **Pode misturar Gmail, Hotmail, Outlook, etc.**
+✅ **Sem limite de destinatários** (mas respeite o limite de 500 e-mails/dia do Gmail)
+
 **Como adicionar cada variável:**
 - Clique em **"Add New"**
 - Em **"Key"**: digite o nome (ex: `EMAIL_USER`)
@@ -57,7 +68,8 @@ vercel env add EMAIL_PASS
 # Selecione: Production, Preview, Development
 
 vercel env add EMAIL_TO
-# Digite o e-mail que receberá as notificações
+# Digite o(s) e-mail(s) que receberá(ão) as notificações
+# Para múltiplos: email1@gmail.com, email2@hotmail.com
 # Selecione: Production, Preview, Development
 ```
 
