@@ -97,127 +97,357 @@ class EmailNotification {
         <!DOCTYPE html>
         <html>
         <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
+            /* Reset */
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
             body {
-              font-family: 'Segoe UI', Arial, sans-serif;
+              font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
               line-height: 1.6;
-              color: #333;
+              color: #000000;
+              background: #f5f5f5;
+              padding: 20px;
+            }
+            
+            /* Container principal */
+            .email-container {
               max-width: 600px;
               margin: 0 auto;
-              padding: 20px;
+              background: #ffffff;
+              border-radius: 12px;
+              overflow: hidden;
+              box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
             }
+            
+            /* Header com gradiente G8 */
             .header {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              padding: 30px;
-              border-radius: 10px 10px 0 0;
+              background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+              color: #ffffff;
+              padding: 40px 30px;
               text-align: center;
+              position: relative;
+              overflow: hidden;
             }
+            
+            .header::before {
+              content: '';
+              position: absolute;
+              top: -50%;
+              right: -50%;
+              width: 200%;
+              height: 200%;
+              background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+              animation: pulse 4s ease-in-out infinite;
+            }
+            
+            @keyframes pulse {
+              0%, 100% { opacity: 0.5; transform: scale(1); }
+              50% { opacity: 0.8; transform: scale(1.1); }
+            }
+            
+            .header-content {
+              position: relative;
+              z-index: 1;
+            }
+            
+            .logo-text {
+              font-size: 28px;
+              font-weight: 800;
+              letter-spacing: 2px;
+              margin-bottom: 8px;
+              text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            }
+            
             .header h1 {
-              margin: 0;
-              font-size: 24px;
+              font-size: 22px;
+              font-weight: 600;
+              margin: 15px 0 5px 0;
             }
+            
+            .header p {
+              font-size: 14px;
+              opacity: 0.95;
+              font-weight: 300;
+            }
+            
+            /* Linha decorativa */
+            .divider {
+              height: 4px;
+              background: linear-gradient(90deg, #ff0000 0%, #000000 100%);
+            }
+            
+            /* Conteúdo */
             .content {
-              background: #f9fafb;
-              padding: 30px;
-              border-radius: 0 0 10px 10px;
+              padding: 35px 30px;
+              background: #ffffff;
             }
-            .info-box {
-              background: white;
+            
+            /* Alerta de novo pedido */
+            .alert-box {
+              background: linear-gradient(135deg, #fff0f0 0%, #ffffff 100%);
+              border-left: 5px solid #ff0000;
               padding: 20px;
               border-radius: 8px;
-              margin-bottom: 20px;
-              border-left: 4px solid #667eea;
+              margin-bottom: 30px;
+              box-shadow: 0 4px 12px rgba(255, 0, 0, 0.1);
             }
-            .info-row {
-              display: flex;
+            
+            .alert-icon {
+              font-size: 32px;
               margin-bottom: 10px;
             }
+            
+            .alert-title {
+              font-size: 18px;
+              font-weight: 700;
+              color: #ff0000;
+              margin-bottom: 5px;
+            }
+            
+            .alert-text {
+              color: #333333;
+              font-size: 14px;
+            }
+            
+            /* Box de informações */
+            .info-box {
+              background: #fafafa;
+              padding: 25px;
+              border-radius: 10px;
+              margin-bottom: 25px;
+              border: 1px solid #e0e0e0;
+            }
+            
+            .info-row {
+              display: flex;
+              padding: 12px 0;
+              border-bottom: 1px solid #e5e5e5;
+              align-items: center;
+            }
+            
+            .info-row:last-child {
+              border-bottom: none;
+            }
+            
             .info-label {
-              font-weight: bold;
-              color: #667eea;
-              min-width: 120px;
+              font-weight: 700;
+              color: #000000;
+              min-width: 140px;
+              font-size: 14px;
+              display: flex;
+              align-items: center;
             }
+            
+            .info-label::before {
+              content: '●';
+              color: #ff0000;
+              margin-right: 8px;
+              font-size: 18px;
+            }
+            
             .info-value {
-              color: #333;
+              color: #333333;
+              font-size: 14px;
+              flex: 1;
             }
-            .description-box {
-              background: white;
-              padding: 20px;
-              border-radius: 8px;
-              margin-top: 20px;
-              white-space: pre-wrap;
-              font-family: monospace;
-              font-size: 12px;
-              max-height: 400px;
-              overflow-y: auto;
-              border: 1px solid #e5e7eb;
+            
+            .info-value strong {
+              color: #000000;
+              font-weight: 700;
             }
-            .footer {
-              text-align: center;
-              margin-top: 20px;
-              color: #6b7280;
-              font-size: 12px;
-            }
+            
+            /* Badge B2B */
             .badge {
               display: inline-block;
-              padding: 4px 12px;
-              border-radius: 12px;
-              background: #667eea;
-              color: white;
+              padding: 6px 14px;
+              border-radius: 20px;
+              background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+              color: #ffffff;
+              font-size: 11px;
+              font-weight: 700;
+              letter-spacing: 1px;
+              text-transform: uppercase;
+              box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+            }
+            
+            /* Seção de descrição */
+            .description-section {
+              margin-top: 30px;
+            }
+            
+            .section-title {
+              font-size: 16px;
+              font-weight: 700;
+              color: #000000;
+              margin-bottom: 15px;
+              padding-bottom: 10px;
+              border-bottom: 3px solid #ff0000;
+              display: flex;
+              align-items: center;
+            }
+            
+            .section-title::before {
+              content: '📋';
+              margin-right: 10px;
+              font-size: 20px;
+            }
+            
+            .description-box {
+              background: #fafafa;
+              padding: 20px;
+              border-radius: 8px;
+              border: 1px solid #e0e0e0;
+              white-space: pre-wrap;
+              word-wrap: break-word;
+              font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+              font-size: 13px;
+              line-height: 1.6;
+              color: #1a1a1a;
+              max-height: 400px;
+              overflow-y: auto;
+            }
+            
+            /* Footer */
+            .footer {
+              background: linear-gradient(135deg, #000000 0%, #333333 100%);
+              color: #ffffff;
+              padding: 25px 30px;
+              text-align: center;
+            }
+            
+            .footer-logo {
+              font-size: 20px;
+              font-weight: 800;
+              letter-spacing: 2px;
+              margin-bottom: 10px;
+              color: #ff0000;
+            }
+            
+            .footer p {
               font-size: 12px;
-              font-weight: bold;
+              margin: 5px 0;
+              opacity: 0.8;
+            }
+            
+            .footer-divider {
+              width: 60px;
+              height: 2px;
+              background: #ff0000;
+              margin: 15px auto;
+            }
+            
+            /* Responsivo */
+            @media only screen and (max-width: 600px) {
+              body {
+                padding: 10px;
+              }
+              
+              .header {
+                padding: 30px 20px;
+              }
+              
+              .content {
+                padding: 25px 20px;
+              }
+              
+              .info-label {
+                min-width: 100px;
+                font-size: 13px;
+              }
+              
+              .info-value {
+                font-size: 13px;
+              }
+              
+              .logo-text {
+                font-size: 24px;
+              }
             }
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1>🛒 Novo Pedido Recebido!</h1>
-            <p style="margin: 10px 0 0 0; opacity: 0.9;">Sistema G8</p>
-          </div>
-          
-          <div class="content">
-            <div class="info-box">
-              <div class="info-row">
-                <div class="info-label">Pedido:</div>
-                <div class="info-value"><strong>#${id}</strong></div>
-              </div>
-              
-              <div class="info-row">
-                <div class="info-label">Empresa:</div>
-                <div class="info-value"><strong>${empresa}</strong></div>
-              </div>
-              
-              ${isB2B ? `
-              <div class="info-row">
-                <div class="info-label">Tipo:</div>
-                <div class="info-value"><span class="badge">B2B</span></div>
-              </div>
-              
-              <div class="info-row">
-                <div class="info-label">Cliente:</div>
-                <div class="info-value">${clienteNome}</div>
-              </div>
-              
-              <div class="info-row">
-                <div class="info-label">Observações:</div>
-                <div class="info-value">${observacoes}</div>
-              </div>
-              ` : ''}
-              
-              <div class="info-row">
-                <div class="info-label">Data/Hora:</div>
-                <div class="info-value">${new Date().toLocaleString('pt-BR')}</div>
+          <div class="email-container">
+            <!-- Header -->
+            <div class="header">
+              <div class="header-content">
+                <div class="logo-text">G8</div>
+                <h1>🛒 Novo Pedido Recebido</h1>
+                <p>Sistema de Pedidos</p>
               </div>
             </div>
             
-            <h3 style="color: #667eea; margin-top: 20px;">Descrição do Pedido:</h3>
-            <div class="description-box">${descricao || 'Sem descrição'}</div>
-          </div>
-          
-          <div class="footer">
-            <p>Este é um e-mail automático do Sistema G8</p>
-            <p>Não responda este e-mail</p>
+            <!-- Divider -->
+            <div class="divider"></div>
+            
+            <!-- Content -->
+            <div class="content">
+              <!-- Alert Box -->
+              <div class="alert-box">
+                <div class="alert-icon">🔔</div>
+                <div class="alert-title">Atenção: Novo Pedido Cadastrado!</div>
+                <div class="alert-text">Um novo pedido foi registrado no sistema e requer sua atenção.</div>
+              </div>
+              
+              <!-- Info Box -->
+              <div class="info-box">
+                <div class="info-row">
+                  <div class="info-label">Pedido</div>
+                  <div class="info-value"><strong>#${id}</strong></div>
+                </div>
+                
+                <div class="info-row">
+                  <div class="info-label">Empresa</div>
+                  <div class="info-value"><strong>${empresa}</strong></div>
+                </div>
+                
+                ${isB2B ? `
+                <div class="info-row">
+                  <div class="info-label">Tipo</div>
+                  <div class="info-value"><span class="badge">Portal B2B</span></div>
+                </div>
+                
+                <div class="info-row">
+                  <div class="info-label">Cliente</div>
+                  <div class="info-value">${clienteNome}</div>
+                </div>
+                
+                ${observacoes !== 'Sem observações' ? `
+                <div class="info-row">
+                  <div class="info-label">Observações</div>
+                  <div class="info-value">${observacoes}</div>
+                </div>
+                ` : ''}
+                ` : ''}
+                
+                <div class="info-row">
+                  <div class="info-label">Data/Hora</div>
+                  <div class="info-value">${new Date().toLocaleString('pt-BR', { 
+                    dateStyle: 'long', 
+                    timeStyle: 'short' 
+                  })}</div>
+                </div>
+              </div>
+              
+              <!-- Description Section -->
+              <div class="description-section">
+                <div class="section-title">Descrição do Pedido</div>
+                <div class="description-box">${descricao || 'Nenhuma descrição fornecida.'}</div>
+              </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+              <div class="footer-logo">G8 REPRESENTAÇÕES</div>
+              <div class="footer-divider"></div>
+              <p>Este é um e-mail automático do Sistema G8</p>
+              <p>Por favor, não responda este e-mail</p>
+            </div>
           </div>
         </body>
         </html>
