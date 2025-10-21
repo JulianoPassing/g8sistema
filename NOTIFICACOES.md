@@ -43,8 +43,11 @@ EMAIL_USER=seuemail@gmail.com
 # Senha de aplicativo gerada no passo anterior
 EMAIL_PASS=xxxx xxxx xxxx xxxx
 
-# E-mail que receberá as notificações (pode ser o mesmo ou diferente)
+# E-mail(s) que receberá(ão) as notificações (pode ser o mesmo ou diferente)
 EMAIL_TO=destinatario@gmail.com
+
+# Para MÚLTIPLOS destinatários, separe por vírgula:
+# EMAIL_TO=email1@gmail.com, email2@hotmail.com, email3@outlook.com
 ```
 
 **⚠️ IMPORTANTE:**
@@ -175,6 +178,54 @@ Você deve receber o e-mail em alguns segundos!
 1. Verifique a pasta de spam/lixo eletrônico
 2. Marque como "não é spam"
 3. Adicione o remetente aos contatos
+
+## 📮 Múltiplos Destinatários
+
+### Como configurar para vários e-mails
+
+Basta separar os e-mails por vírgula na variável `EMAIL_TO`:
+
+```env
+EMAIL_TO=gerente@empresa.com, vendedor@empresa.com, diretoria@empresa.com
+```
+
+### Exemplos de uso
+
+**Exemplo 1: Equipe de vendas**
+```env
+EMAIL_TO=joao@empresa.com, maria@empresa.com, pedro@empresa.com
+```
+
+**Exemplo 2: Misturando provedores**
+```env
+EMAIL_TO=gerente@gmail.com, vendas@hotmail.com, comercial@outlook.com
+```
+
+**Exemplo 3: Departamentos diferentes**
+```env
+EMAIL_TO=vendas@empresa.com, financeiro@empresa.com, estoque@empresa.com
+```
+
+### Características
+
+✅ **Todos recebem simultaneamente** - Não é cópia (CC) nem cópia oculta (BCC), todos são destinatários principais
+✅ **Sem limite de destinatários** - Pode adicionar quantos e-mails precisar
+✅ **Funciona com qualquer provedor** - Gmail, Hotmail, Outlook, Yahoo, domínios próprios, etc.
+✅ **Mesmo formato elegante** - Todos recebem o e-mail com o design profissional
+
+### ⚠️ Importante sobre limites
+
+Lembre-se que o Gmail tem limite de **500 e-mails por dia** no plano gratuito. Se você configurar 5 destinatários, cada pedido consome 5 e-mails do seu limite diário.
+
+**Cálculo:**
+- 1 destinatário = até 500 pedidos/dia
+- 2 destinatários = até 250 pedidos/dia
+- 5 destinatários = até 100 pedidos/dia
+- 10 destinatários = até 50 pedidos/dia
+
+Se precisar de mais, considere serviços como SendGrid ou Mailgun.
+
+---
 
 ## 🎨 Personalização
 
