@@ -91,11 +91,18 @@ Problema: "E-mail não chega"
 Solução: Verifique a pasta de spam/lixo eletrônico
 
 
-💡 DICA
+💡 DICAS
 ────────────────────────────────────────────────────────────────
 
-Use o mesmo e-mail em EMAIL_USER e EMAIL_TO se quiser receber
-as notificações no mesmo e-mail que envia.
+✅ Use o mesmo e-mail em EMAIL_USER e EMAIL_TO se quiser receber
+   as notificações no mesmo e-mail que envia.
+
+✅ Para enviar para VÁRIOS E-MAILS ao mesmo tempo, separe por vírgula:
+   EMAIL_TO=email1@gmail.com, email2@hotmail.com, email3@outlook.com
+
+✅ Pode misturar Gmail, Hotmail, Outlook e outros provedores.
+
+✅ Todos os destinatários receberão a mesma notificação.
 
 
 🆘 PRECISA DE AJUDA?
