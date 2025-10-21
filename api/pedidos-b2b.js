@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+const emailNotification = require('./notifications/email');
 
 module.exports = async (req, res) => {
   const connection = await mysql.createConnection({
@@ -32,6 +33,17 @@ module.exports = async (req, res) => {
         `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
         [empresa, descricao, JSON.stringify(dadosCompletos)]
       );
+      
+      // Enviar notificação por e-mail (não bloqueia a resposta)
+      emailNotification.notifyNewOrder({
+        id: result.insertId,
+        empresa: empresa,
+        descricao: descricao,
+        dados: dadosCompletos,
+        origem: 'b2b'
+      }).catch(err => {
+        console.error('Erro ao enviar notificação por e-mail (B2B):', err);
+      });
       
       res.status(201).json({ 
         id: result.insertId, 

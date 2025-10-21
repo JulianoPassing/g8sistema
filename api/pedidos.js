@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+const emailNotification = require('./notifications/email');
 
 // Cache para prevenir operações duplicadas
 const operationCache = new Map();
@@ -80,6 +81,18 @@ module.exports = async (req, res) => {
         `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())` ,
         [empresaFinal, descricaoFinal, dadosFinal]
       );
+      
+      // Enviar notificação por e-mail (não bloqueia a resposta)
+      emailNotification.notifyNewOrder({
+        id: result.insertId,
+        empresa: empresaFinal,
+        descricao: descricaoFinal,
+        dados: dadosFinal,
+        origem: 'normal'
+      }).catch(err => {
+        console.error('Erro ao enviar notificação por e-mail:', err);
+      });
+      
       res.status(201).json({ id: result.insertId, message: 'Pedido cadastrado com sucesso!' });
       return;
     }

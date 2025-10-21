@@ -28,6 +28,7 @@ Sistema completo de pedidos e gestão de clientes para G8 Representações, com 
 - **Tratamento de Erros**: Captura global e feedback inteligente
 - **Auto-save**: Salvamento automático de formulários
 - **Detecção Offline**: Notificação de status de conexão
+- **📧 Notificações por E-mail**: Sistema automático de notificação via e-mail para novos pedidos
 
 ### 🔧 Tecnologias Utilizadas
 - **Frontend**: HTML5, CSS3, JavaScript ES6+ (Vanilla)
@@ -61,9 +62,29 @@ Sistema completo de pedidos e gestão de clientes para G8 Representações, com 
 - **Consistência**: Mesmos dados em todas as páginas
 - **Performance**: Carregamento assíncrono dos dados
 
+## 📧 Notificações por E-mail
+
+### Como Funciona
+- ✅ **Automático**: Envia e-mail automaticamente quando um pedido novo é criado
+- ✅ **Gratuito**: Usa Gmail (até 500 e-mails/dia)
+- ✅ **Elegante**: E-mails com design profissional em HTML
+- ✅ **Completo**: Inclui todos os detalhes do pedido
+
+### Configuração Rápida no Vercel
+1. Gere uma senha de aplicativo do Gmail: https://myaccount.google.com/apppasswords
+2. Adicione as variáveis no Vercel Dashboard → Settings → Environment Variables:
+   - `EMAIL_USER` = seu e-mail do Gmail
+   - `EMAIL_PASS` = senha de aplicativo gerada
+   - `EMAIL_TO` = e-mail que receberá as notificações
+3. Faça redeploy
+4. Pronto! Teste criando um pedido
+
+📖 **Documentação Completa**: Leia `CONFIGURACAO_VERCEL.md` ou `COMO_CONFIGURAR_EMAIL_VERCEL.txt`
+
 ## Como Usar
 1. Faça login no sistema
 2. Acesse uma das páginas de pedidos
 3. Selecione um cliente da lista (carregada automaticamente)
 4. Adicione produtos ao pedido
 5. Gere o PDF do pedido
+6. **Receba notificação por e-mail automaticamente** 📧
