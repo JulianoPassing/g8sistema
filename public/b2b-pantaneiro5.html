@@ -2768,10 +2768,21 @@ window.produtosData = [
 
       // Função para gerar card de produto para mobile
       function gerarCardProdutoMobile(produto) {
-        const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
         let tamanhosHTML = '';
         
-        if (tamanhosNormais) {
+        if (produto.REFERENCIA === "201") {
+          // Referência 201: Tamanho único com seleção de botas
+          const tamanhosBotas = ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
+          tamanhosHTML = '<div class="tamanho-input-container">';
+          tamanhosBotas.forEach((tamanho) => {
+            tamanhosHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanho}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanho}"></div>`;
+          });
+          tamanhosHTML += '</div>';
+        } else if (produto.REFERENCIA === "203" || produto.REFERENCIA === "204") {
+          // Outras referências com tamanho manual
+          tamanhosHTML = `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
+        } else {
+          // Produtos normais com tamanhos padrão
           const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
           tamanhosHTML = '<div class="tamanho-input-container">';
           tamanhosProduto.forEach((tamanho) => {
@@ -2779,8 +2790,6 @@ window.produtosData = [
             tamanhosHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
           });
           tamanhosHTML += '</div>';
-        } else {
-          tamanhosHTML = `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
         }
 
         return `
@@ -2841,16 +2850,24 @@ window.produtosData = [
             // Layout de tabela para desktop
             let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
             categoriaProdutos.forEach((produto) => {
-              const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
               let tamanhosInputHTML = '<div class="tamanho-input-container">';
-              if (tamanhosNormais) {
+              
+              if (produto.REFERENCIA === "201") {
+                // Referência 201: Tamanho único com seleção de botas
+                const tamanhosBotas = ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
+                tamanhosBotas.forEach((tamanho) => {
+                  tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanho}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanho}"></div>`;
+                });
+              } else if (produto.REFERENCIA === "203" || produto.REFERENCIA === "204") {
+                // Outras referências com tamanho manual
+                tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
+              } else {
+                // Produtos normais com tamanhos padrão
                 const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
                 tamanhosProduto.forEach((tamanho) => {
                   const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
                   tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
                 });
-              } else {
-                tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
               }
               tamanhosInputHTML += "</div>";
               tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
@@ -2897,8 +2914,16 @@ window.produtosData = [
             });
           }
         };
-        const isManualSize = ["201", "203", "204"].includes(produto.REFERENCIA);
-        if (isManualSize) {
+        if (produto.REFERENCIA === "201") {
+          // Referência 201: Processar tamanhos de botas
+          const tamanhosBotas = ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
+          tamanhosBotas.forEach((tamanho) => {
+            const quantidadeInput = document.getElementById(`quantidade-${produto.REFERENCIA}-${tamanho}`);
+            const quantidade = quantidadeInput ? parseInt(quantidadeInput.value) || 0 : 0;
+            handleItem(tamanho, quantidade);
+          });
+        } else if (produto.REFERENCIA === "203" || produto.REFERENCIA === "204") {
+          // Referências 203 e 204: Tamanho manual
           const tamanhoManual = document
             .getElementById(`tamanho-${produto.REFERENCIA}`)
             .value.trim();
@@ -2926,7 +2951,7 @@ window.produtosData = [
         }
         if (itemAdicionado) {
           atualizarVisualizacaoPedido();
-        } else if (!isManualSize) {
+        } else if (produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204") {
           alert(
             `Por favor, informe a quantidade para pelo menos um tamanho do produto ${produto.DESCRIÇÃO}.`
           );
@@ -3151,16 +3176,24 @@ window.produtosData = [
           } else {
             // Layout de tabela para desktop
             let tabelaHTML = `<div class="card-header"><h2>${produto.CATEGORIA}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
-            const tamanhosNormais = produto.REFERENCIA !== "201" && produto.REFERENCIA !== "203" && produto.REFERENCIA !== "204";
             let tamanhosInputHTML = '<div class="tamanho-input-container">';
-            if (tamanhosNormais) {
+            
+            if (produto.REFERENCIA === "201") {
+              // Referência 201: Tamanho único com seleção de botas
+              const tamanhosBotas = ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
+              tamanhosBotas.forEach((tamanho) => {
+                tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanho}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanho}"></div>`;
+              });
+            } else if (produto.REFERENCIA === "203" || produto.REFERENCIA === "204") {
+              // Outras referências com tamanho manual
+              tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
+            } else {
+              // Produtos normais com tamanhos padrão
               const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
               tamanhosProduto.forEach((tamanho) => {
                 const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
                 tamanhosInputHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
               });
-            } else {
-              tamanhosInputHTML += `<input type="text" placeholder="Digite Tamanho/Bota" class="manual-tamanho-input" id="tamanho-${produto.REFERENCIA}">`;
             }
             tamanhosInputHTML += "</div>";
             tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
