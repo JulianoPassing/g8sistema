@@ -25,6 +25,8 @@
       <link rel="stylesheet" href="connection-status.css">
     <script src="advanced-notifications.js"></script>
     <script src="animations.js"></script>
+    <script src="offline-system.js"></script>
+    <script src="connection-monitor.js"></script>
 
     <style>
       :root {
@@ -1034,20 +1036,20 @@
       // Carregar clientes da API
       async function carregarClientes() {
         try {
-          const response = await fetch('https://g8-server-final.onrender.com/api/clientes');
+          const response = await fetch('/api/clientes');
           if (!response.ok) throw new Error('Erro ao buscar clientes da API');
           const data = await response.json();
           clientesCadastrados = data;
         } catch (error) {
           console.error('Erro ao carregar clientes da API:', error);
+          // Fallback para o arquivo JSON se a API falhar
           try {
-            const response = await fetch('/clientes.json');
-            if (!response.ok) throw new Error('Erro ao buscar clientes do JSON');
+            const response = await fetch('clientes.json');
+            if (!response.ok) throw new Error('Erro ao buscar clientes.json');
             const data = await response.json();
-            clientesCadastrados = data.clientes || [];
-          } catch (jsonError) {
-            console.error('Erro ao carregar clientes do JSON:', jsonError);
-            clientesCadastrados = [];
+            clientesCadastrados = data;
+          } catch (fallbackError) {
+            alert('Erro ao carregar os dados dos clientes. Verifique se a API está disponível.');
           }
         }
       }
@@ -1577,68 +1579,53 @@ window.produtosData = [
           return;
         }
 
-        try {
-          const pedidoData = {
-            empresa: 'bkb',
-            descricao: `Pedido BKB - ${inputsCliente.razao.value} - ${window.pedidoItens.length} itens`,
-            dados: {
-              cliente: {
-                razao: inputsCliente.razao.value,
-                cnpj: inputsCliente.cnpj.value,
-                ie: inputsCliente.ie.value,
-                endereco: inputsCliente.endereco.value,
-                bairro: inputsCliente.bairro.value,
-                cidade: inputsCliente.cidade.value,
-                estado: inputsCliente.estado.value,
-                cep: inputsCliente.cep.value,
-                email: inputsCliente.email.value,
-                telefone: inputsCliente.telefone.value,
-                transporte: inputsCliente.transporte.value,
-                prazo: inputsCliente.prazo.value,
-              },
-              itens: window.pedidoItens,
-              total: subtotalPedido,
-              data: new Date().toISOString(),
-              origem: 'Sistema BKB',
-              observacoes: inputsCliente.obs.value,
-              representante: sessionStorage.getItem("loggedInUser") || "Não identificado"
+        // Preparar descrição do pedido
+        const descricaoPedido = `Cliente: ${inputsCliente.razao.value} Itens: ${window.pedidoItens.map(item => item.CODIGO + ' x' + item.quantidade).join(', ')} Total: R$ ${subtotalPedido.toFixed(2)}`;
+        
+        const dadosPedido = {
+          cliente: Object.fromEntries(Object.entries(inputsCliente).map(([k, v]) => [k, v.value])),
+          itens: window.pedidoItens,
+          total: subtotalPedido,
+          data: new Date().toISOString(),
+          representante: sessionStorage.getItem("loggedInUser") || "Não identificado"
+        };
+
+        // Usar sistema offline
+        const orderData = {
+          empresa: 'bkb',
+          descricao: descricaoPedido,
+          dados: dadosPedido
+        };
+
+        window.offlineSystem.tryToSendOrder(orderData)
+          .then(result => {
+            if (result.success) {
+              if (result.online) {
+                alert('✅ Pedido enviado e salvo com sucesso!');
+              } else {
+                alert('📱 Sem conexão! Pedido salvo localmente e será enviado automaticamente quando a conexão retornar.');
+              }
+              
+              // Limpar pedido
+              window.pedidoItens = [];
+              atualizarVisualizacaoPedido();
+              
+              // Limpar campos do cliente
+              selectCliente.value = "";
+              Object.values(inputsCliente).forEach((input) => (input.value = ""));
+              
+              // Redirecionar para pedidos após 1 segundo
+              setTimeout(() => {
+                window.location.href = 'pedidos.html';
+              }, 1000);
+            } else {
+              alert('❌ Erro ao processar o pedido.');
             }
-          };
-
-          const response = await fetch('https://g8-server-final.onrender.com/api/pedidos', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(pedidoData)
+          })
+          .catch(error => {
+            console.error('Erro no sistema offline:', error);
+            alert('❌ Erro ao processar o pedido.');
           });
-
-          if (response.ok) {
-            alert('✅ Pedido enviado com sucesso!');
-            
-            // Gerar PDF automaticamente
-            gerarPDF();
-            
-            // Limpar pedido
-            window.pedidoItens = [];
-            atualizarVisualizacaoPedido();
-            
-            // Limpar campos do cliente
-            selectCliente.value = "";
-            Object.values(inputsCliente).forEach((input) => (input.value = ""));
-            
-            // Redirecionar para pedidos
-            setTimeout(() => {
-              window.location.href = 'pedidos.html';
-            }, 2000);
-          } else {
-            throw new Error('Erro ao enviar pedido');
-          }
-        } catch (error) {
-          console.error('Erro ao enviar pedido:', error);
-          alert('❌ Erro ao enviar pedido. O PDF foi gerado para envio manual.');
-          gerarPDF();
-        }
       }
 
       // Função para mostrar sugestões de produtos
