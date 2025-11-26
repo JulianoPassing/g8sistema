@@ -781,6 +781,9 @@ window.editarPedido = function(id) {
         case 'b2b-steitz':
           paginaEmpresa = 'steitz.html';
           break;
+        case 'bkb':
+          paginaEmpresa = 'bkb.html';
+          break;
         default:
           alert('Empresa não reconhecida.');
           return;
@@ -2689,6 +2692,9 @@ window.editarPedido = function(id) {
         case 'steitz':
         case 'b2b-steitz':
           paginaEmpresa = 'steitz.html';
+          break;
+        case 'bkb':
+          paginaEmpresa = 'bkb.html';
           break;
         default:
           alert('Empresa não reconhecida.');

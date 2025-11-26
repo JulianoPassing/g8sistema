@@ -1282,8 +1282,10 @@ window.produtosData = [
           window.pedidoItens.push({
             REFERENCIA: produto.REFERENCIA,
             DESCRIÇÃO: produto.DESCRIÇÃO,
+            tamanho: '',  // BKB não usa tamanhos, mas manter compatibilidade
             preco: produto.PRECO,
             quantidade: quantidade,
+            descontoExtra: 0
           });
         }
         
@@ -1651,6 +1653,17 @@ window.produtosData = [
           representante: sessionStorage.getItem("loggedInUser") || "Não identificado"
         };
 
+        // Verificar se está em modo edição
+        const urlParams = new URLSearchParams(window.location.search);
+        const modoEdicao = urlParams.get('modo') === 'edicao';
+        
+        if (modoEdicao) {
+          console.log('🚫 MODO EDIÇÃO DETECTADO - não fazendo POST (usando editor-pedido.js)');
+          return; // Não fazer POST em modo edição
+        }
+        
+        console.log('📤 Fazendo POST para criar novo pedido (modo normal)');
+        
         // Usar sistema offline
         const orderData = {
           empresa: 'bkb',
@@ -1778,6 +1791,7 @@ window.produtosData = [
         });
       }
     </script>
+    <script src="editor-pedido.js"></script>
   </body>
 </html>
 
