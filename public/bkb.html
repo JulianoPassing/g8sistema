@@ -403,7 +403,8 @@
         font-weight: 500;
       }
 
-      /* CSS para sugestões de produtos */
+      /* CSS para sugestões de clientes e produtos */
+      #sugestoes-clientes,
       #sugestoes-produtos {
         position: absolute;
         background: white;
@@ -435,6 +436,34 @@
       .sugestao-cliente-item:hover {
         background: #f3f7fa;
         color: #007bff;
+      }
+      #busca-cliente {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+        padding: 10px 12px;
+        font-size: 1em;
+        margin-bottom: 6px;
+        transition: all 0.3s ease;
+      }
+      #busca-cliente:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+      }
+      #cliente-selecionado {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+      #cliente-selecionado:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
       }
 
       /* Estilos específicos para inputs em tabelas */
@@ -843,17 +872,44 @@
       <section class="card">
         <div class="card-header">
           <span role="img" aria-label="Cliente" style="font-size: 1.8em">👤</span>
-          <h2>Informações do Cliente - BKB</h2>
+          <h2>Gerenciar Cliente - BKB</h2>
+        </div>
+        <div class="form-group">
+          <input type="text" id="busca-cliente" placeholder="Buscar cliente..." style="margin-bottom: 10px;" />
+          <div id="sugestoes-clientes" style="position: relative; z-index: 10;"></div>
+          <select id="cliente-selecionado">
+            <option value="">- Selecione um cliente -</option>
+            <option value="novo">- Inserir manualmente -</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Dados do Cliente" style="font-size: 1.8em">📋</span>
+          <h2>Dados do Cliente</h2>
         </div>
         
         <div class="form-grid">
           <div class="form-group">
-            <label for="cliente"><span>🏢</span>Cliente:</label>
-            <input type="text" id="cliente" placeholder="Nome do Cliente" />
+            <label for="razao"><span>🏢</span>Razão Social:</label>
+            <input type="text" id="razao" placeholder="Razão Social" />
           </div>
           <div class="form-group">
-            <label for="telefone"><span>📞</span>Telefone:</label>
-            <input type="text" id="telefone" placeholder="Telefone" />
+            <label for="cnpj"><span>🏭</span>CNPJ:</label>
+            <input type="text" id="cnpj" placeholder="CNPJ" />
+          </div>
+          <div class="form-group">
+            <label for="ie"><span>📝</span>I.E:</label>
+            <input type="text" id="ie" placeholder="Inscrição Estadual" />
+          </div>
+          <div class="form-group">
+            <label for="endereco"><span>🗺️</span>Endereço:</label>
+            <input type="text" id="endereco" placeholder="Endereço" />
+          </div>
+          <div class="form-group">
+            <label for="bairro"><span>🏘️</span>Bairro:</label>
+            <input type="text" id="bairro" placeholder="Bairro" />
           </div>
           <div class="form-group">
             <label for="cidade"><span>🏙️</span>Cidade:</label>
@@ -862,6 +918,26 @@
           <div class="form-group">
             <label for="estado"><span>🌎</span>Estado:</label>
             <input type="text" id="estado" placeholder="Estado" />
+          </div>
+          <div class="form-group">
+            <label for="cep"><span>📫</span>CEP:</label>
+            <input type="text" id="cep" placeholder="CEP" />
+          </div>
+          <div class="form-group">
+            <label for="email"><span>📧</span>E-mail:</label>
+            <input type="email" id="email" placeholder="E-mail" />
+          </div>
+          <div class="form-group">
+            <label for="telefone"><span>📞</span>Telefone:</label>
+            <input type="text" id="telefone" placeholder="Telefone" />
+          </div>
+          <div class="form-group">
+            <label for="transporte"><span>🚚</span>Transporte:</label>
+            <input type="text" id="transporte" placeholder="Transporte" />
+          </div>
+          <div class="form-group">
+            <label for="prazo"><span>💰</span>Prazo Pagamento:</label>
+            <input type="text" id="prazo" placeholder="Prazo de Pagamento" />
           </div>
           <div class="form-group full-width">
             <label for="obs"><span>💬</span>Observações:</label>
@@ -907,7 +983,7 @@
     </footer>
 
     <script>
-      let clienteData = {};
+      let clientesCadastrados = [];
       let produtosSelecionados = [];
       let produtosData = [];
       const produtosContainer = document.getElementById("produtos-container");
@@ -917,6 +993,24 @@
       // Variáveis para controle do pedido
       window.pedidoItens = [];
       let subtotalPedido = 0;
+
+      // Inputs do cliente
+      const selectCliente = document.getElementById("cliente-selecionado");
+      const inputsCliente = {
+        razao: document.getElementById("razao"),
+        cnpj: document.getElementById("cnpj"),
+        ie: document.getElementById("ie"),
+        endereco: document.getElementById("endereco"),
+        bairro: document.getElementById("bairro"),
+        cidade: document.getElementById("cidade"),
+        estado: document.getElementById("estado"),
+        cep: document.getElementById("cep"),
+        email: document.getElementById("email"),
+        telefone: document.getElementById("telefone"),
+        transporte: document.getElementById("transporte"),
+        prazo: document.getElementById("prazo"),
+        obs: document.getElementById("obs"),
+      };
 
       // Verificar autenticação
       function checkAuth() {
@@ -935,6 +1029,110 @@
         localStorage.removeItem("savedUsername");
         localStorage.removeItem("savedPassword");
         window.location.href = 'index.html';
+      }
+
+      // Carregar clientes da API
+      async function carregarClientes() {
+        try {
+          const response = await fetch('https://g8-server-final.onrender.com/api/clientes');
+          if (!response.ok) throw new Error('Erro ao buscar clientes da API');
+          const data = await response.json();
+          clientesCadastrados = data;
+        } catch (error) {
+          console.error('Erro ao carregar clientes da API:', error);
+          try {
+            const response = await fetch('/clientes.json');
+            if (!response.ok) throw new Error('Erro ao buscar clientes do JSON');
+            const data = await response.json();
+            clientesCadastrados = data.clientes || [];
+          } catch (jsonError) {
+            console.error('Erro ao carregar clientes do JSON:', jsonError);
+            clientesCadastrados = [];
+          }
+        }
+      }
+
+      // Popular select de clientes
+      async function popularClientes(filtro = "") {
+        if (clientesCadastrados.length === 0) {
+          await carregarClientes();
+        }
+        selectCliente.innerHTML = '';
+        const optionPadrao = document.createElement("option");
+        optionPadrao.value = "";
+        optionPadrao.textContent = "- Selecione um cliente -";
+        selectCliente.appendChild(optionPadrao);
+        const optionNovo = document.createElement("option");
+        optionNovo.value = "novo";
+        optionNovo.textContent = "- Inserir manualmente -";
+        selectCliente.appendChild(optionNovo);
+        
+        const filtroLower = filtro.toLowerCase();
+        const clientesFiltrados = clientesCadastrados.filter((cliente) => {
+          return (
+            !filtro ||
+            (cliente.razao && cliente.razao.toLowerCase().includes(filtroLower)) ||
+            (cliente.cnpj && cliente.cnpj.toLowerCase().includes(filtroLower)) ||
+            (cliente.cidade && cliente.cidade.toLowerCase().includes(filtroLower))
+          );
+        });
+        
+        clientesFiltrados.forEach((cliente) => {
+          const option = document.createElement("option");
+          option.value = cliente.id;
+          option.textContent = `${cliente.razao} - ${cliente.cidade || ""}`;
+          selectCliente.appendChild(option);
+        });
+      }
+
+      // Preencher formulário com dados do cliente
+      function preencherFormularioCliente(clienteId) {
+        if (clienteId === "novo" || !clienteId) {
+          Object.values(inputsCliente).forEach((input) => (input.value = ""));
+          return;
+        }
+        const cliente = clientesCadastrados.find((c) => c.id === clienteId);
+        if (cliente) {
+          for (const key in inputsCliente) {
+            inputsCliente[key].value = cliente[key] || "";
+          }
+        }
+      }
+
+      // Mostrar sugestões de clientes
+      function mostrarSugestoesClientes(filtro) {
+        const sugestoesDiv = document.getElementById("sugestoes-clientes");
+        sugestoesDiv.innerHTML = "";
+        if (!filtro || filtro.length < 2) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        const filtroLower = filtro.toLowerCase();
+        const clientesFiltrados = clientesCadastrados.filter((cliente) => {
+          return (
+            (cliente.razao && cliente.razao.toLowerCase().includes(filtroLower)) ||
+            (cliente.cnpj && cliente.cnpj.toLowerCase().includes(filtroLower)) ||
+            (cliente.cidade && cliente.cidade.toLowerCase().includes(filtroLower))
+          );
+        });
+        if (clientesFiltrados.length === 0) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        sugestoesDiv.style.display = "block";
+        clientesFiltrados.slice(0, 8).forEach((cliente) => {
+          const item = document.createElement("div");
+          item.className = "sugestao-cliente-item";
+          item.innerHTML = `<strong>${cliente.razao}</strong><br><small>${cliente.cidade || ""} | CNPJ: ${cliente.cnpj || ""} | Tel: ${cliente.telefone || ""}</small>`;
+          item.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            selectCliente.value = cliente.id;
+            preencherFormularioCliente(cliente.id);
+            document.getElementById("busca-cliente").value = cliente.razao;
+            sugestoesDiv.style.display = "none";
+          });
+          sugestoesDiv.appendChild(item);
+        });
       }
 
 // ========== INÍCIO DA LISTA DE PRODUTOS BKB ==========
@@ -1162,70 +1360,192 @@ window.produtosData = [
       // Gerar PDF do pedido
       function gerarPDF() {
         if (window.pedidoItens.length === 0) {
-          alert('Adicione pelo menos um produto ao pedido para gerar o PDF.');
+          alert("O pedido está vazio. Adicione itens antes de gerar o PDF.");
+          return;
+        }
+        
+        // Validação dos campos obrigatórios
+        if (!inputsCliente.transporte.value.trim()) {
+          alert("O campo Transporte é obrigatório.");
+          inputsCliente.transporte.focus();
+          return;
+        }
+        if (!inputsCliente.prazo.value.trim()) {
+          alert("O campo Prazo de Pagamento é obrigatório.");
+          inputsCliente.prazo.focus();
+          return;
+        }
+        if (!inputsCliente.obs.value.trim()) {
+          alert("O campo Observações é obrigatório.");
+          inputsCliente.obs.focus();
           return;
         }
 
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const doc = new jsPDF("p", "mm", "a4");
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        let finalY = 0;
 
-        // Título
-        doc.setFontSize(18);
-        doc.setFont(undefined, 'bold');
-        doc.text('Pedido BKB - G8 Representações', 105, 20, { align: 'center' });
+        const drawHeaderAndFooter = (data) => {
+          const logoImg = new Image();
+          logoImg.src = "https://i.imgur.com/vjq26ym.png";
+          doc.addImage(logoImg, "PNG", margin, 10, 90, 15);
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.text("Pedido de Venda - BKB", pageWidth - margin, 18, {
+            align: "right",
+          });
+          const hoje = new Date();
+          const dataAtual = `${hoje.getDate().toString().padStart(2, "0")}/${(
+            hoje.getMonth() + 1
+          )
+            .toString()
+            .padStart(2, "0")}/${hoje.getFullYear()}`;
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Data: ${dataAtual}`, pageWidth - margin, 24, {
+            align: "right",
+          });
 
-        // Informações do cliente
+          const pageCount = doc.internal.getNumberOfPages();
+          for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            doc.text(
+              `Página ${i} de ${pageCount}`,
+              pageWidth / 2,
+              pageHeight - 10,
+              { align: "center" }
+            );
+            doc.text(
+              "© 2025 G8 Representações - Desenvolvido por J.P Sistemas",
+              pageWidth / 2,
+              pageHeight - 5,
+              { align: "center" }
+            );
+          }
+        };
+
+        drawHeaderAndFooter();
+
+        // Dados do Cliente
+        let startY = 35;
         doc.setFontSize(12);
-        doc.setFont(undefined, 'normal');
-        const cliente = document.getElementById('cliente').value || 'Não informado';
-        const telefone = document.getElementById('telefone').value || 'Não informado';
-        const cidade = document.getElementById('cidade').value || 'Não informado';
-        const estado = document.getElementById('estado').value || 'Não informado';
-        const obs = document.getElementById('obs').value || 'Sem observações';
+        doc.setFont("helvetica", "bold");
+        doc.setFillColor(255, 0, 0);
+        doc.rect(margin, startY, pageWidth - 2 * margin, 8, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.text("Dados do Cliente", margin + 3, startY + 5.5);
 
-        doc.text(`Cliente: ${cliente}`, 20, 35);
-        doc.text(`Telefone: ${telefone}`, 20, 42);
-        doc.text(`Cidade/Estado: ${cidade} - ${estado}`, 20, 49);
-        doc.text(`Observações: ${obs}`, 20, 56);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
 
-        // Tabela de produtos
-        const produtosTabela = window.pedidoItens.map(item => [
+        let currentY = startY + 12;
+        const lineHeight = 5;
+
+        const clienteInfo = [
+          { label: "Razão Social:", value: inputsCliente.razao.value },
+          { label: "CNPJ:", value: inputsCliente.cnpj.value },
+          { label: "I.E:", value: inputsCliente.ie.value },
+          { label: "Endereço:", value: inputsCliente.endereco.value },
+          { label: "Bairro:", value: inputsCliente.bairro.value },
+          { label: "Cidade:", value: inputsCliente.cidade.value },
+          { label: "Estado:", value: inputsCliente.estado.value },
+          { label: "CEP:", value: inputsCliente.cep.value },
+          { label: "E-mail:", value: inputsCliente.email.value },
+          { label: "Telefone:", value: inputsCliente.telefone.value },
+          { label: "Transporte:", value: inputsCliente.transporte.value },
+          { label: "Prazo Pagamento:", value: inputsCliente.prazo.value },
+        ];
+
+        clienteInfo.forEach((info) => {
+          doc.setFont("helvetica", "bold");
+          doc.text(info.label, margin + 3, currentY);
+          doc.setFont("helvetica", "normal");
+          doc.text(info.value || "N/A", margin + 40, currentY);
+          currentY += lineHeight;
+        });
+
+        // Observações
+        currentY += 3;
+        doc.setFont("helvetica", "bold");
+        doc.text("Observações:", margin + 3, currentY);
+        doc.setFont("helvetica", "normal");
+        const obsText = inputsCliente.obs.value || "N/A";
+        const obsLines = doc.splitTextToSize(obsText, pageWidth - 2 * margin - 6);
+        doc.text(obsLines, margin + 3, currentY + 5);
+        currentY += obsLines.length * 5 + 8;
+
+        // Tabela de Produtos
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setFillColor(255, 0, 0);
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 8, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.text("Itens do Pedido", margin + 3, currentY + 5.5);
+        doc.setTextColor(0, 0, 0);
+
+        currentY += 12;
+
+        const produtosTabela = window.pedidoItens.map((item) => [
           item.CODIGO,
           item.DESCRICAO,
           item.quantidade.toString(),
           `R$ ${item.preco.toFixed(2)}`,
-          `R$ ${(item.preco * item.quantidade).toFixed(2)}`
+          `R$ ${(item.preco * item.quantidade).toFixed(2)}`,
         ]);
 
         doc.autoTable({
-          startY: 65,
-          head: [['CÓDIGO', 'DESCRIÇÃO', 'QTD', 'PREÇO UNIT.', 'TOTAL']],
+          startY: currentY,
+          head: [["CÓDIGO", "DESCRIÇÃO", "QTD", "PREÇO UNIT.", "TOTAL"]],
           body: produtosTabela,
-          theme: 'grid',
-          headStyles: { fillColor: [255, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold' },
+          theme: "grid",
+          headStyles: {
+            fillColor: [255, 0, 0],
+            textColor: [255, 255, 255],
+            fontStyle: "bold",
+            halign: "center",
+          },
+          bodyStyles: { fontSize: 9 },
           columnStyles: {
-            0: { cellWidth: 25 },
+            0: { cellWidth: 25, halign: "center" },
             1: { cellWidth: 80 },
-            2: { cellWidth: 20, halign: 'center' },
-            3: { cellWidth: 30, halign: 'right' },
-            4: { cellWidth: 30, halign: 'right' }
-          }
+            2: { cellWidth: 20, halign: "center" },
+            3: { cellWidth: 30, halign: "right" },
+            4: { cellWidth: 30, halign: "right" },
+          },
+          didDrawPage: function (data) {
+            finalY = data.cursor.y;
+          },
         });
 
         // Total
-        const finalY = doc.lastAutoTable.finalY + 10;
+        finalY += 10;
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text(`TOTAL DO PEDIDO: R$ ${subtotalPedido.toFixed(2)}`, 105, finalY, { align: 'center' });
+        doc.setFont("helvetica", "bold");
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, finalY, pageWidth - 2 * margin, 10, "F");
+        doc.text(
+          `TOTAL DO PEDIDO: R$ ${subtotalPedido.toFixed(2)}`,
+          pageWidth / 2,
+          finalY + 7,
+          { align: "center" }
+        );
 
-        // Rodapé
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text('© 2025 G8 Representações - Desenvolvido por J.P Sistemas', 105, 285, { align: 'center' });
+        // Adicionar número de páginas
+        drawHeaderAndFooter();
 
         // Salvar PDF
-        const dataHora = new Date().toLocaleString('pt-BR').replace(/[/:]/g, '-');
-        doc.save(`Pedido_BKB_${cliente}_${dataHora}.pdf`);
+        const nomeCliente = inputsCliente.razao.value || "Cliente";
+        const dataHora = new Date()
+          .toLocaleString("pt-BR")
+          .replace(/[/:]/g, "-")
+          .replace(/,/g, "");
+        doc.save(`Pedido_BKB_${nomeCliente}_${dataHora}.pdf`);
       }
 
       // Enviar pedido
@@ -1235,28 +1555,53 @@ window.produtosData = [
           return;
         }
 
-        const cliente = document.getElementById('cliente').value;
-        if (!cliente) {
-          alert('Por favor, informe o nome do cliente.');
+        // Validação dos campos obrigatórios
+        if (!inputsCliente.razao.value.trim()) {
+          alert('Por favor, informe a Razão Social do cliente.');
+          inputsCliente.razao.focus();
+          return;
+        }
+        if (!inputsCliente.transporte.value.trim()) {
+          alert("O campo Transporte é obrigatório.");
+          inputsCliente.transporte.focus();
+          return;
+        }
+        if (!inputsCliente.prazo.value.trim()) {
+          alert("O campo Prazo de Pagamento é obrigatório.");
+          inputsCliente.prazo.focus();
+          return;
+        }
+        if (!inputsCliente.obs.value.trim()) {
+          alert("O campo Observações é obrigatório.");
+          inputsCliente.obs.focus();
           return;
         }
 
         try {
           const pedidoData = {
             empresa: 'bkb',
-            descricao: `Pedido BKB - ${cliente} - ${window.pedidoItens.length} itens`,
+            descricao: `Pedido BKB - ${inputsCliente.razao.value} - ${window.pedidoItens.length} itens`,
             dados: {
               cliente: {
-                nome: cliente,
-                telefone: document.getElementById('telefone').value || '',
-                cidade: document.getElementById('cidade').value || '',
-                estado: document.getElementById('estado').value || '',
+                razao: inputsCliente.razao.value,
+                cnpj: inputsCliente.cnpj.value,
+                ie: inputsCliente.ie.value,
+                endereco: inputsCliente.endereco.value,
+                bairro: inputsCliente.bairro.value,
+                cidade: inputsCliente.cidade.value,
+                estado: inputsCliente.estado.value,
+                cep: inputsCliente.cep.value,
+                email: inputsCliente.email.value,
+                telefone: inputsCliente.telefone.value,
+                transporte: inputsCliente.transporte.value,
+                prazo: inputsCliente.prazo.value,
               },
               itens: window.pedidoItens,
               total: subtotalPedido,
               data: new Date().toISOString(),
               origem: 'Sistema BKB',
-              observacoes: document.getElementById('obs').value || ''
+              observacoes: inputsCliente.obs.value,
+              representante: sessionStorage.getItem("loggedInUser") || "Não identificado"
             }
           };
 
@@ -1279,11 +1624,13 @@ window.produtosData = [
             atualizarVisualizacaoPedido();
             
             // Limpar campos do cliente
-            document.getElementById('cliente').value = '';
-            document.getElementById('telefone').value = '';
-            document.getElementById('cidade').value = '';
-            document.getElementById('estado').value = '';
-            document.getElementById('obs').value = '';
+            selectCliente.value = "";
+            Object.values(inputsCliente).forEach((input) => (input.value = ""));
+            
+            // Redirecionar para pedidos
+            setTimeout(() => {
+              window.location.href = 'pedidos.html';
+            }, 2000);
           } else {
             throw new Error('Erro ao enviar pedido');
           }
@@ -1317,7 +1664,7 @@ window.produtosData = [
         produtosFiltrados.slice(0, 8).forEach((produto) => {
           const item = document.createElement("div");
           item.className = "sugestao-cliente-item";
-          item.innerHTML = `<strong>${produto.CODIGO}</strong> - ${produto.DESCRICAO}`;
+          item.innerHTML = `<strong>${produto.CODIGO}</strong> - ${produto.DESCRICAO} <small style="color: #059669;">R$ ${produto.PRECO.toFixed(2)}</small>`;
           item.addEventListener("mousedown", (e) => {
             e.preventDefault();
             document.getElementById("busca-produto").value = `${produto.CODIGO} - ${produto.DESCRICAO}`;
@@ -1336,6 +1683,26 @@ window.produtosData = [
       // Inicializar página
       if (checkAuth()) {
         carregarProdutos();
+        
+        // Carregar clientes e ativar eventos relacionados
+        popularClientes().then(() => {
+          selectCliente.addEventListener("change", (e) => preencherFormularioCliente(e.target.value));
+          
+          // Busca de clientes
+          const buscaClienteInput = document.getElementById("busca-cliente");
+          buscaClienteInput.addEventListener("input", (e) => {
+            popularClientes(e.target.value);
+            mostrarSugestoesClientes(e.target.value);
+          });
+          
+          document.addEventListener("mousedown", (event) => {
+            const sugestoesDiv = document.getElementById("sugestoes-clientes");
+            const buscaInput = document.getElementById("busca-cliente");
+            if (!sugestoesDiv.contains(event.target) && event.target !== buscaInput) {
+              sugestoesDiv.style.display = "none";
+            }
+          });
+        });
         
         // Busca de produtos
         const buscaProdutoInput = document.getElementById("busca-produto");
