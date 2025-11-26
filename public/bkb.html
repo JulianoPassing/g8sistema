@@ -638,6 +638,34 @@
         margin: 0;
       }
 
+      .total-container {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 20px;
+        border-radius: var(--border-radius-lg);
+        margin-top: 20px;
+        text-align: center;
+        border: 2px solid var(--border-color);
+      }
+
+      .total-container h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--dark-color);
+        font-weight: 700;
+      }
+
+      #gerar-pedido-btn {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-top: 20px;
+      }
+
+      #total-pedido {
+        color: var(--success-color);
+      }
+
       /* Estilos para cards de produtos mobile */
       .produtos-mobile-container {
         display: none;
@@ -959,15 +987,13 @@
         <div id="pedido-container">
           <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
         </div>
-
-      </section>
-
-      <section class="card">
-        <div class="card-header">
-          <span role="img" aria-label="Status" style="font-size: 1.8em">📊</span>
-          <h2>Status do Pedido</h2>
+        <div class="total-container">
+          <h3>💰 Total do Pedido: R$ <span id="total-pedido">0.00</span></h3>
         </div>
-        <div id="status-mensagem">Pronto para adicionar produtos...</div>
+        <button id="gerar-pedido-btn" class="btn btn-primary">
+          🖨️ Gerar Pedido em PDF
+        </button>
+        <div id="status-mensagem"></div>
       </section>
     </main>
     
@@ -1130,43 +1156,43 @@
 
 // ========== INÍCIO DA LISTA DE PRODUTOS BKB ==========
 window.produtosData = [
-  { CODIGO: "PDL-150", DESCRICAO: "BORRACHA ESTRIBO TITAN 125/150", PRECO: 9.00 },
-  { CODIGO: "PDL-160", DESCRICAO: "BORRACHA ESTRIBO TITAN 160", PRECO: 14.00 },
-  { CODIGO: "PDL-FAC", DESCRICAO: "BORRACHA ESTRIBO FACTOR/FAZER 150 (PAR LADO ESQUERDO E DIREITO)", PRECO: 27.50 },
-  { CODIGO: "CXM-001", DESCRICAO: "COXIM COROA TITAN 150", PRECO: 12.00 },
-  { CODIGO: "CXM-002", DESCRICAO: "COXIM COROA TWISTER/CB300", PRECO: 16.00 },
-  { CODIGO: "CXM-003", DESCRICAO: "COXIM FAZR 250", PRECO: 17.00 },
-  { CODIGO: "CXM-004", DESCRICAO: "COXIM COROA FALCO/XRE300/TRANSALP", PRECO: 23.00 },
-  { CODIGO: "CXM-006", DESCRICAO: "COXIM COROA YES/INTRUDER", PRECO: 16.00 },
-  { CODIGO: "CXM-007", DESCRICAO: "COXIM COROA BIZ 100/125", PRECO: 13.00 },
-  { CODIGO: "CXM-008", DESCRICAO: "COXIM COROA FAZER 250 2018/FAZER FZ 15", PRECO: 23.00 },
-  { CODIGO: "CXM-009", DESCRICAO: "COXIM COROA MT-03 2018 EM DIANTE/YZF R3", PRECO: 52.00 },
-  { CODIGO: "CXM-010", DESCRICAO: "COXIM COROA KAWASAKI ER-650/NINJA 650/VERSYS 650/Z650/NINJA ZX-4R", PRECO: 56.00 },
-  { CODIGO: "CXM-011", DESCRICAO: "COXIM COROA CB500F/CB 500X/CBR 500R/CB 600F HORNET/CB 650F/CBR 650F/CB 650R/NC 700X/NC 750X", PRECO: 50.00 },
-  { CODIGO: "CXM-012", DESCRICAO: "COXIM COROA DREAM 100/POP 100/SHINERAY XY 50Q/JET/PHOENIX/TRAXX/STAR 50/MOBY 50/SKY 50-125/WEB 100/DAFRA SUPER 50/SUPER 100/KASINSKI SOFT 50/WIN 110", PRECO: 13.00 },
-  { CODIGO: "CXM-013", DESCRICAO: "COXIM COROA XT 600/XT 660/MT-03/TÉNÉRÉ 600/VIRAGO 250", PRECO: 46.00 },
-  { CODIGO: "CXM-014", DESCRICAO: "COXIM COROA KAWASAKI NINJA 250/300", PRECO: 52.00 },
-  { CODIGO: "CXM-015", DESCRICAO: "COXIM COROA SUZUKI GS 500/BANDIT 650", PRECO: 56.00 },
-  { CODIGO: "GCB-150", DESCRICAO: "GUARNIÇÃO CARBURADOR TITAN 150/CG 125/KS/XLS/XLR/NX/CBX 200", PRECO: 1.50 },
-  { CODIGO: "GPB-125", DESCRICAO: "GUARDA PÓ BENGALA CG 125/FAN 125/BIZ 125/POP 100", PRECO: 5.00 },
-  { CODIGO: "GPB-150", DESCRICAO: "GUARDA PÓ BENGALA TITAN 150", PRECO: 5.00 },
-  { CODIGO: "GPB-TW", DESCRICAO: "GUARDA PÓ BENGALA TWISTER/CB 300/CB 250F/CB 160F/CBR 250 EXPO", PRECO: 11.50 },
-  { CODIGO: "GRN-125", DESCRICAO: "GUARNIÇÃO TAMPA DE VÁLVULA TITAN 99/2000", PRECO: 3.00 },
-  { CODIGO: "GRN-150S", DESCRICAO: "GUARNIÇÃO TAMPA DE VÁLVULA TITAN150(S/RETENTOR)", PRECO: 3.50 },
-  { CODIGO: "GRN-160", DESCRICAO: "GUARNIÇÃO TAMPA DE VÁLVULA TITAN 160", PRECO: 6.00 },
-  { CODIGO: "GRN-300", DESCRICAO: "GUARNIÇÃO TAMPA DE VÁLVULA CB300/XRE300", PRECO: 19.00 },
-  { CODIGO: "GRN-TW", DESCRICAO: "GUARNIÇÃO TAMPA DE VÁLVULA TWISTER/ TORNADO", PRECO: 19.00 },
-  { CODIGO: "BAM-001", DESCRICAO: "KIT BORRACHA AMORTECEDOR TITAN 2000", PRECO: 13.00 },
-  { CODIGO: "GRN-150", DESCRICAO: "KIT GUARNIÇÃO TAMPA DE VÁLVULA  TITAN 150", PRECO: 11.00 },
-  { CODIGO: "RPF-001", DESCRICAO: "KIT VEDAÇÃO PINÇA DE FREIO PARCIAL TITAN", PRECO: 6.00 },
-  { CODIGO: "MGC-001", DESCRICAO: "MANGUEIRA DE COMBUSTÍVEL (METRO)", PRECO: 5.00 },
-  { CODIGO: "PRB-001", DESCRICAO: "PRESILHA DE RABETA 4MM TITAN 150", PRECO: 1.50 },
-  { CODIGO: "PRB-002", DESCRICAO: "PRESILHA DE RABETA 5MM BIZ 100/125", PRECO: 1.50 },
-  { CODIGO: "RBE-001", DESCRICAO: "RETENTOR DE BENGALA CG 150/160/BROSS 150/160 CC - 31 X 43 X 10,5", PRECO: 12.00 },
-  { CODIGO: "RBE-002", DESCRICAO: "RETENTOR DE BENGALA CG 125/BIZ 100/125/POP 10 - 27 X 39 X 10,5", PRECO: 12.00 },
-  { CODIGO: "RBE-003", DESCRICAO: "RETENTOR DE BENGALA YBR/FACTOR/YES/BURGMAN 125 - 30 X 40,5 X 10,5", PRECO: 12.00 },
-  { CODIGO: "RBE-004", DESCRICAO: "RETENTOR DE BENGALA TWISTER/CB 300/CB 500/FAZER 250 - 37 X 50 X 11", PRECO: 15.00 },
-  { CODIGO: "RTT-001", DESCRICAO: "RETENTOR TAMPA DE VÁLVULA TITAN/TWISTER/300", PRECO: 2.50 },
+  { REFERENCIA: "PDL-150", DESCRIÇÃO: "BORRACHA ESTRIBO TITAN 125/150", PRECO: 9.00 },
+  { REFERENCIA: "PDL-160", DESCRIÇÃO: "BORRACHA ESTRIBO TITAN 160", PRECO: 14.00 },
+  { REFERENCIA: "PDL-FAC", DESCRIÇÃO: "BORRACHA ESTRIBO FACTOR/FAZER 150 (PAR LADO ESQUERDO E DIREITO)", PRECO: 27.50 },
+  { REFERENCIA: "CXM-001", DESCRIÇÃO: "COXIM COROA TITAN 150", PRECO: 12.00 },
+  { REFERENCIA: "CXM-002", DESCRIÇÃO: "COXIM COROA TWISTER/CB300", PRECO: 16.00 },
+  { REFERENCIA: "CXM-003", DESCRIÇÃO: "COXIM FAZR 250", PRECO: 17.00 },
+  { REFERENCIA: "CXM-004", DESCRIÇÃO: "COXIM COROA FALCO/XRE300/TRANSALP", PRECO: 23.00 },
+  { REFERENCIA: "CXM-006", DESCRIÇÃO: "COXIM COROA YES/INTRUDER", PRECO: 16.00 },
+  { REFERENCIA: "CXM-007", DESCRIÇÃO: "COXIM COROA BIZ 100/125", PRECO: 13.00 },
+  { REFERENCIA: "CXM-008", DESCRIÇÃO: "COXIM COROA FAZER 250 2018/FAZER FZ 15", PRECO: 23.00 },
+  { REFERENCIA: "CXM-009", DESCRIÇÃO: "COXIM COROA MT-03 2018 EM DIANTE/YZF R3", PRECO: 52.00 },
+  { REFERENCIA: "CXM-010", DESCRIÇÃO: "COXIM COROA KAWASAKI ER-650/NINJA 650/VERSYS 650/Z650/NINJA ZX-4R", PRECO: 56.00 },
+  { REFERENCIA: "CXM-011", DESCRIÇÃO: "COXIM COROA CB500F/CB 500X/CBR 500R/CB 600F HORNET/CB 650F/CBR 650F/CB 650R/NC 700X/NC 750X", PRECO: 50.00 },
+  { REFERENCIA: "CXM-012", DESCRIÇÃO: "COXIM COROA DREAM 100/POP 100/SHINERAY XY 50Q/JET/PHOENIX/TRAXX/STAR 50/MOBY 50/SKY 50-125/WEB 100/DAFRA SUPER 50/SUPER 100/KASINSKI SOFT 50/WIN 110", PRECO: 13.00 },
+  { REFERENCIA: "CXM-013", DESCRIÇÃO: "COXIM COROA XT 600/XT 660/MT-03/TÉNÉRÉ 600/VIRAGO 250", PRECO: 46.00 },
+  { REFERENCIA: "CXM-014", DESCRIÇÃO: "COXIM COROA KAWASAKI NINJA 250/300", PRECO: 52.00 },
+  { REFERENCIA: "CXM-015", DESCRIÇÃO: "COXIM COROA SUZUKI GS 500/BANDIT 650", PRECO: 56.00 },
+  { REFERENCIA: "GCB-150", DESCRIÇÃO: "GUARNIÇÃO CARBURADOR TITAN 150/CG 125/KS/XLS/XLR/NX/CBX 200", PRECO: 1.50 },
+  { REFERENCIA: "GPB-125", DESCRIÇÃO: "GUARDA PÓ BENGALA CG 125/FAN 125/BIZ 125/POP 100", PRECO: 5.00 },
+  { REFERENCIA: "GPB-150", DESCRIÇÃO: "GUARDA PÓ BENGALA TITAN 150", PRECO: 5.00 },
+  { REFERENCIA: "GPB-TW", DESCRIÇÃO: "GUARDA PÓ BENGALA TWISTER/CB 300/CB 250F/CB 160F/CBR 250 EXPO", PRECO: 11.50 },
+  { REFERENCIA: "GRN-125", DESCRIÇÃO: "GUARNIÇÃO TAMPA DE VÁLVULA TITAN 99/2000", PRECO: 3.00 },
+  { REFERENCIA: "GRN-150S", DESCRIÇÃO: "GUARNIÇÃO TAMPA DE VÁLVULA TITAN150(S/RETENTOR)", PRECO: 3.50 },
+  { REFERENCIA: "GRN-160", DESCRIÇÃO: "GUARNIÇÃO TAMPA DE VÁLVULA TITAN 160", PRECO: 6.00 },
+  { REFERENCIA: "GRN-300", DESCRIÇÃO: "GUARNIÇÃO TAMPA DE VÁLVULA CB300/XRE300", PRECO: 19.00 },
+  { REFERENCIA: "GRN-TW", DESCRIÇÃO: "GUARNIÇÃO TAMPA DE VÁLVULA TWISTER/ TORNADO", PRECO: 19.00 },
+  { REFERENCIA: "BAM-001", DESCRIÇÃO: "KIT BORRACHA AMORTECEDOR TITAN 2000", PRECO: 13.00 },
+  { REFERENCIA: "GRN-150", DESCRIÇÃO: "KIT GUARNIÇÃO TAMPA DE VÁLVULA  TITAN 150", PRECO: 11.00 },
+  { REFERENCIA: "RPF-001", DESCRIÇÃO: "KIT VEDAÇÃO PINÇA DE FREIO PARCIAL TITAN", PRECO: 6.00 },
+  { REFERENCIA: "MGC-001", DESCRIÇÃO: "MANGUEIRA DE COMBUSTÍVEL (METRO)", PRECO: 5.00 },
+  { REFERENCIA: "PRB-001", DESCRIÇÃO: "PRESILHA DE RABETA 4MM TITAN 150", PRECO: 1.50 },
+  { REFERENCIA: "PRB-002", DESCRIÇÃO: "PRESILHA DE RABETA 5MM BIZ 100/125", PRECO: 1.50 },
+  { REFERENCIA: "RBE-001", DESCRIÇÃO: "RETENTOR DE BENGALA CG 150/160/BROSS 150/160 CC - 31 X 43 X 10,5", PRECO: 12.00 },
+  { REFERENCIA: "RBE-002", DESCRIÇÃO: "RETENTOR DE BENGALA CG 125/BIZ 100/125/POP 10 - 27 X 39 X 10,5", PRECO: 12.00 },
+  { REFERENCIA: "RBE-003", DESCRIÇÃO: "RETENTOR DE BENGALA YBR/FACTOR/YES/BURGMAN 125 - 30 X 40,5 X 10,5", PRECO: 12.00 },
+  { REFERENCIA: "RBE-004", DESCRIÇÃO: "RETENTOR DE BENGALA TWISTER/CB 300/CB 500/FAZER 250 - 37 X 50 X 11", PRECO: 15.00 },
+  { REFERENCIA: "RTT-001", DESCRIÇÃO: "RETENTOR TAMPA DE VÁLVULA TITAN/TWISTER/300", PRECO: 2.50 },
 ];
 // ========== FIM DA LISTA DE PRODUTOS BKB ==========
 
@@ -1193,15 +1219,15 @@ window.produtosData = [
           return `
             <div class="produto-card-mobile">
               <div class="produto-header-mobile">
-                <div class="produto-ref-mobile">${produto.CODIGO}</div>
+                <div class="produto-ref-mobile">${produto.REFERENCIA}</div>
                 <div class="produto-preco-mobile">R$ ${produto.PRECO.toFixed(2)}</div>
               </div>
               <div class="produto-descricao-mobile">
-                <h4>${produto.DESCRICAO}</h4>
+                <h4>${produto.DESCRIÇÃO}</h4>
               </div>
               <div class="produto-quantidade-mobile">
                 <label>Quantidade:</label>
-                <input type="number" min="0" value="0" id="quantidade-${produto.CODIGO}">
+                <input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}">
               </div>
               <div class="produto-actions-mobile">
                 <button class="btn-adicionar-mobile" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>
@@ -1225,9 +1251,9 @@ window.produtosData = [
           sectionDiv.innerHTML = cardsHTML;
         } else {
           // Layout de tabela para desktop
-          let tabelaHTML = '<div class="card-header"><h2>Produtos BKB</h2></div><div class="table-responsive"><table><thead><tr><th>CÓDIGO</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Quantidade</th><th>Ação</th></tr></thead><tbody>';
+          let tabelaHTML = '<div class="card-header"><h2>Produtos BKB</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Quantidade</th><th>Ação</th></tr></thead><tbody>';
           produtos.forEach((produto) => {
-            tabelaHTML += `<tr><td style="font-weight: 600;">${produto.CODIGO}</td><td>${produto.DESCRICAO}</td><td style="font-weight: 600; color: var(--success-color);">R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" id="quantidade-${produto.CODIGO}" style="width: 80px; text-align: center;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+            tabelaHTML += `<tr><td style="font-weight: 600;">${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}</td><td style="font-weight: 600; color: var(--success-color);">R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}" style="width: 80px; text-align: center;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
           });
           tabelaHTML += `</tbody></table></div>`;
           sectionDiv.innerHTML = tabelaHTML;
@@ -1238,7 +1264,7 @@ window.produtosData = [
 
       // Função para adicionar produto ao pedido
       function adicionarAoPedido(produto) {
-        const quantidadeInput = document.getElementById(`quantidade-${produto.CODIGO}`);
+        const quantidadeInput = document.getElementById(`quantidade-${produto.REFERENCIA}`);
         const quantidade = parseInt(quantidadeInput.value) || 0;
         
         if (quantidade <= 0) {
@@ -1247,15 +1273,15 @@ window.produtosData = [
         }
 
         const itemExistente = window.pedidoItens.find(
-          (item) => item.CODIGO === produto.CODIGO
+          (item) => item.REFERENCIA === produto.REFERENCIA
         );
         
         if (itemExistente) {
           itemExistente.quantidade += quantidade;
         } else {
           window.pedidoItens.push({
-            CODIGO: produto.CODIGO,
-            DESCRICAO: produto.DESCRICAO,
+            REFERENCIA: produto.REFERENCIA,
+            DESCRIÇÃO: produto.DESCRIÇÃO,
             preco: produto.PRECO,
             quantidade: quantidade,
           });
@@ -1302,8 +1328,8 @@ window.produtosData = [
             subtotalPedido += precoTotalItem;
             itemDiv.innerHTML = `
               <div class="pedido-item-info">
-                <strong>${item.DESCRICAO}</strong>
-                <span>Cód: ${item.CODIGO}</span>
+                <strong>${item.DESCRIÇÃO}</strong>
+                <span>Ref: ${item.REFERENCIA}</span>
                 <span>•</span>
                 <span>Qtd: <input type="number" min="1" value="${item.quantidade}" onchange="alterarQuantidade(${index}, this.value)"></span>
                 <span>•</span>
@@ -1321,33 +1347,43 @@ window.produtosData = [
           pedidoVazio.style.display = "block";
         }
 
-        // Mostrar total do pedido
-        if (window.pedidoItens.length > 0) {
-          const totalDiv = document.createElement("div");
-          totalDiv.className = "pedido-total";
-          
-          totalDiv.innerHTML = `
-            <div class="pedido-total-header">
-              <h3>Total do Pedido:</h3>
-              <span class="pedido-total-value">R$ ${subtotalPedido.toFixed(2)}</span>
-            </div>
-            <div class="pedido-info-message">
-              <span style="font-size: 1.2em;">ℹ️</span>
-              <div>
-                <strong>Informação:</strong> Consulte descontos com o representante. Eles serão aplicados internamente no processamento do pedido.
-              </div>
-            </div>
-            <div style="margin-top: 20px; text-align: center;">
-              <button type="button" class="btn-primary" onclick="gerarPDF()" style="padding: 12px 24px; font-size: 1rem; width: 100%; max-width: 300px; margin-right: 10px;">
-                📄 Gerar PDF
-              </button>
-              <button type="button" class="btn-primary" onclick="enviarPedido()" style="padding: 12px 24px; font-size: 1rem; width: 100%; max-width: 300px; background: var(--gradient-success);">
-                📤 Enviar Pedido
-              </button>
-            </div>
-          `;
-          pedidoContainer.appendChild(totalDiv);
+        // Atualizar total do pedido
+        const totalElement = document.getElementById('total-pedido');
+        if (totalElement) {
+          totalElement.textContent = subtotalPedido.toFixed(2);
         }
+      }
+
+      // Gerar Pedido em PDF e Enviar
+      function gerarPedidoPDF() {
+        if (window.pedidoItens.length === 0) {
+          alert("O pedido está vazio. Adicione itens antes de gerar o PDF.");
+          return;
+        }
+        // Validação dos campos obrigatórios
+        if (!inputsCliente.transporte.value.trim()) {
+          alert("O campo Transporte é obrigatório.");
+          inputsCliente.transporte.focus();
+          return;
+        }
+        if (!inputsCliente.prazo.value.trim()) {
+          alert("O campo Prazo de Pagamento é obrigatório.");
+          inputsCliente.prazo.focus();
+          return;
+        }
+        if (!inputsCliente.obs.value.trim()) {
+          alert("O campo Observações é obrigatório.");
+          inputsCliente.obs.focus();
+          return;
+        }
+
+        // Gerar o PDF primeiro
+        gerarPDF();
+
+        // Depois enviar o pedido
+        setTimeout(() => {
+          enviarPedido();
+        }, 500);
       }
 
       // Gerar PDF do pedido
@@ -1356,7 +1392,6 @@ window.produtosData = [
           alert("O pedido está vazio. Adicione itens antes de gerar o PDF.");
           return;
         }
-        
         // Validação dos campos obrigatórios
         if (!inputsCliente.transporte.value.trim()) {
           alert("O campo Transporte é obrigatório.");
@@ -1403,142 +1438,177 @@ window.produtosData = [
           });
 
           const pageCount = doc.internal.getNumberOfPages();
-          for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor(100);
-            doc.text(
-              `Página ${i} de ${pageCount}`,
-              pageWidth / 2,
-              pageHeight - 10,
-              { align: "center" }
-            );
-            doc.text(
-              "© 2025 G8 Representações - Desenvolvido por J.P Sistemas",
-              pageWidth / 2,
-              pageHeight - 5,
-              { align: "center" }
-            );
-          }
+          doc.setFontSize(8);
+          doc.text(
+            `Página ${data.pageNumber} de ${pageCount}`,
+            pageWidth / 2,
+            pageHeight - 10,
+            { align: "center" }
+          );
         };
 
-        drawHeaderAndFooter();
-
-        // Dados do Cliente
-        let startY = 35;
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.setFillColor(255, 0, 0);
-        doc.rect(margin, startY, pageWidth - 2 * margin, 8, "F");
-        doc.setTextColor(255, 255, 255);
-        doc.text("Dados do Cliente", margin + 3, startY + 5.5);
-
-        doc.setTextColor(0, 0, 0);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-
-        let currentY = startY + 12;
-        const lineHeight = 5;
-
-        const clienteInfo = [
-          { label: "Razão Social:", value: inputsCliente.razao.value },
-          { label: "CNPJ:", value: inputsCliente.cnpj.value },
-          { label: "I.E:", value: inputsCliente.ie.value },
-          { label: "Endereço:", value: inputsCliente.endereco.value },
-          { label: "Bairro:", value: inputsCliente.bairro.value },
-          { label: "Cidade:", value: inputsCliente.cidade.value },
-          { label: "Estado:", value: inputsCliente.estado.value },
-          { label: "CEP:", value: inputsCliente.cep.value },
-          { label: "E-mail:", value: inputsCliente.email.value },
-          { label: "Telefone:", value: inputsCliente.telefone.value },
-          { label: "Transporte:", value: inputsCliente.transporte.value },
-          { label: "Prazo Pagamento:", value: inputsCliente.prazo.value },
-        ];
-
-        clienteInfo.forEach((info) => {
-          doc.setFont("helvetica", "bold");
-          doc.text(info.label, margin + 3, currentY);
-          doc.setFont("helvetica", "normal");
-          doc.text(info.value || "N/A", margin + 40, currentY);
-          currentY += lineHeight;
-        });
-
-        // Observações
-        currentY += 3;
-        doc.setFont("helvetica", "bold");
-        doc.text("Observações:", margin + 3, currentY);
-        doc.setFont("helvetica", "normal");
-        const obsText = inputsCliente.obs.value || "N/A";
-        const obsLines = doc.splitTextToSize(obsText, pageWidth - 2 * margin - 6);
-        doc.text(obsLines, margin + 3, currentY + 5);
-        currentY += obsLines.length * 5 + 8;
-
-        // Tabela de Produtos
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.setFillColor(255, 0, 0);
-        doc.rect(margin, currentY, pageWidth - 2 * margin, 8, "F");
-        doc.setTextColor(255, 255, 255);
-        doc.text("Itens do Pedido", margin + 3, currentY + 5.5);
-        doc.setTextColor(0, 0, 0);
-
-        currentY += 12;
-
-        const produtosTabela = window.pedidoItens.map((item) => [
-          item.CODIGO,
-          item.DESCRICAO,
-          item.quantidade.toString(),
-          `R$ ${item.preco.toFixed(2)}`,
-          `R$ ${(item.preco * item.quantidade).toFixed(2)}`,
-        ]);
+        drawHeaderAndFooter({ pageNumber: 1 });
 
         doc.autoTable({
-          startY: currentY,
-          head: [["CÓDIGO", "DESCRIÇÃO", "QTD", "PREÇO UNIT.", "TOTAL"]],
-          body: produtosTabela,
+          startY: 30,
           theme: "grid",
+          head: [
+            [
+              {
+                content: "DADOS DO CLIENTE",
+                colSpan: 4,
+                styles: {
+                  halign: "center",
+                  fontStyle: "bold",
+                  fillColor: [230, 230, 230],
+                  textColor: 30,
+                },
+              },
+            ],
+          ],
+          body: [
+            [
+              "Cliente:",
+              { content: inputsCliente.razao.value || "N/A", colSpan: 3 },
+            ],
+            [
+              "CNPJ:",
+              inputsCliente.cnpj.value || "N/A",
+              "I.E.:",
+              inputsCliente.ie.value || "N/A",
+            ],
+            [
+              "Telefone:",
+              inputsCliente.telefone.value || "N/A",
+              "E-mail:",
+              inputsCliente.email.value || "N/A",
+            ],
+            [
+              "Endereço:",
+              {
+                content: `${inputsCliente.endereco.value || ""}, ${
+                  inputsCliente.bairro.value || ""
+                }`,
+                colSpan: 3,
+              },
+            ],
+            [
+              "Cidade/UF:",
+              `${inputsCliente.cidade.value || ""}/${
+                inputsCliente.estado.value || ""
+              }`,
+              "CEP:",
+              inputsCliente.cep.value || "",
+            ],
+          ],
+          styles: { fontSize: 8, cellPadding: 1.5 },
+          columnStyles: {
+            0: { fontStyle: "bold", cellWidth: 22 },
+            2: { fontStyle: "bold", cellWidth: 20 },
+          },
+          margin: { left: margin, right: margin },
+        });
+
+        let startY = doc.autoTable.previous.finalY + 7;
+
+        const head = [
+          ["Ref.", "Descrição", "Qtd", "Unit.", "Total"],
+        ];
+        const body = window.pedidoItens.map((item) => {
+          return [
+            item.REFERENCIA,
+            item.DESCRIÇÃO,
+            item.quantidade,
+            `R$ ${item.preco.toFixed(2)}`,
+            `R$ ${(item.preco * item.quantidade).toFixed(2)}`,
+          ];
+        });
+
+        doc.autoTable({
+          head: head,
+          body: body,
+          startY: startY,
+          theme: "grid",
+          styles: {
+            fontSize: 8,
+            cellPadding: 2,
+            overflow: "linebreak",
+            valign: "middle",
+          },
           headStyles: {
-            fillColor: [255, 0, 0],
+            fillColor: [44, 62, 80],
             textColor: [255, 255, 255],
             fontStyle: "bold",
             halign: "center",
           },
-          bodyStyles: { fontSize: 9 },
           columnStyles: {
             0: { cellWidth: 25, halign: "center" },
-            1: { cellWidth: 80 },
-            2: { cellWidth: 20, halign: "center" },
-            3: { cellWidth: 30, halign: "right" },
+            1: { cellWidth: "auto" },
+            2: { cellWidth: 15, halign: "center" },
+            3: { cellWidth: 25, halign: "right" },
             4: { cellWidth: 30, halign: "right" },
           },
-          didDrawPage: function (data) {
-            finalY = data.cursor.y;
+          didDrawPage: (data) => {
+            if (data.pageNumber > 1) {
+              drawHeaderAndFooter(data);
+            }
+          },
+          margin: { top: 30, bottom: 15 },
+        });
+
+        finalY = doc.autoTable.previous.finalY;
+
+        const obsText = `Transporte: ${
+          inputsCliente.transporte.value || "A combinar"
+        }\nPrazo: ${
+          inputsCliente.prazo.value || "A combinar"
+        }\n\nObservações:\n${inputsCliente.obs.value || "Nenhuma."}`;
+
+        const summaryData = [];
+        summaryData.push(["", ""]);
+        summaryData.push([
+          {
+            content: "Total do Pedido:",
+            styles: { fontStyle: "bold", fontSize: 10 },
+          },
+          {
+            content: `R$ ${subtotalPedido.toFixed(2)}`,
+            styles: { fontStyle: "bold", fontSize: 10 },
+          },
+        ]);
+
+        const finalTableBody = [];
+        const leftColumn = {
+          content: obsText,
+          rowSpan: summaryData.length,
+          styles: { valign: "top", fontSize: 9 },
+        };
+
+        for (let i = 0; i < summaryData.length; i++) {
+          const row = [];
+          if (i === 0) row.push(leftColumn);
+          row.push(summaryData[i][0]);
+          row.push(summaryData[i][1]);
+          finalTableBody.push(row);
+        }
+
+        doc.autoTable({
+          startY: finalY + 8,
+          theme: "plain",
+          body: finalTableBody,
+          margin: { left: margin, right: margin },
+          columnStyles: {
+            0: { cellWidth: pageWidth / 2 - margin },
+            1: { halign: "right", fontStyle: "bold" },
+            2: { halign: "right" },
           },
         });
 
-        // Total
-        finalY += 10;
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.setFillColor(240, 240, 240);
-        doc.rect(margin, finalY, pageWidth - 2 * margin, 10, "F");
-        doc.text(
-          `TOTAL DO PEDIDO: R$ ${subtotalPedido.toFixed(2)}`,
-          pageWidth / 2,
-          finalY + 7,
-          { align: "center" }
-        );
-
-        // Adicionar número de páginas
-        drawHeaderAndFooter();
-
-        // Salvar PDF
-        const nomeCliente = inputsCliente.razao.value || "Cliente";
-        const dataHora = new Date()
-          .toLocaleString("pt-BR")
-          .replace(/[/:]/g, "-")
-          .replace(/,/g, "");
-        doc.save(`Pedido_BKB_${nomeCliente}_${dataHora}.pdf`);
+        const nomeArquivo = `G8 Pedido BKB - ${inputsCliente.razao.value.replace(
+          /[\s\/]/g,
+          "_"
+        )} - ${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`;
+        doc.save(nomeArquivo);
       }
 
       // Enviar pedido
@@ -1571,7 +1641,7 @@ window.produtosData = [
         }
 
         // Preparar descrição do pedido
-        const descricaoPedido = `Cliente: ${inputsCliente.razao.value} Itens: ${window.pedidoItens.map(item => item.CODIGO + ' x' + item.quantidade).join(', ')} Total: R$ ${subtotalPedido.toFixed(2)}`;
+        const descricaoPedido = `Cliente: ${inputsCliente.razao.value} Itens: ${window.pedidoItens.map(item => item.REFERENCIA + ' x' + item.quantidade).join(', ')} Total: R$ ${subtotalPedido.toFixed(2)}`;
         
         const dadosPedido = {
           cliente: Object.fromEntries(Object.entries(inputsCliente).map(([k, v]) => [k, v.value])),
@@ -1630,8 +1700,8 @@ window.produtosData = [
         const filtroLower = filtro.toLowerCase();
         const produtosFiltrados = produtosData.filter((produto) => {
           return (
-            (produto.CODIGO && String(produto.CODIGO).toLowerCase().includes(filtroLower)) ||
-            (produto.DESCRICAO && String(produto.DESCRICAO).toLowerCase().includes(filtroLower))
+            (produto.REFERENCIA && String(produto.REFERENCIA).toLowerCase().includes(filtroLower)) ||
+            (produto.DESCRIÇÃO && String(produto.DESCRIÇÃO).toLowerCase().includes(filtroLower))
           );
         });
         if (produtosFiltrados.length === 0) {
@@ -1642,10 +1712,10 @@ window.produtosData = [
         produtosFiltrados.slice(0, 8).forEach((produto) => {
           const item = document.createElement("div");
           item.className = "sugestao-cliente-item";
-          item.innerHTML = `<strong>${produto.CODIGO}</strong> - ${produto.DESCRICAO} <small style="color: #059669;">R$ ${produto.PRECO.toFixed(2)}</small>`;
+          item.innerHTML = `<strong>${produto.REFERENCIA}</strong> - ${produto.DESCRIÇÃO} <small style="color: #059669;">R$ ${produto.PRECO.toFixed(2)}</small>`;
           item.addEventListener("mousedown", (e) => {
             e.preventDefault();
-            document.getElementById("busca-produto").value = `${produto.CODIGO} - ${produto.DESCRICAO}`;
+            document.getElementById("busca-produto").value = `${produto.REFERENCIA} - ${produto.DESCRIÇÃO}`;
             sugestoesDiv.style.display = "none";
             renderizarProdutosFiltrados([produto]);
           });
@@ -1661,6 +1731,10 @@ window.produtosData = [
       // Inicializar página
       if (checkAuth()) {
         carregarProdutos();
+        
+        // Botão Gerar Pedido em PDF
+        const gerarPedidoBtn = document.getElementById("gerar-pedido-btn");
+        gerarPedidoBtn.addEventListener("click", gerarPedidoPDF);
         
         // Carregar clientes e ativar eventos relacionados
         popularClientes().then(() => {
