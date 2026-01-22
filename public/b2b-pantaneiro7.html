@@ -3224,13 +3224,33 @@ window.produtosData = [
             renderizarProdutosPorCategoria(window.produtosData);
           }
         });
-        document.addEventListener("mousedown", (event) => {
+        // Fechar sugestões ao clicar fora (com suporte mobile)
+        const fecharSugestoesProdutos = (event) => {
           const sugestoesDiv = document.getElementById("sugestoes-produtos");
           const buscaProdutoInput = document.getElementById("busca-produto");
-          if (!sugestoesDiv.contains(event.target) && event.target !== buscaProdutoInput) {
+          
+          // Não fechar se clicar no input ou em elementos de input
+          if (event.target === buscaProdutoInput || 
+              event.target.tagName === 'INPUT' || 
+              event.target.tagName === 'TEXTAREA' || 
+              event.target.tagName === 'SELECT' ||
+              buscaProdutoInput === document.activeElement) {
+            return;
+          }
+          
+          // Não fechar se clicar dentro das sugestões
+          if (sugestoesDiv && sugestoesDiv.contains(event.target)) {
+            return;
+          }
+          
+          // Fechar sugestões
+          if (sugestoesDiv) {
             sugestoesDiv.style.display = "none";
           }
-        });
+        };
+        
+        // Usar click em vez de mousedown para melhor compatibilidade mobile
+        document.addEventListener("click", fecharSugestoesProdutos, true);
 
         // Event listener para redimensionamento da janela
         window.addEventListener('resize', () => {
