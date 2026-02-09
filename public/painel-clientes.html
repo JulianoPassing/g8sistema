@@ -388,6 +388,22 @@
       .table-responsive { 
         max-height: 400px; 
       }
+      /* Mobile: esconder tabela e mostrar cards em largura total da tela */
+      #clientes-tabela-wrapper {
+        display: none !important;
+      }
+      .clientes-cards {
+        display: flex !important;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      .clientes-cards .cliente-card {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
     }
     @media (max-width: 480px) {
       body { 
@@ -543,6 +559,66 @@
        border-radius: var(--border-radius-lg);
        box-shadow: var(--shadow-sm);
      }
+     /* Lista de clientes em cards no mobile */
+     .clientes-cards {
+       display: none;
+       gap: 12px;
+       flex-direction: column;
+     }
+     .clientes-cards .cliente-card {
+       background: var(--card-bg);
+       border-radius: var(--border-radius-lg);
+       box-shadow: var(--shadow);
+       border: 1px solid var(--border-color);
+       padding: 16px;
+       transition: all 0.3s ease;
+       animation: fadeIn 0.4s ease-out;
+     }
+     .clientes-cards .cliente-card:hover {
+       box-shadow: var(--shadow-lg);
+     }
+     .clientes-cards .cliente-card .cliente-card-header {
+       display: flex;
+       justify-content: space-between;
+       align-items: flex-start;
+       gap: 10px;
+       margin-bottom: 10px;
+       padding-bottom: 10px;
+       border-bottom: 1px solid var(--border-color);
+     }
+     .clientes-cards .cliente-card .cliente-card-razao {
+       font-weight: 700;
+       font-size: 1rem;
+       color: var(--dark-color);
+       line-height: 1.3;
+     }
+     .clientes-cards .cliente-card .cliente-card-id {
+       font-size: 0.8rem;
+       color: var(--text-muted);
+       flex-shrink: 0;
+     }
+     .clientes-cards .cliente-card .cliente-card-info {
+       font-size: 0.9rem;
+       color: var(--text-color);
+       margin-bottom: 12px;
+       line-height: 1.5;
+     }
+     .clientes-cards .cliente-card .cliente-card-info span {
+       display: block;
+       margin-bottom: 2px;
+     }
+     .clientes-cards .cliente-card .cliente-card-actions {
+       display: flex;
+       flex-wrap: wrap;
+       gap: 8px;
+       margin-top: 12px;
+     }
+     .clientes-cards .cliente-card .cliente-card-actions .btn {
+       flex: 1;
+       min-width: 0;
+       font-size: 0.8rem;
+       padding: 8px 12px;
+     }
      main, .container {
        flex: 1 0 auto;
      }
@@ -683,7 +759,8 @@
         </div>
         <ul id="sugestoes-clientes" class="sugestoes-clientes"></ul>
       </div>
-      <div class="table-responsive">
+      <!-- Tabela (desktop) -->
+      <div class="table-responsive" id="clientes-tabela-wrapper">
         <table>
           <thead>
             <tr>
@@ -697,6 +774,8 @@
           <tbody id="clientes-tbody"></tbody>
         </table>
       </div>
+      <!-- Cards (mobile - largura da tela) -->
+      <div id="clientes-cards" class="clientes-cards"></div>
     </div>
   </main>
   <footer>
@@ -729,7 +808,9 @@
     }
     function renderTabela() {
       const tbody = document.getElementById('clientes-tbody');
+      const cardsContainer = document.getElementById('clientes-cards');
       tbody.innerHTML = '';
+      cardsContainer.innerHTML = '';
       (clientesFiltrados || []).forEach(cli => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -744,6 +825,24 @@
           </td>
         `;
         tbody.appendChild(tr);
+        const card = document.createElement('div');
+        card.className = 'cliente-card';
+        card.innerHTML = `
+          <div class="cliente-card-header">
+            <span class="cliente-card-razao">${(cli.razao ?? '').replace(/</g, '&lt;')}</span>
+            <span class="cliente-card-id">#${cli.id ?? ''}</span>
+          </div>
+          <div class="cliente-card-info">
+            <span><strong>CNPJ:</strong> ${cli.cnpj ?? ''}</span>
+            <span><strong>Cidade/UF:</strong> ${cli.cidade ?? ''} / ${cli.estado ?? ''}</span>
+          </div>
+          <div class="cliente-card-actions">
+            <button class="btn btn-primary btn-ver-mais" data-id="${cli.id}">Ver Mais</button>
+            <button class="btn btn-success btn-editar" data-id="${cli.id}">Editar</button>
+            <button class="btn btn-danger btn-remover" data-id="${cli.id}">Remover</button>
+          </div>
+        `;
+        cardsContainer.appendChild(card);
       });
       document.querySelectorAll('.btn-ver-mais').forEach(btn => {
         btn.onclick = function() {
