@@ -28,6 +28,14 @@ module.exports = async (req, res) => {
       });
     }
 
+    // Usuário desativado (não pode fazer login)
+    if (username && username.toLowerCase().trim() === 'lidiane') {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return res.status(401).json({
+        success: false,
+        message: 'Usuário desativado. Contate o administrador.'
+      });
+    }
     // Verificar credenciais
     if (validUsers[username] && validUsers[username] === password) {
       return res.status(200).json({ 

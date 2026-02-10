@@ -33,7 +33,10 @@ class AuthSystem {
 
   // Fallback para o sistema antigo (mantém compatibilidade)
   loginFallback(username, password) {
-    // Mantém o sistema antigo como fallback
+    // Usuário desativado
+    if (username && String(username).toLowerCase().trim() === 'lidiane') {
+      return { success: false, message: 'Usuário desativado. Contate o administrador.' };
+    }
     const validUsers = {
       g8: "repres",
       juliano: "123456",
