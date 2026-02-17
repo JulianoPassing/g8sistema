@@ -7,6 +7,7 @@
     <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#ff0000" />
+    <meta name="color-scheme" content="light" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="G8Sistema" />
@@ -20,6 +21,9 @@
     <script src="mobile-menu.js" defer></script>
     <script src="animations.js" defer></script>
     <style>
+      /* Forçar tema claro - sem modo escuro */
+      html { color-scheme: light; }
+      
       * {
         margin: 0;
         padding: 0;
@@ -541,18 +545,6 @@
         }
       }
 
-      /* Dark mode support */
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --text-primary: #f9fafb;
-          --text-secondary: #d1d5db;
-          --text-muted: #9ca3af;
-          --background: #111827;
-          --surface: rgba(31, 41, 55, 0.95);
-          --surface-hover: rgba(55, 65, 81, 0.95);
-          --border: #374151;
-        }
-      }
     </style>
   </head>
   <body class="g8-theme-g8-default">

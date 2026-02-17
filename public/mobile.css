@@ -23,27 +23,6 @@
   }
 }
 
-/* ========== MODO ESCURO - Aplica em todas as larguras de tela ========== */
-@media (prefers-color-scheme: dark) {
-  @media screen and (max-width: 768px) {
-    body {
-      background: #1a1a1a !important;
-      color: #ffffff !important;
-    }
-    .card, .container, .mobile-menu {
-      background: #2a2a2a !important;
-      border-color: #404040 !important;
-    }
-    .mobile-menu-item {
-      color: #e2e8f0 !important;
-      border-color: #404040 !important;
-    }
-    .mobile-menu-item:hover {
-      background: #333333 !important;
-    }
-  }
-}
-
 /* Reset e configurações base para mobile */
 @media screen and (max-width: 768px) {
   * {
@@ -612,6 +591,21 @@
 
 /* ========== AJUSTES ESPECÍFICOS G8SISTEMA ========== */
 @media screen and (max-width: 768px) {
+  /* Login page - sempre tema claro, fundo vermelho G8 */
+  body:has(.login-container) {
+    background: linear-gradient(135deg, #ff0000 0%, #990000 100%) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    padding: 15px 10px 80px 10px !important;
+  }
+  
+  body:has(.login-container) .footer {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  body:has(.login-container) .footer a {
+    color: #ffffff !important;
+  }
+
   /* Login page */
   .login-container {
     margin: 10px !important;
