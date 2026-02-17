@@ -15,6 +15,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="mobile.css">
     <link rel="stylesheet" href="modern-design.css">
+    <link rel="stylesheet" href="professional-ui.css">
+    <script src="sw-register.js"></script>
     <script src="mobile-menu.js" defer></script>
     <script src="animations.js" defer></script>
     <style>
@@ -616,36 +618,6 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        // Registrar Service Worker para funcionalidade PWA
-        if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-              .then((registration) => {
-                console.log('Service Worker registrado com sucesso:', registration.scope);
-                
-                // Verificar atualizações
-                registration.addEventListener('updatefound', () => {
-                  const newWorker = registration.installing;
-                  newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                      // Nova versão disponível
-                      if (window.notifications) {
-                        notifications.info('Nova versão disponível. Recarregue a página para atualizar.', {
-                          title: 'Atualização Disponível',
-                          duration: 10000,
-                          closable: true
-                        });
-                      }
-                    }
-                  });
-                });
-              })
-              .catch((error) => {
-                console.log('Falha ao registrar Service Worker:', error);
-              });
-          });
-        }
-
         const usernameField = document.getElementById("username");
         const passwordField = document.getElementById("password");
         const rememberMeCheckbox = document.getElementById("remember-me");

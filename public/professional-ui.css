@@ -1,0 +1,199 @@
+/* ========== MELHORIAS VISUAIS PROFISSIONAIS - G8 SISTEMA ========== */
+/* Refinamentos para aparência mais polida em desktop e mobile */
+
+/* === TIPOGRAFIA REFINADA === */
+body {
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+/* === HEADER MAIS ELEGANTE === */
+.header-top, header, .header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+#user-info, .user-info span {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* === CARDS REFINADOS === */
+.card, .section-card, .card-modern, .glass-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.card:hover, .section-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 12px 24px rgba(0, 0, 0, 0.06);
+}
+
+.option-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: 14px;
+}
+
+.option-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.section-header .icon {
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.2);
+}
+
+/* === TABELAS PROFISSIONAIS === */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+tbody tr:nth-child(even) {
+  background-color: rgba(248, 250, 252, 0.8);
+}
+
+tbody tr:hover {
+  background-color: rgba(255, 0, 0, 0.03);
+}
+
+td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* === BOTÕES REFINADOS === */
+button, .btn {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+}
+
+.btn-primary, .btn-success, .btn-danger {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary:hover, .btn-success:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* === INPUTS E FORMULÁRIOS === */
+input, select, textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.08);
+}
+
+/* === STATUS INDICATOR SUTIL === */
+.status-indicator {
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+/* === FOOTER ELEGANTE === */
+footer {
+  color: var(--text-muted, #64748b);
+  font-size: 0.875rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+footer a {
+  color: var(--primary-color);
+  transition: color 0.2s ease;
+}
+
+footer a:hover {
+  color: var(--primary-dark, #cc0000);
+}
+
+/* === BADGES E LABELS === */
+.badge, .status-badge {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* === MODAIS === */
+.modal-content {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* === LOGIN REFINADO === */
+.login-container {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* === MOBILE - REFINAMENTOS === */
+@media (max-width: 768px) {
+  .card, .section-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  
+  .option-card {
+    padding: 24px 16px;
+  }
+  
+  .option-icon {
+    font-size: 2.2rem;
+  }
+  
+  .header-top, header, .header {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* === FEEDBACK TÁTIL === */
+.card:active, .option-card:active {
+  transform: scale(0.99);
+}
+
+/* === CONTRASTE E LEGIBILIDADE === */
+.text-muted, .text-secondary {
+  color: var(--text-muted, #64748b) !important;
+}
+
+/* === SEPARADORES VISUAIS === */
+.card-header, .section-header {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+/* === CONTAINER PRINCIPAL === */
+.container, main {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* === ALERTAS E NOTIFICAÇÕES === */
+.alert {
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* === PAGINAÇÃO === */
+.pagination button {
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* === SEARCH/CAMPO DE BUSCA === */
+.search-input, .search-box input {
+  border-radius: 10px;
+}

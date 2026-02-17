@@ -1,10 +1,10 @@
 // ========== SERVICE WORKER G8SISTEMA ==========
 
 const CACHE_NAME = 'g8sistema-v1.1.0';
-const STATIC_CACHE = 'g8sistema-static-v2';
-const DYNAMIC_CACHE = 'g8sistema-dynamic-v2';
+const STATIC_CACHE = 'g8sistema-static-v3';
+const DYNAMIC_CACHE = 'g8sistema-dynamic-v3';
 
-// Arquivos para cache estático
+// Arquivos para cache estático (prioridade: páginas e assets locais)
 const STATIC_FILES = [
   '/',
   '/index.html',
@@ -13,6 +13,9 @@ const STATIC_FILES = [
   '/pantaneiro5.html',
   '/pantaneiro7.html',
   '/steitz.html',
+  '/bkb.html',
+  '/distribuicao.html',
+  '/distribuicao-carrinho.html',
   '/b2b-login.html',
   '/b2b-pantaneiro5.html',
   '/b2b-pantaneiro7.html',
@@ -21,7 +24,11 @@ const STATIC_FILES = [
   '/pedidos.html',
   '/mobile.css',
   '/modern-design.css',
+  '/professional-ui.css',
+  '/connection-status.css',
   '/mobile-menu.js',
+  '/table-mobile-cards.js',
+  '/connection-monitor.js',
   '/auth.js',
   '/cache-system.js',
   '/notification-system.js',
@@ -37,9 +44,12 @@ const STATIC_FILES = [
   '/dashboard-metrics.js',
   '/editor-pedido.js',
   '/pedidos.js',
-  '/clientes.json',
-  '/users.json',
   '/manifest.json',
+  '/sw-register.js'
+];
+
+// Recursos externos (cache separado - falhas não bloqueiam instalação)
+const EXTERNAL_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
   'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap',
@@ -51,26 +61,24 @@ const STATIC_FILES = [
   'https://i.imgur.com/vjq26ym.png'
 ];
 
-// Instalar Service Worker
+// Instalar Service Worker - cache local primeiro, externos em paralelo (falhas não bloqueiam)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        return cache.addAll(STATIC_FILES.map(url => {
-          // Tratar URLs externas
-          if (url.startsWith('http')) {
-            return new Request(url, { mode: 'cors' });
-          }
-          return url;
-        }));
+        // Cachear arquivos locais (críticos - falha em um não bloqueia outros)
+        const localPromises = STATIC_FILES.map(url => cache.add(url).catch(() => {}));
+        
+        // Cachear recursos externos em paralelo (opcional - CORS pode falhar offline)
+        const externalPromises = EXTERNAL_ASSETS.map(url => 
+          cache.add(new Request(url, { mode: 'cors' })).catch(() => {})
+        );
+        
+        return Promise.all([...localPromises, ...externalPromises]);
       })
-      .catch((error) => {
-        // Erro silencioso
-      })
+      .then(() => self.skipWaiting())
+      .catch(() => self.skipWaiting())
   );
-  
-  // Forçar ativação imediata
-  self.skipWaiting();
 });
 
 // Ativar Service Worker
@@ -159,27 +167,63 @@ async function cacheFirstStrategy(request) {
         }
       }
       
-      // Último recurso: página offline básica
+      // Último recurso: página offline com design G8
       return new Response(`
         <!DOCTYPE html>
         <html lang="pt-BR">
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="theme-color" content="#ff0000">
           <title>G8 Sistema - Offline</title>
           <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-            .offline-message { color: #666; margin: 20px 0; }
-            .retry-btn { background: #ff0000; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+              text-align: center; 
+              padding: 40px 20px; 
+              min-height: 100vh;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+            }
+            .offline-card {
+              background: white;
+              border-radius: 16px;
+              padding: 40px;
+              max-width: 400px;
+              box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+              border: 1px solid #ffe0e0;
+            }
+            .offline-icon { font-size: 64px; margin-bottom: 20px; }
+            h1 { color: #333; font-size: 1.5rem; margin-bottom: 16px; }
+            .offline-message { color: #666; margin: 20px 0; line-height: 1.6; }
+            .retry-btn { 
+              background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); 
+              color: white; 
+              padding: 14px 28px; 
+              border: none; 
+              border-radius: 12px; 
+              cursor: pointer; 
+              font-size: 16px;
+              font-weight: 600;
+              margin-top: 20px;
+            }
+            .retry-btn:hover { opacity: 0.9; }
           </style>
         </head>
         <body>
-          <h1>🚫 Sem Conexão</h1>
-          <div class="offline-message">
-            <p>Você está offline. Algumas funcionalidades podem não estar disponíveis.</p>
-            <p>Tente conectar à internet e recarregar a página.</p>
+          <div class="offline-card">
+            <div class="offline-icon">📡</div>
+            <h1>Sem Conexão</h1>
+            <div class="offline-message">
+              <p>Você está offline. O G8 Sistema pode ser usado parcialmente:</p>
+              <p style="margin-top:12px;font-size:0.9rem">• Navegar entre páginas já visitadas<br>• Visualizar dados em cache<br>• Pedidos serão enviados ao reconectar</p>
+            </div>
+            <button class="retry-btn" onclick="location.reload()">🔄 Tentar Novamente</button>
           </div>
-          <button class="retry-btn" onclick="location.reload()">🔄 Tentar Novamente</button>
         </body>
         </html>
       `, {
