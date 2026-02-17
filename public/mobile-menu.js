@@ -1,6 +1,6 @@
 // ========== MENU HAMBÚRGUER MOBILE - G8SISTEMA ==========
 
-document.addEventListener('DOMContentLoaded', function() {
+function init() {
     // Verificar se está em mobile
     if (window.innerWidth <= 768) {
         initMobileMenu();
@@ -10,17 +10,26 @@ document.addEventListener('DOMContentLoaded', function() {
     setupLogoClick();
 
     // Reinicializar no resize
-    window.addEventListener('resize', function() {
-        if (window.innerWidth <= 768) {
-            initMobileMenu();
-        } else {
-            closeMobileMenu();
-        }
-    });
-});
+    if (!window._mobileMenuResizeBound) {
+        window._mobileMenuResizeBound = true;
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768) {
+                initMobileMenu();
+            } else {
+                closeMobileMenu();
+            }
+        });
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 function setupLogoClick() {
-    const pathname = window.location.pathname || window.location.href;
+    const pathname = window.location.pathname || window.location.href || '';
     
     // Definir URL do "início" conforme o contexto
     let homeUrl = 'painel.html';
@@ -46,7 +55,7 @@ function setupLogoClick() {
     
     const link = document.createElement('a');
     link.href = homeUrl;
-    link.style.cssText = 'display: flex; align-items: center; text-decoration: none; cursor: pointer;';
+    link.style.cssText = 'display: flex; align-items: center; text-decoration: none; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;';
     link.setAttribute('aria-label', 'Voltar ao início');
     
     logo.parentNode.insertBefore(link, logo);
@@ -70,9 +79,11 @@ function createMobileMenuElements() {
     // Criar botão hambúrguer (padrão jp.cobrancas - com acessibilidade)
     const menuToggle = document.createElement('button');
     menuToggle.className = 'mobile-menu-toggle';
+    menuToggle.type = 'button';
     menuToggle.setAttribute('aria-label', 'Abrir menu de navegação');
     menuToggle.setAttribute('aria-expanded', 'false');
     menuToggle.setAttribute('aria-controls', 'mobile-menu');
+    menuToggle.style.touchAction = 'manipulation';
     menuToggle.innerHTML = '<span class="menu-icon"></span>';
 
     // Inserir no início do header
@@ -127,8 +138,8 @@ function createMobileMenuElements() {
         `;
     }
 
-    // Links de navegação específicos por página
-    const currentPage = window.location.pathname;
+    // Links de navegação específicos por página (pathname + href para diferentes deploys)
+    const currentPage = window.location.pathname || window.location.href || '';
     
     if (currentPage.includes('painel.html')) {
         menuItems += `
@@ -257,16 +268,14 @@ function setupMobileMenuEvents() {
     const overlay = document.querySelector('.mobile-menu-overlay');
 
     if (!menuToggle || !mobileMenu || !overlay) return;
+    if (menuToggle.dataset.eventsBound === 'true') return;
+    menuToggle.dataset.eventsBound = 'true';
 
     // Toggle do menu
     menuToggle.addEventListener('click', function() {
         const isActive = mobileMenu.classList.contains('active');
-        
-        if (isActive) {
-            closeMobileMenu();
-        } else {
-            openMobileMenu();
-        }
+        if (isActive) closeMobileMenu();
+        else openMobileMenu();
         menuToggle.setAttribute('aria-expanded', !isActive);
         menuToggle.setAttribute('aria-label', !isActive ? 'Fechar menu de navegação' : 'Abrir menu de navegação');
     });
