@@ -27,12 +27,15 @@ function initMobileMenu() {
 }
 
 function createMobileMenuElements() {
-    const header = document.querySelector('.header-top') || document.querySelector('header');
+    const header = document.querySelector('.header-top') || document.querySelector('.header') || document.querySelector('header');
     if (!header) return;
 
-    // Criar botão hambúrguer
+    // Criar botão hambúrguer (com acessibilidade)
     const menuToggle = document.createElement('button');
     menuToggle.className = 'mobile-menu-toggle';
+    menuToggle.setAttribute('aria-label', 'Abrir menu de navegação');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuToggle.setAttribute('aria-controls', 'mobile-menu');
     menuToggle.innerHTML = `
         <span></span>
         <span></span>
@@ -45,25 +48,35 @@ function createMobileMenuElements() {
     // Criar menu mobile
     const mobileMenu = document.createElement('div');
     mobileMenu.className = 'mobile-menu';
+    mobileMenu.id = 'mobile-menu';
     
     // Criar overlay
     const overlay = document.createElement('div');
     overlay.className = 'mobile-menu-overlay';
 
-    // Obter informações do usuário
-    const userInfo = document.querySelector('#user-info');
+    // Obter informações do usuário (suporta painel interno e B2B)
+    const userInfo = document.querySelector('#user-info') || document.querySelector('#clienteNome');
     const logoutButton = document.querySelector('#logout-button, .btn-logout');
     const voltarButton = document.querySelector('.btn-voltar');
 
     // Construir itens do menu
     let menuItems = '';
 
+    // Ícones Font Awesome (fallback para emoji se FA não carregado)
+    const iconUser = '<i class="fas fa-user" aria-hidden="true"></i>';
+    const iconHome = '<i class="fas fa-home" aria-hidden="true"></i>';
+    const iconUsers = '<i class="fas fa-users" aria-hidden="true"></i>';
+    const iconClipboard = '<i class="fas fa-clipboard-list" aria-hidden="true"></i>';
+    const iconBox = '<i class="fas fa-box" aria-hidden="true"></i>';
+    const iconArrowLeft = '<i class="fas fa-arrow-left" aria-hidden="true"></i>';
+    const iconLogout = '<i class="fas fa-sign-out-alt" aria-hidden="true"></i>';
+
     // Informações do usuário
     if (userInfo) {
         const userName = userInfo.textContent.trim();
         menuItems += `
             <div class="mobile-menu-item user-info">
-                <span class="icon">👤</span>
+                <span class="icon">${iconUser}</span>
                 <span>${userName}</span>
             </div>
         `;
@@ -75,7 +88,7 @@ function createMobileMenuElements() {
         const voltarText = voltarButton.textContent.trim() || 'Voltar ao Painel';
         menuItems += `
             <a href="${voltarHref}" class="mobile-menu-item voltar">
-                <span class="icon">🔙</span>
+                <span class="icon">${iconArrowLeft}</span>
                 <span>${voltarText}</span>
             </a>
         `;
@@ -87,11 +100,11 @@ function createMobileMenuElements() {
     if (currentPage.includes('painel.html')) {
         menuItems += `
             <a href="painel-clientes.html" class="mobile-menu-item">
-                <span class="icon">👥</span>
+                <span class="icon">${iconUsers}</span>
                 <span>Clientes</span>
             </a>
             <a href="pedidos.html" class="mobile-menu-item">
-                <span class="icon">📋</span>
+                <span class="icon">${iconClipboard}</span>
                 <span>Pedidos</span>
             </a>
         `;
@@ -100,65 +113,99 @@ function createMobileMenuElements() {
     if (currentPage.includes('painel-clientes.html')) {
         menuItems += `
             <a href="painel.html" class="mobile-menu-item">
-                <span class="icon">🏠</span>
+                <span class="icon">${iconHome}</span>
                 <span>Painel Principal</span>
             </a>
             <a href="pedidos.html" class="mobile-menu-item">
-                <span class="icon">📋</span>
+                <span class="icon">${iconClipboard}</span>
                 <span>Pedidos</span>
             </a>
         `;
     }
 
-    if (currentPage.includes('pedidos.html')) {
+    if (currentPage.includes('pedidos.html') && !currentPage.includes('b2b')) {
         menuItems += `
             <a href="painel.html" class="mobile-menu-item">
-                <span class="icon">🏠</span>
+                <span class="icon">${iconHome}</span>
                 <span>Painel Principal</span>
             </a>
             <a href="painel-clientes.html" class="mobile-menu-item">
-                <span class="icon">👥</span>
+                <span class="icon">${iconUsers}</span>
                 <span>Clientes</span>
             </a>
         `;
     }
 
-    if (currentPage.includes('pantaneiro') || currentPage.includes('steitz')) {
+    if (currentPage.includes('b2b-pedidos')) {
+        menuItems += `
+            <a href="b2b-pantaneiro5.html" class="mobile-menu-item">
+                <span class="icon">${iconBox}</span>
+                <span>Pantaneiro 5</span>
+            </a>
+            <a href="b2b-pantaneiro7.html" class="mobile-menu-item">
+                <span class="icon">${iconBox}</span>
+                <span>Pantaneiro 7</span>
+            </a>
+            <a href="b2b-steitz.html" class="mobile-menu-item">
+                <span class="icon">${iconBox}</span>
+                <span>Steitz</span>
+            </a>
+        `;
+    }
+
+    if ((currentPage.includes('pantaneiro') || currentPage.includes('steitz')) && !currentPage.includes('b2b')) {
         menuItems += `
             <a href="painel.html" class="mobile-menu-item">
-                <span class="icon">🏠</span>
+                <span class="icon">${iconHome}</span>
                 <span>Painel Principal</span>
             </a>
             <a href="painel-clientes.html" class="mobile-menu-item">
-                <span class="icon">👥</span>
+                <span class="icon">${iconUsers}</span>
                 <span>Clientes</span>
             </a>
             <a href="pedidos.html" class="mobile-menu-item">
-                <span class="icon">📋</span>
+                <span class="icon">${iconClipboard}</span>
                 <span>Pedidos</span>
+            </a>
+        `;
+    }
+
+    if (currentPage.includes('distribuicao')) {
+        menuItems += `
+            <a href="painel.html" class="mobile-menu-item">
+                <span class="icon">${iconHome}</span>
+                <span>Painel Principal</span>
+            </a>
+            <a href="pedidos.html" class="mobile-menu-item">
+                <span class="icon">${iconClipboard}</span>
+                <span>Pedidos</span>
+            </a>
+        `;
+    }
+
+    if ((currentPage.includes('b2b-pantaneiro') || currentPage.includes('b2b-steitz'))) {
+        menuItems += `
+            <a href="b2b-pedidos.html" class="mobile-menu-item voltar">
+                <span class="icon">${iconArrowLeft}</span>
+                <span>Voltar aos Pedidos</span>
             </a>
         `;
     }
 
     // Logout sempre no final
     if (logoutButton) {
-        const logoutAction = logoutButton.getAttribute('onclick') || 
-                           logoutButton.getAttribute('href') || 
-                           "window.location.href='index.html'";
-        
         const logoutText = logoutButton.textContent.trim() || 'Sair';
-        
+        const hasCustomLogout = logoutButton.getAttribute('onclick');
         menuItems += `
-            <a href="#" onclick="${logoutAction.replace('onclick=', '').replace(/['"]/g, '')}" class="mobile-menu-item logout">
-                <span class="icon">🚪</span>
+            <a href="${hasCustomLogout ? '#' : 'index.html'}" class="mobile-menu-item logout" data-logout-custom="${hasCustomLogout ? 'true' : 'false'}">
+                <span class="icon">${iconLogout}</span>
                 <span>${logoutText}</span>
             </a>
         `;
     } else {
-        // Fallback para logout se não encontrou botão
         menuItems += `
             <a href="index.html" class="mobile-menu-item logout">
-                <span class="icon">🚪</span>
+                <span class="icon">${iconLogout}</span>
                 <span>Sair</span>
             </a>
         `;
@@ -187,6 +234,8 @@ function setupMobileMenuEvents() {
         } else {
             openMobileMenu();
         }
+        menuToggle.setAttribute('aria-expanded', !isActive);
+        menuToggle.setAttribute('aria-label', !isActive ? 'Fechar menu de navegação' : 'Abrir menu de navegação');
     });
 
     // Fechar menu ao clicar no overlay
@@ -196,7 +245,13 @@ function setupMobileMenuEvents() {
     const menuItems = document.querySelectorAll('.mobile-menu-item');
     menuItems.forEach(item => {
         if (!item.classList.contains('user-info')) {
-            item.addEventListener('click', function() {
+            item.addEventListener('click', function(e) {
+                if (item.classList.contains('logout') && item.getAttribute('data-logout-custom') === 'true') {
+                    e.preventDefault();
+                    const logoutBtn = document.querySelector('.btn-logout');
+                    if (logoutBtn) logoutBtn.click();
+                    else if (typeof window.logout === 'function') window.logout();
+                }
                 setTimeout(closeMobileMenu, 100);
             });
         }
@@ -217,6 +272,8 @@ function openMobileMenu() {
 
     if (menuToggle && mobileMenu && overlay) {
         menuToggle.classList.add('active');
+        menuToggle.setAttribute('aria-expanded', 'true');
+        menuToggle.setAttribute('aria-label', 'Fechar menu de navegação');
         mobileMenu.classList.add('active');
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -230,6 +287,8 @@ function closeMobileMenu() {
 
     if (menuToggle && mobileMenu && overlay) {
         menuToggle.classList.remove('active');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Abrir menu de navegação');
         mobileMenu.classList.remove('active');
         overlay.classList.remove('active');
         document.body.style.overflow = '';

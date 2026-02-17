@@ -1,6 +1,7 @@
 /* ========== SISTEMA DE DESIGN MODERNO G8 ========== */
 
 :root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   /* === CORES EMPRESA G8 === */
   --g8-red: #ff0000;
   --g8-black: #000000;
@@ -67,6 +68,41 @@
   --gradient-black-red: linear-gradient(135deg, #000000 0%, #ff0000 100%);
   --gradient-subtle: linear-gradient(135deg, #fff0f0 0%, #ffffff 100%);
   --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  --gradient-success: linear-gradient(135deg, #059669 0%, #047857 100%);
+  --gradient-danger: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-info: linear-gradient(135deg, #ff3333 0%, #ff0000 100%);
+  --gradient-info-blue: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  --gradient-bg: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+  --gradient-pantaneiro: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+  --gradient-steitz: linear-gradient(135deg, #000000 0%, #333333 100%);
+  --primary-hover: #cc0000;
+  --secondary-color: #000000;
+  --success-color: #059669;
+  --success-hover: #047857;
+  --danger-color: #dc2626;
+  --danger-hover: #b91c1c;
+  --warning-color: #d97706;
+  --warning-hover: #b45309;
+  --light-color: #ffffff;
+  --dark-color: #000000;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --accent-color: #333333;
+  --error-color: #ef4444;
+  --info-color: #0ea5e9;
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-hover: #f9f9f9;
+  --border-focus: #ff0000;
+  --shadow-primary: 0 0 0 4px rgba(255, 0, 0, 0.1);
+  --primary-bg: #1a1a1a;
+  --accent-red: #ff0000;
+  --light-gray: #f5f5f5;
+  --dark-text: #000000;
+  --light-text: #ffffff;
 
   /* === GLASSMORPHISM G8 === */
   --glass-bg: rgba(255, 0, 0, 0.08);
@@ -252,7 +288,7 @@
 .input-modern input:focus {
   outline: none;
   border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15);
   background: white;
 }
 
@@ -461,11 +497,11 @@
 }
 
 .badge-success {
-  background: var(--gradient-success);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 .badge-warning {
-  background: var(--gradient-warm);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
 .badge-error {
@@ -550,4 +586,70 @@
   .input-modern input {
     padding: var(--spacing-md);
   }
+}
+
+/* ========== SKELETON LOADING ========== */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-secondary-200) 25%,
+    var(--color-secondary-100) 50%,
+    var(--color-secondary-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.skeleton-text:last-child {
+  width: 70%;
+  margin-bottom: 0;
+}
+
+.skeleton-title {
+  height: 1.5em;
+  width: 60%;
+  margin-bottom: 1rem;
+}
+
+.skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.skeleton-card {
+  padding: 1.5rem;
+}
+
+.skeleton-card .skeleton-text {
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-table-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.skeleton-table-cell {
+  flex: 1;
+  height: 1em;
+}
+
+.skeleton-button {
+  height: 40px;
+  width: 120px;
+  border-radius: var(--radius-lg);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

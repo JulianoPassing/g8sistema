@@ -110,7 +110,8 @@
 
 /* Ajustes específicos para headers em mobile */
 @media (max-width: 768px) {
-  .header-top .status-indicator {
+  .header-top .status-indicator,
+  .header .status-indicator {
     flex-shrink: 0;
     white-space: nowrap;
   }

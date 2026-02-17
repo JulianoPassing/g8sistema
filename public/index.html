@@ -6,7 +6,7 @@
     <title>Login - G8 Representações</title>
     <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#005a9f" />
+    <meta name="theme-color" content="#ff0000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="G8Sistema" />
@@ -15,48 +15,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="mobile.css">
     <link rel="stylesheet" href="modern-design.css">
-    <script src="mobile-menu.js"></script>
-    <script src="animations.js"></script>
+    <script src="mobile-menu.js" defer></script>
+    <script src="animations.js" defer></script>
     <style>
-      :root {
-        /* === CORES G8 === */
-        --g8-red: #ff0000;
-        --g8-black: #000000;
-        --g8-white: #ffffff;
-        
-        --primary-color: #ff0000;
-        --primary-dark: #cc0000;
-        --primary-light: #ff3333;
-        --secondary-color: #000000;
-        --accent-color: #333333;
-        --success-color: #10b981;
-        --error-color: #ef4444;
-        --warning-color: #f59e0b;
-        --text-primary: #000000;
-        --text-secondary: #333333;
-        --text-muted: #666666;
-        --background: #ffffff;
-        --surface: #ffffff;
-        --surface-hover: #f9f9f9;
-        --border: #e0e0e0;
-        --border-focus: #ff0000;
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        --shadow-primary: 0 0 0 4px rgba(255, 0, 0, 0.1);
-        --shadow-red: 0 10px 40px rgba(255, 0, 0, 0.25);
-        --gradient-primary: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
-        --gradient-secondary: linear-gradient(135deg, #000000 0%, #333333 100%);
-        --gradient-accent: linear-gradient(135deg, #ff3333 0%, #ff0000 100%);
-        --gradient-red-black: linear-gradient(135deg, #ff0000 0%, #000000 100%);
-        --primary-bg: #1a1a1a;
-        --accent-red: #ff0000;
-        --light-gray: #f5f5f5;
-        --dark-text: #000000;
-        --light-text: #ffffff;
-      }
-
       * {
         margin: 0;
         padding: 0;
@@ -254,7 +215,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        margin-bottom: 30px;
+        margin-bottom: 12px;
         justify-content: flex-start;
       }
 
@@ -616,28 +577,16 @@
           </div>
         </div>
 
-        <!-- Checkboxes com estrutura de tabela -->
-        <table style="width: 100%; margin: 12px 0; border-collapse: collapse; text-align: left;">
-          <tr>
-            <td style="width: auto; padding: 0; vertical-align: middle;">
-              <input type="checkbox" id="remember-me" style="margin: 0;" />
-            </td>
-            <td style="width: 100%; padding-left: 8px; vertical-align: middle; font-size: 13px;">
-              Lembrar usuário e senha
-            </td>
-          </tr>
-        </table>
+        <!-- Checkboxes com estrutura flexbox semântica -->
+        <div class="remember-group">
+          <input type="checkbox" id="remember-me" />
+          <label for="remember-me">Lembrar usuário e senha</label>
+        </div>
         
-        <table style="width: 100%; margin: 12px 0; border-collapse: collapse; text-align: left;">
-          <tr>
-            <td style="width: auto; padding: 0; vertical-align: middle;">
-              <input type="checkbox" id="show-password" style="margin: 0;" />
-            </td>
-            <td style="width: 100%; padding-left: 8px; vertical-align: middle; font-size: 13px;">
-              Visualizar senha
-            </td>
-          </tr>
-        </table>
+        <div class="remember-group">
+          <input type="checkbox" id="show-password" />
+          <label for="show-password">Visualizar senha</label>
+        </div>
         
         
         <button type="submit" class="login-btn btn-modern click-wave" id="login-btn">
@@ -702,26 +651,6 @@
         const rememberMeCheckbox = document.getElementById("remember-me");
         const showPasswordCheckbox = document.getElementById("show-password");
         
-        // Adicionar funcionalidade de clique no texto
-        const tables = document.querySelectorAll('table[style*="width: 100%"]');
-        const rememberText = tables[0] ? tables[0].querySelector('td:last-child') : null;
-        const showPasswordText = tables[1] ? tables[1].querySelector('td:last-child') : null;
-        
-        if (rememberText) {
-          rememberText.style.cursor = 'pointer';
-          rememberText.addEventListener('click', function() {
-            rememberMeCheckbox.checked = !rememberMeCheckbox.checked;
-          });
-        }
-        
-        if (showPasswordText) {
-          showPasswordText.style.cursor = 'pointer';
-          showPasswordText.addEventListener('click', function() {
-            showPasswordCheckbox.checked = !showPasswordCheckbox.checked;
-            const type = showPasswordCheckbox.checked ? 'text' : 'password';
-            passwordField.setAttribute('type', type);
-          });
-        }
         const errorMessage = document.getElementById("error-message");
         const successMessage = document.getElementById("success-message");
         const loginBtn = document.getElementById("login-btn");

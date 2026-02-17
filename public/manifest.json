@@ -2,7 +2,7 @@
   "name": "G8 Sistema de Pedidos",
   "short_name": "G8Sistema",
   "description": "Sistema de gestão de pedidos e clientes G8 Representações",
-  "start_url": "/",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ff0000",
