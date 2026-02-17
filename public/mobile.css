@@ -595,23 +595,73 @@
   body:has(.login-container) {
     background: linear-gradient(135deg, #ff0000 0%, #990000 100%) !important;
     color: rgba(255, 255, 255, 0.95) !important;
-    padding: 15px 10px 80px 10px !important;
+    padding: 15px 10px 20px 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 100vh !important;
   }
   
   body:has(.login-container) .footer {
     color: rgba(255, 255, 255, 0.9) !important;
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
   }
   
   body:has(.login-container) .footer a {
     color: #ffffff !important;
   }
 
+  /* Login page - centralizado */
+  body:has(.login-container) .login-container {
+    margin: 0 auto !important;
+    flex-shrink: 0 !important;
+  }
+
   /* Login page */
   .login-container {
-    margin: 10px !important;
+    margin: 10px auto !important;
     padding: 30px 20px !important;
     width: calc(100% - 20px) !important;
-    max-width: none !important;
+    max-width: 350px !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+  
+  .login-container form {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Checkboxes alinhados - Lembrar e Visualizar senha */
+  .login-container .remember-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin-bottom: 12px !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+  
+  .login-container .remember-group input[type="checkbox"] {
+    flex-shrink: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin: 0 !important;
+  }
+  
+  .login-container .remember-group label {
+    flex: 1 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    cursor: pointer !important;
   }
 
   .login-container #logo {
