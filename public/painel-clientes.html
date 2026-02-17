@@ -630,7 +630,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="cache-system.js"></script>
 </head>
-  <body class="g8-theme-g8-default">
+  <body class="g8-theme-g8-default app-layout">
   <header class="header-top">
     <div class="header-left">
       <div class="status-indicator" id="connection-status">
@@ -648,6 +648,20 @@
     </div>
   </header>
   <main class="container">
+    <div class="breadcrumb">
+      <a href="painel.html">Painel</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>Clientes</span>
+    </div>
+    <div class="page-header">
+      <div class="page-header-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="page-header-text">
+        <h1 class="dashboard-title">Painel de Clientes</h1>
+        <p class="dashboard-subtitle">Gerencie sua base de clientes</p>
+      </div>
+    </div>
     <div class="card" id="form-card">
       <div class="card-header">
         <h2 id="form-title">Cadastrar Novo Cliente</h2>
@@ -716,13 +730,13 @@
     </div>
     <div class="card">
       <div class="card-header">
-        <h2>Painel de Clientes</h2>
+        <h2>Lista de Clientes</h2>
         <div class="btn-group">
           <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
           <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
         </div>
       </div>
-      <div style="display: flex; justify-content: center; position: relative;">
+      <div class="search-container" style="display: flex; justify-content: center; position: relative;">
         <div class="search-box" style="width:100%;">
           <span class="search-icon">&#128269;</span>
           <input type="text" id="busca-cliente" placeholder="Buscar cliente..." autocomplete="off" />

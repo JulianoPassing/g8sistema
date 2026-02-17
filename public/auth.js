@@ -53,6 +53,12 @@ class AuthSystem {
 
   // Sistema híbrido - tenta API primeiro, fallback depois
   async authenticate(username, password) {
+    // Sem conexão: usar fallback imediato (permite login offline)
+    if (!navigator.onLine) {
+      console.log('Modo offline - usando autenticação local');
+      return this.loginFallback(username, password);
+    }
+
     try {
       // Tenta autenticação via API primeiro
       const apiResult = await this.login(username, password);

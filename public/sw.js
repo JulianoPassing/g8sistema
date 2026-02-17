@@ -1,8 +1,8 @@
 // ========== SERVICE WORKER G8SISTEMA ==========
 
-const CACHE_NAME = 'g8sistema-v1.1.0';
-const STATIC_CACHE = 'g8sistema-static-v3';
-const DYNAMIC_CACHE = 'g8sistema-dynamic-v3';
+const CACHE_NAME = 'g8sistema-v1.2.0';
+const STATIC_CACHE = 'g8sistema-static-v4';
+const DYNAMIC_CACHE = 'g8sistema-dynamic-v4';
 
 // Arquivos para cache estático (prioridade: páginas e assets locais)
 const STATIC_FILES = [
@@ -22,6 +22,7 @@ const STATIC_FILES = [
   '/b2b-steitz.html',
   '/b2b-pedidos.html',
   '/pedidos.html',
+  '/clientes.json',
   '/mobile.css',
   '/modern-design.css',
   '/professional-ui.css',
@@ -114,6 +115,9 @@ self.addEventListener('fetch', (event) => {
   if (request.url.includes('/api/')) {
     // APIs: Network First (tentar rede primeiro, fallback para cache)
     event.respondWith(networkFirstStrategy(request));
+  } else if (request.url.includes('clientes.json')) {
+    // clientes.json: Cache First (essencial para pedidos offline)
+    event.respondWith(cacheFirstStrategy(request));
   } else if (request.destination === 'document' || request.headers.get('accept')?.includes('text/html')) {
     // Páginas HTML: Cache First com fallback offline
     event.respondWith(cacheFirstStrategy(request));
@@ -221,6 +225,11 @@ async function cacheFirstStrategy(request) {
             <div class="offline-message">
               <p>Você está offline. O G8 Sistema pode ser usado parcialmente:</p>
               <p style="margin-top:12px;font-size:0.9rem">• Navegar entre páginas já visitadas<br>• Visualizar dados em cache<br>• Pedidos serão enviados ao reconectar</p>
+            </div>
+            <p style="margin-top:16px;font-size:0.9rem"><strong>Dica:</strong> Visite o sistema com internet primeiro para habilitar o modo offline. Depois você poderá abrir e digitar pedidos mesmo sem conexão.</p>
+            <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+              <a href="/index.html" style="color:#ff0000;font-weight:600;text-decoration:underline;">Login</a>
+              <a href="/painel.html" style="color:#ff0000;font-weight:600;text-decoration:underline;">Painel</a>
             </div>
             <button class="retry-btn" onclick="location.reload()">🔄 Tentar Novamente</button>
           </div>

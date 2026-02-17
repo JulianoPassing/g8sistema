@@ -28,6 +28,8 @@ class OfflineSystem {
     // Processar pedidos pendentes se estiver online
     if (this.isOnline) {
       this.processPendingOrders();
+    } else {
+      this.showOfflineBanner();
     }
   }
 
@@ -106,6 +108,7 @@ class OfflineSystem {
 
   handleOnline() {
     this.isOnline = true;
+    this.hideOfflineBanner();
     this.updateStatusIndicator();
     
     // Mostrar notificação
@@ -118,8 +121,45 @@ class OfflineSystem {
   handleOffline() {
     this.isOnline = false;
     this.updateStatusIndicator();
+    this.showOfflineBanner();
     
     this.showNotification('Sem conexão! Pedidos serão salvos e enviados automaticamente quando a conexão retornar.', 'warning');
+  }
+
+  showOfflineBanner() {
+    if (document.getElementById('g8-offline-banner')) return;
+    
+    const banner = document.createElement('div');
+    banner.id = 'g8-offline-banner';
+    banner.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+        <span>📡 <strong>Modo Offline</strong> - Você pode continuar digitando pedidos.</span>
+        <span style="opacity: 0.9;">Eles serão enviados automaticamente quando a conexão retornar.</span>
+      </div>
+    `;
+    const header = document.querySelector('.header-top, header, .header');
+    const headerHeight = header ? (header.offsetHeight || 55) : 0;
+    
+    banner.style.cssText = `
+      position: fixed;
+      top: ${headerHeight}px;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      padding: 10px 20px;
+      font-size: 14px;
+      z-index: 9998;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      text-align: center;
+    `;
+    
+    document.body.insertBefore(banner, document.body.firstChild);
+  }
+
+  hideOfflineBanner() {
+    const banner = document.getElementById('g8-offline-banner');
+    if (banner) banner.remove();
   }
 
   startConnectionCheck() {

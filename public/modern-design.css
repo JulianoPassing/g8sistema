@@ -103,6 +103,10 @@
   --light-gray: #f5f5f5;
   --dark-text: #000000;
   --light-text: #ffffff;
+  
+  /* Padrão jp.cobrancas - fundos neutros */
+  --stone-100: #F5F7FA;
+  --gray-50: #F9FAFB;
 
   /* === GLASSMORPHISM G8 === */
   --glass-bg: rgba(255, 0, 0, 0.08);

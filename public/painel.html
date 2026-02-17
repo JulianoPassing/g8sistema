@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="modern-design.css">
   <link rel="stylesheet" href="professional-ui.css">
   <script src="sw-register.js"></script>
+  <script src="offline-system.js"></script>
   <script src="mobile-menu.js" defer></script>
   <script src="cache-system.js" defer></script>
   <script src="notification-system.js" defer></script>
@@ -708,7 +709,7 @@
       new ConnectionMonitor();
     </script>
   </head>
-  <body class="g8-theme-g8-default">
+  <body class="g8-theme-g8-default app-layout">
     <header class="header-top">
       <div class="header-left">
         <div class="status-indicator" id="connection-status">
@@ -730,6 +731,15 @@
     </header>
     
     <main class="container">
+      <div class="page-header">
+        <div class="page-header-icon">
+          <i class="fas fa-home"></i>
+        </div>
+        <div class="page-header-text">
+          <h1 class="dashboard-title">Painel Principal</h1>
+          <p class="dashboard-subtitle">Escolha uma opção abaixo para continuar</p>
+        </div>
+      </div>
 
       <!-- Seção Escolha de Tabelas -->
       <section class="section-card glass-card animate-on-scroll" data-animation-delay="0">
