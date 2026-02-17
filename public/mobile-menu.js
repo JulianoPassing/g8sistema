@@ -30,17 +30,13 @@ function createMobileMenuElements() {
     const header = document.querySelector('.header-top') || document.querySelector('.header') || document.querySelector('header');
     if (!header) return;
 
-    // Criar botão hambúrguer (com acessibilidade)
+    // Criar botão hambúrguer (padrão jp.cobrancas - com acessibilidade)
     const menuToggle = document.createElement('button');
     menuToggle.className = 'mobile-menu-toggle';
     menuToggle.setAttribute('aria-label', 'Abrir menu de navegação');
     menuToggle.setAttribute('aria-expanded', 'false');
     menuToggle.setAttribute('aria-controls', 'mobile-menu');
-    menuToggle.innerHTML = `
-        <span></span>
-        <span></span>
-        <span></span>
-    `;
+    menuToggle.innerHTML = '<span class="menu-icon"></span>';
 
     // Inserir no início do header
     header.insertBefore(menuToggle, header.firstChild);

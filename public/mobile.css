@@ -53,7 +53,7 @@
     overflow-x: hidden;
   }
 
-  /* ========== HEADER MOBILE COM MENU HAMBÚRGUER ========== */
+  /* ========== HEADER MOBILE - Padrão jp.cobrancas (cores G8) ========== */
   .header-top, header, .header {
     height: 80px !important;
     padding: 10px 15px !important;
@@ -63,60 +63,97 @@
     right: 0 !important;
     z-index: 1000 !important;
     display: flex !important;
-    flex-direction: column !important;
+    flex-direction: row !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: space-between !important;
+    background: linear-gradient(135deg, #ff0000 0%, #990000 100%) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    border-bottom: none !important;
   }
 
-  /* Logo centralizada no topo */
+  /* Logo no header mobile - à esquerda (padrão jp.cobrancas) */
   .header-center {
     position: relative !important;
     left: auto !important;
     top: auto !important;
     transform: none !important;
     z-index: 1001 !important;
-    margin-bottom: 8px !important;
+    margin: 0 !important;
+    flex: 1 !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    order: 1 !important;
   }
 
-  .header-center img, #logo {
-    height: 30px !important;
+  .header-center img, .header-top #logo, .header #logo, header #logo {
+    height: 32px !important;
     max-width: 150px !important;
+    filter: brightness(0) invert(1) !important;
   }
 
-  /* Menu hambúrguer abaixo da logo */
+  /* Botão hambúrguer - à direita (padrão jp.cobrancas) */
   .mobile-menu-toggle {
     display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    width: 30px !important;
-    height: 22px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
     background: none !important;
     border: none !important;
     cursor: pointer !important;
     padding: 0 !important;
     z-index: 1002 !important;
     position: relative !important;
+    order: 2 !important;
   }
 
-  .mobile-menu-toggle span {
+  /* Ícone hambúrguer - 3 linhas (padrão jp.cobrancas) */
+  .mobile-menu-toggle .menu-icon {
+    width: 28px !important;
+    height: 4px !important;
+    background: #fff !important;
     display: block !important;
-    height: 3px !important;
-    width: 100% !important;
-    background: #334155 !important;
+    position: relative !important;
     border-radius: 2px !important;
     transition: all 0.3s ease !important;
   }
 
-  .mobile-menu-toggle.active span:nth-child(1) {
-    transform: rotate(45deg) translate(6px, 6px) !important;
+  .mobile-menu-toggle .menu-icon::before,
+  .mobile-menu-toggle .menu-icon::after {
+    content: '' !important;
+    width: 28px !important;
+    height: 4px !important;
+    background: #fff !important;
+    position: absolute !important;
+    left: 0 !important;
+    border-radius: 2px !important;
+    transition: all 0.3s ease !important;
   }
 
-  .mobile-menu-toggle.active span:nth-child(2) {
-    opacity: 0 !important;
+  .mobile-menu-toggle .menu-icon::before {
+    top: -10px !important;
   }
 
-  .mobile-menu-toggle.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(6px, -6px) !important;
+  .mobile-menu-toggle .menu-icon::after {
+    top: 10px !important;
+  }
+
+  /* Animação X quando menu aberto */
+  .mobile-menu-toggle.active .menu-icon {
+    background: transparent !important;
+  }
+
+  .mobile-menu-toggle.active .menu-icon::before {
+    top: 0 !important;
+    transform: rotate(45deg) !important;
+  }
+
+  .mobile-menu-toggle.active .menu-icon::after {
+    top: 0 !important;
+    transform: rotate(-45deg) !important;
   }
 
   /* Ocultar elementos originais do header */
@@ -128,20 +165,21 @@
     display: none !important;
   }
 
-  /* Menu mobile dropdown */
+  /* Menu mobile dropdown - padrão jp.cobrancas (cores G8) */
   .mobile-menu {
     position: fixed !important;
     top: 80px !important;
     left: 0 !important;
     right: 0 !important;
-    background: white !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    border-top: 1px solid #e2e8f0 !important;
+    background: linear-gradient(180deg, #990000 0%, #800000 100%) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
     transform: translateY(-100%) !important;
     transition: transform 0.3s ease !important;
     z-index: 999 !important;
     max-height: calc(100vh - 80px) !important;
     overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .mobile-menu.active {
@@ -149,44 +187,58 @@
   }
 
   .mobile-menu-item {
-    padding: 15px 20px !important;
-    border-bottom: 1px solid #f1f5f9 !important;
+    padding: 16px 20px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
     font-size: 16px !important;
-    color: #334155 !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
     text-decoration: none !important;
+    transition: background 0.2s ease !important;
   }
 
   .mobile-menu-item:hover {
-    background: #f8fafc !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .mobile-menu-item:active {
+    background: rgba(255, 255, 255, 0.15) !important;
   }
 
   .mobile-menu-item.user-info {
-    background: #f8fafc !important;
+    background: rgba(0, 0, 0, 0.2) !important;
     font-weight: 600 !important;
-    color: #1e293b !important;
+    color: #ffffff !important;
     justify-content: center !important;
+    font-size: 15px !important;
   }
 
   .mobile-menu-item.logout {
-    color: #dc2626 !important;
+    color: #ffcccc !important;
     font-weight: 600 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+    margin-top: 4px !important;
+  }
+
+  .mobile-menu-item.logout:hover {
+    background: rgba(255, 100, 100, 0.2) !important;
   }
 
   .mobile-menu-item.voltar {
-    color: #3b82f6 !important;
+    color: #ffdddd !important;
     font-weight: 600 !important;
   }
 
   .mobile-menu-item .icon {
-    margin-right: 10px !important;
+    margin-right: 14px !important;
     font-size: 18px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    min-width: 20px !important;
+    min-width: 24px !important;
+    color: rgba(255, 255, 255, 0.9) !important;
   }
   
   .mobile-menu-item .icon i {
@@ -510,9 +562,10 @@
     height: 25px !important;
   }
 
-  .mobile-menu-toggle {
-    width: 25px !important;
-    height: 18px !important;
+  .mobile-menu-toggle .menu-icon,
+  .mobile-menu-toggle .menu-icon::before,
+  .mobile-menu-toggle .menu-icon::after {
+    width: 24px !important;
   }
 
   .mobile-menu {
@@ -573,9 +626,10 @@
     margin-bottom: 6px !important;
   }
 
-  .mobile-menu-toggle {
-    width: 25px !important;
-    height: 18px !important;
+  .mobile-menu-toggle .menu-icon,
+  .mobile-menu-toggle .menu-icon::before,
+  .mobile-menu-toggle .menu-icon::after {
+    width: 22px !important;
   }
 
   .mobile-menu {
@@ -778,9 +832,10 @@
     margin-bottom: 5px !important;
   }
 
-  .mobile-menu-toggle {
-    width: 22px !important;
-    height: 16px !important;
+  .mobile-menu-toggle .menu-icon,
+  .mobile-menu-toggle .menu-icon::before,
+  .mobile-menu-toggle .menu-icon::after {
+    width: 20px !important;
   }
 
   .mobile-menu {
