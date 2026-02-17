@@ -1,5 +1,14 @@
 /* ========== MOBILE CSS OTIMIZADO - G8SISTEMA ========== */
 
+/* Ocultar menu hambúrguer no desktop */
+@media screen and (min-width: 769px) {
+  .mobile-menu-toggle,
+  .mobile-menu,
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+}
+
 /* ========== SAFE AREA - Dispositivos com notch (aplica em todos os breakpoints) ========== */
 @supports (padding: env(safe-area-inset-top)) {
   @media screen and (max-width: 768px) {

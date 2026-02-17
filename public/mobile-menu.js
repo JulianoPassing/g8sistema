@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
         initMobileMenu();
     }
 
+    // Logo clicável para voltar ao início (mobile e desktop)
+    setupLogoClick();
+
     // Reinicializar no resize
     window.addEventListener('resize', function() {
         if (window.innerWidth <= 768) {
@@ -15,6 +18,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function setupLogoClick() {
+    const pathname = window.location.pathname || window.location.href;
+    
+    // Definir URL do "início" conforme o contexto
+    let homeUrl = 'painel.html';
+    if (pathname.includes('b2b')) {
+        homeUrl = 'b2b-pedidos.html';
+    } else if (pathname.includes('distribuicao')) {
+        homeUrl = 'distribuicao.html';
+    } else if (pathname.includes('index') || pathname.endsWith('/')) {
+        homeUrl = 'index.html';
+    }
+    
+    // Encontrar logo (img ou container)
+    const logo = document.querySelector('#logo') || 
+                 document.querySelector('.header-center img') || 
+                 document.querySelector('.header img') ||
+                 document.querySelector('header img') ||
+                 document.querySelector('.logo img');
+    
+    if (!logo) return;
+    
+    // Evitar duplicar o link
+    if (logo.closest('a')) return;
+    
+    const link = document.createElement('a');
+    link.href = homeUrl;
+    link.style.cssText = 'display: flex; align-items: center; text-decoration: none; cursor: pointer;';
+    link.setAttribute('aria-label', 'Voltar ao início');
+    
+    logo.parentNode.insertBefore(link, logo);
+    link.appendChild(logo);
+}
 
 function initMobileMenu() {
     // Criar elementos do menu se não existirem
@@ -149,7 +186,7 @@ function createMobileMenuElements() {
         `;
     }
 
-    if ((currentPage.includes('pantaneiro') || currentPage.includes('steitz')) && !currentPage.includes('b2b')) {
+    if ((currentPage.includes('pantaneiro') || currentPage.includes('steitz') || currentPage.includes('bkb')) && !currentPage.includes('b2b')) {
         menuItems += `
             <a href="painel.html" class="mobile-menu-item">
                 <span class="icon">${iconHome}</span>
