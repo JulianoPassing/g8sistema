@@ -212,6 +212,19 @@ function createMobileMenuElements() {
                 <span>Pedidos</span>
             </a>
         `;
+        // Links rápidos para outras lojas (exceto a atual)
+        if (!currentPage.includes('pantaneiro5')) {
+            menuItems += `<a href="pantaneiro5.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>Pantaneiro 5</span></a>`;
+        }
+        if (!currentPage.includes('pantaneiro7')) {
+            menuItems += `<a href="pantaneiro7.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>Pantaneiro 7</span></a>`;
+        }
+        if (!currentPage.includes('steitz')) {
+            menuItems += `<a href="steitz.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>Steitz</span></a>`;
+        }
+        if (!currentPage.includes('bkb')) {
+            menuItems += `<a href="bkb.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>BKB</span></a>`;
+        }
     }
 
     if (currentPage.includes('distribuicao')) {
@@ -305,6 +318,16 @@ function setupMobileMenuEvents() {
             closeMobileMenu();
         }
     });
+
+    // Botão voltar do Android fecha o menu
+    if (!window._mobileMenuPopstateBound) {
+        window._mobileMenuPopstateBound = true;
+        window.addEventListener('popstate', function() {
+            if (mobileMenu && mobileMenu.classList.contains('active')) {
+                closeMobileMenu();
+            }
+        });
+    }
 }
 
 function openMobileMenu() {
@@ -318,7 +341,13 @@ function openMobileMenu() {
         menuToggle.setAttribute('aria-label', 'Fechar menu de navegação');
         mobileMenu.classList.add('active');
         overlay.classList.add('active');
+        overlay.classList.add('active-pointer');
         document.body.style.overflow = 'hidden';
+        // Push state para botão voltar do Android fechar o menu
+        history.pushState({ mobileMenuOpen: true }, '');
+        // Foco no primeiro item clicável (acessibilidade)
+        const firstLink = mobileMenu.querySelector('a.mobile-menu-item');
+        if (firstLink) setTimeout(function() { firstLink.focus(); }, 100);
     }
 }
 
@@ -333,7 +362,10 @@ function closeMobileMenu() {
         menuToggle.setAttribute('aria-label', 'Abrir menu de navegação');
         mobileMenu.classList.remove('active');
         overlay.classList.remove('active');
+        overlay.classList.remove('active-pointer');
         document.body.style.overflow = '';
+        // Retornar foco ao botão (acessibilidade)
+        menuToggle.focus();
     }
 }
 

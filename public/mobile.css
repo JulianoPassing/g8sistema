@@ -278,12 +278,27 @@
     z-index: 9997 !important;
     opacity: 0 !important;
     visibility: hidden !important;
+    pointer-events: none !important;
     transition: all 0.3s ease !important;
   }
 
   .mobile-menu-overlay.active {
     opacity: 1 !important;
     visibility: visible !important;
+  }
+
+  .mobile-menu-overlay.active-pointer {
+    pointer-events: auto !important;
+  }
+
+  /* Respeitar preferência de movimento reduzido */
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu,
+    .mobile-menu-toggle .menu-icon,
+    .mobile-menu-toggle .menu-icon::before,
+    .mobile-menu-toggle .menu-icon::after {
+      transition: none !important;
+    }
   }
 
   /* Container principal */
