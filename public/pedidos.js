@@ -1673,7 +1673,14 @@ function gerarPDFPedidoEditado(pedido) {
     nomeArquivo = `Pedido_${pedido.id}_${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   }
   
-  doc.save(nomeArquivo);
+  if (pedido._abrirEmNovaJanela) {
+    const blob = doc.output('blob');
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, '_blank', 'noopener,noreferrer');
+    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 60000);
+  } else {
+    doc.save(nomeArquivo);
+  }
 }
 
 window.verPedidoPDF = async function(id) {
@@ -2050,8 +2057,10 @@ window.visualizarPDFPedido = async function(pedidoId) {
       return;
     }
 
-    // Usar a mesma função que gera PDF nas empresas
+    // Abrir em nova janela em vez de baixar
+    pedido._abrirEmNovaJanela = true;
     gerarPDFPedidoEditado(pedido);
+    delete pedido._abrirEmNovaJanela;
     return;
 
   } catch (error) {
