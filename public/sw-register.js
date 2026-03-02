@@ -7,25 +7,26 @@
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('/sw.js')
       .then(function(registration) {
+        // Verificar atualizações periodicamente (a cada 60s)
+        setInterval(function() {
+          registration.update();
+        }, 60000);
+
         registration.addEventListener('updatefound', function() {
           const newWorker = registration.installing;
           newWorker.addEventListener('statechange', function() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              if (typeof window.notifications !== 'undefined') {
-                window.notifications.info('Nova versão disponível. Recarregue para atualizar.', {
-                  title: 'Atualização',
-                  duration: 10000,
-                  closable: true
-                });
-              } else if (typeof alert !== 'undefined') {
-                if (confirm('Nova versão disponível. Recarregar agora?')) {
-                  window.location.reload();
-                }
-              }
+              // Pedir ao novo SW para assumir controle imediatamente
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
             }
           });
         });
       })
       .catch(function() {});
+
+    // Quando o SW assumir controle (após SKIP_WAITING), recarregar para aplicar atualizações
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      window.location.reload();
+    });
   });
 })();

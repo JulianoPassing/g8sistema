@@ -59,6 +59,27 @@ class EmailNotification {
     return this.configured;
   }
 
+  // Enviar com retry (até 3 tentativas para falhas temporárias)
+  async _sendWithRetry(mailOptions, maxAttempts = 3) {
+    let lastError;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await this.transporter.sendMail(mailOptions);
+      } catch (err) {
+        lastError = err;
+        const isRetryable = err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ESOCKET' || err.responseCode === 421 || err.responseCode === 450;
+        if (attempt < maxAttempts && isRetryable) {
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          console.warn(`⚠️ Tentativa ${attempt}/${maxAttempts} falhou, retry em ${delay}ms:`, err.message);
+          await new Promise(r => setTimeout(r, delay));
+        } else {
+          throw err;
+        }
+      }
+    }
+    throw lastError;
+  }
+
   // Enviar notificação de novo pedido
   async notifyNewOrder(pedidoData) {
     if (!this.isConfigured()) {
@@ -478,8 +499,8 @@ Sistema G8 - Notificação Automática
         html: htmlContent
       };
 
-      // Enviar e-mail
-      const info = await this.transporter.sendMail(mailOptions);
+      // Enviar e-mail (com retry em caso de falha temporária)
+      const info = await this._sendWithRetry(mailOptions, 3);
       
       console.log('✅ E-mail de notificação enviado:', info.messageId);
       return { 
@@ -495,6 +516,105 @@ Sistema G8 - Notificação Automática
         error: error.message,
         message: 'Erro ao enviar e-mail'
       };
+    }
+  }
+
+  // Enviar notificação de pedido atualizado (PUT)
+  async notifyOrderUpdated(pedidoData) {
+    if (!this.isConfigured()) {
+      console.log('📧 E-mail não configurado, notificação não enviada');
+      return { success: false, message: 'E-mail não configurado' };
+    }
+
+    try {
+      const emailTo = process.env.EMAIL_TO || process.env.EMAIL_USER;
+      const { id, empresa, descricao, dados, origem } = pedidoData;
+
+      let dadosParsed = {};
+      if (typeof dados === 'string') {
+        try {
+          dadosParsed = JSON.parse(dados);
+        } catch (e) {
+          dadosParsed = { dados };
+        }
+      } else if (dados) {
+        dadosParsed = dados;
+      }
+
+      const isB2B = origem === 'b2b' || dadosParsed.origem === 'b2b';
+      const clienteNome = dadosParsed.clienteNome || 'Cliente não identificado';
+      const observacoes = dadosParsed.observacoes || 'Sem observações';
+
+      const subject = isB2B 
+        ? `✏️ Pedido B2B Atualizado #${id} - ${empresa}`
+        : `✏️ Pedido Atualizado #${id} - ${empresa}`;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Inter, sans-serif; line-height: 1.6; color: #000; background: #f5f5f5; padding: 20px; }
+            .email-container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
+            .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; padding: 40px 30px; text-align: center; }
+            .divider { height: 4px; background: linear-gradient(90deg, #f59e0b 0%, #000 100%); }
+            .content { padding: 35px 30px; }
+            .alert-box { background: #fff7ed; border-left: 5px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+            .info-box { background: #fafafa; padding: 25px; border-radius: 10px; border: 1px solid #e0e0e0; }
+            .info-row { display: flex; padding: 12px 0; border-bottom: 1px solid #e5e5e5; }
+            .info-row:last-child { border-bottom: none; }
+            .info-label { font-weight: 700; min-width: 140px; }
+            .info-value { flex: 1; }
+            .description-box { background: #fafafa; padding: 20px; border-radius: 8px; margin-top: 15px; font-family: monospace; font-size: 13px; white-space: pre-wrap; }
+            .footer { background: #333; color: #fff; padding: 25px; text-align: center; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="header">
+              <div style="font-size:28px;font-weight:800;">G8</div>
+              <h1 style="font-size:22px;margin:15px 0 5px 0;">✏️ Pedido Atualizado</h1>
+              <p style="font-size:14px;opacity:0.95;">Sistema de Pedidos</p>
+            </div>
+            <div class="divider"></div>
+            <div class="content">
+              <div class="alert-box">
+                <div style="font-size:18px;font-weight:700;color:#d97706;">Atenção: Pedido Atualizado!</div>
+                <div style="color:#333;margin-top:8px;">Um pedido foi atualizado no sistema.</div>
+              </div>
+              <div class="info-box">
+                <div class="info-row"><div class="info-label">Pedido</div><div class="info-value"><strong>#${id}</strong></div></div>
+                <div class="info-row"><div class="info-label">Empresa</div><div class="info-value"><strong>${empresa}</strong></div></div>
+                ${isB2B ? `<div class="info-row"><div class="info-label">Cliente</div><div class="info-value">${clienteNome}</div></div>` : ''}
+                <div class="info-row"><div class="info-label">Data/Hora</div><div class="info-value">${new Date().toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' })}</div></div>
+              </div>
+              <div class="description-box">${descricao || 'Sem descrição'}</div>
+            </div>
+            <div class="footer">G8 Representações - E-mail automático</div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const textContent = `✏️ PEDIDO ATUALIZADO\n\nPedido: #${id}\nEmpresa: ${empresa}\nData: ${new Date().toLocaleString('pt-BR')}\n\nDESCRIÇÃO:\n${descricao || 'Sem descrição'}\n\n--- Sistema G8`;
+
+      const mailOptions = {
+        from: `"Sistema G8" <${process.env.EMAIL_USER}>`,
+        to: emailTo,
+        subject: subject,
+        text: textContent,
+        html: htmlContent
+      };
+
+      const info = await this._sendWithRetry(mailOptions, 3);
+      console.log('✅ E-mail de pedido atualizado enviado:', info.messageId);
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      console.error('❌ Erro ao enviar e-mail de pedido atualizado:', error.message);
+      return { success: false, error: error.message };
     }
   }
 

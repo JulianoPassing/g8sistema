@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "node build.js"
+  },
   "dependencies": {
     "mysql2": "^3.9.7",
     "nodemailer": "^6.9.7"

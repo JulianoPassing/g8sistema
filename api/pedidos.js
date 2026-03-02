@@ -82,16 +82,18 @@ module.exports = async (req, res) => {
         [empresaFinal, descricaoFinal, dadosFinal]
       );
       
-      // Enviar notificação por e-mail (não bloqueia a resposta)
-      emailNotification.notifyNewOrder({
-        id: result.insertId,
-        empresa: empresaFinal,
-        descricao: descricaoFinal,
-        dados: dadosFinal,
-        origem: 'normal'
-      }).catch(err => {
+      // Enviar notificação por e-mail (await garante envio antes da resposta - importante em serverless/Vercel)
+      try {
+        await emailNotification.notifyNewOrder({
+          id: result.insertId,
+          empresa: empresaFinal,
+          descricao: descricaoFinal,
+          dados: dadosFinal,
+          origem: 'normal'
+        });
+      } catch (err) {
         console.error('Erro ao enviar notificação por e-mail:', err);
-      });
+      }
       
       res.status(201).json({ id: result.insertId, message: 'Pedido cadastrado com sucesso!' });
       return;
@@ -166,6 +168,19 @@ module.exports = async (req, res) => {
         console.error('❌ Nenhuma linha afetada - Pedido não encontrado:', id);
         res.status(404).json({ error: 'Pedido não encontrado.' });
         return;
+      }
+      
+      // Enviar notificação de pedido atualizado por e-mail
+      try {
+        await emailNotification.notifyOrderUpdated({
+          id: id,
+          empresa: empresaFinal,
+          descricao: descricaoFinal,
+          dados: dadosFinal,
+          origem: 'normal'
+        });
+      } catch (err) {
+        console.error('Erro ao enviar notificação de atualização por e-mail:', err);
       }
       
       console.log(`✅ [${operationId}] Pedido atualizado com sucesso:`, id);
