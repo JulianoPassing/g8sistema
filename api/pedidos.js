@@ -50,10 +50,11 @@ module.exports = async (req, res) => {
         return;
       }
       
-      // PROTEÇÃO CONTRA CRIAÇÃO DUPLICADA: Verificar se já existe pedido com mesma descrição nos últimos 30 segundos
+      // PROTEÇÃO CONTRA CRIAÇÃO DUPLICADA: Verificar se já existe pedido com mesma descrição nos últimos 5 minutos
+      // (evita duplicatas quando mobile reporta offline mas o pedido já foi enviado)
       if (descricao) {
         const [recentDuplicates] = await connection.execute(
-          'SELECT id, data_pedido FROM pedidos WHERE descricao = ? AND data_pedido > DATE_SUB(NOW(), INTERVAL 30 SECOND)',
+          'SELECT id, data_pedido FROM pedidos WHERE descricao = ? AND data_pedido > DATE_SUB(NOW(), INTERVAL 5 MINUTE)',
           [descricao]
         );
         

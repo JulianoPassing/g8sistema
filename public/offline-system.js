@@ -258,8 +258,13 @@ class OfflineSystem {
         body: JSON.stringify(offlineOrder.data)
       });
 
-      if (response.ok) {
-        console.log('✅ Pedido enviado com sucesso:', offlineOrder.id);
+      if (response.ok || response.status === 409) {
+        // 409 = duplicata - servidor já tem o pedido, remover da fila
+        if (response.status === 409) {
+          console.log('✅ Pedido duplicado no servidor (409), removendo da fila:', offlineOrder.id);
+        } else {
+          console.log('✅ Pedido enviado com sucesso:', offlineOrder.id);
+        }
         this.removePendingOrder(offlineOrder.id);
         this.showNotification(`Pedido enviado com sucesso!`, 'success');
       } else {
@@ -287,11 +292,11 @@ class OfflineSystem {
       const existingOrders = await response.json();
       const orderData = offlineOrder.data;
       
-      // Verificar por pedidos similares nos últimos 10 minutos
-      const timeWindow = 10 * 60 * 1000; // 10 minutos
+      // Verificar por pedidos similares nos últimos 30 minutos (mobile pode ter delay)
+      const timeWindow = 30 * 60 * 1000; // 30 minutos
       const recentOrders = existingOrders.filter(order => {
-        const orderTime = new Date(order.data?.data || order.timestamp).getTime();
-        return (Date.now() - orderTime) < timeWindow;
+        const orderTime = new Date(order.data_pedido || order.data?.data || order.timestamp || 0).getTime();
+        return orderTime > 0 && (Date.now() - orderTime) < timeWindow;
       });
 
       // Comparar dados principais
@@ -342,7 +347,10 @@ class OfflineSystem {
 
   // Tentar enviar pedido (usado pelas páginas principais)
   async tryToSendOrder(orderData) {
-    if (this.isOnline) {
+    // Sempre tentar enviar primeiro (mobile pode reportar offline falsamente)
+    const shouldTrySend = this.isOnline || navigator.onLine;
+    
+    if (shouldTrySend) {
       try {
         const response = await fetch('/api/pedidos', {
           method: 'POST',
@@ -351,19 +359,35 @@ class OfflineSystem {
         });
 
         if (response.ok) {
+          this.isOnline = true;
           this.showNotification('Pedido enviado com sucesso!', 'success');
           return { success: true, online: true };
-        } else {
-          throw new Error(`HTTP ${response.status}`);
         }
+        // 409 = pedido duplicado (já foi criado) - tratar como sucesso
+        if (response.status === 409) {
+          console.log('✅ Pedido já existia no servidor (409), considerando sucesso');
+          this.isOnline = true;
+          this.showNotification('Pedido já registrado com sucesso!', 'success');
+          return { success: true, online: true };
+        }
+        throw new Error(`HTTP ${response.status}`);
       } catch (error) {
-        console.error('Erro ao enviar pedido online:', error);
-        // Se falhar, salvar offline
+        console.error('Erro ao enviar pedido:', error);
+        // ANTES de salvar offline: verificar se o pedido já foi criado (evitar duplicata)
+        const tempOrder = { id: 'temp', timestamp: Date.now(), data: orderData, attempts: 0, maxAttempts: 5 };
+        const alreadyExists = await this.checkForDuplicate(tempOrder);
+        if (alreadyExists) {
+          console.log('✅ Pedido já existe no servidor (verificação pós-falha), não salvando offline');
+          this.isOnline = true;
+          this.showNotification('Pedido já foi enviado com sucesso!', 'success');
+          return { success: true, online: true };
+        }
+        // Só salvar offline se realmente não foi criado
         const offlineId = await this.saveOrderOffline(orderData);
         return { success: true, online: false, offlineId };
       }
     } else {
-      // Salvar offline diretamente
+      // Sem conexão detectada - salvar offline
       const offlineId = await this.saveOrderOffline(orderData);
       return { success: true, online: false, offlineId };
     }
