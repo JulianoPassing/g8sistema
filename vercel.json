@@ -40,6 +40,10 @@
     {
       "source": "/api/auth-b2b",
       "destination": "/api/auth-b2b.js"
+    },
+    {
+      "source": "/api/acessos-pantaneiro5",
+      "destination": "/api/acessos-pantaneiro5.js"
     }
   ],
   "headers": [

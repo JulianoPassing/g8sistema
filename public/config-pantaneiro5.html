@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G8 - Liberar Acesso Tabela 5</title>
+  <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="mobile.css" />
+  <link rel="stylesheet" href="modern-design.css" />
+  <link rel="stylesheet" href="professional-ui.css" />
+  <style>
+    :root {
+      --g8-red: #ff0000;
+      --g8-black: #000000;
+      --gradient-primary: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --border-color: #e0e0e0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      min-height: 100vh;
+      padding: 70px 20px 20px;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle at 20% 80%, rgba(255, 0, 0, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.05) 0%, transparent 50%);
+      z-index: -1;
+    }
+    .header-top {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 60px;
+      background: white;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-left img { height: 40px; }
+    .header-left span { font-size: 18px; font-weight: 600; color: var(--g8-black); }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    #user-info { font-size: 14px; color: #333; font-weight: 500; padding: 8px 14px; background: #f5f7fa; border-radius: 10px; }
+    #logout-button {
+      background: var(--gradient-danger);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    #logout-button:hover { transform: translateY(-2px); }
+    .btn-back {
+      background: var(--g8-black);
+      color: white;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    .btn-back:hover { opacity: 0.9; transform: translateY(-2px); }
+    .config-card { max-width: 700px; margin: 0 auto; }
+    .config-card h2 { margin-bottom: 20px; color: var(--g8-black); }
+    .add-form { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .add-form input, .add-form select { padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; }
+    .add-form select { min-width: 140px; }
+    .add-form input[type="text"] { flex: 1; min-width: 180px; }
+    .btn-add { background: var(--gradient-primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+    .btn-add:hover { opacity: 0.9; }
+    .lista { background: #f9fafb; border-radius: 12px; padding: 16px; margin-top: 12px; overflow-x: auto; }
+    .lista-header { display: grid; grid-template-columns: 60px 1fr 140px 90px; gap: 12px; padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; border-bottom: 2px solid #e5e7eb; margin-bottom: 8px; }
+    .lista-item { display: grid; grid-template-columns: 60px 1fr 140px 90px; gap: 12px; align-items: center; padding: 12px 14px; background: white; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e5e7eb; font-size: 14px; }
+    .lista-item:last-child { margin-bottom: 0; }
+    .lista-item-id { font-weight: 600; color: var(--g8-red); }
+    .lista-item-razao { font-weight: 500; color: #333; }
+    .lista-item-cnpj { font-family: monospace; font-size: 13px; color: #4b5563; }
+    .lista-item-nao-cadastrado { font-style: italic; color: #9ca3af; }
+    .btn-remover { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; justify-self: end; }
+    .btn-remover:hover { background: #dc2626; }
+    .info-box { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 10px; padding: 14px; margin-bottom: 24px; font-size: 14px; color: #990000; }
+    .modo-arquivo-box { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 10px; padding: 14px; margin-bottom: 20px; font-size: 14px; color: #92400e; }
+    .modo-arquivo-box strong { display: block; margin-bottom: 8px; }
+    .btn-publicar { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; }
+    .btn-publicar:hover { opacity: 0.9; }
+    .empty-msg { color: #6b7280; font-style: italic; padding: 16px; }
+    .busca-container { position: relative; margin-bottom: 16px; }
+    .busca-container input { width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; }
+    .busca-container input:focus { outline: none; border-color: var(--g8-red); }
+    #sugestoes-clientes { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px; max-height: 220px; overflow-y: auto; z-index: 100; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+    .sugestao-item { padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .sugestao-item:hover { background: #f5f7fa; }
+    .sugestao-item:last-child { border-bottom: none; }
+    .sugestao-item .razao { font-weight: 600; color: #333; }
+    .sugestao-item .cnpj { font-size: 12px; color: #666; }
+    .sugestao-item .btn-add-sugestao { background: var(--g8-red); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+    .sugestao-item .btn-add-sugestao:hover { opacity: 0.9; }
+    .sugestao-item .btn-add-sugestao.ja-tem { background: #9ca3af; cursor: default; }
+    @media (max-width: 600px) {
+      .lista-header, .lista-item { grid-template-columns: 1fr 90px 70px; gap: 8px; padding: 10px; }
+      .lista-header span:first-child, .lista-item .lista-item-id { display: none; }
+      .lista-item-cnpj { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header-top">
+    <div class="header-left">
+      <img src="https://i.imgur.com/vjq26ym.png" alt="G8 Representações" height="40" />
+      <span>Liberar Acesso Tabela 5</span>
+    </div>
+    <div class="header-right">
+      <span id="user-info">Usuário</span>
+      <a href="painel.html" class="btn-back"><i class="fas fa-arrow-left"></i> Voltar</a>
+      <button id="logout-button"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    </div>
+  </header>
+
+  <main style="max-width: 800px; margin: 0 auto;">
+    <div class="config-card card">
+      <div class="info-box">
+        <strong>Como funciona:</strong> A tabela Pantaneiro 7 é visível para todos no B2B. A tabela Pantaneiro 5 fica oculta por padrão. Aqui você <strong>libera</strong> ou <strong>remove</strong> o acesso dos CNPJs que podem ver a tabela 5 no portal B2B.
+      </div>
+
+      <div id="modo-arquivo-box" class="modo-arquivo-box" style="display:none;">
+        <strong><i class="fas fa-file-export"></i> Modo sem banco de dados</strong>
+        Edite a lista abaixo e clique em <strong>Publicar</strong> para baixar o arquivo. Depois substitua o arquivo <code>public/acessos-pantaneiro5.json</code> no repositório, faça commit e push. O B2B verificará o acesso no próximo login.
+        <button type="button" class="btn-publicar" id="btn-publicar"><i class="fas fa-download"></i> Publicar (baixar arquivo)</button>
+      </div>
+
+      <h2><i class="fas fa-building"></i> CNPJs com acesso à tabela 5</h2>
+      <p style="color:#666;font-size:14px;margin-bottom:12px;">Busque um cliente cadastrado ou digite o CNPJ manualmente.</p>
+
+      <div class="busca-container">
+        <input type="text" id="busca-cliente" placeholder="Buscar cliente por razão social ou CNPJ..." autocomplete="off" />
+        <div id="sugestoes-clientes" style="display:none;"></div>
+      </div>
+
+      <div class="add-form">
+        <select id="tipo-cnpj">
+          <option value="cnpj">CNPJ (B2B)</option>
+        </select>
+        <input type="text" id="valor-cnpj" placeholder="Ex: 12.345.678/0001-99 ou 12345678000199" />
+        <button type="button" class="btn-add" id="btn-add-cnpj"><i class="fas fa-plus"></i> Adicionar</button>
+      </div>
+      <div class="lista" id="lista-cnpjs">
+        <div class="lista-header" id="lista-header" style="display:none;">
+          <span>ID</span>
+          <span>Razão Social</span>
+          <span>CNPJ</span>
+          <span></span>
+        </div>
+        <div class="empty-msg" id="empty-cnpjs">Nenhum CNPJ cadastrado.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API = '/api/acessos-pantaneiro5';
+    const API_JSON = '/acessos-pantaneiro5.json';
+    const API_CLIENTES = '/api/clientes';
+    let acessos = { cnpjs: [], usuarios: [] };
+    let modoArquivo = false;
+    let clientesCadastrados = [];
+
+    async function carregarClientes() {
+      try {
+        const res = await fetch(API_CLIENTES);
+        if (res.ok) clientesCadastrados = await res.json();
+        else {
+          const resJson = await fetch('clientes.json');
+          if (resJson.ok) clientesCadastrados = await resJson.json();
+        }
+      } catch (e) {
+        try {
+          const res = await fetch('clientes.json');
+          if (res.ok) clientesCadastrados = await res.json();
+        } catch (_) {}
+      }
+      if (!Array.isArray(clientesCadastrados)) clientesCadastrados = [];
+    }
+
+    function normalizarCnpj(v) {
+      return (v || '').toString().replace(/[.\-\/\s]/g, '');
+    }
+
+    function formatarCnpj(cnpj) {
+      const n = normalizarCnpj(cnpj);
+      if (n.length !== 14) return cnpj;
+      return n.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    }
+
+    function buscarClientePorCnpj(cnpjNorm) {
+      return clientesCadastrados.find(c => normalizarCnpj(c.cnpj) === cnpjNorm);
+    }
+
+    function mostrarSugestoesClientes(filtro) {
+      const div = document.getElementById('sugestoes-clientes');
+      const input = document.getElementById('busca-cliente');
+      div.innerHTML = '';
+      div.style.display = 'none';
+      if (!filtro || filtro.trim().length < 2) return;
+
+      const f = filtro.trim().toLowerCase();
+      const cnpjsComAcesso = (acessos.cnpjs || []).map(c => normalizarCnpj(c));
+      const filtrados = clientesCadastrados.filter(c => {
+        const razao = (c.razao || '').toLowerCase();
+        const cnpj = normalizarCnpj(c.cnpj);
+        const cnpjFormat = (c.cnpj || '').toLowerCase();
+        return razao.includes(f) || cnpj.includes(f) || cnpjFormat.includes(f);
+      }).slice(0, 10);
+
+      if (filtrados.length === 0) {
+        div.innerHTML = '<div class="sugestao-item" style="cursor:default;color:#666;">Nenhum cliente encontrado.</div>';
+        div.style.display = 'block';
+        return;
+      }
+
+      filtrados.forEach(c => {
+        const cnpjNorm = normalizarCnpj(c.cnpj);
+        const jaTem = cnpjNorm && cnpjNorm.length >= 14 && cnpjsComAcesso.includes(cnpjNorm);
+        const item = document.createElement('div');
+        item.className = 'sugestao-item';
+        item.innerHTML = `
+          <div>
+            <div class="razao">${(c.razao || '-').escapeHtml()}</div>
+            <div class="cnpj">CNPJ: ${(c.cnpj || '-')}</div>
+          </div>
+          <button class="btn-add-sugestao ${jaTem ? 'ja-tem' : ''}" ${jaTem ? 'disabled' : ''} data-cnpj="${cnpjNorm}">
+            ${jaTem ? 'Já tem acesso' : 'Liberar acesso'}
+          </button>
+        `;
+        if (!jaTem && cnpjNorm && cnpjNorm.length >= 14) {
+          item.querySelector('.btn-add-sugestao').onclick = (e) => {
+            e.stopPropagation();
+            adicionar('cnpj', cnpjNorm);
+            input.value = '';
+            div.style.display = 'none';
+          };
+        }
+        div.appendChild(item);
+      });
+      div.style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('mousedown', (e) => {
+        const div = document.getElementById('sugestoes-clientes');
+        const input = document.getElementById('busca-cliente');
+        if (div && input && !div.contains(e.target) && e.target !== input) {
+          div.style.display = 'none';
+        }
+      });
+    });
+
+    String.prototype.escapeHtml = function() {
+      const div = document.createElement('div');
+      div.textContent = this;
+      return div.innerHTML;
+    };
+
+    async function carregar() {
+      modoArquivo = false;
+      try {
+        const res = await fetch(API);
+        const data = await res.json();
+        if (res.ok) {
+          acessos = data;
+          modoArquivo = res.headers.get('X-Data-Source') === 'file';
+        } else if (res.status === 501 && data.modoArquivo) {
+          acessos = data.acessos || { cnpjs: [], usuarios: [] };
+          modoArquivo = true;
+        } else if (res.status === 503) {
+          const resJson = await fetch(API_JSON);
+          if (resJson.ok) {
+            const raw = await resJson.json();
+            acessos = { cnpjs: Array.isArray(raw.cnpj) ? raw.cnpj : [], usuarios: [] };
+            modoArquivo = true;
+          }
+        }
+      } catch (e) {
+        try {
+          const res = await fetch(API_JSON);
+          if (res.ok) {
+            const raw = await res.json();
+            acessos = { cnpjs: Array.isArray(raw.cnpj) ? raw.cnpj : [], usuarios: [] };
+            modoArquivo = true;
+          }
+        } catch (_) {}
+      }
+      document.getElementById('modo-arquivo-box').style.display = modoArquivo ? 'block' : 'none';
+      renderizar();
+    }
+
+    function renderizar() {
+      const listaCnpjs = document.getElementById('lista-cnpjs');
+      const listaHeader = document.getElementById('lista-header');
+      const emptyCnpjs = document.getElementById('empty-cnpjs');
+      const cnpjs = acessos.cnpjs || [];
+
+      emptyCnpjs.style.display = cnpjs.length ? 'none' : 'block';
+      listaHeader.style.display = cnpjs.length ? 'grid' : 'none';
+
+      const itemsCnpj = listaCnpjs.querySelectorAll('.lista-item');
+      itemsCnpj.forEach(el => el.remove());
+
+      cnpjs.forEach(cnpjNorm => {
+        const cliente = buscarClientePorCnpj(cnpjNorm);
+        const id = cliente ? (cliente.id || '-') : '-';
+        const razao = cliente ? (cliente.razao || '-') : 'Não cadastrado';
+        const razaoClass = cliente ? 'lista-item-razao' : 'lista-item-razao lista-item-nao-cadastrado';
+
+        const div = document.createElement('div');
+        div.className = 'lista-item';
+        div.innerHTML = `
+          <span class="lista-item-id">${(id + '').escapeHtml()}</span>
+          <span class="${razaoClass}">${razao.escapeHtml()}</span>
+          <span class="lista-item-cnpj">${formatarCnpj(cnpjNorm) || cnpjNorm}</span>
+          <button class="btn-remover" data-tipo="cnpj" data-valor="${cnpjNorm}"><i class="fas fa-trash"></i> Remover</button>
+        `;
+        listaCnpjs.insertBefore(div, emptyCnpjs);
+      });
+
+      listaCnpjs.querySelectorAll('.btn-remover').forEach(btn => {
+        btn.onclick = () => remover(btn.dataset.tipo, btn.dataset.valor);
+      });
+    }
+
+    async function adicionar(tipo, valor) {
+      const v = (valor || '').toString().trim();
+      if (!v) { alert('Informe o valor.'); return; }
+      if (tipo === 'cnpj') {
+        const cnpjNorm = normalizarCnpj(v);
+        if (cnpjNorm.length < 14) {
+          alert('CNPJ inválido. Use 14 dígitos.');
+          return;
+        }
+        if (modoArquivo) {
+          if (!acessos.cnpjs.includes(cnpjNorm)) {
+            acessos.cnpjs = [...(acessos.cnpjs || []), cnpjNorm];
+            document.getElementById('valor-cnpj').value = '';
+            renderizar();
+          }
+          return;
+        }
+      }
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tipo, valor: v })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          acessos = data.acessos || acessos;
+          document.getElementById('valor-cnpj').value = '';
+          renderizar();
+        } else {
+          alert(data.error || 'Erro ao adicionar.');
+        }
+      } catch (e) {
+        alert('Erro de conexão.');
+      }
+    }
+
+    async function remover(tipo, valor) {
+      if (!confirm('Remover este item?')) return;
+      if (modoArquivo) {
+        acessos.cnpjs = (acessos.cnpjs || []).filter(c => c !== valor);
+        renderizar();
+        return;
+      }
+      try {
+        const res = await fetch(API + `?tipo=${tipo}&valor=${encodeURIComponent(valor)}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok) {
+          acessos = data.acessos || acessos;
+          renderizar();
+        } else {
+          alert(data.error || 'Erro ao remover.');
+        }
+      } catch (e) {
+        alert('Erro de conexão.');
+      }
+    }
+
+    function publicarArquivo() {
+      const json = JSON.stringify({ cnpj: acessos.cnpjs || [] }, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'acessos-pantaneiro5.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = sessionStorage.getItem('loggedInUser');
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+      document.getElementById('user-info').textContent = `Olá, ${user}`;
+      document.getElementById('logout-button').onclick = () => {
+        sessionStorage.removeItem('loggedInUser');
+        window.location.href = 'index.html';
+      };
+      await carregarClientes();
+      await carregar();
+      document.getElementById('busca-cliente').addEventListener('input', (e) => mostrarSugestoesClientes(e.target.value));
+      document.getElementById('btn-add-cnpj').onclick = () => {
+        adicionar('cnpj', document.getElementById('valor-cnpj').value);
+      };
+      document.getElementById('valor-cnpj').onkeypress = (e) => {
+        if (e.key === 'Enter') document.getElementById('btn-add-cnpj').click();
+      };
+      document.getElementById('btn-publicar').onclick = publicarArquivo;
+    });
+  </script>
+  <script src="mobile-menu.js"></script>
+</body>
+</html>

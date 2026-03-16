@@ -12,42 +12,33 @@ const senhasPersonalizadas = {
   // '98765432000111': 'outrasenha456',
 };
 
+// Carregar CNPJs com acesso ao Pantaneiro 5 do arquivo JSON
+function carregarAcessosPantaneiro5DoArquivo() {
+  try {
+    const paths = [
+      path.join(process.cwd(), 'public', 'acessos-pantaneiro5.json'),
+      path.join(__dirname, '..', 'public', 'acessos-pantaneiro5.json')
+    ];
+    for (const p of paths) {
+      if (fs.existsSync(p)) {
+        const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+        return Array.isArray(data.cnpj) ? data.cnpj : [];
+      }
+    }
+  } catch (e) {}
+  return [];
+}
+
 // Função para definir acessos por cliente
 function getAcessosCliente(cnpj) {
-  // Normalizar CNPJ para comparação
   const cnpjNormalizado = cnpj.replace(/[.\-\/\s]/g, '');
-  
-  // CONFIGURAÇÃO DE ACESSO AO PANTANEIRO 5
-  // PANTANEIRO 7 e STEITZ: Sempre liberados para todos
-  // PANTANEIRO 5: Apenas clientes listados aqui
-  const clientesComPantaneiro5 = [
-    '30110818000128',  // G8 Representações
-    '11806675000149',  // 11.806.675/0001-49
-    '02179523000172',  // 02.179.523/0001-72
-    '02179523000253',  // 02.179.523/0002-53
-    '27735322000135',  // 27.735.322/0001-35
-    '02840209000199',  // 02.840.209/0001-99
-    '16715412000229',  // 16.715.412/0002-29
-    '16715412000300',  // 16.715.412/0003-00
-    '16715412000148',  // 16.715.412/0001-48
-    '07434744000163',  // 07.434.744/0001-63
-    '06086160000181',  // 06.086.160/0001-81
-    '78271327000195',  // 78.271.327/0001-95
-    '95815015000114',  // 95.815.015/0001-14
-    
-    // Adicione mais CNPJs aqui (sem pontos, barras ou hífens)
-    // '12345678000100',
-    // '98765432000111',
-  ];
-  
-  // Verificar se o cliente tem acesso ao Pantaneiro 5
+  const clientesComPantaneiro5 = carregarAcessosPantaneiro5DoArquivo();
   const temAcessoPantaneiro5 = clientesComPantaneiro5.includes(cnpjNormalizado);
   
-  // Retornar acessos (Pantaneiro 7 e Steitz sempre liberados)
   return {
-    pantaneiro5: temAcessoPantaneiro5,  // Só se estiver na lista
-    pantaneiro7: true,                  // Sempre liberado
-    steitz: true                        // Sempre liberado
+    pantaneiro5: temAcessoPantaneiro5,
+    pantaneiro7: true,
+    steitz: true
   };
 }
 
