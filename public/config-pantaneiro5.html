@@ -22,56 +22,64 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
       min-height: 100vh;
-      padding: 70px 20px 20px;
+      padding: 80px 20px 20px;
     }
     body::before {
       content: '';
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: radial-gradient(circle at 20% 80%, rgba(255, 0, 0, 0.06) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.05) 0%, transparent 50%);
+      background: radial-gradient(circle at 20% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(255, 0, 0, 0.03) 0%, transparent 50%);
+      animation: backgroundFloat 25s ease-in-out infinite;
       z-index: -1;
     }
+    @keyframes backgroundFloat {
+      0%, 100% { transform: translateX(0) translateY(0); }
+      50% { transform: translateX(-15px) translateY(15px); }
+    }
     .header-top {
-      position: fixed;
-      top: 0; left: 0;
       width: 100%;
-      height: 60px;
-      background: white;
-      box-shadow: var(--shadow);
+      position: absolute;
+      top: 0;
+      left: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 24px;
+      padding: 10px 25px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      box-shadow: var(--shadow);
+      box-sizing: border-box;
       z-index: 1000;
       border-bottom: 1px solid var(--border-color);
+      height: 55px;
     }
-    .header-left { display: flex; align-items: center; gap: 16px; }
-    .header-left img { height: 40px; }
+    .header-left { flex: 1; display: flex; align-items: center; gap: 15px; }
+    .header-center { flex: 1; display: flex; justify-content: center; }
+    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
     .header-left span { font-size: 18px; font-weight: 600; color: var(--g8-black); }
-    .header-right { display: flex; align-items: center; gap: 12px; }
-    #user-info { font-size: 14px; color: #333; font-weight: 500; padding: 8px 14px; background: #f5f7fa; border-radius: 10px; }
+    #user-info { font-size: 0.9rem; color: var(--text-color, #333); font-weight: 600; padding: 6px 12px; background: var(--light-color, #fff); border-radius: 8px; border: 1px solid var(--border-color); }
     #logout-button {
       background: var(--gradient-danger);
       color: white;
       border: none;
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
     }
-    #logout-button:hover { transform: translateY(-2px); }
+    #logout-button:hover { transform: translateY(-1px); }
     .btn-back {
       background: var(--g8-black);
       color: white;
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
       font-weight: 600;
       text-decoration: none;
       display: inline-flex;
@@ -79,7 +87,7 @@
       gap: 8px;
       transition: all 0.3s ease;
     }
-    .btn-back:hover { opacity: 0.9; transform: translateY(-2px); }
+    .btn-back:hover { opacity: 0.9; transform: translateY(-1px); }
     .config-card { max-width: 700px; margin: 0 auto; }
     .config-card h2 { margin-bottom: 20px; color: var(--g8-black); }
     .add-form { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -126,8 +134,10 @@
 <body>
   <header class="header-top">
     <div class="header-left">
-      <img src="https://i.imgur.com/vjq26ym.png" alt="G8 Representações" height="40" />
       <span>Liberar Acesso Tabela 5</span>
+    </div>
+    <div class="header-center">
+      <img src="https://i.imgur.com/vjq26ym.png" alt="G8 Representações" height="35" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));" />
     </div>
     <div class="header-right">
       <span id="user-info">Usuário</span>
@@ -280,35 +290,32 @@
     };
 
     async function carregar() {
-      modoArquivo = false;
+      modoArquivo = true; // Sempre modo arquivo (sem SQL) - igual lcrepresentacoes
       try {
-        const res = await fetch(API);
-        const data = await res.json();
-        if (res.ok) {
-          acessos = data;
-          modoArquivo = res.headers.get('X-Data-Source') === 'file';
-        } else if (res.status === 501 && data.modoArquivo) {
-          acessos = data.acessos || { cnpjs: [], usuarios: [] };
-          modoArquivo = true;
-        } else if (res.status === 503) {
-          const resJson = await fetch(API_JSON);
-          if (resJson.ok) {
-            const raw = await resJson.json();
-            acessos = { cnpjs: Array.isArray(raw.cnpj) ? raw.cnpj : [], usuarios: [] };
-            modoArquivo = true;
+        // Priorizar JSON estático (mais confiável no Vercel)
+        const resJson = await fetch(API_JSON);
+        if (resJson.ok) {
+          const raw = await resJson.json();
+          acessos = { cnpjs: Array.isArray(raw.cnpj) ? raw.cnpj : [], usuarios: [] };
+        } else {
+          const res = await fetch(API);
+          const data = await res.json();
+          if (res.ok) {
+            acessos = data.acessos || data;
+          } else if (data.acessos) {
+            acessos = data.acessos;
           }
         }
       } catch (e) {
         try {
-          const res = await fetch(API_JSON);
+          const res = await fetch(API);
           if (res.ok) {
-            const raw = await res.json();
-            acessos = { cnpjs: Array.isArray(raw.cnpj) ? raw.cnpj : [], usuarios: [] };
-            modoArquivo = true;
+            const data = await res.json();
+            acessos = data.acessos || data;
           }
         } catch (_) {}
       }
-      document.getElementById('modo-arquivo-box').style.display = modoArquivo ? 'block' : 'none';
+      document.getElementById('modo-arquivo-box').style.display = 'block';
       renderizar();
     }
 
