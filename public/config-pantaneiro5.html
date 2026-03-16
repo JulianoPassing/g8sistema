@@ -107,10 +107,6 @@
     .btn-remover { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; justify-self: end; }
     .btn-remover:hover { background: #dc2626; }
     .info-box { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 10px; padding: 14px; margin-bottom: 24px; font-size: 14px; color: #990000; }
-    .modo-arquivo-box { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 10px; padding: 14px; margin-bottom: 20px; font-size: 14px; color: #92400e; }
-    .modo-arquivo-box strong { display: block; margin-bottom: 8px; }
-    .btn-publicar { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; }
-    .btn-publicar:hover { opacity: 0.9; }
     .empty-msg { color: #6b7280; font-style: italic; padding: 16px; }
     .busca-container { position: relative; margin-bottom: 16px; }
     .busca-container input { width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; }
@@ -152,12 +148,6 @@
         <strong>Como funciona:</strong> A tabela Pantaneiro 7 é visível para todos no B2B. A tabela Pantaneiro 5 fica oculta por padrão. Aqui você <strong>libera</strong> ou <strong>remove</strong> o acesso dos CNPJs que podem ver a tabela 5 no portal B2B.
       </div>
 
-      <div id="modo-arquivo-box" class="modo-arquivo-box" style="display:none;">
-        <strong><i class="fas fa-file-export"></i> Modo sem banco de dados</strong>
-        Edite a lista abaixo e clique em <strong>Publicar</strong> para baixar o arquivo. Depois substitua o arquivo <code>public/acessos-pantaneiro5.json</code> no repositório, faça commit e push. O B2B verificará o acesso no próximo login.
-        <button type="button" class="btn-publicar" id="btn-publicar"><i class="fas fa-download"></i> Publicar (baixar arquivo)</button>
-      </div>
-
       <h2><i class="fas fa-building"></i> CNPJs com acesso à tabela 5</h2>
       <p style="color:#666;font-size:14px;margin-bottom:12px;">Busque um cliente cadastrado ou digite o CNPJ manualmente.</p>
 
@@ -190,7 +180,6 @@
     const API_JSON = '/acessos-pantaneiro5.json';
     const API_CLIENTES = '/api/clientes';
     let acessos = { cnpjs: [], usuarios: [] };
-    let modoArquivo = false;
     let clientesCadastrados = [];
 
     async function carregarClientes() {
@@ -290,32 +279,23 @@
     };
 
     async function carregar() {
-      modoArquivo = true; // Sempre modo arquivo (sem SQL) - igual lcrepresentacoes
       try {
-        // Priorizar JSON estático (mais confiável no Vercel)
-        const resJson = await fetch(API_JSON);
-        if (resJson.ok) {
-          const raw = await resJson.json();
-          acessos = { cnpjs: Array.isArray(raw.cnpj) ? raw.cnpj : [], usuarios: [] };
-        } else {
-          const res = await fetch(API);
-          const data = await res.json();
-          if (res.ok) {
-            acessos = data.acessos || data;
-          } else if (data.acessos) {
-            acessos = data.acessos;
-          }
+        const res = await fetch(API);
+        const data = await res.json();
+        if (res.ok) {
+          acessos = data.acessos || data;
+        } else if (data.acessos) {
+          acessos = data.acessos;
         }
       } catch (e) {
         try {
-          const res = await fetch(API);
-          if (res.ok) {
-            const data = await res.json();
-            acessos = data.acessos || data;
+          const resJson = await fetch(API_JSON);
+          if (resJson.ok) {
+            const raw = await resJson.json();
+            acessos = { cnpjs: Array.isArray(raw.cnpj) ? raw.cnpj : [], usuarios: [] };
           }
         } catch (_) {}
       }
-      document.getElementById('modo-arquivo-box').style.display = 'block';
       renderizar();
     }
 
@@ -362,14 +342,6 @@
           alert('CNPJ inválido. Use 14 dígitos.');
           return;
         }
-        if (modoArquivo) {
-          if (!acessos.cnpjs.includes(cnpjNorm)) {
-            acessos.cnpjs = [...(acessos.cnpjs || []), cnpjNorm];
-            document.getElementById('valor-cnpj').value = '';
-            renderizar();
-          }
-          return;
-        }
       }
       try {
         const res = await fetch(API, {
@@ -392,11 +364,6 @@
 
     async function remover(tipo, valor) {
       if (!confirm('Remover este item?')) return;
-      if (modoArquivo) {
-        acessos.cnpjs = (acessos.cnpjs || []).filter(c => c !== valor);
-        renderizar();
-        return;
-      }
       try {
         const res = await fetch(API + `?tipo=${tipo}&valor=${encodeURIComponent(valor)}`, { method: 'DELETE' });
         const data = await res.json();
@@ -409,16 +376,6 @@
       } catch (e) {
         alert('Erro de conexão.');
       }
-    }
-
-    function publicarArquivo() {
-      const json = JSON.stringify({ cnpj: acessos.cnpjs || [] }, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'acessos-pantaneiro5.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -441,7 +398,6 @@
       document.getElementById('valor-cnpj').onkeypress = (e) => {
         if (e.key === 'Enter') document.getElementById('btn-add-cnpj').click();
       };
-      document.getElementById('btn-publicar').onclick = publicarArquivo;
     });
   </script>
   <script src="mobile-menu.js"></script>
