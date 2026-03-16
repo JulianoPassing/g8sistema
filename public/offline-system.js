@@ -6,31 +6,30 @@
 
 class OfflineSystem {
   constructor() {
-    this.isOnline = navigator.onLine;
+    // No celular, navigator.onLine é pouco confiável - assumir online até provar o contrário
+    this.isOnline = true;
     this.pendingOrders = this.loadPendingOrders();
+    this.pendingEdits = this.loadPendingEdits();
     this.retryInterval = null;
     this.statusIndicator = null;
+    this.failuresInRow = 0;
+    this.MIN_FAILURES_OFFLINE = 2; // Só marcar offline após 2 falhas seguidas
     
     this.init();
   }
 
   init() {
-    // Listeners para eventos de conexão
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
     
-    // Verificar conexão periodicamente
     this.startConnectionCheck();
-    
-    // Criar indicador visual
     this.createStatusIndicator();
     
-    // Processar pedidos pendentes se estiver online
-    if (this.isOnline) {
-      this.processPendingOrders();
-    } else {
-      this.showOfflineBanner();
-    }
+    // Verificação imediata ao carregar (celular costuma reportar offline incorretamente)
+    setTimeout(() => this.checkConnection(), 300);
+    
+    this.processPendingOrders();
+    this.processPendingEdits();
   }
 
   createStatusIndicator() {
@@ -68,7 +67,7 @@ class OfflineSystem {
   updateStatusIndicator() {
     if (!this.statusIndicator) return;
     
-    const pendingCount = this.pendingOrders.length;
+    const pendingCount = this.pendingOrders.length + this.pendingEdits.length;
     
     // Verificar se é o indicador do header (tem span) ou o indicador flutuante
     const isHeaderIndicator = this.statusIndicator.id === 'connection-status';
@@ -111,19 +110,28 @@ class OfflineSystem {
     this.hideOfflineBanner();
     this.updateStatusIndicator();
     
-    // Mostrar notificação
-    this.showNotification('Conexão restaurada! Enviando pedidos pendentes...', 'success');
+    const totalPendentes = this.pendingOrders.length + this.pendingEdits.length;
+    this.showNotification(`Conexão restaurada! Enviando ${totalPendentes} item(ns) pendente(s)...`, 'success');
     
-    // Processar pedidos pendentes
-    setTimeout(() => this.processPendingOrders(), 1000);
+    setTimeout(() => {
+      this.processPendingOrders();
+      this.processPendingEdits();
+    }, 1000);
   }
 
   handleOffline() {
-    this.isOnline = false;
-    this.updateStatusIndicator();
-    this.showOfflineBanner();
-    
-    this.showNotification('Sem conexão! Pedidos serão salvos e enviados automaticamente quando a conexão retornar.', 'warning');
+    // No celular, o evento 'offline' pode ser falso - verificar com requisição real
+    this.failuresInRow = Math.max(this.failuresInRow, 1); // Conta o evento como 1ª falha
+    this.checkConnection().then(() => {
+      if (!this.isOnline) {
+        this.updateStatusIndicator();
+        this.showOfflineBanner();
+        this.showNotification('Sem conexão! Pedidos serão salvos e enviados automaticamente quando a conexão retornar.', 'warning');
+      } else {
+        this.hideOfflineBanner();
+        this.updateStatusIndicator();
+      }
+    });
   }
 
   showOfflineBanner() {
@@ -163,35 +171,41 @@ class OfflineSystem {
   }
 
   startConnectionCheck() {
-    // Verificar conexão a cada 30 segundos
-    setInterval(() => {
-      this.checkConnection();
-    }, 30000);
+    setInterval(() => this.checkConnection(), 15000); // A cada 15s (mais frequente)
   }
 
   async checkConnection() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout (celular lento)
+    
     try {
-      // Tentar fazer uma requisição simples para verificar conectividade real
       const response = await fetch('/api/health', { 
-        method: 'HEAD',
+        method: 'GET',
         cache: 'no-cache',
-        timeout: 5000 
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       
       const wasOffline = !this.isOnline;
       this.isOnline = response.ok;
+      this.failuresInRow = 0;
       
-      // Se acabou de voltar online
       if (wasOffline && this.isOnline) {
         this.handleOnline();
+      } else if (this.isOnline) {
+        this.hideOfflineBanner();
+        this.updateStatusIndicator();
       }
     } catch (error) {
+      clearTimeout(timeoutId);
+      this.failuresInRow++;
       const wasOnline = this.isOnline;
-      this.isOnline = false;
-      
-      // Se acabou de ficar offline
-      if (wasOnline && !this.isOnline) {
-        this.handleOffline();
+      // Só marcar offline após 2 falhas seguidas (evita falso offline em rede lenta)
+      if (this.failuresInRow >= this.MIN_FAILURES_OFFLINE) {
+        this.isOnline = false;
+        if (wasOnline) this.handleOffline();
+      } else {
+        this.updateStatusIndicator();
       }
     }
   }
@@ -284,6 +298,7 @@ class OfflineSystem {
   }
 
   // Verificar se pedido já foi enviado (evitar duplicatas)
+  // Usa CNPJ + valor no mesmo dia - alinhado com verificação da API
   async checkForDuplicate(offlineOrder) {
     try {
       const response = await fetch('/api/pedidos');
@@ -291,23 +306,31 @@ class OfflineSystem {
       
       const existingOrders = await response.json();
       const orderData = offlineOrder.data;
+      const dados = orderData?.dados || orderData;
       
-      // Verificar por pedidos similares nos últimos 30 minutos (mobile pode ter delay)
-      const timeWindow = 30 * 60 * 1000; // 30 minutos
-      const recentOrders = existingOrders.filter(order => {
-        const orderTime = new Date(order.data_pedido || order.data?.data || order.timestamp || 0).getTime();
-        return orderTime > 0 && (Date.now() - orderTime) < timeWindow;
-      });
-
-      // Comparar dados principais
-      return recentOrders.some(existing => {
-        const existingData = existing.data || existing;
-        return (
-          existingData.empresa === orderData.empresa &&
-          existingData.dados?.cliente?.razao === orderData.dados?.cliente?.razao &&
-          existingData.dados?.total === orderData.dados?.total &&
-          JSON.stringify(existingData.dados?.itens) === JSON.stringify(orderData.dados?.itens)
-        );
+      const cnpjNovo = String(dados?.cliente?.cnpj || '').replace(/\D/g, '');
+      const valorNovo = parseFloat(dados?.total);
+      const empresaNovo = orderData?.empresa;
+      
+      if (!cnpjNovo || cnpjNovo.length < 14 || isNaN(valorNovo)) return false;
+      
+      const hoje = new Date().toISOString().slice(0, 10);
+      
+      return existingOrders.some(order => {
+        let dadosExistente = {};
+        try {
+          dadosExistente = order.dados ? (typeof order.dados === 'string' ? JSON.parse(order.dados) : order.dados) : {};
+        } catch (e) { return false; }
+        const dataPedido = order.data_pedido || '';
+        const dataOrder = dataPedido.toString().slice(0, 10);
+        if (dataOrder !== hoje) return false;
+        if ((order.empresa || dadosExistente.empresa) !== empresaNovo) return false;
+        
+        const cnpjExistente = String(dadosExistente?.cliente?.cnpj || '').replace(/\D/g, '');
+        const valorExistente = parseFloat(dadosExistente?.total);
+        return cnpjExistente === cnpjNovo && 
+               !isNaN(valorExistente) && 
+               Math.abs(valorExistente - valorNovo) < 0.01;
       });
     } catch (error) {
       console.error('Erro ao verificar duplicatas:', error);
@@ -421,6 +444,114 @@ class OfflineSystem {
     this.savePendingOrders();
   }
 
+  // === EDIÇÕES OFFLINE (PUT) ===
+  loadPendingEdits() {
+    try {
+      const saved = localStorage.getItem('g8_pending_edits');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Erro ao carregar edições pendentes:', error);
+      return [];
+    }
+  }
+
+  savePendingEdits() {
+    try {
+      localStorage.setItem('g8_pending_edits', JSON.stringify(this.pendingEdits));
+    } catch (error) {
+      console.error('Erro ao salvar edições pendentes:', error);
+    }
+  }
+
+  async saveEditOffline(editData) {
+    const offlineEdit = {
+      id: `edit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Date.now(),
+      data: editData,
+      attempts: 0,
+      maxAttempts: 5
+    };
+    this.pendingEdits.push(offlineEdit);
+    this.savePendingEdits();
+    this.updateStatusIndicator();
+    console.log('💾 Edição salva offline:', offlineEdit.id);
+    this.showNotification('Edição salva! Será enviada quando a conexão retornar.', 'info');
+    return offlineEdit.id;
+  }
+
+  async processPendingEdits() {
+    if (!this.isOnline || this.pendingEdits.length === 0) return;
+    console.log(`📤 Processando ${this.pendingEdits.length} edição(ões) pendente(s)`);
+    const editsToProcess = [...this.pendingEdits];
+    for (const edit of editsToProcess) {
+      try {
+        await this.sendEdit(edit);
+      } catch (error) {
+        console.error('Erro ao enviar edição offline:', error);
+      }
+    }
+    this.updateStatusIndicator();
+  }
+
+  async sendEdit(offlineEdit) {
+    try {
+      offlineEdit.attempts++;
+      const editData = offlineEdit.data;
+      const id = editData.id;
+      const url = `/api/pedidos/${id}`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Operation-ID': offlineEdit.id
+        },
+        body: JSON.stringify(editData)
+      });
+      if (response.ok) {
+        this.pendingEdits = this.pendingEdits.filter(e => e.id !== offlineEdit.id);
+        this.savePendingEdits();
+        this.showNotification('Edição enviada com sucesso!', 'success');
+        console.log('✅ Edição enviada:', offlineEdit.id);
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao enviar edição:', error);
+      if (offlineEdit.attempts >= offlineEdit.maxAttempts) {
+        this.pendingEdits = this.pendingEdits.filter(e => e.id !== offlineEdit.id);
+        this.savePendingEdits();
+        this.showNotification(`Edição não enviada após ${offlineEdit.maxAttempts} tentativas.`, 'error');
+      }
+    }
+  }
+
+  async tryToSendEdit(editData) {
+    const shouldTrySend = this.isOnline || navigator.onLine;
+    if (shouldTrySend) {
+      try {
+        const id = editData.id;
+        const response = await fetch(`/api/pedidos/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(editData)
+        });
+        if (response.ok) {
+          this.isOnline = true;
+          this.showNotification('Edição salva com sucesso!', 'success');
+          return { success: true, online: true };
+        }
+        throw new Error(`HTTP ${response.status}`);
+      } catch (error) {
+        console.error('Erro ao enviar edição:', error);
+        const offlineId = await this.saveEditOffline(editData);
+        return { success: true, online: false, offlineId };
+      }
+    } else {
+      const offlineId = await this.saveEditOffline(editData);
+      return { success: true, online: false, offlineId };
+    }
+  }
+
   showNotification(message, type = 'info') {
     // Criar notificação simples
     const notification = document.createElement('div');
@@ -462,8 +593,9 @@ class OfflineSystem {
   getStatus() {
     return {
       isOnline: this.isOnline,
-      pendingCount: this.pendingOrders.length,
-      pendingOrders: this.pendingOrders
+      pendingCount: this.pendingOrders.length + this.pendingEdits.length,
+      pendingOrders: this.pendingOrders,
+      pendingEdits: this.pendingEdits
     };
   }
 }

@@ -1213,7 +1213,8 @@
       function adicionarAoPedidoMobile(ref) {
         const produto = produtosData.find((p) => p.REF === ref);
         if (!produto) return;
-        const cor = document.getElementById(`cor-mobile-${ref}`).value.trim();
+        const corInput = document.getElementById(`cor-mobile-${ref}`);
+        const cor = corInput ? corInput.value.trim() : '';
         const tabelaSelecionada = tabelaPrecosSelect.value;
         const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
         let itensAdicionados = 0;
@@ -1266,7 +1267,8 @@
           } else {
             document.getElementById(`tamanhos-manual-mobile-${ref}`).value = "";
           }
-          document.getElementById(`cor-mobile-${ref}`).value = "";
+          const corInputClear = document.getElementById(`cor-mobile-${ref}`);
+          if (corInputClear) corInputClear.value = "";
         } else {
           alert("Por favor, selecione pelo menos um tamanho e quantidade.");
         }
@@ -1748,7 +1750,7 @@
         doc.save(nomeArquivo);
 
         // Enviar pedido para o backend
-        const descricaoPedido = `Cliente: ${inputsCliente.razao.value} Itens: ${window.pedidoItens.map(item => (item.REF || item.REFERENCIA) + ' x' + item.quantidade).join(', ')} Total: R$ ${(typeof totalFinalComDesconto !== 'undefined' ? totalFinalComDesconto : 0).toFixed(2)}`;
+        const descricaoPedido = `Cliente: ${inputsCliente.razao.value} Itens: ${window.pedidoItens.map(item => (item.REF || item.REFERENCIA) + ' x' + item.quantidade + (item.cor ? ' - C:' + item.cor : '')).join(', ')} Total: R$ ${(typeof totalFinalComDesconto !== 'undefined' ? totalFinalComDesconto : 0).toFixed(2)}`;
         const dadosPedido = {
           cliente: Object.fromEntries(Object.entries(inputsCliente).map(([k, v]) => [k, v.value])),
           itens: window.pedidoItens,

@@ -280,83 +280,39 @@
       return;
     }
     
-    // TENTAR ABORDAGEM ALTERNATIVA - Verificar se pedido existe primeiro
-    console.log('🔍 Verificando se pedido existe antes de atualizar...');
+    // Usar offlineSystem para enviar edição (suporta modo offline no celular)
+    const dadosParaEnviar = {...dadosAtualizados, operationId};
     
-    // Primeiro, verificar se o pedido realmente existe
-    fetch('/api/pedidos')
-      .then(response => response.json())
-      .then(pedidos => {
-        const pedidoExistente = pedidos.find(p => p.id == dadosAtualizados.id);
-        
-        if (!pedidoExistente) {
-          console.error('❌ ERRO: Pedido não encontrado na base de dados!', dadosAtualizados.id);
-          alert('❌ Erro: Pedido não encontrado na base de dados. Operação cancelada.');
-          return Promise.reject('Pedido não encontrado');
-        }
-        
-        console.log('✅ Pedido encontrado, prosseguindo com atualização...', pedidoExistente);
-        
-        // Agora fazer a atualização com URL específica
-        console.log(`🔄 [${operationId}] Fazendo requisição PUT para /api/pedidos/${dadosAtualizados.id}`);
-        return fetch(`/api/pedidos/${dadosAtualizados.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-HTTP-Method-Override': 'PUT', // Header adicional para garantir
-            'X-Operation-ID': operationId // ID único da operação
-          },
-          body: JSON.stringify({...dadosAtualizados, operationId})
-        });
-      })
-      .catch(error => {
-        if (error === 'Pedido não encontrado') {
-          return Promise.reject(error);
-        }
-        
-        console.log('⚠️ Erro ao verificar pedido, tentando atualização direta...');
-        
-        // Se falhar a verificação, tentar a atualização direta mesmo assim
-        console.log(`🔄 [${operationId}] Fazendo requisição PUT de fallback para /api/pedidos`);
-        return fetch('/api/pedidos', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-HTTP-Method-Override': 'PUT',
-            'X-Operation-ID': operationId
-          },
-          body: JSON.stringify({...dadosAtualizados, operationId})
-        });
-      })
-    .then(response => {
-      console.log('📥 Resposta da API:', response.status, response.statusText);
-      if (response.ok) {
-        return response.json();
-      } else {
-        return response.json().then(errorData => {
-          console.error('❌ Erro da API:', errorData);
-          throw new Error(errorData.error || 'Erro desconhecido');
-        });
-      }
-    })
-    .then(result => {
-      console.log(`✅ [${operationId}] Resultado da API:`, result);
-      if (result.success) {
-        // Limpar localStorage
+    const enviarEdicao = window.offlineSystem && typeof window.offlineSystem.tryToSendEdit === 'function'
+      ? () => window.offlineSystem.tryToSendEdit(dadosParaEnviar)
+      : async () => {
+          const resp = await fetch(`/api/pedidos/${dadosAtualizados.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Operation-ID': operationId },
+            body: JSON.stringify(dadosParaEnviar)
+          });
+          if (resp.ok) return { success: true, online: true };
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error || 'Erro ao salvar');
+        };
+    
+    Promise.resolve(enviarEdicao()).then(result => {
+      console.log(`✅ [${operationId}] Resultado:`, result);
+      if (result && result.success) {
         localStorage.removeItem('pedidoParaEdicao');
-        
-        console.log('✅ Pedido atualizado com sucesso, redirecionando...');
-        // Resetar flag antes de redirecionar
         salvandoPedido = false;
-        // Redirecionar sem mostrar mensagem (evitar duplicação)
-        window.location.href = 'pedidos.html';
+        if (result.online) {
+          window.location.href = 'pedidos.html';
+        } else {
+          alert('📱 Edição salva! Será enviada automaticamente quando a conexão retornar.');
+          window.location.href = 'pedidos.html';
+        }
       } else {
-        alert('❌ Erro ao salvar pedido: ' + (result.message || 'Erro desconhecido'));
+        salvandoPedido = false;
+        alert('❌ Erro ao salvar pedido.');
       }
-    })
-    .catch(error => {
+    }).catch(error => {
       console.error('Erro ao salvar pedido:', error);
-      // Resetar flag em caso de erro
       salvandoPedido = false;
       alert('❌ Erro ao salvar pedido: ' + error.message);
     });

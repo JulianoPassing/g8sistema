@@ -50,26 +50,56 @@ module.exports = async (req, res) => {
         return;
       }
       
-      // PROTEÇÃO CONTRA CRIAÇÃO DUPLICADA: Verificar se já existe pedido com mesma descrição nos últimos 5 minutos
+      // PROTEÇÃO CONTRA CRIAÇÃO DUPLICADA: Verificar CNPJ + valor no mesmo dia
       // (evita duplicatas quando mobile reporta offline mas o pedido já foi enviado)
-      if (descricao) {
-        const [recentDuplicates] = await connection.execute(
-          'SELECT id, data_pedido FROM pedidos WHERE descricao = ? AND data_pedido > DATE_SUB(NOW(), INTERVAL 5 MINUTE)',
-          [descricao]
-        );
+      if (dados) {
+        let dadosParsed;
+        try {
+          dadosParsed = typeof dados === 'string' ? JSON.parse(dados) : dados;
+        } catch (e) {
+          dadosParsed = {};
+        }
+        const cnpjCliente = dadosParsed?.cliente?.cnpj;
+        const valorTotal = dadosParsed?.total;
         
-        if (recentDuplicates.length > 0) {
-          console.error('❌ ERRO: Tentativa de criar pedido duplicado detectada!', {
-            descricao: descricao.substring(0, 100) + '...',
-            pedidoExistente: recentDuplicates[0].id,
-            dataExistente: recentDuplicates[0].data_pedido
-          });
-          res.status(409).json({ 
-            error: 'Pedido duplicado detectado. Um pedido idêntico foi criado recentemente.',
-            existingId: recentDuplicates[0].id,
-            suggestion: 'Use PUT para atualizar o pedido existente.'
-          });
-          return;
+        if (cnpjCliente && (valorTotal !== undefined && valorTotal !== null)) {
+          const cnpjNormalizado = String(cnpjCliente).replace(/\D/g, '');
+          const valorNumerico = parseFloat(valorTotal);
+          
+          if (cnpjNormalizado.length >= 14 && !isNaN(valorNumerico)) {
+            const [recentDuplicates] = await connection.execute(
+              `SELECT id, data_pedido, dados FROM pedidos 
+               WHERE DATE(data_pedido) = CURDATE() AND empresa = ?`,
+              [empresa || '']
+            );
+            
+            const duplicata = recentDuplicates.find(row => {
+              let dadosRow = {};
+              try {
+                dadosRow = typeof row.dados === 'string' ? JSON.parse(row.dados) : (row.dados || {});
+              } catch (e) { return false; }
+              const cnpjExistente = String(dadosRow?.cliente?.cnpj || '').replace(/\D/g, '');
+              const valorExistente = parseFloat(dadosRow?.total);
+              return cnpjExistente === cnpjNormalizado && 
+                     !isNaN(valorExistente) && 
+                     Math.abs(valorExistente - valorNumerico) < 0.01;
+            });
+            
+            if (duplicata) {
+              console.error('❌ ERRO: Pedido duplicado detectado (CNPJ + valor no mesmo dia)!', {
+                cnpj: cnpjNormalizado,
+                valor: valorNumerico,
+                pedidoExistente: duplicata.id,
+                dataExistente: duplicata.data_pedido
+              });
+              res.status(409).json({ 
+                error: 'Pedido duplicado detectado. Já existe um pedido com este cliente e valor hoje.',
+                existingId: duplicata.id,
+                suggestion: 'Use PUT para atualizar o pedido existente.'
+              });
+              return;
+            }
+          }
         }
       }
       
