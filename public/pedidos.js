@@ -781,6 +781,10 @@ window.editarPedido = function(id) {
         case 'b2b-steitz':
           paginaEmpresa = 'steitz.html';
           break;
+        case 'cesari':
+        case 'b2b-cesari':
+          paginaEmpresa = 'cesari.html';
+          break;
         case 'bkb':
           paginaEmpresa = 'bkb.html';
           break;
@@ -804,6 +808,8 @@ async function carregarProdutosDaEmpresa(empresa) {
       produtosUrl = '/prodpantaneiro7.html';
     } else if (empresa === 'steitz' || empresa === 'b2b-steitz') {
       return produtosSteitzCompletos; // Steitz está definido diretamente
+    } else if (empresa === 'cesari' || empresa === 'b2b-cesari') {
+      return produtosCesariCompletos; // Cesari está definido diretamente
     }
     
     if (produtosUrl) {
@@ -842,6 +848,134 @@ const produtosSteitzCompletos = [
   { REF: "4002", MODELO: "BOTA NYLON & PELO C/ BORDA", TAM: "35 a 39", PRECOS: { p_30_60_90: 196.0, p_30_45_60: 189.0, a_vista: 182.0 } }
 ];
 
+// Produtos Cesari (pneus) - lista completa com categorias
+const produtosCesariCompletos = [
+  { REF: "32", MODELO: "BIZ TRAS. MAGNUM V250R 49P", TAM: "80/100-14", PRECOS: { p_30_60_90: 99, p_30_45_60: 99, a_vista: 99 } },
+  { REF: "33", MODELO: "BIZ DIAN. CHAMP TT 33L - XBRI", TAM: "2.25-17", PRECOS: { p_30_60_90: 79, p_30_45_60: 79, a_vista: 79 } },
+  { REF: "34", MODELO: "BIZ DIAN. RAVO TT 33L - SERVIS", TAM: "2.25-17", PRECOS: { p_30_60_90: 85, p_30_45_60: 85, a_vista: 85 } },
+  { REF: "35", MODELO: "PNEU DIAN. RAVO TT 55P - SERVIS", TAM: "80/100-17", PRECOS: { p_30_60_90: 129, p_30_45_60: 129, a_vista: 129 } },
+  { REF: "36", MODELO: "CG DIAN. TURBO TT 45P - SERVIS", TAM: "2.50-18", PRECOS: { p_30_60_90: 109, p_30_45_60: 109, a_vista: 109 } },
+  { REF: "37", MODELO: "CG TRAS. RAVO TT 52P - SERVIS", TAM: "3.00-18", PRECOS: { p_30_60_90: 119, p_30_45_60: 119, a_vista: 119 } },
+  { REF: "38", MODELO: "CG DIAN. RAVO TT 48P - SERVIS", TAM: "2.75-18", PRECOS: { p_30_60_90: 109, p_30_45_60: 109, a_vista: 109 } },
+  { REF: "39", MODELO: "CG TRAS. ALPHA TL 52P - SERVIS", TAM: "90/90-18", PRECOS: { p_30_60_90: 159, p_30_45_60: 159, a_vista: 159 } },
+  { REF: "40", MODELO: "CG DIAN. ALPHA TL 48P - SERVIS", TAM: "2.75-18", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+  { REF: "41", MODELO: "BROS TRAS. RAVO TT 60P - XBRI", TAM: "110/90-17", PRECOS: { p_30_60_90: 169, p_30_45_60: 169, a_vista: 169 } },
+  { REF: "42", MODELO: "KANSAS TRAS. ADVENT TT 58P - SERVIS", TAM: "3.50-16", PRECOS: { p_30_60_90: 129, p_30_45_60: 129, a_vista: 129 } },
+  { REF: "43", MODELO: "SCOOTER SPIKE TL 51J - SERVIS", TAM: "3.50-10", PRECOS: { p_30_60_90: 119, p_30_45_60: 119, a_vista: 119 } },
+  { REF: "44", MODELO: "SCOOTER ZAPPER TT 51J - SERVIS", TAM: "3.50-10", PRECOS: { p_30_60_90: 99, p_30_45_60: 99, a_vista: 99 } },
+  { REF: "45", MODELO: "CB500 DIAN. TOP GEAR TL 58P - SERVIS", TAM: "120/70-17", PRECOS: { p_30_60_90: 179, p_30_45_60: 179, a_vista: 179 } },
+  { REF: "46", MODELO: "TWISTER TRAS. TOP GEAR TL - SERVIS", TAM: "130/70-17", PRECOS: { p_30_60_90: 219, p_30_45_60: 219, a_vista: 219 } },
+  { REF: "47", MODELO: "SCOOTER OCTAVO TL 44J - SERVIS", TAM: "90/90-12", PRECOS: { p_30_60_90: 119, p_30_45_60: 119, a_vista: 119 } },
+  { REF: "48", MODELO: "SCOOTER RITZ 44J TL - SERVIS", TAM: "90/90-12", PRECOS: { p_30_60_90: 119, p_30_45_60: 119, a_vista: 119 } },
+  { REF: "49", MODELO: "STRADA TRAS. FLASH TT", TAM: "100/90-18", PRECOS: { p_30_60_90: 135, p_30_45_60: 135, a_vista: 135 } },
+  { REF: "50", MODELO: "START 160 TRAS. TL FLASH FS12", TAM: "100/80-18", PRECOS: { p_30_60_90: 184, p_30_45_60: 184, a_vista: 184 } },
+  { REF: "51", MODELO: "CG TRAS. FLASH", TAM: "90/90-18", PRECOS: { p_30_60_90: 119.9, p_30_45_60: 119.9, a_vista: 119.9 } },
+  { REF: "52", MODELO: "CG DIAN. FLASH", TAM: "2.75-18", PRECOS: { p_30_60_90: 104.9, p_30_45_60: 104.9, a_vista: 104.9 } },
+  { REF: "53", MODELO: "CG TRAS. TL FLASH FS12", TAM: "90/90-18", PRECOS: { p_30_60_90: 167, p_30_45_60: 167, a_vista: 167 } },
+  { REF: "54", MODELO: "CG DIAN. TL FLASH FS12", TAM: "80/100-18", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+  { REF: "55", MODELO: "BIZ TRAS. FLASH", TAM: "80/100-14", PRECOS: { p_30_60_90: 104.9, p_30_45_60: 104.9, a_vista: 104.9 } },
+  { REF: "56", MODELO: "BIZ DIAN. FLASH", TAM: "60/100-17", PRECOS: { p_30_60_90: 94.9, p_30_45_60: 94.9, a_vista: 94.9 } },
+  { REF: "57", MODELO: "BIZ TRAS. TL FLASH FS12", TAM: "80/100-14", PRECOS: { p_30_60_90: 134, p_30_45_60: 134, a_vista: 134 } },
+  { REF: "58", MODELO: "BIZ DIAN. TL FLASH FS12", TAM: "60/100-17", PRECOS: { p_30_60_90: 94, p_30_45_60: 94, a_vista: 94 } },
+  { REF: "59", MODELO: "BROS TRAS. FLASH", TAM: "110/90-17", PRECOS: { p_30_60_90: 179.9, p_30_45_60: 179.9, a_vista: 179.9 } },
+  { REF: "60", MODELO: "BROS DIAN. FLASH", TAM: "90/90-19", PRECOS: { p_30_60_90: 159.9, p_30_45_60: 159.9, a_vista: 159.9 } },
+  { REF: "61", MODELO: "TORNADO TRAS. FLASH", TAM: "120/80-18", PRECOS: { p_30_60_90: 189.9, p_30_45_60: 189.9, a_vista: 189.9 } },
+  { REF: "62", MODELO: "TORNADO DIAN. FLASH", TAM: "90/90-21", PRECOS: { p_30_60_90: 169.9, p_30_45_60: 169.9, a_vista: 169.9 } },
+  { REF: "63", MODELO: "TWISTER TRAS. TL FLASH SPORT FT15", TAM: "130/70-17", PRECOS: { p_30_60_90: 249, p_30_45_60: 249, a_vista: 249 } },
+  { REF: "64", MODELO: "TWISTER DIAN. TL FLASH SPORT FT15", TAM: "100/80-17", PRECOS: { p_30_60_90: 194, p_30_45_60: 194, a_vista: 194 } },
+  { REF: "65", MODELO: "CB300 TRAS. TL FLASH SPORT FT15", TAM: "140/70-17", PRECOS: { p_30_60_90: 279, p_30_45_60: 279, a_vista: 279 } },
+  { REF: "66", MODELO: "CB300 DIAN. TL FLASH SPORT FT15", TAM: "110/70-17", PRECOS: { p_30_60_90: 189, p_30_45_60: 189, a_vista: 189 } },
+  { REF: "67", MODELO: "SCOOTER TRAS. TL FLASH FS11", TAM: "130/70-13", PRECOS: { p_30_60_90: 199, p_30_45_60: 199, a_vista: 199 } },
+  { REF: "68", MODELO: "SCOOTER DIAN. TL FLASH FS11", TAM: "110/70-14", PRECOS: { p_30_60_90: 169, p_30_45_60: 169, a_vista: 169 } },
+  { REF: "69", MODELO: "SCOOTER TRAS. TL FLASH FS11", TAM: "120/70-14", PRECOS: { p_30_60_90: 199, p_30_45_60: 199, a_vista: 199 } },
+  { REF: "70", MODELO: "SCOOTER DIAN. TL FLASH FS11", TAM: "100/80-14", PRECOS: { p_30_60_90: 174, p_30_45_60: 174, a_vista: 174 } },
+  { REF: "Q1", MODELO: "24X10-11 FT 106 Sem Câmara 4 PR 46F", TAM: "UN", PRECOS: { p_30_60_90: 399, p_30_45_60: 399, a_vista: 399 } },
+  { REF: "Q2", MODELO: "24X8-12 FT 106 Sem Câmara 4 PR 35F", TAM: "UN", PRECOS: { p_30_60_90: 349, p_30_45_60: 349, a_vista: 349 } },
+  { REF: "Q3", MODELO: "25X8-12 FT 110 Sem Câmara 6 PR 43F", TAM: "UN", PRECOS: { p_30_60_90: 379, p_30_45_60: 379, a_vista: 379 } },
+  { REF: "Q4", MODELO: "25X10-12 FT 110 Sem Câmara 6 PR 50F", TAM: "UN", PRECOS: { p_30_60_90: 409, p_30_45_60: 409, a_vista: 409 } },
+  { REF: "Q5", MODELO: "26x9-12 FT 110 Sem Câmara 6 PR 49N", TAM: "UN", PRECOS: { p_30_60_90: 349, p_30_45_60: 349, a_vista: 349 } },
+  { REF: "Q6", MODELO: "26x11-12 FT 110 Sem Câmara 6 PR 55J", TAM: "UN", PRECOS: { p_30_60_90: 419, p_30_45_60: 419, a_vista: 419 } },
+  { REF: "Q7", MODELO: "26X9-14 FT 110 Sem Câmara 6 PR 48F", TAM: "UN", PRECOS: { p_30_60_90: 439, p_30_45_60: 439, a_vista: 439 } },
+  { REF: "Q8", MODELO: "26X11-14 FT 110 Sem Câmara 6 PR 54F", TAM: "UN", PRECOS: { p_30_60_90: 519, p_30_45_60: 519, a_vista: 519 } },
+  { REF: "1", MODELO: "CG TRAS. KS", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "2", MODELO: "CG TRAS. MANDRAKE", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "3", MODELO: "CG TRAS. Dingo.", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "4", MODELO: "CG TRAS. DURACITY", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "DUNA-T", MODELO: "CG TRAS. DUNA", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "DUNA-D", MODELO: "CG DIANT. DUNA", TAM: "2.75-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "CITY", MODELO: "CG DIANT. CITY", TAM: "2.75-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "5", MODELO: "CG DIANT. KS", TAM: "2.75-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "6", MODELO: "BIZ TRAS. MANDRAKE", TAM: "80/100-14", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "7", MODELO: "BIZ DIANT. MANDRAKE", TAM: "60/100-17", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+  { REF: "8", MODELO: "CG TRILHA TRAS.", TAM: "90/90-18", PRECOS: { p_30_60_90: 89, p_30_45_60: 89, a_vista: 89 } },
+  { REF: "9", MODELO: "CROSS DIANT.", TAM: "2.75-18", PRECOS: { p_30_60_90: 89, p_30_45_60: 89, a_vista: 89 } },
+  { REF: "10", MODELO: "BROS TRASEIRO", TAM: "110/90-17", PRECOS: { p_30_60_90: 159, p_30_45_60: 159, a_vista: 159 } },
+  { REF: "11", MODELO: "BROS DIANTEIRO", TAM: "90/90-19", PRECOS: { p_30_60_90: 120, p_30_45_60: 120, a_vista: 120 } },
+  { REF: "12", MODELO: "TORNADO TRASEIRO", TAM: "120/80-18", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+  { REF: "13", MODELO: "TORNADO DIANTEIRO", TAM: "90/90-21", PRECOS: { p_30_60_90: 115, p_30_45_60: 115, a_vista: 115 } },
+  { REF: "14", MODELO: "TWISTER TRASEIRO", TAM: "130/70-17", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+  { REF: "15", MODELO: "TWISTER DIANTEIRO", TAM: "100/80-17", PRECOS: { p_30_60_90: 115, p_30_45_60: 115, a_vista: 115 } },
+  { REF: "16", MODELO: "FALCON", TAM: "120/90-17", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+  { REF: "17", MODELO: "CB 300 TRASEIRO", TAM: "140/70-17", PRECOS: { p_30_60_90: 159, p_30_45_60: 159, a_vista: 159 } },
+  { REF: "18", MODELO: "CB 300 DIANTEIRO", TAM: "110/70-17", PRECOS: { p_30_60_90: 115, p_30_45_60: 115, a_vista: 115 } },
+  { REF: "19", MODELO: "TORNADO TRILHA TRAS.", TAM: "100/100-18", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+  { REF: "20", MODELO: "TORNADO TRILHA DIANT.", TAM: "80/100-21", PRECOS: { p_30_60_90: 115, p_30_45_60: 115, a_vista: 115 } },
+  { REF: "21", MODELO: "BROS TRILHA TRAS.", TAM: "110/90-17", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+  { REF: "22", MODELO: "BROS TRILHA DIANT.", TAM: "90/90-19", PRECOS: { p_30_60_90: 125, p_30_45_60: 125, a_vista: 125 } },
+  { REF: "23", MODELO: "CB 500 TRAS.", TAM: "150/70-17", PRECOS: { p_30_60_90: 159, p_30_45_60: 159, a_vista: 159 } },
+  { REF: "CB500D", MODELO: "CB 500 DIANT.", TAM: "120/70-17", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+  { REF: "STRADA-R", MODELO: "STRADA", TAM: "100/90-18", PRECOS: { p_30_60_90: 129, p_30_45_60: 129, a_vista: 129 } },
+  { REF: "BURGMAN", MODELO: "BURGMAN", TAM: "3.50-10", PRECOS: { p_30_60_90: 129, p_30_45_60: 129, a_vista: 129 } },
+  { REF: "C-SPD", MODELO: "CAMARA DE AR SPD MAX 3.00-18", TAM: "UN", PRECOS: { p_30_60_90: 15.99, p_30_45_60: 15.99, a_vista: 15.99 } },
+  { REF: "C61", MODELO: "CAMARA DE AR 100 X 100 X 18", TAM: "UN", PRECOS: { p_30_60_90: 24.99, p_30_45_60: 24.99, a_vista: 24.99 } },
+  { REF: "C62", MODELO: "CAMARA DE AR 90 X 90 X 21", TAM: "UN", PRECOS: { p_30_60_90: 21.99, p_30_45_60: 21.99, a_vista: 21.99 } },
+  { REF: "C64", MODELO: "CAMARA DE AR 90 X 90 X 19", TAM: "UN", PRECOS: { p_30_60_90: 21.99, p_30_45_60: 21.99, a_vista: 21.99 } },
+  { REF: "C310", MODELO: "CAMARA DE AR 3,00 X 10", TAM: "UN", PRECOS: { p_30_60_90: 21.99, p_30_45_60: 21.99, a_vista: 21.99 } },
+  { REF: "C66", MODELO: "CAMARA DE AR 3,00 X 16", TAM: "UN", PRECOS: { p_30_60_90: 21.99, p_30_45_60: 21.99, a_vista: 21.99 } },
+  { REF: "C67", MODELO: "CAMARA DE AR VULCAN 3,00 X 18", TAM: "UN", PRECOS: { p_30_60_90: 17.99, p_30_45_60: 17.99, a_vista: 17.99 } },
+  { REF: "C68", MODELO: "CAMARA DE AR VULCAN 3,00 X 14", TAM: "UN", PRECOS: { p_30_60_90: 17.99, p_30_45_60: 17.99, a_vista: 17.99 } },
+  { REF: "C69", MODELO: "CAMARA DE AR VULCAN 2,50 X 17", TAM: "UN", PRECOS: { p_30_60_90: 17.99, p_30_45_60: 17.99, a_vista: 17.99 } },
+  { REF: "C70", MODELO: "CAMARA DE AR VULCAN 110 X 90 X 17", TAM: "UN", PRECOS: { p_30_60_90: 24.99, p_30_45_60: 24.99, a_vista: 24.99 } },
+  { REF: "V01", MODELO: "VASELINA POLO 3KG", TAM: "UN", PRECOS: { p_30_60_90: 59, p_30_45_60: 59, a_vista: 59 } },
+  { REF: "TIRE1", MODELO: "PASTA MONTAGEM - MONTA TIRE", TAM: "UN", PRECOS: { p_30_60_90: 45, p_30_45_60: 45, a_vista: 45 } },
+  { REF: "TIRE2", MODELO: "PASTA LIMPEZA - MONTA TIRE", TAM: "UN", PRECOS: { p_30_60_90: 45, p_30_45_60: 45, a_vista: 45 } },
+  { REF: "L01", MODELO: "PASTA LIMPEZA H-PLUS", TAM: "UN", PRECOS: { p_30_60_90: 49, p_30_45_60: 49, a_vista: 49 } },
+  { REF: "311119", MODELO: "MACARRÃO 100mm - (VIPASSEAL - VIPAL)", TAM: "UN", PRECOS: { p_30_60_90: 89, p_30_45_60: 89, a_vista: 89 } },
+  { REF: "MAC-VUL", MODELO: "MACARRÃO 100mm - (VULCAN BOR)", TAM: "UN", PRECOS: { p_30_60_90: 29, p_30_45_60: 29, a_vista: 29 } },
+  { REF: "BM", MODELO: "BLOCK - VACINA PNEU MOTO 300ML", TAM: "UN", PRECOS: { p_30_60_90: 22, p_30_45_60: 22, a_vista: 22 } },
+  { REF: "475006", MODELO: "COLA VULK 685g (Remendo quente - VIPAL)", TAM: "UN", PRECOS: { p_30_60_90: 45, p_30_45_60: 45, a_vista: 45 } },
+  { REF: "470010", MODELO: "CIMENTO VULCANIZANTE VC-00", TAM: "UN", PRECOS: { p_30_60_90: 29, p_30_45_60: 29, a_vista: 29 } },
+  { REF: "345101", MODELO: "REMENDO 01", TAM: "UN", PRECOS: { p_30_60_90: 45, p_30_45_60: 45, a_vista: 45 } },
+  { REF: "345102", MODELO: "REMENDO 02", TAM: "UN", PRECOS: { p_30_60_90: 50, p_30_45_60: 50, a_vista: 50 } },
+  { REF: "345103", MODELO: "REMENDO 03", TAM: "UN", PRECOS: { p_30_60_90: 59, p_30_45_60: 59, a_vista: 59 } },
+  { REF: "345104", MODELO: "REMENDO RT03", TAM: "UN", PRECOS: { p_30_60_90: 49, p_30_45_60: 49, a_vista: 49 } },
+  { REF: "345105", MODELO: "REMENDO RAC10", TAM: "UN", PRECOS: { p_30_60_90: 100, p_30_45_60: 100, a_vista: 100 } },
+  { REF: "2050", MODELO: "OLEO MOBIL MINERAL 4T 20W50", TAM: "UN", PRECOS: { p_30_60_90: 28.99, p_30_45_60: 28.99, a_vista: 28.99 } },
+  { REF: "1030", MODELO: "OLEO MOBIL MINERAL 4T 10W30", TAM: "UN", PRECOS: { p_30_60_90: 36, p_30_45_60: 36, a_vista: 36 } },
+  { REF: "OLEO-VR1", MODELO: "OLEO VR LUB MINERAL 4T 10W30", TAM: "UN", PRECOS: { p_30_60_90: 17.99, p_30_45_60: 17.99, a_vista: 17.99 } },
+  { REF: "OLEO-VR2", MODELO: "OLEO VR LUB MINERAL 4T 20W50", TAM: "UN", PRECOS: { p_30_60_90: 14.99, p_30_45_60: 14.99, a_vista: 14.99 } },
+  { REF: "DES-1", MODELO: "DESENGRIPANTE ETAINZ (1UN.)", TAM: "UN", PRECOS: { p_30_60_90: 8.9, p_30_45_60: 8.9, a_vista: 8.9 } },
+  { REF: "DES-6", MODELO: "DESENGRIPANTE ETAINZ (6UN.)", TAM: "UN", PRECOS: { p_30_60_90: 49.9, p_30_45_60: 49.9, a_vista: 49.9 } },
+  { REF: "P01", MODELO: "PATINS FREIO CG - STD", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+  { REF: "P01A", MODELO: "PATINS FREIO CG - A", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+  { REF: "P01B", MODELO: "PATINS FREIO CG - B", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+  { REF: "P02", MODELO: "PATINS FREIO BIZ - STD", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+  { REF: "P02A", MODELO: "PATINS FREIO BIZ - A", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+  { REF: "P02B", MODELO: "PATINS FREIO BIZ - B", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+  { REF: "R01", MODELO: "GUIDÃO TITAN 150 S/ PESO CROMADO", TAM: "UN", PRECOS: { p_30_60_90: 30, p_30_45_60: 30, a_vista: 30 } },
+  { REF: "R02", MODELO: "GUIDÃO RADICAL PRETO", TAM: "UN", PRECOS: { p_30_60_90: 40, p_30_45_60: 40, a_vista: 40 } },
+  { REF: "R03", MODELO: "GUIDÃO RADICAL CROMADO", TAM: "UN", PRECOS: { p_30_60_90: 50, p_30_45_60: 50, a_vista: 50 } },
+  { REF: "R05", MODELO: "ESTRIBO CENTRAL TITAN 150 MACIÇO", TAM: "UN", PRECOS: { p_30_60_90: 35, p_30_45_60: 35, a_vista: 35 } },
+  { REF: "P03", MODELO: "CUBO TITAN 150", TAM: "UN", PRECOS: { p_30_60_90: 105, p_30_45_60: 105, a_vista: 105 } },
+  { REF: "COM", MODELO: "CONJ. NYLON (PRETO) - P / M / G / GG / EX", TAM: "UN", PRECOS: { p_30_60_90: 135, p_30_45_60: 135, a_vista: 135 } },
+  { REF: "COM-EXG", MODELO: "CONJ. NYLON (PRETO) - EXG / 2G / 3G", TAM: "UN", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+  { REF: "CRP", MODELO: "CONJ. NYLON FEM. (PRETO/ ROSA) - P/M/G/GG/EX", TAM: "UN", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+  { REF: "CRP-L", MODELO: "CONJ. NYLON FEM. (PRETO/ LILÁS) - P/M/G/GG/EX", TAM: "UN", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+  { REF: "PVC-LUXO", MODELO: "CONJ. PVC LUXO (PRETO) - P / M / G / GG / EX", TAM: "UN", PRECOS: { p_30_60_90: 75.9, p_30_45_60: 75.9, a_vista: 75.9 } },
+  { REF: "LUVA", MODELO: "LUVA PADRAO", TAM: "UN", PRECOS: { p_30_60_90: 25, p_30_45_60: 25, a_vista: 25 } },
+  { REF: "POLAINA", MODELO: "POLAINA PVC PREMIUM - P / M / G", TAM: "UN", PRECOS: { p_30_60_90: 25, p_30_45_60: 25, a_vista: 25 } },
+];
+
 // Produtos básicos como fallback
 const produtosPantaneiro5Basicos = [
   { CATEGORIA: "Aventura", REFERENCIA: "201", DESCRIÇÃO: "JARDINEIRA PVC COM BOTA", TAMANHOS: ["P - EX / BOTAS 35 - 46"], PRECO: 135.39 },
@@ -871,8 +1005,11 @@ function getProdutosFallback(empresa) {
     case 'steitz':
     case 'b2b-steitz': 
       return produtosSteitzCompletos;
+    case 'cesari':
+    case 'b2b-cesari': 
+      return produtosCesariCompletos;
     default: 
-      return [...produtosPantaneiro5Basicos, ...produtosPantaneiro7Basicos, ...produtosSteitzCompletos];
+      return [...produtosPantaneiro5Basicos, ...produtosPantaneiro7Basicos, ...produtosSteitzCompletos, ...produtosCesariCompletos];
   }
 }
 
@@ -1480,6 +1617,8 @@ function gerarPDFPedidoEditado(pedido) {
     tituloEmpresa = 'Pedido de Venda - Pantaneiro';
   } else if (pedido.empresa === 'steitz') {
     tituloEmpresa = 'Pedido de Venda - Steitz';
+  } else if (pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
+    tituloEmpresa = 'Pedido de Venda - Cesari';
   } else if (pedido.empresa === 'distribuicao') {
     tituloEmpresa = 'Pedido de Venda - Distribuição';
   }
@@ -1548,6 +1687,27 @@ function gerarPDFPedidoEditado(pedido) {
         `R$ ${(precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2)}`
       ];
     });
+  } else if (pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
+    head = [['Ref.', 'Modelo', 'Tamanho', 'Qtd.', 'Vlr. Unit.', 'Desc.%', 'Subtotal']];
+    body = (itens || []).map((item) => {
+      let precoUnitario = item.preco || 0;
+      let descontoGeral = 1;
+      if (descontos) {
+        if (descontos.prazo) descontoGeral *= (1 - (descontos.prazo / 100));
+        if (descontos.volume) descontoGeral *= (1 - (descontos.volume / 100));
+        if (descontos.extra) descontoGeral *= (1 - (descontos.extra / 100));
+      }
+      precoUnitario = precoUnitario * descontoGeral;
+      return [
+        item.REFERENCIA || item.REF || '',
+        item.DESCRIÇÃO || item.MODELO || '',
+        item.tamanho || '',
+        item.quantidade || '',
+        `R$ ${precoUnitario.toFixed(2)}`,
+        `${item.descontoExtra || 0}%`,
+        `R$ ${(precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2)}`
+      ];
+    });
   } else {
     head = [['Ref.', 'Descrição', 'Tam/Cor', 'Qtd', 'Unit.', 'Desc.%', 'Total']];
     body = (itens || []).map((item) => {
@@ -1582,6 +1742,16 @@ function gerarPDFPedidoEditado(pedido) {
       5: { cellWidth: 20, halign: 'right' },
       6: { cellWidth: 15, halign: 'center' },
       7: { cellWidth: 22, halign: 'right' }
+    };
+  } else if (pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
+    columnStyles = {
+      0: { cellWidth: 15 },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 25, halign: 'center' },
+      3: { cellWidth: 12, halign: 'center' },
+      4: { cellWidth: 22, halign: 'right' },
+      5: { cellWidth: 15, halign: 'center' },
+      6: { cellWidth: 22, halign: 'right' }
     };
   } else {
     columnStyles = {
@@ -1621,8 +1791,8 @@ function gerarPDFPedidoEditado(pedido) {
   summaryData.push(['Subtotal sem Desconto:', `R$ ${subtotalSemDesconto.toFixed(2)}`]);
   
   // Aplicar descontos conforme empresa
-  if (pedido.empresa === 'steitz') {
-    // Para Steitz, usa desconto "extra"
+  if (pedido.empresa === 'steitz' || pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
+    // Para Steitz e Cesari, usa desconto "extra"
     if (descontos && descontos.extra > 0) {
       const valorDescontoExtra = subtotalSemDesconto * (descontos.extra / 100);
       summaryData.push([`Desconto Extra (${descontos.extra}%):`, `- R$ ${valorDescontoExtra.toFixed(2)}`]);
@@ -1667,6 +1837,8 @@ function gerarPDFPedidoEditado(pedido) {
     nomeArquivo = `G8 Pedido Pantaneiro - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else if (pedido.empresa === 'steitz') {
     nomeArquivo = `G8 Pedido Steitz - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  } else if (pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
+    nomeArquivo = `G8 Pedido Cesari - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else if (pedido.empresa === 'distribuicao') {
     nomeArquivo = `G8 Pedido Distribuição - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else {
@@ -2701,6 +2873,10 @@ window.editarPedido = function(id) {
         case 'steitz':
         case 'b2b-steitz':
           paginaEmpresa = 'steitz.html';
+          break;
+        case 'cesari':
+        case 'b2b-cesari':
+          paginaEmpresa = 'cesari.html';
           break;
         case 'bkb':
           paginaEmpresa = 'bkb.html';

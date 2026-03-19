@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>G8 Representações - B2B Cesari</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+    <link rel="apple-touch-icon" href="https://i.imgur.com/WveVVY5.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+      <link rel="stylesheet" href="modern-design.css">
+      <link rel="stylesheet" href="mobile.css">
+      <link rel="stylesheet" href="professional-ui.css">
+      <link rel="stylesheet" href="connection-status.css">
+      <script src="sw-register.js"></script>
+      <script src="mobile-menu.js" defer></script>
+      <script src="advanced-notifications.js"></script>
+      <script src="animations.js"></script>
+      <script src="offline-system.js"></script>
+      <script src="connection-monitor.js"></script>
+
+    <style>
+      :root {
+        /* === CORES G8 === */
+        --g8-red: #ff0000;
+        --g8-black: #000000;
+        --g8-white: #ffffff;
+        
+        --primary-color: #ff0000;
+        --primary-hover: #cc0000;
+        --secondary-color: #000000;
+        --success-color: #059669;
+        --success-hover: #047857;
+        --danger-color: #dc2626;
+        --danger-hover: #b91c1c;
+        --warning-color: #d97706;
+        --warning-hover: #b45309;
+        --light-color: #ffffff;
+        --dark-color: #000000;
+        --text-color: #000000;
+        --text-muted: #666666;
+        --bg-color: #ffffff;
+        --card-bg: #fafafa;
+        --border-color: #e0e0e0;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --shadow-red: 0 10px 40px rgba(255, 0, 0, 0.25);
+        --border-radius: 8px;
+        --border-radius-lg: 12px;
+        --border-radius-xl: 16px;
+        --gradient-primary: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+        --gradient-secondary: linear-gradient(135deg, #000000 0%, #333333 100%);
+        --gradient-success: linear-gradient(135deg, #059669 0%, #047857 100%);
+        --gradient-danger: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        --gradient-dark: linear-gradient(135deg, #1e293b 0%, #000000 100%);
+        --gradient-bg: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background: var(--bg-color);
+        margin: 0;
+        padding: 80px 20px 0 20px;
+        font-size: 14px;
+        min-height: 100vh;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Fundo animado sutil */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+          radial-gradient(circle at 20% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.08) 0%, transparent 50%),
+          radial-gradient(circle at 40% 40%, rgba(255, 0, 0, 0.03) 0%, transparent 50%);
+        animation: backgroundFloat 25s ease-in-out infinite;
+        z-index: -1;
+      }
+
+      @keyframes backgroundFloat {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        50% { transform: translateX(-15px) translateY(15px); }
+      }
+
+      /* --- NOVO: HEADER DE USUÁRIO E LOGOUT (Importado do Painel) --- */
+      .header-top {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 25px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: var(--shadow);
+        z-index: 1000;
+        border-bottom: 1px solid var(--border-color);
+        height: 70px;
+        box-sizing: border-box;
+      }
+
+      .header-left {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .header-center {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .header-center img {
+        height: 50px;
+        width: auto;
+      }
+
+      .header-right {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      #user-info {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 0.9rem;
+        color: var(--text-color);
+        font-weight: 500;
+      }
+
+      #logout-button, .btn {
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+      }
+
+      #logout-button:hover, .btn:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        flex: 1;
+      }
+
+      /* Caixa de rolagem para produtos */
+      #produtos-container {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 25px;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 12px 0;
+        transition: all 0.3s ease;
+      }
+
+      #produtos-container:hover {
+        box-shadow: var(--shadow-lg);
+      }
+
+      /* Estilização da barra de rolagem */
+      #produtos-container::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #produtos-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+
+      #produtos-container::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+      }
+
+      #produtos-container::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-hover);
+      }
+
+      /* CSS para hover nas linhas da tabela */
+      tbody tr:hover {
+        background-color: #f5f5f5;
+      }
+
+      /* Espaçamento entre produtos na tabela */
+      tbody tr {
+        border-bottom: 1px solid #e9ecef;
+        height: 50px;
+      }
+
+      tbody tr td {
+        padding: 12px 8px;
+        vertical-align: middle;
+      }
+
+      /* CSS para botões */
+      .btn {
+        display: inline-block;
+        padding: 8px 16px;
+        margin-bottom: 0;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.42857143;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        cursor: pointer;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      .btn-sm {
+        padding: 5px 10px;
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 3px;
+      }
+
+      .btn-success {
+        background-color: var(--success-color);
+        color: white;
+        border-color: var(--success-color);
+      }
+
+      .btn-success:hover {
+        background-color: var(--success-hover);
+        border-color: var(--success-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-danger {
+        background-color: var(--danger-color);
+        color: white;
+        border-color: var(--danger-color);
+        padding: 5px 10px;
+        font-size: 0.85em;
+      }
+
+      .btn-danger:hover {
+        background-color: var(--danger-hover);
+        border-color: var(--danger-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius-lg);
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        box-shadow: var(--shadow-lg);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+      }
+
+      .card-header h2 {
+        color: var(--text-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 12px;
+      }
+
+      .form-grid .form-group {
+        margin-bottom: 0;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 8px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: white;
+      }
+
+      .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+      }
+
+      .btn-primary {
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      /* Rodapé G8 */
+      footer {
+        width: 100%;
+        text-align: center;
+        padding: 15px 20px;
+        background: var(--gradient-secondary);
+        color: white;
+        margin-top: 40px;
+        position: relative;
+      }
+
+      footer a {
+        color: #ff6666;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      footer a:hover {
+        color: #ff9999;
+        text-decoration: underline;
+        text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+      }
+
+      /* CSS para sugestões de produtos */
+      #sugestoes-produtos {
+        position: absolute;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-height: 300px;
+        overflow-y: auto;
+        width: 100%;
+        z-index: 1001;
+        margin-top: 2px;
+        padding: 0;
+        display: none;
+      }
+      .sugestao-cliente-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 1em;
+        background: #fff;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.18s;
+        color: #222;
+        line-height: 1.3;
+        display: block;
+      }
+      .sugestao-cliente-item:last-child {
+        border-bottom: none;
+      }
+      .sugestao-cliente-item:hover {
+        background: #f3f7fa;
+        color: #007bff;
+      }
+
+      /* CSS para layout de tamanhos igual ao original */
+      .tamanho-input-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .tamanho-input-container > div {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .tamanho-input-container label {
+        font-size: 0.75em;
+        font-weight: 500;
+      }
+
+      .tamanho-input-container input[type="number"] {
+        width: 45px;
+        padding: 4px;
+        text-align: center;
+      }
+
+      .manual-tamanho-input {
+        width: 140px;
+      }
+
+      /* Estilos específicos para inputs em tabelas - igual ao original */
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        color: var(--text-color);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        transform: translateY(-1px);
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+
+      /* Estilos profissionais para seção "Seu Pedido" */
+      .pedido-item {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid #e9ecef;
+        border-bottom: 2px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .pedido-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+      }
+
+      .pedido-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border-color: var(--primary-color);
+      }
+
+      .pedido-item-info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 0;
+        flex-wrap: wrap;
+      }
+
+      .pedido-item-info strong {
+        color: var(--text-color);
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      .pedido-item-info small {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .pedido-item-info input[type="number"] {
+        width: 50px;
+        padding: 4px 6px;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: 500;
+        background: white;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+      }
+
+      .pedido-item-info input[type="number"]:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        outline: none;
+      }
+
+      .pedido-item-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        align-items: center;
+        margin-left: auto;
+      }
+
+      .pedido-item-actions .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+      }
+
+      .pedido-total {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px solid var(--primary-color);
+        border-radius: 16px;
+        padding: 24px;
+        margin-top: 24px;
+        box-shadow: 0 4px 20px rgba(255, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .pedido-total::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+      }
+
+      .pedido-total-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .pedido-total h3 {
+        margin: 0;
+        color: var(--text-color);
+        font-size: 1.3rem;
+        font-weight: 600;
+      }
+
+      .pedido-total-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-shadow: 0 2px 4px rgba(255, 0, 0, 0.1);
+      }
+
+      .pedido-info-message {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffeaa7;
+        border-radius: 12px;
+        padding: 16px;
+        color: #856404;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
+      }
+
+      .pedido-info-message strong {
+        color: #856404;
+        font-weight: 600;
+      }
+
+      #pedido-vazio {
+        text-align: center;
+        color: var(--text-muted);
+        font-style: italic;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px dashed #e9ecef;
+        border-radius: 12px;
+        margin: 0;
+      }
+
+      /* Estilos para cards de produtos mobile - oculto no desktop */
+      .produtos-mobile-container {
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+      }
+
+      .produto-card-mobile {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 15px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .produto-card-mobile:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-2px);
+      }
+
+      .produto-header-mobile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .produto-ref-mobile {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+      }
+
+      .produto-preco-mobile {
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: var(--success-color);
+      }
+
+      .produto-descricao-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-descricao-mobile h4 {
+        margin: 0 0 5px 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        line-height: 1.3;
+      }
+
+      .produto-descricao-mobile small {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .produto-tamanhos-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-tamanhos-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-cor-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+      }
+
+      .btn-adicionar-mobile {
+        width: 100%;
+        background: var(--gradient-success);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-adicionar-mobile:hover {
+        background: var(--success-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
+      /* Ocultar tabelas em mobile */
+      .table-responsive {
+        display: block;
+      }
+
+      /* Cabeçalho de categoria */
+      .categoria-header td {
+        background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 12px 15px;
+        font-size: 1rem;
+      }
+      .categoria-header-mobile {
+        background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 10px 15px;
+        margin: 15px 0 8px 0;
+        border-radius: 8px;
+        font-size: 1rem;
+      }
+
+    @media (max-width: 768px) {
+      .header-top {
+        padding: 15px;
+        height: 85px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .header-left {
+        display: flex;
+      }
+      
+      .header-center {
+        position: static;
+        transform: none;
+        order: 1;
+      }
+      
+      .header-center img {
+        width: 200px;
+        height: auto;
+        max-width: 80%;
+      }
+      
+      .header-right {
+        order: 2;
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      
+      #user-info {
+        font-size: 0.75rem;
+        flex: 1;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      #logout-button, .btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        min-width: auto;
+        flex-shrink: 0;
+      }
+
+      body {
+        padding-top: 80px;
+      }
+
+      /* Ocultar tabelas em mobile */
+      .table-responsive {
+        display: none;
+      }
+
+      /* Mostrar container mobile */
+      .produtos-mobile-container {
+        display: flex;
+      }
+
+      /* Ajustar container de produtos */
+      #produtos-container {
+        max-height: 600px;
+        overflow-y: auto;
+      }
+
+      /* Ajustar cards */
+      .card {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .card-header h2 {
+        font-size: 1.3rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-center img {
+        width: 150px;
+        max-width: 75%;
+      }
+    }
+    </style>
+  </head>
+  <body class="g8-theme-g8-default app-layout">
+    <header class="header-top">
+      <div class="header-left">
+        <div class="status-indicator" id="connection-status">
+          <div class="status-dot"></div>
+          <span>Online</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <img
+          id="logo"
+          src="https://i.imgur.com/vjq26ym.png"
+          alt="Logo G8 Cesari"
+        />
+      </div>
+      <div class="header-right">
+        <div id="user-info">Carregando...</div>
+        <button id="logout-button" onclick="logout()">Sair</button>
+        <a href="b2b-pedidos.html" class="btn">⬅️ Voltar</a>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="breadcrumb">
+        <a href="b2b-pedidos.html">Portal B2B</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>Cesari</span>
+      </div>
+      <div class="page-header">
+        <div class="page-header-icon">
+          <i class="fas fa-tire"></i>
+        </div>
+        <div class="page-header-text">
+          <h1 class="dashboard-title">Cesari</h1>
+          <p class="dashboard-subtitle">Tabela B2B da representada Cesari</p>
+        </div>
+      </div>
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Cliente" style="font-size: 1.8em">👤</span>
+          <h2>Informações do Cliente - Cesari</h2>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="razao"><span>🏢</span>Razão Social:</label>
+            <input type="text" id="razao" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cnpj"><span>🏭</span>CNPJ:</label>
+            <input type="text" id="cnpj" readonly />
+          </div>
+          <div class="form-group">
+            <label for="ie"><span>📝</span>I.E:</label>
+            <input type="text" id="ie" readonly />
+          </div>
+          <div class="form-group">
+            <label for="endereco"><span>🗺️</span>Endereço:</label>
+            <input type="text" id="endereco" readonly />
+          </div>
+          <div class="form-group">
+            <label for="bairro"><span>🏘️</span>Bairro:</label>
+            <input type="text" id="bairro" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cidade"><span>🏙️</span>Cidade:</label>
+            <input type="text" id="cidade" readonly />
+          </div>
+          <div class="form-group">
+            <label for="estado"><span>🌎</span>Estado:</label>
+            <input type="text" id="estado" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cep"><span>📫</span>CEP:</label>
+            <input type="text" id="cep" readonly />
+          </div>
+          <div class="form-group">
+            <label for="email"><span>📧</span>E-mail:</label>
+            <input type="email" id="email" readonly />
+          </div>
+          <div class="form-group">
+            <label for="telefone"><span>📞</span>Telefone:</label>
+            <input type="text" id="telefone" readonly />
+          </div>
+          <div class="form-group">
+            <label for="transporte"><span>🚚</span>Transporte:</label>
+            <input type="text" id="transporte" readonly />
+          </div>
+          <div class="form-group">
+            <label for="prazo"><span>💰</span>Prazo Pagamento:</label>
+            <input type="text" id="prazo" readonly />
+          </div>
+          <div class="form-group full-width">
+            <label for="obs"><span>💬</span>Observações:</label>
+            <textarea id="obs" rows="3" readonly></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Tabela de Preços" style="font-size: 1.8em">📋</span>
+          <h2>Tabela de Preços</h2>
+        </div>
+        <div class="form-group">
+          <label for="tabela-precos-select">Selecionar Tabela de Preços:</label>
+          <select id="tabela-precos-select">
+            <option value="a_vista">À Vista</option>
+            <option value="p_30_45_60">30/45/60 Dias</option>
+            <option value="p_30_60_90">30/60/90 Dias</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="busca-produto">Buscar Produto:</label>
+          <input type="text" id="busca-produto" placeholder="Digite o nome, referência ou código do produto..." />
+          <div id="sugestoes-produtos"></div>
+        </div>
+      </section>
+      
+      <div id="produtos-container" class="table-responsive"></div>
+      <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
+      
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Seu Pedido" style="font-size: 1.8em">🛒</span>
+          <h2>Seu Pedido</h2>
+        </div>
+        
+        <div id="produtos-selecionados" class="produtos-container">
+          <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
+        </div>
+
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Status" style="font-size: 1.8em">📊</span>
+          <h2>Status do Pedido</h2>
+        </div>
+        <div id="status-mensagem">Pronto para adicionar produtos...</div>
+      </section>
+    </main>
+    
+    <footer style="width: 100%; text-align: center; padding: 15px 20px; background: transparent; color: #000000; margin-top: 40px; position: relative; font-size: 0.85rem; font-weight: 500;">
+      © 2025 J.P Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank" style="color: #000000; text-decoration: underline;">jp-sistemas.com</a>
+    </footer>
+
+    <script>
+      let clienteData = null;
+      let produtosSelecionados = [];
+      let produtosData = []; // Será carregado do arquivo original
+      const produtosContainer = document.getElementById("produtos-container");
+      const pedidoContainer = document.getElementById("pedido-container");
+      const pedidoVazio = document.getElementById("pedido-vazio");
+      
+      // Variáveis para controle do pedido
+      window.pedidoItens = [];
+      let subtotalPedido = 0;
+
+      // Verificar autenticação B2B
+      function checkAuthB2B() {
+        const clienteStr = localStorage.getItem('clienteB2B');
+        if (!clienteStr) {
+          window.location.href = 'b2b-login.html';
+          return false;
+        }
+        
+        clienteData = JSON.parse(clienteStr);
+        
+        // Verificar se tem acesso ao Steitz
+        if (!clienteData.acessos || !clienteData.acessos.cesari) {
+          alert('Você não tem acesso a esta tabela.');
+          window.location.href = 'b2b-pedidos.html';
+          return false;
+        }
+        
+        return true;
+      }
+
+      // Função de logout
+      function logout() {
+        localStorage.removeItem('clienteB2B');
+        localStorage.removeItem('savedCnpjB2B');
+        localStorage.removeItem('savedPasswordB2B');
+        window.location.href = 'b2b-login.html';
+      }
+
+      // Preencher informações do cliente
+      function preencherInformacoesCliente() {
+        if (!clienteData) return;
+
+        document.getElementById('user-info').textContent = clienteData.razao;
+        document.getElementById('razao').value = clienteData.razao || '';
+        document.getElementById('cnpj').value = clienteData.cnpj || '';
+        document.getElementById('ie').value = clienteData.ie || '';
+        document.getElementById('endereco').value = clienteData.endereco || '';
+        document.getElementById('bairro').value = clienteData.bairro || '';
+        document.getElementById('cidade').value = clienteData.cidade || '';
+        document.getElementById('estado').value = clienteData.estado || '';
+        document.getElementById('cep').value = clienteData.cep || '';
+        document.getElementById('email').value = clienteData.email || '';
+        document.getElementById('telefone').value = clienteData.telefone || '';
+        document.getElementById('transporte').value = clienteData.transporte || '';
+        document.getElementById('prazo').value = clienteData.prazo || '';
+        // Preencher observações automaticamente com a empresa
+        document.getElementById('obs').value = 'Pedido via B2B - Tabela Cesari';
+      }
+
+      // ========== LISTA COMPLETA DE PRODUTOS CESARI (PNEUS) - COM CATEGORIAS ==========
+      window.produtosData = [
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "32", MODELO: "BIZ TRAS. MAGNUM V250R 49P", TAM: "80/100-14", PRECOS: { p_30_60_90: 99, p_30_45_60: 99, a_vista: 99 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "33", MODELO: "BIZ DIAN. CHAMP TT 33L - XBRI", TAM: "2.25-17", PRECOS: { p_30_60_90: 79, p_30_45_60: 79, a_vista: 79 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "34", MODELO: "BIZ DIAN. RAVO TT 33L - SERVIS", TAM: "2.25-17", PRECOS: { p_30_60_90: 85, p_30_45_60: 85, a_vista: 85 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "35", MODELO: "PNEU DIAN. RAVO TT 55P - SERVIS", TAM: "80/100-17", PRECOS: { p_30_60_90: 129, p_30_45_60: 129, a_vista: 129 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "36", MODELO: "CG DIAN. TURBO TT 45P - SERVIS", TAM: "2.50-18", PRECOS: { p_30_60_90: 109, p_30_45_60: 109, a_vista: 109 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "37", MODELO: "CG TRAS. RAVO TT 52P - SERVIS", TAM: "3.00-18", PRECOS: { p_30_60_90: 119, p_30_45_60: 119, a_vista: 119 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "38", MODELO: "CG DIAN. RAVO TT 48P - SERVIS", TAM: "2.75-18", PRECOS: { p_30_60_90: 109, p_30_45_60: 109, a_vista: 109 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "39", MODELO: "CG TRAS. ALPHA TL 52P - SERVIS", TAM: "90/90-18", PRECOS: { p_30_60_90: 159, p_30_45_60: 159, a_vista: 159 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "40", MODELO: "CG DIAN. ALPHA TL 48P - SERVIS", TAM: "2.75-18", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "41", MODELO: "BROS TRAS. RAVO TT 60P - XBRI", TAM: "110/90-17", PRECOS: { p_30_60_90: 169, p_30_45_60: 169, a_vista: 169 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "42", MODELO: "KANSAS TRAS. ADVENT TT 58P - SERVIS", TAM: "3.50-16", PRECOS: { p_30_60_90: 129, p_30_45_60: 129, a_vista: 129 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "43", MODELO: "SCOOTER SPIKE TL 51J - SERVIS", TAM: "3.50-10", PRECOS: { p_30_60_90: 119, p_30_45_60: 119, a_vista: 119 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "44", MODELO: "SCOOTER ZAPPER TT 51J - SERVIS", TAM: "3.50-10", PRECOS: { p_30_60_90: 99, p_30_45_60: 99, a_vista: 99 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "45", MODELO: "CB500 DIAN. TOP GEAR TL 58P - SERVIS", TAM: "120/70-17", PRECOS: { p_30_60_90: 179, p_30_45_60: 179, a_vista: 179 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "46", MODELO: "TWISTER TRAS. TOP GEAR TL - SERVIS", TAM: "130/70-17", PRECOS: { p_30_60_90: 219, p_30_45_60: 219, a_vista: 219 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "47", MODELO: "SCOOTER OCTAVO TL 44J - SERVIS", TAM: "90/90-12", PRECOS: { p_30_60_90: 119, p_30_45_60: 119, a_vista: 119 } },
+        { CATEGORIA: "PNEUS DE MOTO NOVOS", REF: "48", MODELO: "SCOOTER RITZ 44J TL - SERVIS", TAM: "90/90-12", PRECOS: { p_30_60_90: 119, p_30_45_60: 119, a_vista: 119 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "49", MODELO: "STRADA TRAS. FLASH TT", TAM: "100/90-18", PRECOS: { p_30_60_90: 135, p_30_45_60: 135, a_vista: 135 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "50", MODELO: "START 160 TRAS. TL FLASH FS12", TAM: "100/80-18", PRECOS: { p_30_60_90: 184, p_30_45_60: 184, a_vista: 184 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "51", MODELO: "CG TRAS. FLASH", TAM: "90/90-18", PRECOS: { p_30_60_90: 119.9, p_30_45_60: 119.9, a_vista: 119.9 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "52", MODELO: "CG DIAN. FLASH", TAM: "2.75-18", PRECOS: { p_30_60_90: 104.9, p_30_45_60: 104.9, a_vista: 104.9 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "53", MODELO: "CG TRAS. TL FLASH FS12", TAM: "90/90-18", PRECOS: { p_30_60_90: 167, p_30_45_60: 167, a_vista: 167 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "54", MODELO: "CG DIAN. TL FLASH FS12", TAM: "80/100-18", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "55", MODELO: "BIZ TRAS. FLASH", TAM: "80/100-14", PRECOS: { p_30_60_90: 104.9, p_30_45_60: 104.9, a_vista: 104.9 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "56", MODELO: "BIZ DIAN. FLASH", TAM: "60/100-17", PRECOS: { p_30_60_90: 94.9, p_30_45_60: 94.9, a_vista: 94.9 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "57", MODELO: "BIZ TRAS. TL FLASH FS12", TAM: "80/100-14", PRECOS: { p_30_60_90: 134, p_30_45_60: 134, a_vista: 134 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "58", MODELO: "BIZ DIAN. TL FLASH FS12", TAM: "60/100-17", PRECOS: { p_30_60_90: 94, p_30_45_60: 94, a_vista: 94 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "59", MODELO: "BROS TRAS. FLASH", TAM: "110/90-17", PRECOS: { p_30_60_90: 179.9, p_30_45_60: 179.9, a_vista: 179.9 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "60", MODELO: "BROS DIAN. FLASH", TAM: "90/90-19", PRECOS: { p_30_60_90: 159.9, p_30_45_60: 159.9, a_vista: 159.9 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "61", MODELO: "TORNADO TRAS. FLASH", TAM: "120/80-18", PRECOS: { p_30_60_90: 189.9, p_30_45_60: 189.9, a_vista: 189.9 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "62", MODELO: "TORNADO DIAN. FLASH", TAM: "90/90-21", PRECOS: { p_30_60_90: 169.9, p_30_45_60: 169.9, a_vista: 169.9 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "63", MODELO: "TWISTER TRAS. TL FLASH SPORT FT15", TAM: "130/70-17", PRECOS: { p_30_60_90: 249, p_30_45_60: 249, a_vista: 249 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "64", MODELO: "TWISTER DIAN. TL FLASH SPORT FT15", TAM: "100/80-17", PRECOS: { p_30_60_90: 194, p_30_45_60: 194, a_vista: 194 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "65", MODELO: "CB300 TRAS. TL FLASH SPORT FT15", TAM: "140/70-17", PRECOS: { p_30_60_90: 279, p_30_45_60: 279, a_vista: 279 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "66", MODELO: "CB300 DIAN. TL FLASH SPORT FT15", TAM: "110/70-17", PRECOS: { p_30_60_90: 189, p_30_45_60: 189, a_vista: 189 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "67", MODELO: "SCOOTER TRAS. TL FLASH FS11", TAM: "130/70-13", PRECOS: { p_30_60_90: 199, p_30_45_60: 199, a_vista: 199 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "68", MODELO: "SCOOTER DIAN. TL FLASH FS11", TAM: "110/70-14", PRECOS: { p_30_60_90: 169, p_30_45_60: 169, a_vista: 169 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "69", MODELO: "SCOOTER TRAS. TL FLASH FS11", TAM: "120/70-14", PRECOS: { p_30_60_90: 199, p_30_45_60: 199, a_vista: 199 } },
+        { CATEGORIA: "LINHA FLASH TYRE", REF: "70", MODELO: "SCOOTER DIAN. TL FLASH FS11", TAM: "100/80-14", PRECOS: { p_30_60_90: 174, p_30_45_60: 174, a_vista: 174 } },
+        { CATEGORIA: "PNEU QUADRICICULO", REF: "Q1", MODELO: "24X10-11 FT 106 Sem Câmara 4 PR 46F", TAM: "UN", PRECOS: { p_30_60_90: 399, p_30_45_60: 399, a_vista: 399 } },
+        { CATEGORIA: "PNEU QUADRICICULO", REF: "Q2", MODELO: "24X8-12 FT 106 Sem Câmara 4 PR 35F", TAM: "UN", PRECOS: { p_30_60_90: 349, p_30_45_60: 349, a_vista: 349 } },
+        { CATEGORIA: "PNEU QUADRICICULO", REF: "Q3", MODELO: "25X8-12 FT 110 Sem Câmara 6 PR 43F", TAM: "UN", PRECOS: { p_30_60_90: 379, p_30_45_60: 379, a_vista: 379 } },
+        { CATEGORIA: "PNEU QUADRICICULO", REF: "Q4", MODELO: "25X10-12 FT 110 Sem Câmara 6 PR 50F", TAM: "UN", PRECOS: { p_30_60_90: 409, p_30_45_60: 409, a_vista: 409 } },
+        { CATEGORIA: "PNEU QUADRICICULO", REF: "Q5", MODELO: "26x9-12 FT 110 Sem Câmara 6 PR 49N", TAM: "UN", PRECOS: { p_30_60_90: 349, p_30_45_60: 349, a_vista: 349 } },
+        { CATEGORIA: "PNEU QUADRICICULO", REF: "Q6", MODELO: "26x11-12 FT 110 Sem Câmara 6 PR 55J", TAM: "UN", PRECOS: { p_30_60_90: 419, p_30_45_60: 419, a_vista: 419 } },
+        { CATEGORIA: "PNEU QUADRICICULO", REF: "Q7", MODELO: "26X9-14 FT 110 Sem Câmara 6 PR 48F", TAM: "UN", PRECOS: { p_30_60_90: 439, p_30_45_60: 439, a_vista: 439 } },
+        { CATEGORIA: "PNEU QUADRICICULO", REF: "Q8", MODELO: "26X11-14 FT 110 Sem Câmara 6 PR 54F", TAM: "UN", PRECOS: { p_30_60_90: 519, p_30_45_60: 519, a_vista: 519 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "1", MODELO: "CG TRAS. KS", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "2", MODELO: "CG TRAS. MANDRAKE", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "3", MODELO: "CG TRAS. Dingo.", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "4", MODELO: "CG TRAS. DURACITY", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "DUNA-T", MODELO: "CG TRAS. DUNA", TAM: "90/90-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "DUNA-D", MODELO: "CG DIANT. DUNA", TAM: "2.75-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "CITY", MODELO: "CG DIANT. CITY", TAM: "2.75-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "5", MODELO: "CG DIANT. KS", TAM: "2.75-18", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "6", MODELO: "BIZ TRAS. MANDRAKE", TAM: "80/100-14", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "7", MODELO: "BIZ DIANT. MANDRAKE", TAM: "60/100-17", PRECOS: { p_30_60_90: 75, p_30_45_60: 75, a_vista: 75 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "8", MODELO: "CG TRILHA TRAS.", TAM: "90/90-18", PRECOS: { p_30_60_90: 89, p_30_45_60: 89, a_vista: 89 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "9", MODELO: "CROSS DIANT.", TAM: "2.75-18", PRECOS: { p_30_60_90: 89, p_30_45_60: 89, a_vista: 89 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "10", MODELO: "BROS TRASEIRO", TAM: "110/90-17", PRECOS: { p_30_60_90: 159, p_30_45_60: 159, a_vista: 159 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "11", MODELO: "BROS DIANTEIRO", TAM: "90/90-19", PRECOS: { p_30_60_90: 120, p_30_45_60: 120, a_vista: 120 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "12", MODELO: "TORNADO TRASEIRO", TAM: "120/80-18", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "13", MODELO: "TORNADO DIANTEIRO", TAM: "90/90-21", PRECOS: { p_30_60_90: 115, p_30_45_60: 115, a_vista: 115 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "14", MODELO: "TWISTER TRASEIRO", TAM: "130/70-17", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "15", MODELO: "TWISTER DIANTEIRO", TAM: "100/80-17", PRECOS: { p_30_60_90: 115, p_30_45_60: 115, a_vista: 115 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "16", MODELO: "FALCON", TAM: "120/90-17", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "17", MODELO: "CB 300 TRASEIRO", TAM: "140/70-17", PRECOS: { p_30_60_90: 159, p_30_45_60: 159, a_vista: 159 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "18", MODELO: "CB 300 DIANTEIRO", TAM: "110/70-17", PRECOS: { p_30_60_90: 115, p_30_45_60: 115, a_vista: 115 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "19", MODELO: "TORNADO TRILHA TRAS.", TAM: "100/100-18", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "20", MODELO: "TORNADO TRILHA DIANT.", TAM: "80/100-21", PRECOS: { p_30_60_90: 115, p_30_45_60: 115, a_vista: 115 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "21", MODELO: "BROS TRILHA TRAS.", TAM: "110/90-17", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "22", MODELO: "BROS TRILHA DIANT.", TAM: "90/90-19", PRECOS: { p_30_60_90: 125, p_30_45_60: 125, a_vista: 125 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "23", MODELO: "CB 500 TRAS.", TAM: "150/70-17", PRECOS: { p_30_60_90: 159, p_30_45_60: 159, a_vista: 159 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "CB500D", MODELO: "CB 500 DIANT.", TAM: "120/70-17", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "STRADA-R", MODELO: "STRADA", TAM: "100/90-18", PRECOS: { p_30_60_90: 129, p_30_45_60: 129, a_vista: 129 } },
+        { CATEGORIA: "LINHA PNEUS REMOLDADOS", REF: "BURGMAN", MODELO: "BURGMAN", TAM: "3.50-10", PRECOS: { p_30_60_90: 129, p_30_45_60: 129, a_vista: 129 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C-SPD", MODELO: "CAMARA DE AR SPD MAX 3.00-18", TAM: "UN", PRECOS: { p_30_60_90: 15.99, p_30_45_60: 15.99, a_vista: 15.99 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C61", MODELO: "CAMARA DE AR 100 X 100 X 18", TAM: "UN", PRECOS: { p_30_60_90: 24.99, p_30_45_60: 24.99, a_vista: 24.99 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C62", MODELO: "CAMARA DE AR 90 X 90 X 21", TAM: "UN", PRECOS: { p_30_60_90: 21.99, p_30_45_60: 21.99, a_vista: 21.99 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C64", MODELO: "CAMARA DE AR 90 X 90 X 19", TAM: "UN", PRECOS: { p_30_60_90: 21.99, p_30_45_60: 21.99, a_vista: 21.99 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C310", MODELO: "CAMARA DE AR 3,00 X 10", TAM: "UN", PRECOS: { p_30_60_90: 21.99, p_30_45_60: 21.99, a_vista: 21.99 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C66", MODELO: "CAMARA DE AR 3,00 X 16", TAM: "UN", PRECOS: { p_30_60_90: 21.99, p_30_45_60: 21.99, a_vista: 21.99 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C67", MODELO: "CAMARA DE AR VULCAN 3,00 X 18", TAM: "UN", PRECOS: { p_30_60_90: 17.99, p_30_45_60: 17.99, a_vista: 17.99 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C68", MODELO: "CAMARA DE AR VULCAN 3,00 X 14", TAM: "UN", PRECOS: { p_30_60_90: 17.99, p_30_45_60: 17.99, a_vista: 17.99 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C69", MODELO: "CAMARA DE AR VULCAN 2,50 X 17", TAM: "UN", PRECOS: { p_30_60_90: 17.99, p_30_45_60: 17.99, a_vista: 17.99 } },
+        { CATEGORIA: "CAMARA DE AR", REF: "C70", MODELO: "CAMARA DE AR VULCAN 110 X 90 X 17", TAM: "UN", PRECOS: { p_30_60_90: 24.99, p_30_45_60: 24.99, a_vista: 24.99 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "V01", MODELO: "VASELINA POLO 3KG", TAM: "UN", PRECOS: { p_30_60_90: 59, p_30_45_60: 59, a_vista: 59 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "TIRE1", MODELO: "PASTA MONTAGEM - MONTA TIRE", TAM: "UN", PRECOS: { p_30_60_90: 45, p_30_45_60: 45, a_vista: 45 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "TIRE2", MODELO: "PASTA LIMPEZA - MONTA TIRE", TAM: "UN", PRECOS: { p_30_60_90: 45, p_30_45_60: 45, a_vista: 45 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "L01", MODELO: "PASTA LIMPEZA H-PLUS", TAM: "UN", PRECOS: { p_30_60_90: 49, p_30_45_60: 49, a_vista: 49 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "311119", MODELO: "MACARRÃO 100mm - (VIPASSEAL - VIPAL)", TAM: "UN", PRECOS: { p_30_60_90: 89, p_30_45_60: 89, a_vista: 89 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "MAC-VUL", MODELO: "MACARRÃO 100mm - (VULCAN BOR)", TAM: "UN", PRECOS: { p_30_60_90: 29, p_30_45_60: 29, a_vista: 29 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "BM", MODELO: "BLOCK - VACINA PNEU MOTO 300ML", TAM: "UN", PRECOS: { p_30_60_90: 22, p_30_45_60: 22, a_vista: 22 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "475006", MODELO: "COLA VULK 685g (Remendo quente - VIPAL)", TAM: "UN", PRECOS: { p_30_60_90: 45, p_30_45_60: 45, a_vista: 45 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "470010", MODELO: "CIMENTO VULCANIZANTE VC-00", TAM: "UN", PRECOS: { p_30_60_90: 29, p_30_45_60: 29, a_vista: 29 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "345101", MODELO: "REMENDO 01", TAM: "UN", PRECOS: { p_30_60_90: 45, p_30_45_60: 45, a_vista: 45 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "345102", MODELO: "REMENDO 02", TAM: "UN", PRECOS: { p_30_60_90: 50, p_30_45_60: 50, a_vista: 50 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "345103", MODELO: "REMENDO 03", TAM: "UN", PRECOS: { p_30_60_90: 59, p_30_45_60: 59, a_vista: 59 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "345104", MODELO: "REMENDO RT03", TAM: "UN", PRECOS: { p_30_60_90: 49, p_30_45_60: 49, a_vista: 49 } },
+        { CATEGORIA: "ITENS PARA CONSERTO", REF: "345105", MODELO: "REMENDO RAC10", TAM: "UN", PRECOS: { p_30_60_90: 100, p_30_45_60: 100, a_vista: 100 } },
+        { CATEGORIA: "ÓLEO", REF: "2050", MODELO: "OLEO MOBIL MINERAL 4T 20W50", TAM: "UN", PRECOS: { p_30_60_90: 28.99, p_30_45_60: 28.99, a_vista: 28.99 } },
+        { CATEGORIA: "ÓLEO", REF: "1030", MODELO: "OLEO MOBIL MINERAL 4T 10W30", TAM: "UN", PRECOS: { p_30_60_90: 36, p_30_45_60: 36, a_vista: 36 } },
+        { CATEGORIA: "ÓLEO", REF: "OLEO-VR1", MODELO: "OLEO VR LUB MINERAL 4T 10W30", TAM: "UN", PRECOS: { p_30_60_90: 17.99, p_30_45_60: 17.99, a_vista: 17.99 } },
+        { CATEGORIA: "ÓLEO", REF: "OLEO-VR2", MODELO: "OLEO VR LUB MINERAL 4T 20W50", TAM: "UN", PRECOS: { p_30_60_90: 14.99, p_30_45_60: 14.99, a_vista: 14.99 } },
+        { CATEGORIA: "ÓLEO", REF: "DES-1", MODELO: "DESENGRIPANTE ETAINZ (1UN.)", TAM: "UN", PRECOS: { p_30_60_90: 8.9, p_30_45_60: 8.9, a_vista: 8.9 } },
+        { CATEGORIA: "ÓLEO", REF: "DES-6", MODELO: "DESENGRIPANTE ETAINZ (6UN.)", TAM: "UN", PRECOS: { p_30_60_90: 49.9, p_30_45_60: 49.9, a_vista: 49.9 } },
+        { CATEGORIA: "PATINS DE FREIO", REF: "P01", MODELO: "PATINS FREIO CG - STD", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+        { CATEGORIA: "PATINS DE FREIO", REF: "P01A", MODELO: "PATINS FREIO CG - A", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+        { CATEGORIA: "PATINS DE FREIO", REF: "P01B", MODELO: "PATINS FREIO CG - B", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+        { CATEGORIA: "PATINS DE FREIO", REF: "P02", MODELO: "PATINS FREIO BIZ - STD", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+        { CATEGORIA: "PATINS DE FREIO", REF: "P02A", MODELO: "PATINS FREIO BIZ - A", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+        { CATEGORIA: "PATINS DE FREIO", REF: "P02B", MODELO: "PATINS FREIO BIZ - B", TAM: "UN", PRECOS: { p_30_60_90: 12, p_30_45_60: 12, a_vista: 12 } },
+        { CATEGORIA: "ACESSÓRIOS PARA MOTOS", REF: "R01", MODELO: "GUIDÃO TITAN 150 S/ PESO CROMADO", TAM: "UN", PRECOS: { p_30_60_90: 30, p_30_45_60: 30, a_vista: 30 } },
+        { CATEGORIA: "ACESSÓRIOS PARA MOTOS", REF: "R02", MODELO: "GUIDÃO RADICAL PRETO", TAM: "UN", PRECOS: { p_30_60_90: 40, p_30_45_60: 40, a_vista: 40 } },
+        { CATEGORIA: "ACESSÓRIOS PARA MOTOS", REF: "R03", MODELO: "GUIDÃO RADICAL CROMADO", TAM: "UN", PRECOS: { p_30_60_90: 50, p_30_45_60: 50, a_vista: 50 } },
+        { CATEGORIA: "ACESSÓRIOS PARA MOTOS", REF: "R05", MODELO: "ESTRIBO CENTRAL TITAN 150 MACIÇO", TAM: "UN", PRECOS: { p_30_60_90: 35, p_30_45_60: 35, a_vista: 35 } },
+        { CATEGORIA: "ACESSÓRIOS PARA MOTOS", REF: "P03", MODELO: "CUBO TITAN 150", TAM: "UN", PRECOS: { p_30_60_90: 105, p_30_45_60: 105, a_vista: 105 } },
+        { CATEGORIA: "CAPAS DE CHUVA", REF: "COM", MODELO: "CONJ. NYLON (PRETO) - P / M / G / GG / EX", TAM: "UN", PRECOS: { p_30_60_90: 135, p_30_45_60: 135, a_vista: 135 } },
+        { CATEGORIA: "CAPAS DE CHUVA", REF: "COM-EXG", MODELO: "CONJ. NYLON (PRETO) - EXG / 2G / 3G", TAM: "UN", PRECOS: { p_30_60_90: 149, p_30_45_60: 149, a_vista: 149 } },
+        { CATEGORIA: "CAPAS DE CHUVA", REF: "CRP", MODELO: "CONJ. NYLON FEM. (PRETO/ ROSA) - P/M/G/GG/EX", TAM: "UN", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+        { CATEGORIA: "CAPAS DE CHUVA", REF: "CRP-L", MODELO: "CONJ. NYLON FEM. (PRETO/ LILÁS) - P/M/G/GG/EX", TAM: "UN", PRECOS: { p_30_60_90: 139, p_30_45_60: 139, a_vista: 139 } },
+        { CATEGORIA: "CAPAS DE CHUVA", REF: "PVC-LUXO", MODELO: "CONJ. PVC LUXO (PRETO) - P / M / G / GG / EX", TAM: "UN", PRECOS: { p_30_60_90: 75.9, p_30_45_60: 75.9, a_vista: 75.9 } },
+        { CATEGORIA: "CAPAS DE CHUVA", REF: "LUVA", MODELO: "LUVA PADRAO", TAM: "UN", PRECOS: { p_30_60_90: 25, p_30_45_60: 25, a_vista: 25 } },
+        { CATEGORIA: "CAPAS DE CHUVA", REF: "POLAINA", MODELO: "POLAINA PVC PREMIUM - P / M / G", TAM: "UN", PRECOS: { p_30_60_90: 25, p_30_45_60: 25, a_vista: 25 } },
+      ];
+      // ========== FIM DA LISTA DE PRODUTOS CESARI ==========
+
+      // Carregar produtos
+      function carregarProdutos() {
+        produtosData = window.produtosData;
+        // Renderizar produtos após carregar
+        renderizarProdutos();
+      }
+
+      // Função para parsear range de tamanhos
+      function parseTamanhoRange(tamStr) {
+        if (!tamStr) return null;
+        if (tamStr === "UN" || tamStr.toUpperCase() === "UN") return ["UN"];
+        const match = tamStr.match(/^(\d+)\s*a\s*(\d+)$/);
+        if (!match) return [tamStr];
+        const start = parseInt(match[1], 10);
+        const end = parseInt(match[2], 10);
+        if (isNaN(start) || isNaN(end) || start > end) return null;
+        const range = [];
+        for (let i = start; i <= end; i++) {
+          range.push(i.toString());
+        }
+        return range;
+      }
+
+      // Função para detectar se é mobile
+      function isMobile() {
+        return window.innerWidth <= 768;
+      }
+
+      // Função para gerar card de produto para mobile
+      function gerarCardProdutoMobile(produto, tabelaSelecionada) {
+        const preco = produto.PRECOS[tabelaSelecionada];
+        const tamanhosRange = parseTamanhoRange(produto.TAM);
+        let tamanhosHTML = '';
+        
+        if (tamanhosRange) {
+          tamanhosHTML = '<div class="tamanho-input-container">';
+          tamanhosRange.forEach((tamanho) => {
+            tamanhosHTML += `<div><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
+          });
+          tamanhosHTML += '</div>';
+        } else {
+          tamanhosHTML = `<input type="text" placeholder="Grade não padrão. Ex: P:2, M:1" id="tamanhos-manual-${produto.REF}">`;
+        }
+
+        return `
+          <div class="produto-card-mobile">
+            <div class="produto-header-mobile">
+              <div class="produto-ref-mobile">${produto.REF}</div>
+              <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
+            </div>
+            <div class="produto-descricao-mobile">
+              <h4>${produto.MODELO}</h4>
+              <small>Tamanho: ${produto.TAM || '-'}</small>
+            </div>
+            <div class="produto-tamanhos-mobile">
+              <label>Quantidades:</label>
+              ${tamanhosHTML}
+            </div>
+            <div class="produto-actions-mobile">
+              <button class="btn-adicionar-mobile" onclick='adicionarAoPedido("${produto.REF}")'>
+                ➕ Adicionar ao Pedido
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // Função para renderizar produtos
+      function renderizarProdutos() {
+        const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
+        const mobileContainer = document.getElementById('produtos-mobile-container');
+        const isMobileView = isMobile();
+        
+        if (isMobileView && mobileContainer) {
+          mobileContainer.innerHTML = "";
+          produtosContainer.innerHTML = "";
+          let categoriaAtual = "";
+          window.produtosData.forEach((produto) => {
+            if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
+              categoriaAtual = produto.CATEGORIA;
+              const catHeader = document.createElement("div");
+              catHeader.className = "categoria-header-mobile";
+              catHeader.textContent = categoriaAtual;
+              mobileContainer.appendChild(catHeader);
+            }
+            mobileContainer.insertAdjacentHTML("beforeend", gerarCardProdutoMobile(produto, tabelaSelecionada));
+          });
+        } else {
+          mobileContainer.innerHTML = "";
+          const table = document.createElement("table");
+          table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO DO PRODUTO</th><th>TAMANHO</th><th>VALOR</th><th>Desc. Extra</th><th>QTD</th><th>AÇÃO</th></tr></thead>`;
+          const tbody = document.createElement("tbody");
+          let categoriaAtual = "";
+          
+          window.produtosData.forEach((produto) => {
+            if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
+              categoriaAtual = produto.CATEGORIA;
+              const headerRow = document.createElement("tr");
+              headerRow.className = "categoria-header";
+              headerRow.innerHTML = `<td colspan="7">${categoriaAtual}</td>`;
+              tbody.appendChild(headerRow);
+            }
+            const preco = produto.PRECOS[tabelaSelecionada];
+            const row = document.createElement("tr");
+            const tamanhosRange = parseTamanhoRange(produto.TAM);
+            let tamanhosHtml = "";
+            if (tamanhosRange) {
+              tamanhosHtml = '<div class="tamanho-input-container">';
+              tamanhosRange.forEach((tamanho) => {
+                tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
+              });
+              tamanhosHtml += "</div>";
+            } else {
+              tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
+            }
+            row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO}</td><td>${produto.TAM || '-'}</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            tbody.appendChild(row);
+          });
+          table.appendChild(tbody);
+          produtosContainer.innerHTML = "";
+          produtosContainer.appendChild(table);
+        }
+      }
+
+      // Função para parsear tamanhos manuais
+      function parseTamanhosInput(inputStr) {
+        if (!inputStr || inputStr.trim() === "") return [];
+        const pares = inputStr.split(",");
+        const resultado = [];
+        for (const par of pares) {
+          const partes = par.split(":");
+          if (partes.length !== 2) {
+            alert(`Formato inválido: "${par}". Use "tamanho:quantidade".`);
+            return null;
+          }
+          const tamanho = partes[0].trim();
+          const quantidade = parseInt(partes[1].trim(), 10);
+          if (!tamanho || isNaN(quantidade) || quantidade <= 0) {
+            alert(`Valor inválido: "${par}".`);
+            return null;
+          }
+          resultado.push({
+            tamanho,
+            quantidade,
+          });
+        }
+        return resultado;
+      }
+
+      // Função para adicionar produto ao pedido
+      function adicionarAoPedido(ref) {
+        const produto = window.produtosData.find((p) => p.REF === ref);
+        if (!produto) {
+          console.error('Produto não encontrado:', ref);
+          alert('Erro: Produto não encontrado.');
+          return;
+        }
+        
+        // Verificar se o produto tem dados válidos
+        if (!produto.REF || !produto.MODELO || !produto.PRECOS) {
+          console.error('Produto com dados inválidos:', produto);
+          alert('Erro: Dados do produto estão incompletos.');
+          return;
+        }
+        
+        const corEl = document.getElementById("cor-"+ref);
+        const cor = corEl ? (corEl.value || "").trim() : "";
+        const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
+        const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
+        
+        // Verificar se o preço é válido
+        if (!precoUnitarioBase || isNaN(precoUnitarioBase)) {
+          console.error('Preço inválido para produto:', produto.REF, 'tabela:', tabelaSelecionada);
+          alert('Erro: Preço não encontrado para a tabela selecionada.');
+          return;
+        }
+        
+        let itensAdicionados = 0;
+        
+        const tamanhosRange = parseTamanhoRange(produto.TAM);
+        if (tamanhosRange) {
+          tamanhosRange.forEach((tamanho) => {
+            const input = document.getElementById(`qty-${produto.REF}-${tamanho}`);
+            const quantidade = parseInt(input.value, 10);
+            if (quantidade > 0) {
+              const precoFinal = precoUnitarioBase;
+          const itemExistente = window.pedidoItens.find(
+            (item) =>
+                  item.REF === ref &&
+                  item.tamanho === tamanho &&
+                  item.preco === precoFinal &&
+                  item.cor.toLowerCase() === cor.toLowerCase()
+          );
+          if (itemExistente) {
+            itemExistente.quantidade += quantidade;
+          } else {
+            const novoItem = {
+              REF: produto.REF,
+              MODELO: produto.MODELO,
+              tamanho: tamanho,
+              quantidade: quantidade,
+              cor: cor || "-",
+              preco: precoFinal,
+            };
+            
+            // Log para debug
+            console.log('Adicionando item ao pedido:', novoItem);
+            
+            window.pedidoItens.push(novoItem);
+              }
+              input.value = "";
+              itensAdicionados++;
+            }
+          });
+        } else {
+          const manualInput = document.getElementById(`tamanhos-manual-${ref}`);
+          const grade = parseTamanhosInput(manualInput.value);
+          if (grade && grade.length > 0) {
+            grade.forEach((itemGrade) => {
+              const precoFinal = precoUnitarioBase;
+              const itemExistente = window.pedidoItens.find(
+                (item) =>
+                  item.REF === ref &&
+                  item.tamanho === itemGrade.tamanho &&
+                  item.preco === precoFinal &&
+                  item.cor.toLowerCase() === cor.toLowerCase()
+              );
+              if (itemExistente) {
+                itemExistente.quantidade += itemGrade.quantidade;
+              } else {
+                const novoItem = {
+                  REF: produto.REF,
+                  MODELO: produto.MODELO,
+                  tamanho: itemGrade.tamanho,
+                  quantidade: itemGrade.quantidade,
+                  cor: cor || "-",
+                  preco: precoFinal,
+                };
+                
+                // Log para debug
+                console.log('Adicionando item manual ao pedido:', novoItem);
+                
+                window.pedidoItens.push(novoItem);
+              }
+              itensAdicionados++;
+            });
+            manualInput.value = "";
+          }
+        }
+        
+        if (itensAdicionados > 0) {
+          if (corEl) corEl.value = "";
+          atualizarVisualizacaoPedido();
+        } else {
+          alert("Nenhuma quantidade foi preenchida para este produto.");
+        }
+      }
+
+      // Função para alterar quantidade de um item
+      function alterarQuantidade(index, novaQuantidade) {
+        const quantidade = parseInt(novaQuantidade);
+        if (quantidade > 0) {
+          window.pedidoItens[index].quantidade = quantidade;
+          atualizarVisualizacaoPedido();
+        } else {
+          // Se quantidade for 0 ou menor, remover o item
+          removerDoPedido(index);
+        }
+      }
+
+      // Função para remover item do pedido
+      function removerDoPedido(index) {
+        window.pedidoItens.splice(index, 1);
+        atualizarVisualizacaoPedido();
+      }
+
+      // Função para atualizar visualização do pedido
+      function atualizarVisualizacaoPedido() {
+        const pedidoContainer = document.getElementById("produtos-selecionados");
+        const pedidoVazio = document.getElementById("pedido-vazio");
+        
+        pedidoContainer.innerHTML = "";
+        subtotalPedido = 0;
+        
+        // Garante que window.pedidoItens sempre seja um array
+        if (!Array.isArray(window.pedidoItens)) {
+          window.pedidoItens = [];
+        }
+        
+        if (window.pedidoItens.length > 0) {
+          if (pedidoVazio) pedidoVazio.style.display = "none";
+          window.pedidoItens.forEach((item, index) => {
+            // Log para debug
+            console.log('Renderizando item do pedido:', index, item);
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "pedido-item";
+            const precoTotalItem = item.preco * item.quantidade;
+            subtotalPedido += precoTotalItem;
+            itemDiv.innerHTML = `
+              <div class="pedido-item-info">
+                <strong>${item.MODELO || 'Produto'}</strong>
+                <span>(Ref: ${item.REF || 'N/A'})</span>
+                <span>•</span>
+                <span>Tam: ${item.tamanho || 'N/A'}</span>
+                <span>•</span>
+                <span>Cor: ${item.cor || '-'}</span>
+                <span>•</span>
+                <span>Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidade(${index}, this.value)"></span>
+                <span>•</span>
+                <span>Unit: R$ ${(item.preco || 0).toFixed(2)}</span>
+                <span>•</span>
+                <span style="font-weight: 600; color: var(--primary-color);">Total: R$ ${precoTotalItem.toFixed(2)}</span>
+                <div class="pedido-item-actions">
+                  <button class="btn btn-danger" onclick="removerDoPedido(${index})">
+                    <span>🗑️</span> Remover
+                  </button>
+                </div>
+              </div>
+            `;
+            pedidoContainer.appendChild(itemDiv);
+          });
+        } else {
+          if (pedidoVazio) pedidoVazio.style.display = "block";
+        }
+
+        // Mostrar total do pedido
+        if (window.pedidoItens.length > 0) {
+          const totalDiv = document.createElement("div");
+          totalDiv.className = "pedido-total";
+          
+          // Verificar pedido mínimo
+          const PEDIDO_MINIMO = 1500.00;
+          const faltaParaMinimo = PEDIDO_MINIMO - subtotalPedido;
+          const atingiuMinimo = subtotalPedido >= PEDIDO_MINIMO;
+          
+          let avisoMinimoHTML = '';
+          if (!atingiuMinimo) {
+            avisoMinimoHTML = `
+              <div style="background: linear-gradient(135deg, #fee 0%, #fdd 100%); border: 1px solid #fcc; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #c53030; font-size: 0.95rem; line-height: 1.5; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(197, 48, 48, 0.1);">
+                <span style="font-size: 1.2em;">⚠️</span>
+                <div>
+                  <strong>Atenção:</strong> O pedido mínimo é de <strong>R$ ${PEDIDO_MINIMO.toFixed(2)}</strong>.<br>
+                  Faltam <strong>R$ ${faltaParaMinimo.toFixed(2)}</strong> para atingir o valor mínimo.
+                </div>
+              </div>
+            `;
+          } else {
+            avisoMinimoHTML = `
+              <div style="background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%); border: 1px solid #9ae6b4; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #22543d; font-size: 0.95rem; line-height: 1.5; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(34, 84, 61, 0.1);">
+                <span style="font-size: 1.2em;">✅</span>
+                <div>
+                  <strong>Pedido válido!</strong> Valor mínimo de R$ ${PEDIDO_MINIMO.toFixed(2)} atingido.
+                </div>
+              </div>
+            `;
+          }
+          
+          totalDiv.innerHTML = `
+            <div class="pedido-total-header">
+              <h3>Total do Pedido:</h3>
+              <span class="pedido-total-value">R$ ${subtotalPedido.toFixed(2)}</span>
+            </div>
+            ${avisoMinimoHTML}
+            <div class="pedido-info-message">
+              <span style="font-size: 1.2em;">ℹ️</span>
+              <div>
+                <strong>Informação:</strong> Consulte descontos com o representante. Eles serão aplicados internamente no processamento do pedido.
+              </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+              <button type="button" class="btn-primary" onclick="enviarPedido()" style="padding: 12px 24px; font-size: 1rem; width: 100%; max-width: 300px;">
+                📤 Enviar Pedido
+              </button>
+            </div>
+          `;
+          pedidoContainer.appendChild(totalDiv);
+        }
+      }
+
+      // Enviar pedido para o sistema principal
+      async function enviarPedido() {
+        if (window.pedidoItens.length === 0) {
+          alert('Adicione pelo menos um produto ao pedido para enviar.');
+          return;
+        }
+
+        // Validar pedido mínimo de R$ 1.500,00
+        const PEDIDO_MINIMO = 1500.00;
+        if (subtotalPedido < PEDIDO_MINIMO) {
+          alert(`❌ O pedido mínimo para Cesari é de R$ ${PEDIDO_MINIMO.toFixed(2)}.\n\nTotal atual: R$ ${subtotalPedido.toFixed(2)}\nFaltam: R$ ${(PEDIDO_MINIMO - subtotalPedido).toFixed(2)}`);
+          return;
+        }
+
+        try{
+          // Preparar dados do pedido no formato que a API principal espera
+          const pedidoData = {
+            empresa: 'b2b-cesari',
+            descricao: `Pedido B2B - Cesari - ${window.pedidoItens.length} itens`,
+            dados: {
+              cliente: clienteData,
+              itens: window.pedidoItens,
+              total: subtotalPedido,
+              data: new Date().toISOString(),
+              origem: 'B2B - Cesari',
+              transporte: document.getElementById('transporte') ? document.getElementById('transporte').value : '',
+              prazo: document.getElementById('prazo') ? document.getElementById('prazo').value : '',
+              observacoes: document.getElementById('obs') ? document.getElementById('obs').value : ''
+            }
+          };
+
+          // Usar sistema offline
+          const result = await window.offlineSystem.tryToSendOrder(pedidoData);
+          
+          if (result.success) {
+            if (result.online) {
+              alert('✅ Pedido enviado com sucesso! Você será redirecionado para seus pedidos.');
+            } else {
+              alert('📱 Sem conexão! Pedido salvo localmente e será enviado automaticamente quando a conexão retornar. Você será redirecionado para seus pedidos.');
+            }
+            
+            // Limpar pedido local
+            window.pedidoItens = [];
+            atualizarVisualizacaoPedido();
+            // Redirecionar para a página de pedidos B2B
+            window.location.href = 'b2b-pedidos.html';
+          } else {
+            throw new Error('Erro ao processar pedido');
+          }
+        } catch (error) {
+          console.error('Erro ao enviar pedido:', error);
+          alert('Erro ao enviar pedido. Tente novamente.');
+        }
+      }
+
+
+      // Função para mostrar sugestões de produtos
+      function mostrarSugestoesProdutos(filtro) {
+        const sugestoesDiv = document.getElementById("sugestoes-produtos");
+        sugestoesDiv.innerHTML = "";
+        if (!filtro || filtro.length < 2) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        const filtroLower = filtro.toLowerCase();
+        const produtosFiltrados = window.produtosData.filter((produto) => {
+          return (
+            (produto.REF && String(produto.REF).toLowerCase().includes(filtroLower)) ||
+            (produto.MODELO && String(produto.MODELO).toLowerCase().includes(filtroLower))
+          );
+        });
+        if (produtosFiltrados.length === 0) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        sugestoesDiv.style.display = "block";
+        produtosFiltrados.slice(0, 8).forEach((produto) => {
+          const item = document.createElement("div");
+          item.className = "sugestao-cliente-item";
+          item.innerHTML = `<strong>${produto.REF}</strong> - ${produto.MODELO}`;
+          item.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            document.getElementById("busca-produto").value = `${produto.REF} - ${produto.MODELO}`;
+            sugestoesDiv.style.display = "none";
+            renderizarProdutosFiltrados([produto]);
+          });
+          sugestoesDiv.appendChild(item);
+        });
+      }
+
+      // Função para renderizar produtos filtrados (ou todos)
+      function renderizarProdutosFiltrados(produtos) {
+        produtosContainer.innerHTML = "";
+        const mob = document.getElementById("produtos-mobile-container");
+        if (mob) mob.innerHTML = "";
+        if (produtos.length < window.produtosData.length) {
+          const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
+          if (isMobile()) {
+            const mobileContainer = document.getElementById("produtos-mobile-container");
+            let categoriaAtual = "";
+            produtos.forEach((produto) => {
+              if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
+                categoriaAtual = produto.CATEGORIA;
+                const catHeader = document.createElement("div");
+                catHeader.className = "categoria-header-mobile";
+                catHeader.textContent = categoriaAtual;
+                mobileContainer.appendChild(catHeader);
+              }
+              mobileContainer.insertAdjacentHTML("beforeend", gerarCardProdutoMobile(produto, tabelaSelecionada));
+            });
+          } else {
+            const table = document.createElement("table");
+            table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO DO PRODUTO</th><th>TAMANHO</th><th>VALOR</th><th>Desc. Extra</th><th>QTD</th><th>AÇÃO</th></tr></thead>`;
+            const tbody = document.createElement("tbody");
+            let categoriaAtual = "";
+            produtos.forEach((produto) => {
+              if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
+                categoriaAtual = produto.CATEGORIA;
+                const headerRow = document.createElement("tr");
+                headerRow.className = "categoria-header";
+                headerRow.innerHTML = `<td colspan="7">${categoriaAtual}</td>`;
+                tbody.appendChild(headerRow);
+              }
+              const preco = produto.PRECOS[tabelaSelecionada];
+              const row = document.createElement("tr");
+              const tamanhosRange = parseTamanhoRange(produto.TAM);
+              let tamanhosHtml = tamanhosRange ? '<div class="tamanho-input-container">' + tamanhosRange.map(t => `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${t}">${t}</label><input type="number" id="qty-${produto.REF}-${t}" min="0" value=""></div>`).join('') + "</div>" : `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão">`;
+              row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO}</td><td>${produto.TAM || '-'}</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" id="desconto-${produto.REF}" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
+              tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            produtosContainer.appendChild(table);
+          }
+        } else {
+          renderizarProdutos();
+        }
+      }
+
+      // Inicializar página
+      if (checkAuthB2B()) {
+        preencherInformacoesCliente();
+        carregarProdutos();
+        
+        // Event listener para mudança de tabela de preços
+        const tabelaPrecosSelect = document.getElementById('tabela-precos-select');
+        tabelaPrecosSelect.addEventListener('change', renderizarProdutos);
+        
+        // Event listener para cliques nos botões de adicionar
+        produtosContainer.addEventListener('click', (e) => {
+          if (e.target.tagName === 'BUTTON') {
+            const ref = e.target.getAttribute('data-ref');
+            if (ref) {
+              adicionarAoPedido(ref);
+            }
+          }
+        });
+        
+        // Busca de produtos
+        const buscaProdutoInput = document.getElementById("busca-produto");
+        buscaProdutoInput.addEventListener("input", (e) => {
+          mostrarSugestoesProdutos(e.target.value);
+          if (!e.target.value) {
+            renderizarProdutos();
+          }
+        });
+        
+        // Fechar sugestões ao clicar fora (com suporte mobile)
+        const fecharSugestoesProdutos = (event) => {
+          const sugestoesDiv = document.getElementById("sugestoes-produtos");
+          const buscaProdutoInput = document.getElementById("busca-produto");
+          
+          // Não fechar se clicar no input ou em elementos de input
+          if (event.target === buscaProdutoInput || 
+              event.target.tagName === 'INPUT' || 
+              event.target.tagName === 'TEXTAREA' || 
+              event.target.tagName === 'SELECT' ||
+              buscaProdutoInput === document.activeElement) {
+            return;
+          }
+          
+          // Não fechar se clicar dentro das sugestões
+          if (sugestoesDiv && sugestoesDiv.contains(event.target)) {
+            return;
+          }
+          
+          // Fechar sugestões
+          if (sugestoesDiv) {
+            sugestoesDiv.style.display = "none";
+          }
+        };
+        
+        // Usar click em vez de mousedown para melhor compatibilidade mobile
+        document.addEventListener("click", fecharSugestoesProdutos, true);
+
+        // Event listener para redimensionamento da janela
+        window.addEventListener('resize', () => {
+          // Re-renderiza os produtos quando a tela é redimensionada
+          renderizarProdutos();
+        });
+      }
+    </script>
+  </body>
+</html>
