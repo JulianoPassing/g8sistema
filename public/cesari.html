@@ -649,7 +649,7 @@
         }
       }
 
-      #sugestoes-clientes {
+      #sugestoes-clientes, #sugestoes-produtos {
         position: absolute;
         left: 0;
         right: 0;
@@ -883,18 +883,11 @@
       </section>
       <section class="card">
         <div class="card-header">
-          <h2>
-            <span role="img" aria-label="Tabela de Preços">📋</span> Tabela de
-            Preços
-          </h2>
+          <h2><span role="img" aria-label="Produtos">📦</span> Catálogo de Produtos</h2>
         </div>
         <div class="form-group">
-          <label for="tabela-precos-select">Selecionar Tabela de Preços:</label>
-          <select id="tabela-precos-select">
-            <option value="a_vista">À Vista</option>
-            <option value="p_30_45_60">30/45/60 Dias</option>
-            <option value="p_30_60_90">30/60/90 Dias</option>
-          </select>
+          <input type="text" id="busca-produto" placeholder="Buscar produto por referência ou descrição..." style="margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #d1d5db; padding: 10px 12px; font-size: 1em;" />
+          <div id="sugestoes-produtos" style="position: relative; z-index: 10;"></div>
         </div>
         <div id="produtos-container" class="table-responsive"></div>
         <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
@@ -908,19 +901,6 @@
           <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
         </div>
         <div class="total-container">
-          <div class="form-group" style="max-width: 250px; margin: 15px auto">
-            <label for="desconto-extra-total"
-              ><strong>Desconto Extra (%):</strong></label
-            >
-            <input
-              type="number"
-              id="desconto-extra-total"
-              min="0"
-              max="100"
-              value="0"
-              style="text-align: center; font-size: 1.1em"
-            />
-          </div>
           <h3>💰 Total do Pedido: R$ <span id="total-pedido">0.00</span></h3>
         </div>
         <button id="gerar-pedido-btn" class="btn btn-primary">
@@ -1087,6 +1067,7 @@
         { CATEGORIA: "CAPAS DE CHUVA", REF: "LUVA", MODELO: "LUVA PADRAO", TAM: "UN", PRECOS: { p_30_60_90: 25, p_30_45_60: 25, a_vista: 25 } },
         { CATEGORIA: "CAPAS DE CHUVA", REF: "POLAINA", MODELO: "POLAINA PVC PREMIUM - P / M / G", TAM: "UN", PRECOS: { p_30_60_90: 25, p_30_45_60: 25, a_vista: 25 } },
       ];
+      produtosData.forEach(p => { if (p.PRECOS && p.PRECO === undefined) p.PRECO = p.PRECOS.p_30_60_90; });
 
       const selectCliente = document.getElementById("cliente-selecionado");
       const inputsCliente = {
@@ -1150,15 +1131,11 @@
         }
       }
 
-      const tabelaPrecosSelect = document.getElementById(
-        "tabela-precos-select"
-      );
       const produtosContainer = document.getElementById("produtos-container");
       const pedidoContainer = document.getElementById("pedido-container");
       const pedidoVazio = document.getElementById("pedido-vazio");
       const gerarPedidoBtn = document.getElementById("gerar-pedido-btn");
       window.pedidoItens = [];
-      let descontoExtraTotalPercentual = 0;
 
       function parseTamanhoRange(tamStr) {
         if (!tamStr) return null;
@@ -1176,28 +1153,28 @@
         return range;
       }
 
-      function renderizarProdutos() {
-        const tabelaSelecionada = tabelaPrecosSelect.value;
+      function renderizarProdutos(produtos = produtosData) {
         const table = document.createElement("table");
-        table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO DO PRODUTO</th><th>TAMANHO</th><th>VALOR</th><th>Desc. Extra</th><th>QTD</th><th>AÇÃO</th></tr></thead>`;
+        table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>AÇÃO</th></tr></thead>`;
         const tbody = document.createElement("tbody");
         
-        // Mobile container
         const mobileContainer = document.getElementById('produtos-mobile-container');
         if (mobileContainer) mobileContainer.innerHTML = "";
         
-        // Verificar se estamos no mobile
         const isMobile = window.innerWidth <= 768;
-        
         let categoriaAtual = "";
-        produtosData.forEach((produto) => {
-          // Inserir cabeçalho de categoria quando mudar
+        
+        produtos.forEach((produto) => {
+          const preco = produto.PRECO;
+          const descricao = `${produto.MODELO || ''} ${produto.TAM ? '(' + produto.TAM + ')' : ''}`.trim();
+          const tamanhosRange = parseTamanhoRange(produto.TAM);
+          
           if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
             categoriaAtual = produto.CATEGORIA;
             if (!isMobile) {
               const headerRow = document.createElement("tr");
               headerRow.className = "categoria-header";
-              headerRow.innerHTML = `<td colspan="7">${categoriaAtual}</td>`;
+              headerRow.innerHTML = `<td colspan="6">${categoriaAtual}</td>`;
               tbody.appendChild(headerRow);
             } else if (mobileContainer) {
               const catHeader = document.createElement("div");
@@ -1207,13 +1184,9 @@
               mobileContainer.appendChild(catHeader);
             }
           }
-          const preco = produto.PRECOS[tabelaSelecionada];
-          const tamanhosRange = parseTamanhoRange(produto.TAM);
           
           if (isMobile) {
-            // Mobile - Cards
             let tamanhosMobileHtml = "";
-            
             if (tamanhosRange) {
               tamanhosMobileHtml = '<div class="tamanho-input-container">';
               tamanhosRange.forEach((tamanho) => {
@@ -1224,7 +1197,6 @@
               tamanhosMobileHtml = `<input type="text" class="manual-input" id="tamanhos-manual-mobile-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
             }
             
-            // Mobile card
             if (mobileContainer) {
               const mobileCard = document.createElement("div");
               mobileCard.className = "produto-card-mobile";
@@ -1242,18 +1214,15 @@
                   ${tamanhosMobileHtml}
                 </div>
                 <div class="produto-actions-mobile">
-                  <button class="btn-adicionar-mobile" onclick='adicionarAoPedidoMobile("${produto.REF}")'>
-                    ➕ Adicionar ao Pedido
-                  </button>
+                  <button class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
                 </div>
               `;
+              mobileCard.querySelector('.btn-adicionar-mobile').addEventListener('click', () => adicionarAoPedidoMobile(produto.REF));
               mobileContainer.appendChild(mobileCard);
             }
           } else {
-            // Desktop - Tabela
             const row = document.createElement("tr");
             let tamanhosHtml = "";
-            
             if (tamanhosRange) {
               tamanhosHtml = '<div class="tamanho-input-container">';
               tamanhosRange.forEach((tamanho) => {
@@ -1264,8 +1233,8 @@
               tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
             }
             
-            // Desktop row
-            row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO}</td><td>${produto.TAM || '-'}</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            row.innerHTML = `<td>${produto.REF}</td><td>${descricao}</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            row.querySelector('button').addEventListener('click', () => adicionarAoPedido(produto.REF));
             tbody.appendChild(row);
           }
         });
@@ -1277,11 +1246,50 @@
         }
       }
 
+      function mostrarSugestoesProdutos(filtro) {
+        const sugestoesDiv = document.getElementById("sugestoes-produtos");
+        sugestoesDiv.innerHTML = "";
+        if (!filtro || filtro.length < 2) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        const filtroLower = filtro.toLowerCase();
+        const produtosFiltrados = produtosData.filter((produto) => {
+          return (
+            (produto.REF && String(produto.REF).toLowerCase().includes(filtroLower)) ||
+            (produto.MODELO && String(produto.MODELO).toLowerCase().includes(filtroLower))
+          );
+        });
+        if (produtosFiltrados.length === 0) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        sugestoesDiv.style.display = "block";
+        produtosFiltrados.slice(0, 8).forEach((produto) => {
+          const item = document.createElement("div");
+          item.className = "sugestao-cliente-item";
+          item.innerHTML = `<strong>${produto.REF}</strong> - ${produto.MODELO} ${produto.TAM ? '(' + produto.TAM + ')' : ''}`;
+          item.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            document.getElementById("busca-produto").value = `${produto.REF} - ${produto.MODELO}`;
+            sugestoesDiv.style.display = "none";
+            renderizarProdutosFiltrados([produto]);
+          });
+          sugestoesDiv.appendChild(item);
+        });
+      }
+
+      function renderizarProdutosFiltrados(produtos) {
+        produtosContainer.innerHTML = "";
+        const mobileContainer = document.getElementById('produtos-mobile-container');
+        if (mobileContainer) mobileContainer.innerHTML = "";
+        renderizarProdutos(produtos);
+      }
+
       function adicionarAoPedidoMobile(ref) {
         const produto = produtosData.find((p) => p.REF === ref);
         if (!produto) return;
-        const tabelaSelecionada = tabelaPrecosSelect.value;
-        const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
+        const precoUnitarioBase = produto.PRECO;
         let itensAdicionados = 0;
         const tamanhosRange = parseTamanhoRange(produto.TAM);
         
@@ -1338,8 +1346,7 @@
       function adicionarAoPedido(ref) {
         const produto = produtosData.find((p) => p.REF === ref);
         if (!produto) return;
-        const tabelaSelecionada = tabelaPrecosSelect.value;
-        const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
+        const precoUnitarioBase = produto.PRECO;
         const descontoExtra = parseFloat(document.getElementById(`desconto-${ref}`).value) || 0;
         let itensAdicionados = 0;
         const tamanhosRange = parseTamanhoRange(produto.TAM);
@@ -1460,7 +1467,9 @@
             }</strong> | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" 
             onchange="alterarQuantidadeItem(${index}, this.value)" 
             style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> 
-            | Unit: R$ ${(item.preco || 0).toFixed(2)}${
+            | Unit: R$ <input type="number" step="0.01" min="0" value="${(item.preco || 0).toFixed(2)}" 
+            onchange="alterarPrecoItem(${index}, this.value)" 
+            style="width: 80px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: right; font-size: 0.9rem;">${
               item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
             } | Total: <strong>R$ ${precoTotalItem.toFixed(
               2
@@ -1470,11 +1479,8 @@
         } else {
           pedidoVazio.style.display = "block";
         }
-        const valorDesconto =
-          subtotalPedido * (descontoExtraTotalPercentual / 100);
-        const totalFinal = subtotalPedido - valorDesconto;
         document.getElementById("total-pedido").textContent =
-          totalFinal.toFixed(2);
+          subtotalPedido.toFixed(2);
       }
 
       window.removerDoPedido = (index) => {
@@ -1490,6 +1496,18 @@
         }
         if (window.pedidoItens[index]) {
           window.pedidoItens[index].quantidade = quantidade;
+          atualizarVisualizacaoPedido();
+        }
+      };
+
+      window.alterarPrecoItem = (index, novoPreco) => {
+        const preco = parseFloat(String(novoPreco).replace(',', '.'));
+        if (isNaN(preco) || preco < 0) {
+          alert('Informe um valor válido para o preço.');
+          return;
+        }
+        if (window.pedidoItens[index]) {
+          window.pedidoItens[index].preco = preco;
           atualizarVisualizacaoPedido();
         }
       };
@@ -1879,21 +1897,24 @@
             preencherFormularioCliente(e.target.value)
           );
 
-          const descontoInput = document.getElementById("desconto-extra-total");
-          descontoInput.addEventListener("input", () => {
-            descontoExtraTotalPercentual = parseFloat(descontoInput.value) || 0;
-            atualizarVisualizacaoPedido();
-          });
-          tabelaPrecosSelect.addEventListener("change", renderizarProdutos);
-          produtosContainer.addEventListener("click", (e) => {
-            if (e.target.tagName === "BUTTON") {
-              const ref = e.target.getAttribute("data-ref");
-              if (ref) {
-                adicionarAoPedido(ref);
+          gerarPedidoBtn.addEventListener("click", gerarPedidoPDF);
+
+          const buscaProdutoInput = document.getElementById("busca-produto");
+          if (buscaProdutoInput) {
+            buscaProdutoInput.addEventListener("input", (e) => {
+              mostrarSugestoesProdutos(e.target.value);
+              if (!e.target.value) {
+                renderizarProdutos(produtosData);
               }
+            });
+          }
+          document.addEventListener("mousedown", (event) => {
+            const sugestoesDiv = document.getElementById("sugestoes-produtos");
+            const buscaProdutoInput = document.getElementById("busca-produto");
+            if (sugestoesDiv && buscaProdutoInput && !sugestoesDiv.contains(event.target) && event.target !== buscaProdutoInput) {
+              sugestoesDiv.style.display = "none";
             }
           });
-          gerarPedidoBtn.addEventListener("click", gerarPedidoPDF);
 
           const buscaInput = document.getElementById("busca-cliente");
           buscaInput.addEventListener("input", (e) => {

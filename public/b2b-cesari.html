@@ -999,26 +999,16 @@
 
       <section class="card">
         <div class="card-header">
-          <span role="img" aria-label="Tabela de Preços" style="font-size: 1.8em">📋</span>
-          <h2>Tabela de Preços</h2>
+          <span role="img" aria-label="Produtos" style="font-size: 1.8em">📦</span>
+          <h2>Catálogo de Produtos</h2>
         </div>
         <div class="form-group">
-          <label for="tabela-precos-select">Selecionar Tabela de Preços:</label>
-          <select id="tabela-precos-select">
-            <option value="a_vista">À Vista</option>
-            <option value="p_30_45_60">30/45/60 Dias</option>
-            <option value="p_30_60_90">30/60/90 Dias</option>
-          </select>
+          <input type="text" id="busca-produto" placeholder="Buscar produto por referência ou descrição..." style="margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #d1d5db; padding: 10px 12px; font-size: 1em;" />
+          <div id="sugestoes-produtos" style="position: relative; z-index: 10;"></div>
         </div>
-        <div class="form-group">
-          <label for="busca-produto">Buscar Produto:</label>
-          <input type="text" id="busca-produto" placeholder="Digite o nome, referência ou código do produto..." />
-          <div id="sugestoes-produtos"></div>
-        </div>
+        <div id="produtos-container" class="table-responsive"></div>
+        <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
       </section>
-      
-      <div id="produtos-container" class="table-responsive"></div>
-      <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
       
       <section class="card">
         <div class="card-header">
@@ -1050,8 +1040,6 @@
       let produtosSelecionados = [];
       let produtosData = []; // Será carregado do arquivo original
       const produtosContainer = document.getElementById("produtos-container");
-      const pedidoContainer = document.getElementById("pedido-container");
-      const pedidoVazio = document.getElementById("pedido-vazio");
       
       // Variáveis para controle do pedido
       window.pedidoItens = [];
@@ -1233,6 +1221,7 @@
         { CATEGORIA: "CAPAS DE CHUVA", REF: "LUVA", MODELO: "LUVA PADRAO", TAM: "UN", PRECOS: { p_30_60_90: 25, p_30_45_60: 25, a_vista: 25 } },
         { CATEGORIA: "CAPAS DE CHUVA", REF: "POLAINA", MODELO: "POLAINA PVC PREMIUM - P / M / G", TAM: "UN", PRECOS: { p_30_60_90: 25, p_30_45_60: 25, a_vista: 25 } },
       ];
+      window.produtosData.forEach(p => { if (p.PRECOS && p.PRECO === undefined) p.PRECO = p.PRECOS.p_30_60_90; });
       // ========== FIM DA LISTA DE PRODUTOS CESARI ==========
 
       // Carregar produtos
@@ -1264,19 +1253,19 @@
       }
 
       // Função para gerar card de produto para mobile
-      function gerarCardProdutoMobile(produto, tabelaSelecionada) {
-        const preco = produto.PRECOS[tabelaSelecionada];
+      function gerarCardProdutoMobile(produto) {
+        const preco = produto.PRECO;
         const tamanhosRange = parseTamanhoRange(produto.TAM);
         let tamanhosHTML = '';
         
         if (tamanhosRange) {
           tamanhosHTML = '<div class="tamanho-input-container">';
           tamanhosRange.forEach((tamanho) => {
-            tamanhosHTML += `<div><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
+            tamanhosHTML += `<div class="tamanho-input-item"><label for="qty-mobile-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-mobile-${produto.REF}-${tamanho}" min="0" value=""></div>`;
           });
           tamanhosHTML += '</div>';
         } else {
-          tamanhosHTML = `<input type="text" placeholder="Grade não padrão. Ex: P:2, M:1" id="tamanhos-manual-${produto.REF}">`;
+          tamanhosHTML = `<input type="text" class="manual-input" placeholder="Grade não padrão. Ex: P:2, M:1" id="tamanhos-manual-mobile-${produto.REF}">`;
         }
 
         return `
@@ -1287,32 +1276,34 @@
             </div>
             <div class="produto-descricao-mobile">
               <h4>${produto.MODELO}</h4>
-              <small>Tamanho: ${produto.TAM || '-'}</small>
+              <small>${produto.TAM || '-'}</small>
             </div>
             <div class="produto-tamanhos-mobile">
-              <label>Quantidades:</label>
+              <label>Desc. Extra (%):</label>
+              <input type="number" min="0" value="0" id="desconto-mobile-${produto.REF}" style="width: 70px; margin-bottom: 8px;">
+            </div>
+            <div class="produto-tamanhos-mobile">
+              <label>Tamanhos & Quantidades:</label>
               ${tamanhosHTML}
             </div>
             <div class="produto-actions-mobile">
-              <button class="btn-adicionar-mobile" onclick='adicionarAoPedido("${produto.REF}")'>
-                ➕ Adicionar ao Pedido
-              </button>
+              <button class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
             </div>
           </div>
         `;
       }
 
       // Função para renderizar produtos
-      function renderizarProdutos() {
-        const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
+      function renderizarProdutos(produtos = window.produtosData) {
         const mobileContainer = document.getElementById('produtos-mobile-container');
         const isMobileView = isMobile();
+        const descricao = (p) => `${p.MODELO || ''} ${p.TAM ? '(' + p.TAM + ')' : ''}`.trim();
         
         if (isMobileView && mobileContainer) {
           mobileContainer.innerHTML = "";
           produtosContainer.innerHTML = "";
           let categoriaAtual = "";
-          window.produtosData.forEach((produto) => {
+          produtos.forEach((produto) => {
             if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
               categoriaAtual = produto.CATEGORIA;
               const catHeader = document.createElement("div");
@@ -1320,24 +1311,28 @@
               catHeader.textContent = categoriaAtual;
               mobileContainer.appendChild(catHeader);
             }
-            mobileContainer.insertAdjacentHTML("beforeend", gerarCardProdutoMobile(produto, tabelaSelecionada));
+            const cardHtml = gerarCardProdutoMobile(produto);
+            mobileContainer.insertAdjacentHTML("beforeend", cardHtml);
+            const lastCard = mobileContainer.lastElementChild;
+            const btn = lastCard.querySelector('.btn-adicionar-mobile');
+            if (btn) btn.addEventListener('click', () => adicionarAoPedidoMobile(produto.REF));
           });
         } else {
-          mobileContainer.innerHTML = "";
+          if (mobileContainer) mobileContainer.innerHTML = "";
           const table = document.createElement("table");
-          table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO DO PRODUTO</th><th>TAMANHO</th><th>VALOR</th><th>Desc. Extra</th><th>QTD</th><th>AÇÃO</th></tr></thead>`;
+          table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>AÇÃO</th></tr></thead>`;
           const tbody = document.createElement("tbody");
           let categoriaAtual = "";
           
-          window.produtosData.forEach((produto) => {
+          produtos.forEach((produto) => {
             if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
               categoriaAtual = produto.CATEGORIA;
               const headerRow = document.createElement("tr");
               headerRow.className = "categoria-header";
-              headerRow.innerHTML = `<td colspan="7">${categoriaAtual}</td>`;
+              headerRow.innerHTML = `<td colspan="6">${categoriaAtual}</td>`;
               tbody.appendChild(headerRow);
             }
-            const preco = produto.PRECOS[tabelaSelecionada];
+            const preco = produto.PRECO;
             const row = document.createElement("tr");
             const tamanhosRange = parseTamanhoRange(produto.TAM);
             let tamanhosHtml = "";
@@ -1350,12 +1345,55 @@
             } else {
               tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
             }
-            row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO}</td><td>${produto.TAM || '-'}</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            row.innerHTML = `<td>${produto.REF}</td><td>${descricao(produto)}</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            row.querySelector('button').addEventListener('click', () => adicionarAoPedido(produto.REF));
             tbody.appendChild(row);
           });
           table.appendChild(tbody);
           produtosContainer.innerHTML = "";
           produtosContainer.appendChild(table);
+        }
+      }
+
+      function adicionarAoPedidoMobile(ref) {
+        const produto = window.produtosData.find((p) => p.REF === ref);
+        if (!produto) return;
+        const precoUnitarioBase = produto.PRECO;
+        const descEl = document.getElementById(`desconto-mobile-${ref}`) || document.getElementById(`desconto-${ref}`);
+        const descontoExtra = parseFloat(descEl?.value || 0) || 0;
+        let itensAdicionados = 0;
+        const tamanhosRange = parseTamanhoRange(produto.TAM);
+        
+        if (tamanhosRange) {
+          tamanhosRange.forEach((tamanho) => {
+            const input = document.getElementById(`qty-mobile-${ref}-${tamanho}`);
+            const quantidade = parseInt(input?.value || 0, 10);
+            if (quantidade > 0) {
+              const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+              const exist = window.pedidoItens.find(i => i.REF === ref && i.tamanho === tamanho && Math.abs(i.preco - precoFinal) < 0.01);
+              if (exist) exist.quantidade += quantidade;
+              else window.pedidoItens.push({ REF: produto.REF, MODELO: produto.MODELO, preco: precoFinal, tamanho, quantidade, descontoExtra });
+              itensAdicionados++;
+              if (input) input.value = "";
+            }
+          });
+        } else {
+          const manualInput = document.getElementById(`tamanhos-manual-mobile-${ref}`);
+          const grade = parseTamanhosInput(manualInput?.value || "");
+          if (grade && grade.length > 0) {
+            grade.forEach((g) => {
+              const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+              window.pedidoItens.push({ REF: produto.REF, MODELO: produto.MODELO, preco: precoFinal, tamanho: g.tamanho, quantidade: g.quantidade, descontoExtra });
+              itensAdicionados++;
+            });
+            if (manualInput) manualInput.value = "";
+          }
+        }
+        if (itensAdicionados > 0) {
+          if (descEl) descEl.value = 0;
+          atualizarVisualizacaoPedido();
+        } else {
+          alert("Por favor, selecione pelo menos um tamanho e quantidade.");
         }
       }
 
@@ -1387,98 +1425,35 @@
       // Função para adicionar produto ao pedido
       function adicionarAoPedido(ref) {
         const produto = window.produtosData.find((p) => p.REF === ref);
-        if (!produto) {
-          console.error('Produto não encontrado:', ref);
+        if (!produto || !produto.REF || !produto.MODELO) {
           alert('Erro: Produto não encontrado.');
           return;
         }
         
-        // Verificar se o produto tem dados válidos
-        if (!produto.REF || !produto.MODELO || !produto.PRECOS) {
-          console.error('Produto com dados inválidos:', produto);
-          alert('Erro: Dados do produto estão incompletos.');
-          return;
-        }
-        
-        const corEl = document.getElementById("cor-"+ref);
-        const cor = corEl ? (corEl.value || "").trim() : "";
-        const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
-        const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
-        
-        // Verificar se o preço é válido
-        if (!precoUnitarioBase || isNaN(precoUnitarioBase)) {
-          console.error('Preço inválido para produto:', produto.REF, 'tabela:', tabelaSelecionada);
-          alert('Erro: Preço não encontrado para a tabela selecionada.');
-          return;
-        }
-        
+        const precoUnitarioBase = produto.PRECO;
+        const descontoExtra = parseFloat(document.getElementById(`desconto-${ref}`)?.value || 0) || 0;
+        const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
         let itensAdicionados = 0;
         
         const tamanhosRange = parseTamanhoRange(produto.TAM);
         if (tamanhosRange) {
           tamanhosRange.forEach((tamanho) => {
             const input = document.getElementById(`qty-${produto.REF}-${tamanho}`);
-            const quantidade = parseInt(input.value, 10);
+            const quantidade = parseInt(input?.value || 0, 10);
             if (quantidade > 0) {
-              const precoFinal = precoUnitarioBase;
-          const itemExistente = window.pedidoItens.find(
-            (item) =>
-                  item.REF === ref &&
-                  item.tamanho === tamanho &&
-                  item.preco === precoFinal &&
-                  item.cor.toLowerCase() === cor.toLowerCase()
-          );
-          if (itemExistente) {
-            itemExistente.quantidade += quantidade;
-          } else {
-            const novoItem = {
-              REF: produto.REF,
-              MODELO: produto.MODELO,
-              tamanho: tamanho,
-              quantidade: quantidade,
-              cor: cor || "-",
-              preco: precoFinal,
-            };
-            
-            // Log para debug
-            console.log('Adicionando item ao pedido:', novoItem);
-            
-            window.pedidoItens.push(novoItem);
-              }
+              const exist = window.pedidoItens.find(i => i.REF === ref && i.tamanho === tamanho && Math.abs(i.preco - precoFinal) < 0.01);
+              if (exist) exist.quantidade += quantidade;
+              else window.pedidoItens.push({ REF: produto.REF, MODELO: produto.MODELO, tamanho, quantidade, preco: precoFinal, descontoExtra });
               input.value = "";
               itensAdicionados++;
             }
           });
         } else {
           const manualInput = document.getElementById(`tamanhos-manual-${ref}`);
-          const grade = parseTamanhosInput(manualInput.value);
+          const grade = parseTamanhosInput(manualInput?.value || "");
           if (grade && grade.length > 0) {
             grade.forEach((itemGrade) => {
-              const precoFinal = precoUnitarioBase;
-              const itemExistente = window.pedidoItens.find(
-                (item) =>
-                  item.REF === ref &&
-                  item.tamanho === itemGrade.tamanho &&
-                  item.preco === precoFinal &&
-                  item.cor.toLowerCase() === cor.toLowerCase()
-              );
-              if (itemExistente) {
-                itemExistente.quantidade += itemGrade.quantidade;
-              } else {
-                const novoItem = {
-                  REF: produto.REF,
-                  MODELO: produto.MODELO,
-                  tamanho: itemGrade.tamanho,
-                  quantidade: itemGrade.quantidade,
-                  cor: cor || "-",
-                  preco: precoFinal,
-                };
-                
-                // Log para debug
-                console.log('Adicionando item manual ao pedido:', novoItem);
-                
-                window.pedidoItens.push(novoItem);
-              }
+              window.pedidoItens.push({ REF: produto.REF, MODELO: produto.MODELO, tamanho: itemGrade.tamanho, quantidade: itemGrade.quantidade, preco: precoFinal, descontoExtra });
               itensAdicionados++;
             });
             manualInput.value = "";
@@ -1486,7 +1461,7 @@
         }
         
         if (itensAdicionados > 0) {
-          if (corEl) corEl.value = "";
+          document.getElementById(`desconto-${ref}`).value = 0;
           atualizarVisualizacaoPedido();
         } else {
           alert("Nenhuma quantidade foi preenchida para este produto.");
@@ -1511,11 +1486,22 @@
         atualizarVisualizacaoPedido();
       }
 
+      // Função para alterar preço do item
+      function alterarPrecoItem(index, novoPreco) {
+        const preco = parseFloat(String(novoPreco).replace(',', '.'));
+        if (isNaN(preco) || preco < 0) {
+          alert('Informe um valor válido para o preço.');
+          return;
+        }
+        if (window.pedidoItens[index]) {
+          window.pedidoItens[index].preco = preco;
+          atualizarVisualizacaoPedido();
+        }
+      }
+
       // Função para atualizar visualização do pedido
       function atualizarVisualizacaoPedido() {
         const pedidoContainer = document.getElementById("produtos-selecionados");
-        const pedidoVazio = document.getElementById("pedido-vazio");
-        
         pedidoContainer.innerHTML = "";
         subtotalPedido = 0;
         
@@ -1525,7 +1511,6 @@
         }
         
         if (window.pedidoItens.length > 0) {
-          if (pedidoVazio) pedidoVazio.style.display = "none";
           window.pedidoItens.forEach((item, index) => {
             // Log para debug
             console.log('Renderizando item do pedido:', index, item);
@@ -1540,11 +1525,9 @@
                 <span>•</span>
                 <span>Tam: ${item.tamanho || 'N/A'}</span>
                 <span>•</span>
-                <span>Cor: ${item.cor || '-'}</span>
+                <span>Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidade(${index}, this.value)" style="width: 60px; padding: 4px;"></span>
                 <span>•</span>
-                <span>Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidade(${index}, this.value)"></span>
-                <span>•</span>
-                <span>Unit: R$ ${(item.preco || 0).toFixed(2)}</span>
+                <span>Unit: R$ <input type="number" step="0.01" min="0" value="${(item.preco || 0).toFixed(2)}" onchange="alterarPrecoItem(${index}, this.value)" style="width: 80px; padding: 4px; text-align: right;"></span>
                 <span>•</span>
                 <span style="font-weight: 600; color: var(--primary-color);">Total: R$ ${precoTotalItem.toFixed(2)}</span>
                 <div class="pedido-item-actions">
@@ -1557,7 +1540,10 @@
             pedidoContainer.appendChild(itemDiv);
           });
         } else {
-          if (pedidoVazio) pedidoVazio.style.display = "block";
+          const emptyP = document.createElement("p");
+          emptyP.id = "pedido-vazio";
+          emptyP.textContent = "Nenhum item adicionado ao pedido ainda.";
+          pedidoContainer.appendChild(emptyP);
         }
 
         // Mostrar total do pedido
@@ -1693,7 +1679,7 @@
         produtosFiltrados.slice(0, 8).forEach((produto) => {
           const item = document.createElement("div");
           item.className = "sugestao-cliente-item";
-          item.innerHTML = `<strong>${produto.REF}</strong> - ${produto.MODELO}`;
+          item.innerHTML = `<strong>${produto.REF}</strong> - ${produto.MODELO} ${produto.TAM ? '(' + produto.TAM + ')' : ''}`;
           item.addEventListener("mousedown", (e) => {
             e.preventDefault();
             document.getElementById("busca-produto").value = `${produto.REF} - ${produto.MODELO}`;
@@ -1709,47 +1695,7 @@
         produtosContainer.innerHTML = "";
         const mob = document.getElementById("produtos-mobile-container");
         if (mob) mob.innerHTML = "";
-        if (produtos.length < window.produtosData.length) {
-          const tabelaSelecionada = document.getElementById('tabela-precos-select').value;
-          if (isMobile()) {
-            const mobileContainer = document.getElementById("produtos-mobile-container");
-            let categoriaAtual = "";
-            produtos.forEach((produto) => {
-              if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
-                categoriaAtual = produto.CATEGORIA;
-                const catHeader = document.createElement("div");
-                catHeader.className = "categoria-header-mobile";
-                catHeader.textContent = categoriaAtual;
-                mobileContainer.appendChild(catHeader);
-              }
-              mobileContainer.insertAdjacentHTML("beforeend", gerarCardProdutoMobile(produto, tabelaSelecionada));
-            });
-          } else {
-            const table = document.createElement("table");
-            table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO DO PRODUTO</th><th>TAMANHO</th><th>VALOR</th><th>Desc. Extra</th><th>QTD</th><th>AÇÃO</th></tr></thead>`;
-            const tbody = document.createElement("tbody");
-            let categoriaAtual = "";
-            produtos.forEach((produto) => {
-              if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
-                categoriaAtual = produto.CATEGORIA;
-                const headerRow = document.createElement("tr");
-                headerRow.className = "categoria-header";
-                headerRow.innerHTML = `<td colspan="7">${categoriaAtual}</td>`;
-                tbody.appendChild(headerRow);
-              }
-              const preco = produto.PRECOS[tabelaSelecionada];
-              const row = document.createElement("tr");
-              const tamanhosRange = parseTamanhoRange(produto.TAM);
-              let tamanhosHtml = tamanhosRange ? '<div class="tamanho-input-container">' + tamanhosRange.map(t => `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${t}">${t}</label><input type="number" id="qty-${produto.REF}-${t}" min="0" value=""></div>`).join('') + "</div>" : `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão">`;
-              row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO}</td><td>${produto.TAM || '-'}</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" id="desconto-${produto.REF}" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
-              tbody.appendChild(row);
-            });
-            table.appendChild(tbody);
-            produtosContainer.appendChild(table);
-          }
-        } else {
-          renderizarProdutos();
-        }
+        renderizarProdutos(produtos);
       }
 
       // Inicializar página
@@ -1757,26 +1703,12 @@
         preencherInformacoesCliente();
         carregarProdutos();
         
-        // Event listener para mudança de tabela de preços
-        const tabelaPrecosSelect = document.getElementById('tabela-precos-select');
-        tabelaPrecosSelect.addEventListener('change', renderizarProdutos);
-        
-        // Event listener para cliques nos botões de adicionar
-        produtosContainer.addEventListener('click', (e) => {
-          if (e.target.tagName === 'BUTTON') {
-            const ref = e.target.getAttribute('data-ref');
-            if (ref) {
-              adicionarAoPedido(ref);
-            }
-          }
-        });
-        
         // Busca de produtos
         const buscaProdutoInput = document.getElementById("busca-produto");
         buscaProdutoInput.addEventListener("input", (e) => {
           mostrarSugestoesProdutos(e.target.value);
           if (!e.target.value) {
-            renderizarProdutos();
+            renderizarProdutos(window.produtosData);
           }
         });
         
