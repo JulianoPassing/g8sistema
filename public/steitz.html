@@ -1781,6 +1781,7 @@
         window.offlineSystem.tryToSendOrder(orderData)
         .then(result => {
           if (result.success) {
+            if (window.G8Draft) G8Draft.clear();
             if (result.online) {
               alert('✅ Pedido enviado e salvo com sucesso!');
             } else {
@@ -1857,6 +1858,25 @@
               sugestoesDiv.style.display = "none";
             }
           });
+
+          if (window.G8Draft && inputsCliente) {
+            G8Draft.init({
+              getData: () => {
+                if (!window.pedidoItens || window.pedidoItens.length === 0) return null;
+                const fd = {};
+                for (const k in inputsCliente) { if (inputsCliente[k]?.value !== undefined) fd[k] = inputsCliente[k].value || ""; }
+                const dx = document.getElementById("desconto-extra-total");
+                return { items: JSON.parse(JSON.stringify(window.pedidoItens)), formData: fd, descontoExtra: dx ? parseFloat(dx.value) : 0 };
+              },
+              setData: (d) => {
+                if (d?.items?.length) { window.pedidoItens.length = 0; window.pedidoItens.push(...d.items); }
+                if (d?.formData) { for (const k in d.formData) { if (inputsCliente[k]) inputsCliente[k].value = d.formData[k] || ""; } }
+                const dx = document.getElementById("desconto-extra-total");
+                if (dx && d?.descontoExtra != null) dx.value = d.descontoExtra;
+                if (typeof atualizarVisualizacaoPedido === "function") atualizarVisualizacaoPedido();
+              }
+            });
+          }
         });
       });
 
@@ -1900,6 +1920,7 @@
       }
     </script>
     <script src="editor-pedido.js"></script>
+    <script src="draft-system.js"></script>
     <script src="offline-system.js"></script>
   </body>
 </html>

@@ -15,17 +15,31 @@ class OfflineSystem {
     this.failuresInRow = 0;
     this.MIN_FAILURES_OFFLINE = 2; // Só marcar offline após 2 falhas seguidas
     
+    // Backoff exponencial: intervalo base, máximo (ms) e multiplicador
+    this.retryBaseInterval = 15000;   // 15s
+    this.retryMaxInterval = 120000;    // 2 min
+    this.retryMultiplier = 2;
+    this.retryBackoffMs = this.retryBaseInterval;
+    
     this.init();
   }
 
   init() {
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (e) => {
+        if (e.data?.type === 'G8_SYNC_PENDING') {
+          this.processPendingOrders();
+          this.processPendingEdits();
+        }
+      });
+    }
     
     this.startConnectionCheck();
     this.createStatusIndicator();
     
-    // Verificação imediata ao carregar (celular costuma reportar offline incorretamente)
     setTimeout(() => this.checkConnection(), 300);
     
     this.processPendingOrders();
@@ -33,18 +47,19 @@ class OfflineSystem {
   }
 
   createStatusIndicator() {
-    // Verificar se já existe um indicador no header
     const existingHeaderIndicator = document.getElementById('connection-status');
     if (existingHeaderIndicator) {
-      // Usar o indicador do header em vez de criar um novo
       this.statusIndicator = existingHeaderIndicator;
+      this.statusIndicator.style.cursor = 'pointer';
+      this.statusIndicator.title = 'Clique para ver pedidos pendentes';
+      this.statusIndicator.addEventListener('click', () => this.togglePendingPanel());
       this.updateStatusIndicator();
       return;
     }
 
-    // Criar indicador próprio apenas se não existir um no header
     this.statusIndicator = document.createElement('div');
     this.statusIndicator.id = 'connection-status-offline';
+    this.statusIndicator.style.cursor = 'pointer';
     this.statusIndicator.style.cssText = `
       position: fixed;
       top: 10px;
@@ -60,8 +75,91 @@ class OfflineSystem {
     
     if (document.body) {
       document.body.appendChild(this.statusIndicator);
+      this.statusIndicator.addEventListener('click', () => this.togglePendingPanel());
     }
     this.updateStatusIndicator();
+  }
+
+  togglePendingPanel() {
+    const panel = document.getElementById('g8-pending-panel');
+    if (panel) {
+      panel.remove();
+      return;
+    }
+    this.createPendingPanel();
+  }
+
+  createPendingPanel() {
+    const total = this.pendingOrders.length + this.pendingEdits.length;
+    if (total === 0) {
+      this.showNotification('Nenhum pedido ou edição pendente.', 'info');
+      return;
+    }
+
+    const panel = document.createElement('div');
+    panel.id = 'g8-pending-panel';
+    panel.innerHTML = `
+      <div class="g8-pending-panel-header">
+        <strong>📋 Pendentes de envio (${total})</strong>
+        <button class="g8-pending-close" type="button">×</button>
+      </div>
+      <div class="g8-pending-panel-body">
+        ${this.pendingOrders.length > 0 ? `
+          <div class="g8-pending-section">
+            <div class="g8-pending-title">📦 Pedidos (${this.pendingOrders.length})</div>
+            ${this.pendingOrders.map(o => {
+              const d = o.data?.dados || o.data;
+              const cliente = d?.cliente?.razao || d?.cliente?.nome || 'N/A';
+              const total = d?.total != null ? `R$ ${parseFloat(d.total).toFixed(2)}` : '';
+              return `<div class="g8-pending-item">${cliente} ${total ? '— ' + total : ''}</div>`;
+            }).join('')}
+          </div>
+        ` : ''}
+        ${this.pendingEdits.length > 0 ? `
+          <div class="g8-pending-section">
+            <div class="g8-pending-title">✏️ Edições (${this.pendingEdits.length})</div>
+            ${this.pendingEdits.map(e => `<div class="g8-pending-item">Pedido #${e.data?.id || '?'}</div>`).join('')}
+          </div>
+        ` : ''}
+        <button class="g8-pending-retry-btn" type="button">🔄 Enviar agora</button>
+      </div>
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = `
+      #g8-pending-panel { position: fixed; top: 60px; right: 10px; width: 320px; max-width: calc(100vw - 20px);
+        background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 10001;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+      .g8-pending-panel-header { display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 16px; background: #f59e0b; color: white; font-size: 14px; }
+      .g8-pending-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0 4px; }
+      .g8-pending-panel-body { padding: 16px; max-height: 280px; overflow-y: auto; }
+      .g8-pending-section { margin-bottom: 12px; }
+      .g8-pending-title { font-weight: 600; font-size: 12px; color: #64748b; margin-bottom: 6px; }
+      .g8-pending-item { font-size: 13px; padding: 6px 0; border-bottom: 1px solid #f1f5f9; color: #334155; }
+      .g8-pending-retry-btn { width: 100%; padding: 10px; margin-top: 12px; border: none; border-radius: 8px;
+        background: #10b981; color: white; font-weight: 600; cursor: pointer; font-size: 14px; }
+      .g8-pending-retry-btn:hover { background: #059669; }
+    `;
+    document.head.appendChild(style);
+
+    panel.querySelector('.g8-pending-close').onclick = () => panel.remove();
+    panel.querySelector('.g8-pending-retry-btn').onclick = () => {
+      this.processPendingOrders();
+      this.processPendingEdits();
+      this.showNotification('Enviando pendentes...', 'info');
+      panel.remove();
+    };
+
+    document.body.appendChild(panel);
+
+    document.addEventListener('click', function closer(e) {
+      if (!panel.contains(e.target) && !document.getElementById('connection-status')?.contains(e.target)
+          && !document.getElementById('connection-status-offline')?.contains(e.target)) {
+        panel.remove();
+        document.removeEventListener('click', closer);
+      }
+    });
   }
 
   updateStatusIndicator() {
@@ -171,7 +269,23 @@ class OfflineSystem {
   }
 
   startConnectionCheck() {
-    setInterval(() => this.checkConnection(), 15000); // A cada 15s (mais frequente)
+    const doCheck = () => {
+      this.checkConnection().then(() => {
+        const hasPending = this.pendingOrders.length + this.pendingEdits.length > 0;
+        if (hasPending && this.isOnline) {
+          this.retryBackoffMs = this.retryBaseInterval;
+        } else if (!this.isOnline && hasPending) {
+          this.retryBackoffMs = Math.min(this.retryBackoffMs * this.retryMultiplier, this.retryMaxInterval);
+        } else {
+          this.retryBackoffMs = this.retryBaseInterval;
+        }
+        this._nextCheckTimer = setTimeout(doCheck, this.retryBackoffMs);
+      }).catch(() => {
+        this.retryBackoffMs = Math.min(this.retryBackoffMs * this.retryMultiplier, this.retryMaxInterval);
+        this._nextCheckTimer = setTimeout(doCheck, this.retryBackoffMs);
+      });
+    };
+    this._nextCheckTimer = setTimeout(doCheck, this.retryBaseInterval);
   }
 
   async checkConnection() {
@@ -223,6 +337,8 @@ class OfflineSystem {
     this.pendingOrders.push(offlineOrder);
     this.savePendingOrders();
     this.updateStatusIndicator();
+    this.registerBackgroundSync();
+    this.vibrate(50);
 
     console.log('💾 Pedido salvo offline:', offlineOrder.id);
     this.showNotification(`Pedido salvo offline! Será enviado automaticamente quando a conexão retornar.`, 'info');
@@ -338,10 +454,9 @@ class OfflineSystem {
     }
   }
 
-  // Atualizar numeração do pedido se necessário
+  // Atualizar numeração do pedido se necessário (usa maior ID, não quantidade)
   async updateOrderNumber(offlineOrder) {
     try {
-      // Buscar último número usado
       const response = await fetch('/api/pedidos');
       if (!response.ok) return;
       
@@ -351,11 +466,9 @@ class OfflineSystem {
       );
       
       if (companyOrders.length > 0) {
-        // Gerar nova descrição com numeração atualizada
-        const lastNumber = companyOrders.length;
-        const newNumber = lastNumber + 1;
+        const maxId = Math.max(...companyOrders.map(o => parseInt(o.id) || 0), 0);
+        const newNumber = maxId + 1;
         
-        // Atualizar descrição do pedido
         if (offlineOrder.data.descricao) {
           offlineOrder.data.descricao = offlineOrder.data.descricao.replace(
             /Pedido #\d+/g, 
@@ -474,6 +587,8 @@ class OfflineSystem {
     this.pendingEdits.push(offlineEdit);
     this.savePendingEdits();
     this.updateStatusIndicator();
+    this.registerBackgroundSync();
+    this.vibrate(50);
     console.log('💾 Edição salva offline:', offlineEdit.id);
     this.showNotification('Edição salva! Será enviada quando a conexão retornar.', 'info');
     return offlineEdit.id;
@@ -540,53 +655,73 @@ class OfflineSystem {
           this.showNotification('Edição salva com sucesso!', 'success');
           return { success: true, online: true };
         }
+        if (response.status === 404) {
+          this.showNotification('Pedido não encontrado (pode ter sido excluído).', 'warning');
+          return { success: false, online: true };
+        }
         throw new Error(`HTTP ${response.status}`);
       } catch (error) {
         console.error('Erro ao enviar edição:', error);
+        const alreadyApplied = await this.checkEditAlreadyApplied(editData);
+        if (alreadyApplied) {
+          this.isOnline = true;
+          this.showNotification('Edição já foi aplicada anteriormente.', 'success');
+          return { success: true, online: true };
+        }
         const offlineId = await this.saveEditOffline(editData);
         return { success: true, online: false, offlineId };
       }
     } else {
+      const alreadyApplied = await this.checkEditAlreadyApplied(editData);
+      if (alreadyApplied) {
+        this.showNotification('Pedido não existe mais. Edição cancelada.', 'warning');
+        return { success: false, online: false };
+      }
       const offlineId = await this.saveEditOffline(editData);
       return { success: true, online: false, offlineId };
     }
   }
 
+  async checkEditAlreadyApplied(editData) {
+    try {
+      const resp = await fetch('/api/pedidos');
+      if (!resp.ok) return false;
+      const pedidos = await resp.json();
+      const existe = pedidos.some(p => p.id == editData.id);
+      return !existe;
+    } catch (e) {
+      return false;
+    }
+  }
+
   showNotification(message, type = 'info') {
-    // Criar notificação simples
+    if (window.advancedNotifications && typeof window.advancedNotifications[type] === 'function') {
+      const opts = { title: type === 'success' ? 'Sucesso' : type === 'error' ? 'Erro' : type === 'warning' ? 'Atenção' : 'Informação', duration: 5000 };
+      window.advancedNotifications[type](message, opts);
+      return;
+    }
     const notification = document.createElement('div');
     notification.style.cssText = `
-      position: fixed;
-      top: 50px;
-      right: 10px;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      max-width: 300px;
-      z-index: 10001;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      animation: slideIn 0.3s ease;
+      position: fixed; top: 50px; right: 10px; padding: 12px 20px; border-radius: 8px; font-size: 14px;
+      max-width: 300px; z-index: 10001; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease;
     `;
-
-    const colors = {
-      success: { bg: '#10b981', color: 'white' },
-      error: { bg: '#ef4444', color: 'white' },
-      warning: { bg: '#f59e0b', color: 'white' },
-      info: { bg: '#3b82f6', color: 'white' }
-    };
-
-    const color = colors[type] || colors.info;
-    notification.style.backgroundColor = color.bg;
-    notification.style.color = color.color;
+    const colors = { success: '#10b981', error: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
+    notification.style.backgroundColor = colors[type] || colors.info;
+    notification.style.color = 'white';
     notification.textContent = message;
-
     document.body.appendChild(notification);
+    setTimeout(() => { notification.style.animation = 'slideOut 0.3s ease'; setTimeout(() => notification.remove(), 300); }, 5000);
+  }
 
-    // Remover após 5 segundos
-    setTimeout(() => {
-      notification.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => notification.remove(), 300);
-    }, 5000);
+  vibrate(ms = 50) {
+    if (navigator.vibrate) try { navigator.vibrate(ms); } catch (e) {}
+  }
+
+  registerBackgroundSync() {
+    if (!('serviceWorker' in navigator) || !('SyncManager' in window)) return;
+    navigator.serviceWorker.ready.then(reg => {
+      reg.sync.register('g8-pending-orders').catch(() => {});
+    }).catch(() => {});
   }
 
   // Método público para obter status

@@ -3282,6 +3282,7 @@ window.produtosData = [
         window.offlineSystem.tryToSendOrder(orderData)
         .then(result => {
           if (result.success) {
+            if (window.G8Draft) G8Draft.clear();
             if (result.online) {
               alert('✅ Pedido enviado e salvo com sucesso!');
             } else {
@@ -3356,6 +3357,26 @@ window.produtosData = [
             sugestoesDiv.style.display = "none";
           }
         });
+
+        if (window.G8Draft && inputsCliente) {
+          G8Draft.init({
+            getData: () => {
+              if (!window.pedidoItens || window.pedidoItens.length === 0) return null;
+              const fd = {};
+              for (const k in inputsCliente) { if (inputsCliente[k]?.value !== undefined) fd[k] = inputsCliente[k].value || ""; }
+              const dp = document.getElementById("desconto-prazo"), dv = document.getElementById("desconto-volume");
+              return { items: JSON.parse(JSON.stringify(window.pedidoItens)), formData: fd, descontoPrazo: dp ? parseFloat(dp.value) : 0, descontoVolume: dv ? parseFloat(dv.value) : 0 };
+            },
+            setData: (d) => {
+              if (d?.items?.length) { window.pedidoItens.length = 0; window.pedidoItens.push(...d.items); }
+              if (d?.formData) { for (const k in d.formData) { if (inputsCliente[k]) inputsCliente[k].value = d.formData[k] || ""; } }
+              const dp = document.getElementById("desconto-prazo"), dv = document.getElementById("desconto-volume");
+              if (dp && d?.descontoPrazo != null) dp.value = d.descontoPrazo; if (dv && d?.descontoVolume != null) dv.value = d.descontoVolume;
+              if (typeof aplicarDescontosGerais === "function") aplicarDescontosGerais();
+              if (typeof atualizarVisualizacaoPedido === "function") atualizarVisualizacaoPedido();
+            }
+          });
+        }
       });
 
       // Função para mostrar sugestões de clientes
@@ -3657,6 +3678,7 @@ window.produtosData = [
       }
     </script>
     <script src="editor-pedido.js"></script>
+    <script src="draft-system.js"></script>
     <script src="offline-system.js"></script>
   </body>
 </html>

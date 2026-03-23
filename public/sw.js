@@ -38,6 +38,7 @@ const STATIC_FILES = [
   '/loading-system.js',
   '/common-utils.js',
   '/offline-system.js',
+  '/draft-system.js',
   '/advanced-notifications.js',
   '/animations.js',
   '/theme-system.js',
@@ -173,7 +174,22 @@ async function cacheFirstStrategy(request) {
         }
       }
       
-      // Último recurso: página offline com design G8
+      // Último recurso: página offline com design G8 (mostra pendentes se houver)
+      const pendingScript = `
+        (function(){
+          try {
+            var orders = JSON.parse(localStorage.getItem('g8_pending_orders') || '[]');
+            var edits = JSON.parse(localStorage.getItem('g8_pending_edits') || '[]');
+            if (orders.length > 0 || edits.length > 0) {
+              var box = document.getElementById('g8-offline-pending');
+              if (box) {
+                box.style.display = 'block';
+                box.innerHTML = '<h3>📋 Pendentes de envio</h3><p><strong>' + orders.length + '</strong> pedido(s) e <strong>' + edits.length + '</strong> edição(ões) serão enviados automaticamente quando a conexão retornar.</p>';
+              }
+            }
+          } catch(e){}
+        })();
+      `;
       return new Response(`
         <!DOCTYPE html>
         <html lang="pt-BR">
@@ -184,39 +200,15 @@ async function cacheFirstStrategy(request) {
           <title>G8 Sistema - Offline</title>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              text-align: center; 
-              padding: 40px 20px; 
-              min-height: 100vh;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
-            }
-            .offline-card {
-              background: white;
-              border-radius: 16px;
-              padding: 40px;
-              max-width: 400px;
-              box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-              border: 1px solid #ffe0e0;
-            }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 40px 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%); }
+            .offline-card { background: white; border-radius: 16px; padding: 40px; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border: 1px solid #ffe0e0; }
             .offline-icon { font-size: 64px; margin-bottom: 20px; }
             h1 { color: #333; font-size: 1.5rem; margin-bottom: 16px; }
             .offline-message { color: #666; margin: 20px 0; line-height: 1.6; }
-            .retry-btn { 
-              background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); 
-              color: white; 
-              padding: 14px 28px; 
-              border: none; 
-              border-radius: 12px; 
-              cursor: pointer; 
-              font-size: 16px;
-              font-weight: 600;
-              margin-top: 20px;
-            }
+            #g8-offline-pending { display: none; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 10px; padding: 16px; margin: 16px 0; text-align: left; }
+            #g8-offline-pending h3 { font-size: 0.95rem; color: #92400e; margin-bottom: 8px; }
+            #g8-offline-pending p { font-size: 0.9rem; color: #78350f; }
+            .retry-btn { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: white; padding: 14px 28px; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 20px; }
             .retry-btn:hover { opacity: 0.9; }
           </style>
         </head>
@@ -228,13 +220,16 @@ async function cacheFirstStrategy(request) {
               <p>Você está offline. O G8 Sistema pode ser usado parcialmente:</p>
               <p style="margin-top:12px;font-size:0.9rem">• Navegar entre páginas já visitadas<br>• Visualizar dados em cache<br>• Pedidos serão enviados ao reconectar</p>
             </div>
+            <div id="g8-offline-pending"></div>
             <p style="margin-top:16px;font-size:0.9rem"><strong>Dica:</strong> Visite o sistema com internet primeiro para habilitar o modo offline. Depois você poderá abrir e digitar pedidos mesmo sem conexão.</p>
             <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
               <a href="/index.html" style="color:#ff0000;font-weight:600;text-decoration:underline;">Login</a>
               <a href="/painel.html" style="color:#ff0000;font-weight:600;text-decoration:underline;">Painel</a>
+              <a href="/pantaneiro7.html" style="color:#ff0000;font-weight:600;text-decoration:underline;">Pedidos</a>
             </div>
             <button class="retry-btn" onclick="location.reload()">🔄 Tentar Novamente</button>
           </div>
+          <script>${pendingScript}</script>
         </body>
         </html>
       `, {
@@ -334,47 +329,16 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Sincronização em background (quando voltar online)
+// Sincronização em background (quando voltar online) - conectado ao offline-system
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'background-sync') {
-    event.waitUntil(doBackgroundSync());
+  if (event.tag === 'g8-pending-orders') {
+    event.waitUntil(notifyClientsToSync());
   }
 });
 
-async function doBackgroundSync() {
-  
-  // Aqui você pode implementar lógica para sincronizar dados
-  // quando a conexão for restabelecida
-  
-  try {
-    // Exemplo: reenviar formulários pendentes
-    const pendingForms = await getPendingForms();
-    
-    for (const form of pendingForms) {
-      try {
-        await fetch(form.url, {
-          method: form.method,
-          headers: form.headers,
-          body: form.body
-        });
-        
-        // Remover da lista de pendentes se bem-sucedido
-        await removePendingForm(form.id);
-      } catch (error) {
-        console.error('Erro na sincronização:', error);
-      }
-    }
-  } catch (error) {
-    console.error('Erro na sincronização em background:', error);
+async function notifyClientsToSync() {
+  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  for (const client of clients) {
+    client.postMessage({ type: 'G8_SYNC_PENDING', source: 'service-worker' });
   }
-}
-
-// Funções auxiliares para sincronização
-async function getPendingForms() {
-  // Implementar lógica para obter formulários pendentes
-  return [];
-}
-
-async function removePendingForm(id) {
-  // Implementar lógica para remover formulário da lista de pendentes
 }

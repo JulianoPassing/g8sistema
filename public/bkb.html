@@ -1692,6 +1692,7 @@ window.produtosData = [
         window.offlineSystem.tryToSendOrder(orderData)
           .then(result => {
             if (result.success) {
+              if (window.G8Draft) G8Draft.clear();
               if (result.online) {
                 alert('✅ Pedido enviado e salvo com sucesso!');
               } else {
@@ -1805,6 +1806,22 @@ window.produtosData = [
           
           // Usar click em vez de mousedown para melhor compatibilidade mobile
           document.addEventListener("click", fecharSugestoesClientes, true);
+
+          if (window.G8Draft && inputsCliente) {
+            G8Draft.init({
+              getData: () => {
+                if (!window.pedidoItens || window.pedidoItens.length === 0) return null;
+                const fd = {};
+                for (const k in inputsCliente) { if (inputsCliente[k]?.value !== undefined) fd[k] = inputsCliente[k].value || ""; }
+                return { items: JSON.parse(JSON.stringify(window.pedidoItens)), formData: fd };
+              },
+              setData: (d) => {
+                if (d?.items?.length) { window.pedidoItens.length = 0; window.pedidoItens.push(...d.items); }
+                if (d?.formData) { for (const k in d.formData) { if (inputsCliente[k]) inputsCliente[k].value = d.formData[k] || ""; } }
+                if (typeof atualizarVisualizacaoPedido === "function") atualizarVisualizacaoPedido();
+              }
+            });
+          }
         });
         
         // Busca de produtos
@@ -1850,6 +1867,7 @@ window.produtosData = [
       }
     </script>
     <script src="editor-pedido.js"></script>
+    <script src="draft-system.js"></script>
   </body>
 </html>
 

@@ -29,6 +29,7 @@
     <script src="mobile-menu.js" defer></script>
     <script src="advanced-notifications.js"></script>
     <script src="animations.js"></script>
+    <script src="draft-system.js"></script>
     <script src="offline-system.js"></script>
     <script src="connection-monitor.js"></script>
 
@@ -3136,6 +3137,7 @@ window.produtosData = [
           const result = await window.offlineSystem.tryToSendOrder(pedidoData);
           
           if (result.success) {
+            if (window.G8Draft) G8Draft.clear();
             if (result.online) {
               alert('✅ Pedido enviado com sucesso! Você será redirecionado para seus pedidos.');
             } else {
@@ -3269,6 +3271,22 @@ window.produtosData = [
         
         // Usar click em vez de mousedown para melhor compatibilidade mobile
         document.addEventListener("click", fecharSugestoesProdutos, true);
+
+        if (window.G8Draft) {
+          G8Draft.init({
+            getData: () => {
+              if (!window.pedidoItens || window.pedidoItens.length === 0) return null;
+              const t = document.getElementById("transporte"), p = document.getElementById("prazo"), o = document.getElementById("obs");
+              return { items: JSON.parse(JSON.stringify(window.pedidoItens)), transporte: t ? t.value : "", prazo: p ? p.value : "", obs: o ? o.value : "" };
+            },
+            setData: (d) => {
+              if (d?.items?.length) { window.pedidoItens.length = 0; window.pedidoItens.push(...d.items); }
+              const t = document.getElementById("transporte"), p = document.getElementById("prazo"), o = document.getElementById("obs");
+              if (t && d?.transporte != null) t.value = d.transporte; if (p && d?.prazo != null) p.value = d.prazo; if (o && d?.obs != null) o.value = d.obs;
+              if (typeof atualizarVisualizacaoPedido === "function") atualizarVisualizacaoPedido();
+            }
+          });
+        }
 
         // Event listener para redimensionamento da janela
         window.addEventListener('resize', () => {
