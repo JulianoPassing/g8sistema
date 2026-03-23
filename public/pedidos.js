@@ -304,6 +304,9 @@ async function carregarPedidos() {
             <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
               ✏️ Editar
             </button>
+            <button class="btn-action btn-duplicate" onclick="duplicarPedido(${pedido.id})">
+              📋 Duplicar
+            </button>
             <button class="btn-action btn-delete" onclick="excluirPedido(${pedido.id})">
               🗑️ Excluir
             </button>
@@ -613,6 +616,9 @@ function renderizarPedidos(pedidos) {
           <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
             ✏️ Editar
           </button>
+          <button class="btn-action btn-duplicate" onclick="duplicarPedido(${pedido.id})">
+            📋 Duplicar
+          </button>
           <button class="btn-action btn-delete" onclick="excluirPedido(${pedido.id})">
             🗑️ Excluir
           </button>
@@ -642,6 +648,100 @@ function atualizarContadorResultados(total) {
 }
 
 let pedidoEditando = null;
+
+// Função para duplicar pedido (cria cópia com novo ID)
+window.duplicarPedido = async function(id) {
+  try {
+    const pedido = todosPedidos.find(p => p.id == id);
+    
+    if (!pedido) {
+      if (window.advancedNotifications) {
+        advancedNotifications.error('Pedido não encontrado.', { title: 'Erro', duration: 4000 });
+      } else {
+        alert('Pedido não encontrado.');
+      }
+      return;
+    }
+
+    const botaoDuplicar = document.querySelector(`button[onclick="duplicarPedido(${id})"]`);
+    if (botaoDuplicar) {
+      botaoDuplicar.disabled = true;
+      botaoDuplicar.innerHTML = '⏳ Duplicando...';
+    }
+
+    let dadosParaEnviar = pedido.dados;
+    if (typeof dadosParaEnviar === 'string') {
+      try {
+        dadosParaEnviar = JSON.parse(dadosParaEnviar);
+      } catch (e) {
+        dadosParaEnviar = {};
+      }
+    }
+    const body = {
+      empresa: pedido.empresa,
+      descricao: pedido.descricao,
+      dados: dadosParaEnviar || {}
+    };
+
+    const resp = await fetch('/api/pedidos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Duplicate-Pedido': 'true'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (resp.ok) {
+      const resultado = await resp.json();
+      const novoId = resultado.id;
+      
+      if (window.advancedNotifications) {
+        advancedNotifications.success(
+          `Pedido #${id} duplicado com sucesso! Novo pedido: #${novoId}`,
+          { title: 'Pedido Duplicado', duration: 4000 }
+        );
+      } else {
+        alert(`✅ Pedido duplicado com sucesso! Novo pedido: #${novoId}`);
+      }
+      
+      await carregarPedidos();
+    } else {
+      const errorData = await resp.json().catch(() => ({ message: 'Erro desconhecido' }));
+      
+      if (window.advancedNotifications) {
+        advancedNotifications.error(
+          errorData.error || errorData.message || 'Erro ao duplicar pedido',
+          { title: 'Erro na Duplicação', duration: 6000 }
+        );
+      } else {
+        alert(`❌ Erro ao duplicar pedido: ${errorData.error || errorData.message || 'Erro desconhecido'}`);
+      }
+      
+      if (botaoDuplicar) {
+        botaoDuplicar.disabled = false;
+        botaoDuplicar.innerHTML = '📋 Duplicar';
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao duplicar pedido:', error);
+    
+    if (window.advancedNotifications) {
+      advancedNotifications.error('Erro de conexão ao duplicar pedido', {
+        title: 'Erro de Conexão',
+        duration: 6000
+      });
+    } else {
+      alert('❌ Erro de conexão ao duplicar pedido');
+    }
+    
+    const botaoDuplicar = document.querySelector(`button[onclick="duplicarPedido(${id})"]`);
+    if (botaoDuplicar) {
+      botaoDuplicar.disabled = false;
+      botaoDuplicar.innerHTML = '📋 Duplicar';
+    }
+  }
+};
 
 // Função para excluir pedido
 window.excluirPedido = async function(id) {

@@ -52,7 +52,10 @@ module.exports = async (req, res) => {
       
       // PROTEÇÃO CONTRA CRIAÇÃO DUPLICADA: Verificar CNPJ + valor no mesmo dia
       // (evita duplicatas quando mobile reporta offline mas o pedido já foi enviado)
-      if (dados) {
+      // Pular essa verificação quando for duplicação intencional (botão Duplicar)
+      const isDuplicacaoIntentional = (req.headers['x-duplicate-pedido'] || '').toLowerCase() === 'true';
+      
+      if (dados && !isDuplicacaoIntentional) {
         let dadosParsed;
         try {
           dadosParsed = typeof dados === 'string' ? JSON.parse(dados) : dados;
