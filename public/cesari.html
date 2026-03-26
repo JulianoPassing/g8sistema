@@ -901,6 +901,19 @@
           <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
         </div>
         <div class="total-container">
+          <div class="form-group" style="max-width: 250px; margin: 15px auto">
+            <label for="desconto-extra-total"
+              ><strong>Desconto Extra (%):</strong></label
+            >
+            <input
+              type="number"
+              id="desconto-extra-total"
+              min="0"
+              max="100"
+              value="0"
+              style="text-align: center; font-size: 1.1em"
+            />
+          </div>
           <h3>💰 Total do Pedido: R$ <span id="total-pedido">0.00</span></h3>
         </div>
         <button id="gerar-pedido-btn" class="btn btn-primary">
@@ -1136,26 +1149,11 @@
       const pedidoVazio = document.getElementById("pedido-vazio");
       const gerarPedidoBtn = document.getElementById("gerar-pedido-btn");
       window.pedidoItens = [];
-
-      function parseTamanhoRange(tamStr) {
-        if (!tamStr) return null;
-        const t = String(tamStr).trim().toUpperCase();
-        if (t === "UN") return ["UN"];
-        const match = tamStr.match(/^(\d+)\s*a\s*(\d+)$/);
-        if (!match) return [tamStr.trim()];
-        const start = parseInt(match[1], 10);
-        const end = parseInt(match[2], 10);
-        if (isNaN(start) || isNaN(end) || start > end) return [tamStr.trim()];
-        const range = [];
-        for (let i = start; i <= end; i++) {
-          range.push(i.toString());
-        }
-        return range;
-      }
+      let descontoExtraTotalPercentual = 0;
 
       function renderizarProdutos(produtos = produtosData) {
         const table = document.createElement("table");
-        table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>AÇÃO</th></tr></thead>`;
+        table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>MEDIDA</th><th>Desc. Extra</th><th>QTD</th><th>AÇÃO</th></tr></thead>`;
         const tbody = document.createElement("tbody");
         
         const mobileContainer = document.getElementById('produtos-mobile-container');
@@ -1166,15 +1164,14 @@
         
         produtos.forEach((produto) => {
           const preco = produto.PRECO;
-          const descricao = `${produto.MODELO || ''} ${produto.TAM ? '(' + produto.TAM + ')' : ''}`.trim();
-          const tamanhosRange = parseTamanhoRange(produto.TAM);
+          const medida = produto.TAM || "—";
           
           if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
             categoriaAtual = produto.CATEGORIA;
             if (!isMobile) {
               const headerRow = document.createElement("tr");
               headerRow.className = "categoria-header";
-              headerRow.innerHTML = `<td colspan="6">${categoriaAtual}</td>`;
+              headerRow.innerHTML = `<td colspan="7">${categoriaAtual}</td>`;
               tbody.appendChild(headerRow);
             } else if (mobileContainer) {
               const catHeader = document.createElement("div");
@@ -1186,17 +1183,6 @@
           }
           
           if (isMobile) {
-            let tamanhosMobileHtml = "";
-            if (tamanhosRange) {
-              tamanhosMobileHtml = '<div class="tamanho-input-container">';
-              tamanhosRange.forEach((tamanho) => {
-                tamanhosMobileHtml += `<div class="tamanho-input-item"><label for="qty-mobile-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-mobile-${produto.REF}-${tamanho}" min="0" value=""></div>`;
-              });
-              tamanhosMobileHtml += "</div>";
-            } else {
-              tamanhosMobileHtml = `<input type="text" class="manual-input" id="tamanhos-manual-mobile-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
-            }
-            
             if (mobileContainer) {
               const mobileCard = document.createElement("div");
               mobileCard.className = "produto-card-mobile";
@@ -1206,12 +1192,16 @@
                   <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
                 </div>
                 <div class="produto-descricao-mobile">
-                  <h4>${produto.MODELO}</h4>
-                  <small>${produto.TAM || '-'}</small>
+                  <h4>${produto.MODELO || ""}</h4>
+                  <small>Medida: ${medida}</small>
                 </div>
                 <div class="produto-tamanhos-mobile">
-                  <label>Tamanhos & Quantidades:</label>
-                  ${tamanhosMobileHtml}
+                  <label>Desc. extra (%):</label>
+                  <input type="number" min="0" value="0" class="desconto-input" id="desconto-mobile-${produto.REF}" style="width: 100%; max-width: 120px; padding: 8px;">
+                </div>
+                <div class="produto-cor-mobile">
+                  <label>Quantidade:</label>
+                  <input type="number" min="0" value="" placeholder="0" id="qty-mobile-${produto.REF}" style="width: 100%; max-width: 120px; padding: 8px;">
                 </div>
                 <div class="produto-actions-mobile">
                   <button class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
@@ -1222,18 +1212,7 @@
             }
           } else {
             const row = document.createElement("tr");
-            let tamanhosHtml = "";
-            if (tamanhosRange) {
-              tamanhosHtml = '<div class="tamanho-input-container">';
-              tamanhosRange.forEach((tamanho) => {
-                tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
-              });
-              tamanhosHtml += "</div>";
-            } else {
-              tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
-            }
-            
-            row.innerHTML = `<td>${produto.REF}</td><td>${descricao}</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td>${medida}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td><input type="number" min="0" value="" placeholder="0" id="qty-${produto.REF}" style="width: 64px; text-align: center;"></td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
             row.querySelector('button').addEventListener('click', () => adicionarAoPedido(produto.REF));
             tbody.appendChild(row);
           }
@@ -1290,57 +1269,35 @@
         const produto = produtosData.find((p) => p.REF === ref);
         if (!produto) return;
         const precoUnitarioBase = produto.PRECO;
-        let itensAdicionados = 0;
-        const tamanhosRange = parseTamanhoRange(produto.TAM);
-        
-        if (tamanhosRange) {
-          tamanhosRange.forEach((tamanho) => {
-            const quantidade = parseInt(document.getElementById(`qty-mobile-${ref}-${tamanho}`).value) || 0;
-            if (quantidade > 0) {
-              itensAdicionados++;
-              const item = {
-                REF: produto.REF,
-                MODELO: produto.MODELO,
-                preco: precoUnitarioBase,
-                tamanho: tamanho,
-                quantidade: quantidade,
-                subtotal: precoUnitarioBase * quantidade,
-                descontoExtra: 0
-              };
-              window.pedidoItens.push(item);
-            }
+        const descontoExtra = parseFloat(document.getElementById(`desconto-mobile-${ref}`)?.value) || 0;
+        const quantidade = parseInt(document.getElementById(`qty-mobile-${ref}`)?.value, 10) || 0;
+        const medida = produto.TAM || "—";
+        if (quantidade <= 0) {
+          alert("Informe a quantidade.");
+          return;
+        }
+        const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+        const itemExistente = window.pedidoItens.find(
+          (item) =>
+            item.REF === ref &&
+            item.preco === precoFinal &&
+            item.descontoExtra === descontoExtra
+        );
+        if (itemExistente) {
+          itemExistente.quantidade += quantidade;
+        } else {
+          window.pedidoItens.push({
+            REF: produto.REF,
+            MODELO: produto.MODELO,
+            medida,
+            quantidade,
+            preco: precoFinal,
+            descontoExtra,
           });
-        } else {
-          const tamanhosManual = document.getElementById(`tamanhos-manual-mobile-${ref}`).value.trim();
-          if (tamanhosManual) {
-            itensAdicionados++;
-            const item = {
-              REF: produto.REF,
-              MODELO: produto.MODELO,
-              preco: precoUnitarioBase,
-              tamanho: tamanhosManual,
-              quantidade: 1,
-              subtotal: precoUnitarioBase,
-              descontoExtra: 0
-            };
-            window.pedidoItens.push(item);
-          }
         }
-        
-        if (itensAdicionados > 0) {
-          atualizarVisualizacaoPedido();
-          // Produto adicionado com sucesso
-          // Limpar campos mobile
-          if (tamanhosRange) {
-            tamanhosRange.forEach((tamanho) => {
-              document.getElementById(`qty-mobile-${ref}-${tamanho}`).value = "";
-            });
-          } else {
-            document.getElementById(`tamanhos-manual-mobile-${ref}`).value = "";
-          }
-        } else {
-          alert("Por favor, selecione pelo menos um tamanho e quantidade.");
-        }
+        document.getElementById(`qty-mobile-${ref}`).value = "";
+        document.getElementById(`desconto-mobile-${ref}`).value = 0;
+        atualizarVisualizacaoPedido();
       }
 
       function adicionarAoPedido(ref) {
@@ -1348,99 +1305,34 @@
         if (!produto) return;
         const precoUnitarioBase = produto.PRECO;
         const descontoExtra = parseFloat(document.getElementById(`desconto-${ref}`).value) || 0;
-        let itensAdicionados = 0;
-        const tamanhosRange = parseTamanhoRange(produto.TAM);
-        if (tamanhosRange) {
-          tamanhosRange.forEach((tamanho) => {
-            const input = document.getElementById(
-              `qty-${produto.REF}-${tamanho}`
-            );
-            const quantidade = parseInt(input.value, 10);
-            if (quantidade > 0) {
-              const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
-              const itemExistente = window.pedidoItens.find(
-                (item) =>
-                  item.REF === ref &&
-                  item.tamanho === tamanho &&
-                  item.preco === precoFinal &&
-                  item.descontoExtra === descontoExtra
-              );
-              if (itemExistente) {
-                itemExistente.quantidade += quantidade;
-              } else {
-                window.pedidoItens.push({
-                  REF: produto.REF,
-                  MODELO: produto.MODELO,
-                  tamanho: tamanho,
-                  quantidade: quantidade,
-                  preco: precoFinal,
-                  descontoExtra: descontoExtra,
-                });
-              }
-              input.value = "";
-              itensAdicionados++;
-            }
-          });
-        } else {
-          const manualInput = document.getElementById(`tamanhos-manual-${ref}`);
-          const grade = parseTamanhosInput(manualInput.value);
-          if (grade && grade.length > 0) {
-            grade.forEach((itemGrade) => {
-              const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
-              const itemExistente = window.pedidoItens.find(
-                (item) =>
-                  item.REF === ref &&
-                  item.tamanho === itemGrade.tamanho &&
-                  item.preco === precoFinal &&
-                  item.descontoExtra === descontoExtra
-              );
-              if (itemExistente) {
-                itemExistente.quantidade += itemGrade.quantidade;
-              } else {
-                window.pedidoItens.push({
-                  REF: produto.REF,
-                  MODELO: produto.MODELO,
-                  tamanho: itemGrade.tamanho,
-                  quantidade: itemGrade.quantidade,
-                  preco: precoFinal,
-                  descontoExtra: descontoExtra,
-                });
-              }
-              itensAdicionados++;
-            });
-            manualInput.value = "";
-          }
+        const quantidade = parseInt(document.getElementById(`qty-${ref}`).value, 10) || 0;
+        const medida = produto.TAM || "—";
+        if (quantidade <= 0) {
+          alert("Informe a quantidade.");
+          return;
         }
-        if (itensAdicionados > 0) {
-          document.getElementById(`desconto-${ref}`).value = 0;
-          atualizarVisualizacaoPedido();
+        const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+        const itemExistente = window.pedidoItens.find(
+          (item) =>
+            item.REF === ref &&
+            item.preco === precoFinal &&
+            item.descontoExtra === descontoExtra
+        );
+        if (itemExistente) {
+          itemExistente.quantidade += quantidade;
         } else {
-          alert("Nenhuma quantidade foi preenchida para este produto.");
-        }
-      }
-
-      function parseTamanhosInput(inputStr) {
-        if (!inputStr || inputStr.trim() === "") return [];
-        const pares = inputStr.split(",");
-        const resultado = [];
-        for (const par of pares) {
-          const partes = par.split(":");
-          if (partes.length !== 2) {
-            alert(`Formato inválido: "${par}". Use "tamanho:quantidade".`);
-            return null;
-          }
-          const tamanho = partes[0].trim();
-          const quantidade = parseInt(partes[1].trim(), 10);
-          if (!tamanho || isNaN(quantidade) || quantidade <= 0) {
-            alert(`Valor inválido: "${par}".`);
-            return null;
-          }
-          resultado.push({
-            tamanho,
+          window.pedidoItens.push({
+            REF: produto.REF,
+            MODELO: produto.MODELO,
+            medida,
             quantidade,
+            preco: precoFinal,
+            descontoExtra,
           });
         }
-        return resultado;
+        document.getElementById(`qty-${ref}`).value = "";
+        document.getElementById(`desconto-${ref}`).value = 0;
+        atualizarVisualizacaoPedido();
       }
 
       function atualizarVisualizacaoPedido() {
@@ -1457,13 +1349,11 @@
             itemDiv.classList.add("pedido-item");
             const precoTotalItem = item.preco * item.quantidade;
             subtotalPedido += precoTotalItem;
-            // Log para debug
-            console.log('Renderizando item do pedido Cesari:', index, item);
             
             itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${
               item.MODELO || item.DESCRIÇÃO || 'Produto'
-            }</strong> (Ref: ${item.REF || item.REFERENCIA || 'N/A'})<br><small>Tam: <strong>${
-              item.tamanho || 'N/A'
+            }</strong> (Ref: ${item.REF || item.REFERENCIA || 'N/A'})<br><small>Medida: <strong>${
+              item.medida || item.tamanho || '—'
             }</strong> | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" 
             onchange="alterarQuantidadeItem(${index}, this.value)" 
             style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> 
@@ -1479,8 +1369,11 @@
         } else {
           pedidoVazio.style.display = "block";
         }
+        const valorDesconto =
+          subtotalPedido * (descontoExtraTotalPercentual / 100);
+        const totalFinal = subtotalPedido - valorDesconto;
         document.getElementById("total-pedido").textContent =
-          subtotalPedido.toFixed(2);
+          totalFinal.toFixed(2);
       }
 
       window.removerDoPedido = (index) => {
@@ -1661,13 +1554,13 @@
         const descontoGeral = (typeof descontoPrazoPercentual !== 'undefined' && typeof descontoVolumePercentual !== 'undefined') ? (1 - descontoPrazoPercentual / 100) * (1 - descontoVolumePercentual / 100) : 1;
         const head = [
           [
-            "Ref.",
-            "Modelo",
-            "Tamanho",
-            "Qtd.",
-            "Vlr. Unit.",
-            "Desc.%",
-            "Subtotal",
+            "REF.",
+            "DESCRIÇÃO",
+            "MEDIDA",
+            "QTD.",
+            "VLR. UNIT.",
+            "DESC.%",
+            "SUBTOTAL",
           ],
         ];
         const body = window.pedidoItens.map((item) => {
@@ -1675,7 +1568,7 @@
           return [
             item.REF,
             item.MODELO,
-            item.tamanho,
+            item.medida || item.tamanho || "—",
             item.quantidade,
             `R$ ${precoUnitarioComDesconto.toFixed(2)}`,
             `${item.descontoExtra || 0}%`,
@@ -1709,7 +1602,7 @@
             },
             2: {
               halign: "center",
-              cellWidth: 15,
+              cellWidth: 22,
             },
             3: {
               halign: "center",
@@ -1717,9 +1610,13 @@
             },
             4: {
               halign: "right",
-              cellWidth: 20,
+              cellWidth: 22,
             },
             5: {
+              halign: "right",
+              cellWidth: 18,
+            },
+            6: {
               halign: "right",
               cellWidth: 22,
             },
@@ -1898,6 +1795,14 @@
             preencherFormularioCliente(e.target.value)
           );
 
+          const descontoInput = document.getElementById("desconto-extra-total");
+          if (descontoInput) {
+            descontoInput.addEventListener("input", () => {
+              descontoExtraTotalPercentual = parseFloat(descontoInput.value) || 0;
+              atualizarVisualizacaoPedido();
+            });
+          }
+
           gerarPedidoBtn.addEventListener("click", gerarPedidoPDF);
 
           const buscaProdutoInput = document.getElementById("busca-produto");
@@ -1937,13 +1842,16 @@
                 const fd = {};
                 for (const k in inputsCliente) { if (inputsCliente[k]?.value !== undefined) fd[k] = inputsCliente[k].value || ""; }
                 const dx = document.getElementById("desconto-extra-total");
-                return { items: JSON.parse(JSON.stringify(window.pedidoItens)), formData: fd, descontoExtra: dx ? parseFloat(dx.value) : (typeof descontoExtraTotalPercentual !== "undefined" ? descontoExtraTotalPercentual : 0) };
+                return { items: JSON.parse(JSON.stringify(window.pedidoItens)), formData: fd, descontoExtra: dx ? parseFloat(dx.value) : descontoExtraTotalPercentual };
               },
               setData: (d) => {
                 if (d?.items?.length) { window.pedidoItens.length = 0; window.pedidoItens.push(...d.items); }
                 if (d?.formData) { for (const k in d.formData) { if (inputsCliente[k]) inputsCliente[k].value = d.formData[k] || ""; } }
                 const dx = document.getElementById("desconto-extra-total");
-                if (dx && d?.descontoExtra != null) dx.value = d.descontoExtra;
+                if (dx && d?.descontoExtra != null) {
+                  dx.value = d.descontoExtra;
+                  descontoExtraTotalPercentual = parseFloat(dx.value) || 0;
+                }
                 if (typeof atualizarVisualizacaoPedido === "function") atualizarVisualizacaoPedido();
               }
             });

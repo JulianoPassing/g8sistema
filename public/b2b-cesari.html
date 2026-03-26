@@ -1017,9 +1017,17 @@
           <h2>Seu Pedido</h2>
         </div>
         
-        <div id="produtos-selecionados" class="produtos-container">
+        <div id="pedido-itens-lista" class="produtos-container">
           <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
         </div>
+        <div class="total-container" style="text-align: center; margin: 16px 0; padding: 1rem; background: var(--light-color, #fafafa); border-radius: 8px; border: 1px solid var(--border-color, #e5e5e5);">
+          <div class="form-group" style="max-width: 280px; margin: 0 auto 12px;">
+            <label for="desconto-extra-total-b2b"><strong>Desconto extra no total (%):</strong></label>
+            <input type="number" id="desconto-extra-total-b2b" min="0" max="100" value="0" style="text-align: center; width: 100%; max-width: 120px; padding: 8px; display: block; margin: 8px auto 0;">
+          </div>
+          <h3 style="margin: 0;">Total do Pedido: R$ <span id="total-pedido-b2b">0.00</span></h3>
+        </div>
+        <div id="pedido-footer-b2b"></div>
 
       </section>
 
@@ -1045,6 +1053,7 @@
       // Variáveis para controle do pedido
       window.pedidoItens = [];
       let subtotalPedido = 0;
+      let descontoExtraTotalPercentual = 0;
 
       // Verificar autenticação B2B
       function checkAuthB2B() {
@@ -1228,128 +1237,80 @@
       // Carregar produtos
       function carregarProdutos() {
         produtosData = window.produtosData;
-        // Renderizar produtos após carregar
         renderizarProdutos();
+        if (typeof atualizarVisualizacaoPedido === "function") atualizarVisualizacaoPedido();
       }
 
-      // Função para parsear range de tamanhos
-      function parseTamanhoRange(tamStr) {
-        if (!tamStr) return null;
-        if (tamStr === "UN" || tamStr.toUpperCase() === "UN") return ["UN"];
-        const match = tamStr.match(/^(\d+)\s*a\s*(\d+)$/);
-        if (!match) return [tamStr];
-        const start = parseInt(match[1], 10);
-        const end = parseInt(match[2], 10);
-        if (isNaN(start) || isNaN(end) || start > end) return null;
-        const range = [];
-        for (let i = start; i <= end; i++) {
-          range.push(i.toString());
-        }
-        return range;
-      }
-
-      // Função para detectar se é mobile
-      function isMobile() {
+      function isMobileView() {
         return window.innerWidth <= 768;
       }
 
-      // Função para gerar card de produto para mobile
-      function gerarCardProdutoMobile(produto) {
-        const preco = produto.PRECO;
-        const tamanhosRange = parseTamanhoRange(produto.TAM);
-        let tamanhosHTML = '';
-        
-        if (tamanhosRange) {
-          tamanhosHTML = '<div class="tamanho-input-container">';
-          tamanhosRange.forEach((tamanho) => {
-            tamanhosHTML += `<div class="tamanho-input-item"><label for="qty-mobile-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-mobile-${produto.REF}-${tamanho}" min="0" value=""></div>`;
-          });
-          tamanhosHTML += '</div>';
-        } else {
-          tamanhosHTML = `<input type="text" class="manual-input" placeholder="Grade não padrão. Ex: P:2, M:1" id="tamanhos-manual-mobile-${produto.REF}">`;
-        }
-
-        return `
-          <div class="produto-card-mobile">
-            <div class="produto-header-mobile">
-              <div class="produto-ref-mobile">${produto.REF}</div>
-              <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
-            </div>
-            <div class="produto-descricao-mobile">
-              <h4>${produto.MODELO}</h4>
-              <small>${produto.TAM || '-'}</small>
-            </div>
-            <div class="produto-tamanhos-mobile">
-              <label>Desc. Extra (%):</label>
-              <input type="number" min="0" value="0" id="desconto-mobile-${produto.REF}" style="width: 70px; margin-bottom: 8px;">
-            </div>
-            <div class="produto-tamanhos-mobile">
-              <label>Tamanhos & Quantidades:</label>
-              ${tamanhosHTML}
-            </div>
-            <div class="produto-actions-mobile">
-              <button class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
-            </div>
-          </div>
-        `;
-      }
-
-      // Função para renderizar produtos
       function renderizarProdutos(produtos = window.produtosData) {
-        const mobileContainer = document.getElementById('produtos-mobile-container');
-        const isMobileView = isMobile();
-        const descricao = (p) => `${p.MODELO || ''} ${p.TAM ? '(' + p.TAM + ')' : ''}`.trim();
-        
-        if (isMobileView && mobileContainer) {
-          mobileContainer.innerHTML = "";
-          produtosContainer.innerHTML = "";
-          let categoriaAtual = "";
-          produtos.forEach((produto) => {
-            if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
-              categoriaAtual = produto.CATEGORIA;
+        const table = document.createElement("table");
+        table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>MEDIDA</th><th>Desc. Extra</th><th>QTD</th><th>AÇÃO</th></tr></thead>`;
+        const tbody = document.createElement("tbody");
+        const mobileContainer = document.getElementById("produtos-mobile-container");
+        if (mobileContainer) mobileContainer.innerHTML = "";
+        const isMobile = isMobileView();
+        let categoriaAtual = "";
+
+        produtos.forEach((produto) => {
+          const preco = produto.PRECO;
+          const medida = produto.TAM || "—";
+
+          if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
+            categoriaAtual = produto.CATEGORIA;
+            if (!isMobile) {
+              const headerRow = document.createElement("tr");
+              headerRow.className = "categoria-header";
+              headerRow.innerHTML = `<td colspan="7">${categoriaAtual}</td>`;
+              tbody.appendChild(headerRow);
+            } else if (mobileContainer) {
               const catHeader = document.createElement("div");
               catHeader.className = "categoria-header-mobile";
+              catHeader.style.cssText = "background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%); color: #1e3a8a; font-weight: 700; padding: 10px 15px; margin: 15px 0 8px 0; border-radius: 8px; font-size: 1rem;";
               catHeader.textContent = categoriaAtual;
               mobileContainer.appendChild(catHeader);
             }
-            const cardHtml = gerarCardProdutoMobile(produto);
-            mobileContainer.insertAdjacentHTML("beforeend", cardHtml);
-            const lastCard = mobileContainer.lastElementChild;
-            const btn = lastCard.querySelector('.btn-adicionar-mobile');
-            if (btn) btn.addEventListener('click', () => adicionarAoPedidoMobile(produto.REF));
-          });
-        } else {
-          if (mobileContainer) mobileContainer.innerHTML = "";
-          const table = document.createElement("table");
-          table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>AÇÃO</th></tr></thead>`;
-          const tbody = document.createElement("tbody");
-          let categoriaAtual = "";
-          
-          produtos.forEach((produto) => {
-            if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
-              categoriaAtual = produto.CATEGORIA;
-              const headerRow = document.createElement("tr");
-              headerRow.className = "categoria-header";
-              headerRow.innerHTML = `<td colspan="6">${categoriaAtual}</td>`;
-              tbody.appendChild(headerRow);
+          }
+
+          if (isMobile) {
+            if (mobileContainer) {
+              const mobileCard = document.createElement("div");
+              mobileCard.className = "produto-card-mobile";
+              mobileCard.innerHTML = `
+                <div class="produto-header-mobile">
+                  <div class="produto-ref-mobile">${produto.REF}</div>
+                  <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
+                </div>
+                <div class="produto-descricao-mobile">
+                  <h4>${produto.MODELO || ""}</h4>
+                  <small>Medida: ${medida}</small>
+                </div>
+                <div class="produto-tamanhos-mobile">
+                  <label>Desc. extra (%):</label>
+                  <input type="number" min="0" value="0" class="desconto-input" id="desconto-mobile-${produto.REF}" style="width: 100%; max-width: 120px; padding: 8px;">
+                </div>
+                <div class="produto-cor-mobile">
+                  <label>Quantidade:</label>
+                  <input type="number" min="0" value="" placeholder="0" id="qty-mobile-${produto.REF}" style="width: 100%; max-width: 120px; padding: 8px;">
+                </div>
+                <div class="produto-actions-mobile">
+                  <button class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
+                </div>
+              `;
+              mobileCard.querySelector(".btn-adicionar-mobile").addEventListener("click", () => adicionarAoPedidoMobile(produto.REF));
+              mobileContainer.appendChild(mobileCard);
             }
-            const preco = produto.PRECO;
+          } else {
             const row = document.createElement("tr");
-            const tamanhosRange = parseTamanhoRange(produto.TAM);
-            let tamanhosHtml = "";
-            if (tamanhosRange) {
-              tamanhosHtml = '<div class="tamanho-input-container">';
-              tamanhosRange.forEach((tamanho) => {
-                tamanhosHtml += `<div class="tamanho-input-item"><label for="qty-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-${produto.REF}-${tamanho}" min="0" value=""></div>`;
-              });
-              tamanhosHtml += "</div>";
-            } else {
-              tamanhosHtml = `<input type="text" class="manual-input" id="tamanhos-manual-${produto.REF}" placeholder="Grade não padrão. Ex: P:2, M:1">`;
-            }
-            row.innerHTML = `<td>${produto.REF}</td><td>${descricao(produto)}</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
-            row.querySelector('button').addEventListener('click', () => adicionarAoPedido(produto.REF));
+            row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td>${medida}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td><input type="number" min="0" value="" placeholder="0" id="qty-${produto.REF}" style="width: 64px; text-align: center;"></td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            row.querySelector("button").addEventListener("click", () => adicionarAoPedido(produto.REF));
             tbody.appendChild(row);
-          });
+          }
+        });
+
+        if (!isMobile) {
           table.appendChild(tbody);
           produtosContainer.innerHTML = "";
           produtosContainer.appendChild(table);
@@ -1360,138 +1321,91 @@
         const produto = window.produtosData.find((p) => p.REF === ref);
         if (!produto) return;
         const precoUnitarioBase = produto.PRECO;
-        const descEl = document.getElementById(`desconto-mobile-${ref}`) || document.getElementById(`desconto-${ref}`);
-        const descontoExtra = parseFloat(descEl?.value || 0) || 0;
-        let itensAdicionados = 0;
-        const tamanhosRange = parseTamanhoRange(produto.TAM);
-        
-        if (tamanhosRange) {
-          tamanhosRange.forEach((tamanho) => {
-            const input = document.getElementById(`qty-mobile-${ref}-${tamanho}`);
-            const quantidade = parseInt(input?.value || 0, 10);
-            if (quantidade > 0) {
-              const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
-              const exist = window.pedidoItens.find(i => i.REF === ref && i.tamanho === tamanho && Math.abs(i.preco - precoFinal) < 0.01);
-              if (exist) exist.quantidade += quantidade;
-              else window.pedidoItens.push({ REF: produto.REF, MODELO: produto.MODELO, preco: precoFinal, tamanho, quantidade, descontoExtra });
-              itensAdicionados++;
-              if (input) input.value = "";
-            }
-          });
-        } else {
-          const manualInput = document.getElementById(`tamanhos-manual-mobile-${ref}`);
-          const grade = parseTamanhosInput(manualInput?.value || "");
-          if (grade && grade.length > 0) {
-            grade.forEach((g) => {
-              const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
-              window.pedidoItens.push({ REF: produto.REF, MODELO: produto.MODELO, preco: precoFinal, tamanho: g.tamanho, quantidade: g.quantidade, descontoExtra });
-              itensAdicionados++;
-            });
-            if (manualInput) manualInput.value = "";
-          }
+        const descontoExtra = parseFloat(document.getElementById(`desconto-mobile-${ref}`)?.value) || 0;
+        const quantidade = parseInt(document.getElementById(`qty-mobile-${ref}`)?.value, 10) || 0;
+        const medida = produto.TAM || "—";
+        if (quantidade <= 0) {
+          alert("Informe a quantidade.");
+          return;
         }
-        if (itensAdicionados > 0) {
-          if (descEl) descEl.value = 0;
-          atualizarVisualizacaoPedido();
+        const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+        const itemExistente = window.pedidoItens.find(
+          (item) => item.REF === ref && item.preco === precoFinal && item.descontoExtra === descontoExtra
+        );
+        if (itemExistente) {
+          itemExistente.quantidade += quantidade;
         } else {
-          alert("Por favor, selecione pelo menos um tamanho e quantidade.");
-        }
-      }
-
-      // Função para parsear tamanhos manuais
-      function parseTamanhosInput(inputStr) {
-        if (!inputStr || inputStr.trim() === "") return [];
-        const pares = inputStr.split(",");
-        const resultado = [];
-        for (const par of pares) {
-          const partes = par.split(":");
-          if (partes.length !== 2) {
-            alert(`Formato inválido: "${par}". Use "tamanho:quantidade".`);
-            return null;
-          }
-          const tamanho = partes[0].trim();
-          const quantidade = parseInt(partes[1].trim(), 10);
-          if (!tamanho || isNaN(quantidade) || quantidade <= 0) {
-            alert(`Valor inválido: "${par}".`);
-            return null;
-          }
-          resultado.push({
-            tamanho,
+          window.pedidoItens.push({
+            REF: produto.REF,
+            MODELO: produto.MODELO,
+            medida,
             quantidade,
+            preco: precoFinal,
+            descontoExtra,
           });
         }
-        return resultado;
+        document.getElementById(`qty-mobile-${ref}`).value = "";
+        document.getElementById(`desconto-mobile-${ref}`).value = 0;
+        atualizarVisualizacaoPedido();
       }
 
-      // Função para adicionar produto ao pedido
       function adicionarAoPedido(ref) {
         const produto = window.produtosData.find((p) => p.REF === ref);
         if (!produto || !produto.REF || !produto.MODELO) {
-          alert('Erro: Produto não encontrado.');
+          alert("Erro: Produto não encontrado.");
           return;
         }
-        
         const precoUnitarioBase = produto.PRECO;
-        const descontoExtra = parseFloat(document.getElementById(`desconto-${ref}`)?.value || 0) || 0;
+        const descontoExtra = parseFloat(document.getElementById(`desconto-${ref}`).value) || 0;
+        const quantidade = parseInt(document.getElementById(`qty-${ref}`).value, 10) || 0;
+        const medida = produto.TAM || "—";
+        if (quantidade <= 0) {
+          alert("Informe a quantidade.");
+          return;
+        }
         const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
-        let itensAdicionados = 0;
-        
-        const tamanhosRange = parseTamanhoRange(produto.TAM);
-        if (tamanhosRange) {
-          tamanhosRange.forEach((tamanho) => {
-            const input = document.getElementById(`qty-${produto.REF}-${tamanho}`);
-            const quantidade = parseInt(input?.value || 0, 10);
-            if (quantidade > 0) {
-              const exist = window.pedidoItens.find(i => i.REF === ref && i.tamanho === tamanho && Math.abs(i.preco - precoFinal) < 0.01);
-              if (exist) exist.quantidade += quantidade;
-              else window.pedidoItens.push({ REF: produto.REF, MODELO: produto.MODELO, tamanho, quantidade, preco: precoFinal, descontoExtra });
-              input.value = "";
-              itensAdicionados++;
-            }
+        const itemExistente = window.pedidoItens.find(
+          (item) => item.REF === ref && item.preco === precoFinal && item.descontoExtra === descontoExtra
+        );
+        if (itemExistente) {
+          itemExistente.quantidade += quantidade;
+        } else {
+          window.pedidoItens.push({
+            REF: produto.REF,
+            MODELO: produto.MODELO,
+            medida,
+            quantidade,
+            preco: precoFinal,
+            descontoExtra,
           });
-        } else {
-          const manualInput = document.getElementById(`tamanhos-manual-${ref}`);
-          const grade = parseTamanhosInput(manualInput?.value || "");
-          if (grade && grade.length > 0) {
-            grade.forEach((itemGrade) => {
-              window.pedidoItens.push({ REF: produto.REF, MODELO: produto.MODELO, tamanho: itemGrade.tamanho, quantidade: itemGrade.quantidade, preco: precoFinal, descontoExtra });
-              itensAdicionados++;
-            });
-            manualInput.value = "";
-          }
         }
-        
-        if (itensAdicionados > 0) {
-          document.getElementById(`desconto-${ref}`).value = 0;
-          atualizarVisualizacaoPedido();
-        } else {
-          alert("Nenhuma quantidade foi preenchida para este produto.");
-        }
+        document.getElementById(`qty-${ref}`).value = "";
+        document.getElementById(`desconto-${ref}`).value = 0;
+        atualizarVisualizacaoPedido();
       }
 
-      // Função para alterar quantidade de um item
-      function alterarQuantidade(index, novaQuantidade) {
-        const quantidade = parseInt(novaQuantidade);
-        if (quantidade > 0) {
+      window.alterarQuantidadeItem = function (index, novaQuantidade) {
+        const quantidade = parseInt(novaQuantidade, 10);
+        if (quantidade < 1) {
+          alert("A quantidade deve ser pelo menos 1.");
+          return;
+        }
+        if (window.pedidoItens[index]) {
           window.pedidoItens[index].quantidade = quantidade;
           atualizarVisualizacaoPedido();
-        } else {
-          // Se quantidade for 0 ou menor, remover o item
-          removerDoPedido(index);
         }
-      }
+      };
 
-      // Função para remover item do pedido
       function removerDoPedido(index) {
         window.pedidoItens.splice(index, 1);
         atualizarVisualizacaoPedido();
       }
+      window.removerDoPedido = removerDoPedido;
 
-      // Função para alterar preço do item
       function alterarPrecoItem(index, novoPreco) {
-        const preco = parseFloat(String(novoPreco).replace(',', '.'));
+        const preco = parseFloat(String(novoPreco).replace(",", "."));
         if (isNaN(preco) || preco < 0) {
-          alert('Informe um valor válido para o preço.');
+          alert("Informe um valor válido para o preço.");
           return;
         }
         if (window.pedidoItens[index]) {
@@ -1499,106 +1413,209 @@
           atualizarVisualizacaoPedido();
         }
       }
+      window.alterarPrecoItem = alterarPrecoItem;
 
-      // Função para atualizar visualização do pedido
+      function totaisPedidoB2B() {
+        let sub = 0;
+        (window.pedidoItens || []).forEach((i) => {
+          sub += (i.preco || 0) * (i.quantidade || 0);
+        });
+        const vd = sub * (descontoExtraTotalPercentual / 100);
+        return { subtotal: sub, total: sub - vd };
+      }
+
       function atualizarVisualizacaoPedido() {
-        const pedidoContainer = document.getElementById("produtos-selecionados");
-        pedidoContainer.innerHTML = "";
+        const pedidoItensLista = document.getElementById("pedido-itens-lista");
+        const pedidoFooter = document.getElementById("pedido-footer-b2b");
+        if (!pedidoItensLista) return;
+        pedidoItensLista.innerHTML = "";
         subtotalPedido = 0;
-        
-        // Garante que window.pedidoItens sempre seja um array
+
         if (!Array.isArray(window.pedidoItens)) {
           window.pedidoItens = [];
         }
-        
+
         if (window.pedidoItens.length > 0) {
           window.pedidoItens.forEach((item, index) => {
-            // Log para debug
-            console.log('Renderizando item do pedido:', index, item);
             const itemDiv = document.createElement("div");
             itemDiv.className = "pedido-item";
             const precoTotalItem = item.preco * item.quantidade;
             subtotalPedido += precoTotalItem;
+            const medida = item.medida || item.tamanho || "—";
             itemDiv.innerHTML = `
               <div class="pedido-item-info">
-                <strong>${item.MODELO || 'Produto'}</strong>
-                <span>(Ref: ${item.REF || 'N/A'})</span>
+                <strong>${item.MODELO || "Produto"}</strong>
+                <span>(Ref: ${item.REF || "N/A"})</span>
                 <span>•</span>
-                <span>Tam: ${item.tamanho || 'N/A'}</span>
+                <span>Medida: ${medida}</span>
                 <span>•</span>
-                <span>Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidade(${index}, this.value)" style="width: 60px; padding: 4px;"></span>
+                <span>Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidadeItem(${index}, this.value)" style="width: 60px; padding: 4px;"></span>
                 <span>•</span>
                 <span>Unit: R$ <input type="number" step="0.01" min="0" value="${(item.preco || 0).toFixed(2)}" onchange="alterarPrecoItem(${index}, this.value)" style="width: 80px; padding: 4px; text-align: right;"></span>
+                ${item.descontoExtra > 0 ? `<span>•</span><span>Desc. linha: ${item.descontoExtra}%</span>` : ""}
                 <span>•</span>
-                <span style="font-weight: 600; color: var(--primary-color);">Total: R$ ${precoTotalItem.toFixed(2)}</span>
+                <span style="font-weight: 600; color: var(--primary-color);">Total linha: R$ ${precoTotalItem.toFixed(2)}</span>
                 <div class="pedido-item-actions">
-                  <button class="btn btn-danger" onclick="removerDoPedido(${index})">
-                    <span>🗑️</span> Remover
-                  </button>
+                  <button type="button" class="btn btn-danger" onclick="removerDoPedido(${index})"><span>🗑️</span> Remover</button>
                 </div>
               </div>
             `;
-            pedidoContainer.appendChild(itemDiv);
+            pedidoItensLista.appendChild(itemDiv);
           });
         } else {
-          const emptyP = document.createElement("p");
-          emptyP.id = "pedido-vazio";
-          emptyP.textContent = "Nenhum item adicionado ao pedido ainda.";
-          pedidoContainer.appendChild(emptyP);
+          pedidoItensLista.innerHTML = '<p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>';
         }
 
-        // Mostrar total do pedido
-        if (window.pedidoItens.length > 0) {
-          const totalDiv = document.createElement("div");
-          totalDiv.className = "pedido-total";
-          
-          // Verificar pedido mínimo
-          const PEDIDO_MINIMO = 1500.00;
-          const faltaParaMinimo = PEDIDO_MINIMO - subtotalPedido;
-          const atingiuMinimo = subtotalPedido >= PEDIDO_MINIMO;
-          
-          let avisoMinimoHTML = '';
-          if (!atingiuMinimo) {
-            avisoMinimoHTML = `
-              <div style="background: linear-gradient(135deg, #fee 0%, #fdd 100%); border: 1px solid #fcc; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #c53030; font-size: 0.95rem; line-height: 1.5; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(197, 48, 48, 0.1);">
-                <span style="font-size: 1.2em;">⚠️</span>
-                <div>
-                  <strong>Atenção:</strong> O pedido mínimo é de <strong>R$ ${PEDIDO_MINIMO.toFixed(2)}</strong>.<br>
-                  Faltam <strong>R$ ${faltaParaMinimo.toFixed(2)}</strong> para atingir o valor mínimo.
-                </div>
+        const { subtotal, total } = totaisPedidoB2B();
+        subtotalPedido = subtotal;
+        const totalEl = document.getElementById("total-pedido-b2b");
+        if (totalEl) totalEl.textContent = total.toFixed(2);
+
+        const PEDIDO_MINIMO = 1500.0;
+        const falta = PEDIDO_MINIMO - total;
+        const atingiu = total >= PEDIDO_MINIMO;
+        if (pedidoFooter) {
+          if (window.pedidoItens.length > 0) {
+            const aviso = !atingiu
+              ? `<div style="background: linear-gradient(135deg, #fee 0%, #fdd 100%); border: 1px solid #fcc; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #c53030; font-size: 0.95rem;">⚠️ Pedido mínimo <strong>R$ ${PEDIDO_MINIMO.toFixed(2)}</strong>. Faltam <strong>R$ ${falta.toFixed(2)}</strong>.</div>`
+              : `<div style="background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%); border: 1px solid #9ae6b4; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #22543d;">✅ Valor mínimo atingido.</div>`;
+            pedidoFooter.innerHTML = `
+              ${aviso}
+              <div class="pedido-info-message" style="margin-bottom: 16px;"><span style="font-size: 1.2em;">ℹ️</span> Consulte descontos adicionais com o representante.</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center;">
+                <button type="button" class="btn btn-secondary" onclick="gerarPedidoPDFB2B()" style="padding: 12px 20px;">🖨️ Baixar PDF</button>
+                <button type="button" class="btn-primary" onclick="enviarPedido()" style="padding: 12px 24px;">📤 Enviar Pedido</button>
               </div>
             `;
           } else {
-            avisoMinimoHTML = `
-              <div style="background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%); border: 1px solid #9ae6b4; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #22543d; font-size: 0.95rem; line-height: 1.5; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(34, 84, 61, 0.1);">
-                <span style="font-size: 1.2em;">✅</span>
-                <div>
-                  <strong>Pedido válido!</strong> Valor mínimo de R$ ${PEDIDO_MINIMO.toFixed(2)} atingido.
-                </div>
-              </div>
-            `;
+            pedidoFooter.innerHTML = "";
           }
-          
-          totalDiv.innerHTML = `
-            <div class="pedido-total-header">
-              <h3>Total do Pedido:</h3>
-              <span class="pedido-total-value">R$ ${subtotalPedido.toFixed(2)}</span>
-            </div>
-            ${avisoMinimoHTML}
-            <div class="pedido-info-message">
-              <span style="font-size: 1.2em;">ℹ️</span>
-              <div>
-                <strong>Informação:</strong> Consulte descontos com o representante. Eles serão aplicados internamente no processamento do pedido.
-              </div>
-            </div>
-            <div style="margin-top: 20px; text-align: center;">
-              <button type="button" class="btn-primary" onclick="enviarPedido()" style="padding: 12px 24px; font-size: 1rem; width: 100%; max-width: 300px;">
-                📤 Enviar Pedido
-              </button>
-            </div>
-          `;
-          pedidoContainer.appendChild(totalDiv);
         }
+      }
+
+      function gerarPedidoPDFB2B() {
+        if (!window.pedidoItens || window.pedidoItens.length === 0) {
+          alert("Adicione itens ao pedido antes de gerar o PDF.");
+          return;
+        }
+        if (!clienteData || !clienteData.razao) {
+          alert("Dados do cliente não encontrados.");
+          return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF("p", "mm", "a4");
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+
+        const drawHeaderAndFooter = (data) => {
+          const logoImg = new Image();
+          logoImg.src = "https://i.imgur.com/vjq26ym.png";
+          doc.addImage(logoImg, "PNG", margin, 10, 90, 15);
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.text("Pedido B2B - Cesari", pageWidth - margin, 18, { align: "right" });
+          const hoje = new Date();
+          const dataAtual = `${String(hoje.getDate()).padStart(2, "0")}/${String(hoje.getMonth() + 1).padStart(2, "0")}/${hoje.getFullYear()}`;
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Data: ${dataAtual}`, pageWidth - margin, 24, { align: "right" });
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          doc.text(`Página ${data.pageNumber} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+        };
+
+        drawHeaderAndFooter({ pageNumber: 1 });
+
+        doc.autoTable({
+          startY: 30,
+          theme: "grid",
+          head: [[{ content: "DADOS DO CLIENTE (B2B)", colSpan: 4, styles: { halign: "center", fontStyle: "bold", fillColor: [230, 230, 230], textColor: 30 } }]],
+          body: [
+            ["Cliente:", { content: clienteData.razao || "N/A", colSpan: 3 }],
+            ["CNPJ:", clienteData.cnpj || "N/A", "I.E.:", clienteData.ie || "N/A"],
+            ["Telefone:", clienteData.telefone || "N/A", "E-mail:", clienteData.email || "N/A"],
+            ["Endereço:", { content: `${clienteData.endereco || ""}, ${clienteData.bairro || ""}`, colSpan: 3 }],
+            ["Cidade/UF:", `${clienteData.cidade || ""}/${clienteData.estado || ""}`, "CEP:", clienteData.cep || ""],
+          ],
+          styles: { fontSize: 8, cellPadding: 1.5, lineColor: [200, 200, 200], lineWidth: 0.1 },
+          headStyles: { lineWidth: 0 },
+          columnStyles: { 0: { fontStyle: "bold", cellWidth: 22 }, 2: { fontStyle: "bold", cellWidth: 20 } },
+          margin: { left: margin, right: margin },
+        });
+
+        let startY = doc.autoTable.previous.finalY + 7;
+        const descontoGeral = 1;
+        const head = [["REF.", "DESCRIÇÃO", "MEDIDA", "QTD.", "VLR. UNIT.", "DESC.%", "SUBTOTAL"]];
+        const body = window.pedidoItens.map((item) => {
+          const pu = item.preco * descontoGeral;
+          return [
+            item.REF,
+            item.MODELO,
+            item.medida || item.tamanho || "—",
+            item.quantidade,
+            `R$ ${pu.toFixed(2)}`,
+            `${item.descontoExtra || 0}%`,
+            `R$ ${(pu * item.quantidade).toFixed(2)}`,
+          ];
+        });
+
+        doc.autoTable({
+          head,
+          body,
+          startY,
+          theme: "grid",
+          styles: { fontSize: 8, cellPadding: 2, overflow: "linebreak", valign: "middle" },
+          headStyles: { fillColor: [44, 62, 80], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+          columnStyles: {
+            0: { cellWidth: 15 },
+            1: { cellWidth: "auto" },
+            2: { halign: "center", cellWidth: 22 },
+            3: { halign: "center", cellWidth: 15 },
+            4: { halign: "right", cellWidth: 22 },
+            5: { halign: "right", cellWidth: 18 },
+            6: { halign: "right", cellWidth: 22 },
+          },
+          didDrawPage: (data) => {
+            if (data.pageNumber > 1) drawHeaderAndFooter(data);
+          },
+          margin: { top: 30, bottom: 15 },
+        });
+
+        let finalY = doc.autoTable.previous.finalY;
+        const obsText = `Transporte: ${clienteData.transporte || "—"}\nPrazo: ${clienteData.prazo || "—"}\n\nObs.:\n${document.getElementById("obs")?.value || "—"}`;
+        const { subtotal: subG, total: totF } = totaisPedidoB2B();
+        const valorDesconto = subG * (descontoExtraTotalPercentual / 100);
+        const summaryData = [];
+        summaryData.push(["Subtotal:", `R$ ${subG.toFixed(2)}`]);
+        if (descontoExtraTotalPercentual > 0) {
+          summaryData.push([`Desconto extra (${descontoExtraTotalPercentual}%):`, `- R$ ${valorDesconto.toFixed(2)}`]);
+        }
+        summaryData.push(["", ""]);
+        summaryData.push([{ content: "Total:", styles: { fontStyle: "bold", fontSize: 10 } }, { content: `R$ ${totF.toFixed(2)}`, styles: { fontStyle: "bold", fontSize: 10 } }]);
+
+        const finalTableBody = [];
+        const leftColumn = { content: obsText, rowSpan: summaryData.length, styles: { valign: "top", fontSize: 9 } };
+        for (let i = 0; i < summaryData.length; i++) {
+          const row = [];
+          if (i === 0) row.push(leftColumn);
+          row.push(summaryData[i][0], summaryData[i][1]);
+          finalTableBody.push(row);
+        }
+        doc.autoTable({
+          startY: finalY + 8,
+          theme: "plain",
+          body: finalTableBody,
+          margin: { left: margin, right: margin },
+          columnStyles: {
+            0: { cellWidth: pageWidth / 2 - margin },
+            1: { halign: "right", fontStyle: "bold" },
+            2: { halign: "right" },
+          },
+        });
+
+        const nomeArquivo = `G8 Pedido B2B Cesari - ${String(clienteData.razao).replace(/[\s\/]/g, "_")} - ${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`;
+        doc.save(nomeArquivo);
       }
 
       // Enviar pedido para o sistema principal
@@ -1608,22 +1625,23 @@
           return;
         }
 
-        // Validar pedido mínimo de R$ 1.500,00
-        const PEDIDO_MINIMO = 1500.00;
-        if (subtotalPedido < PEDIDO_MINIMO) {
-          alert(`❌ O pedido mínimo para Cesari é de R$ ${PEDIDO_MINIMO.toFixed(2)}.\n\nTotal atual: R$ ${subtotalPedido.toFixed(2)}\nFaltam: R$ ${(PEDIDO_MINIMO - subtotalPedido).toFixed(2)}`);
+        const { subtotal: subPed, total: totalPed } = totaisPedidoB2B();
+        const PEDIDO_MINIMO = 1500.0;
+        if (totalPed < PEDIDO_MINIMO) {
+          alert(`❌ O pedido mínimo para Cesari é de R$ ${PEDIDO_MINIMO.toFixed(2)}.\n\nTotal atual: R$ ${totalPed.toFixed(2)}\nFaltam: R$ ${(PEDIDO_MINIMO - totalPed).toFixed(2)}`);
           return;
         }
 
         try{
-          // Preparar dados do pedido no formato que a API principal espera
           const pedidoData = {
             empresa: 'b2b-cesari',
-            descricao: `Pedido B2B - Cesari - ${window.pedidoItens.length} itens`,
+            descricao: `Pedido B2B - Cesari - ${window.pedidoItens.length} itens — Total R$ ${totalPed.toFixed(2)}`,
             dados: {
               cliente: clienteData,
               itens: window.pedidoItens,
-              total: subtotalPedido,
+              subtotal: subPed,
+              descontos: { extra: descontoExtraTotalPercentual || 0 },
+              total: totalPed,
               data: new Date().toISOString(),
               origem: 'B2B - Cesari',
               transporte: document.getElementById('transporte') ? document.getElementById('transporte').value : '',
@@ -1704,6 +1722,14 @@
       if (checkAuthB2B()) {
         preencherInformacoesCliente();
         carregarProdutos();
+
+        const dxt = document.getElementById("desconto-extra-total-b2b");
+        if (dxt) {
+          dxt.addEventListener("input", () => {
+            descontoExtraTotalPercentual = parseFloat(dxt.value) || 0;
+            atualizarVisualizacaoPedido();
+          });
+        }
         
         // Busca de produtos
         const buscaProdutoInput = document.getElementById("busca-produto");
@@ -1747,12 +1773,24 @@
             getData: () => {
               if (!window.pedidoItens || window.pedidoItens.length === 0) return null;
               const t = document.getElementById("transporte"), p = document.getElementById("prazo"), o = document.getElementById("obs");
-              return { items: JSON.parse(JSON.stringify(window.pedidoItens)), transporte: t ? t.value : "", prazo: p ? p.value : "", obs: o ? o.value : "" };
+              const dx = document.getElementById("desconto-extra-total-b2b");
+              return {
+                items: JSON.parse(JSON.stringify(window.pedidoItens)),
+                transporte: t ? t.value : "",
+                prazo: p ? p.value : "",
+                obs: o ? o.value : "",
+                descontoExtra: dx ? parseFloat(dx.value) || 0 : descontoExtraTotalPercentual
+              };
             },
             setData: (d) => {
               if (d?.items?.length) { window.pedidoItens.length = 0; window.pedidoItens.push(...d.items); }
               const t = document.getElementById("transporte"), p = document.getElementById("prazo"), o = document.getElementById("obs");
               if (t && d?.transporte != null) t.value = d.transporte; if (p && d?.prazo != null) p.value = d.prazo; if (o && d?.obs != null) o.value = d.obs;
+              const dx = document.getElementById("desconto-extra-total-b2b");
+              if (dx && d?.descontoExtra != null) {
+                dx.value = d.descontoExtra;
+                descontoExtraTotalPercentual = parseFloat(dx.value) || 0;
+              }
               if (typeof atualizarVisualizacaoPedido === "function") atualizarVisualizacaoPedido();
             }
           });
