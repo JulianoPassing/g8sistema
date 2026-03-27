@@ -471,6 +471,14 @@
         transform: translateY(-1px);
       }
 
+      .page-header-icon .page-header-emoji {
+        font-size: 1.65rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .pedido-item-info {
         flex-grow: 1;
       }
@@ -787,8 +795,8 @@
         <span>Cesari</span>
       </div>
       <div class="page-header">
-        <div class="page-header-icon">
-          <i class="fas fa-tire"></i>
+        <div class="page-header-icon" aria-hidden="true">
+          <span class="page-header-emoji" title="Pneus Cesari">🛞</span>
         </div>
         <div class="page-header-text">
           <h1 class="dashboard-title">Cesari</h1>
@@ -1146,14 +1154,13 @@
 
       const produtosContainer = document.getElementById("produtos-container");
       const pedidoContainer = document.getElementById("pedido-container");
-      const pedidoVazio = document.getElementById("pedido-vazio");
       const gerarPedidoBtn = document.getElementById("gerar-pedido-btn");
       window.pedidoItens = [];
       let descontoExtraTotalPercentual = 0;
 
       function renderizarProdutos(produtos = produtosData) {
         const table = document.createElement("table");
-        table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>MEDIDA</th><th>Desc. Extra</th><th>QTD</th><th>AÇÃO</th></tr></thead>`;
+        table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>MEDIDA</th><th>Desc. Extra</th><th>QTD</th><th>Ação</th></tr></thead>`;
         const tbody = document.createElement("tbody");
         
         const mobileContainer = document.getElementById('produtos-mobile-container');
@@ -1212,7 +1219,7 @@
             }
           } else {
             const row = document.createElement("tr");
-            row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td>${medida}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td><input type="number" min="0" value="" placeholder="0" id="qty-${produto.REF}" style="width: 64px; text-align: center;"></td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
+            row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO || ""}<br><small style="color: #6c757d;">${medida}</small></td><td>R$ ${preco.toFixed(2)}</td><td>${medida}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td><input type="number" min="0" value="" placeholder="0" id="qty-${produto.REF}" style="width: 64px; text-align: center;"></td><td><button type="button" data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
             row.querySelector('button').addEventListener('click', () => adicionarAoPedido(produto.REF));
             tbody.appendChild(row);
           }
@@ -1338,36 +1345,31 @@
       function atualizarVisualizacaoPedido() {
         pedidoContainer.innerHTML = "";
         let subtotalPedido = 0;
-        // Garante que window.pedidoItens sempre seja um array
         if (!Array.isArray(window.pedidoItens)) {
           window.pedidoItens = [];
         }
         if (window.pedidoItens.length > 0) {
-          pedidoVazio.style.display = "none";
           window.pedidoItens.forEach((item, index) => {
             const itemDiv = document.createElement("div");
             itemDiv.classList.add("pedido-item");
             const precoTotalItem = item.preco * item.quantidade;
             subtotalPedido += precoTotalItem;
-            
+            const medidaTxt = item.medida || item.tamanho || "—";
             itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${
-              item.MODELO || item.DESCRIÇÃO || 'Produto'
-            }</strong> (Ref: ${item.REF || item.REFERENCIA || 'N/A'})<br><small>Medida: <strong>${
-              item.medida || item.tamanho || '—'
-            }</strong> | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" 
+              item.MODELO || item.DESCRIÇÃO || "Produto"
+            } (Ref: ${item.REF || item.REFERENCIA || "N/A"})</strong><br><small>Medida: ${medidaTxt} | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" 
             onchange="alterarQuantidadeItem(${index}, this.value)" 
             style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> 
             | Unit: R$ <input type="number" step="0.01" min="0" value="${(item.preco || 0).toFixed(2)}" 
             onchange="alterarPrecoItem(${index}, this.value)" 
             style="width: 80px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: right; font-size: 0.9rem;">${
               item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
-            } | Total: <strong>R$ ${precoTotalItem.toFixed(
-              2
-            )}</strong></small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            } | Total: R$ ${precoTotalItem.toFixed(2)}</small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
             pedidoContainer.appendChild(itemDiv);
           });
         } else {
-          pedidoVazio.style.display = "block";
+          pedidoContainer.innerHTML =
+            '<p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>';
         }
         const valorDesconto =
           subtotalPedido * (descontoExtraTotalPercentual / 100);
