@@ -253,15 +253,17 @@
 
       /* CSS para botões */
       .btn {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         padding: 8px 16px;
-        margin-bottom: 0;
         font-size: 14px;
-        font-weight: 400;
-        line-height: 1.42857143;
+        font-family: "Poppins", sans-serif;
+        font-weight: 500;
+        line-height: 1.4;
         text-align: center;
         white-space: nowrap;
-        vertical-align: middle;
         cursor: pointer;
         border: 1px solid transparent;
         border-radius: 4px;
@@ -990,11 +992,11 @@
 
       <section class="card">
         <div class="card-header">
-          <span role="img" aria-label="Produtos" style="font-size: 1.8em">📦</span>
+          <span role="img" aria-label="Produtos" style="font-size: 1.8em">🛞</span>
           <h2>Catálogo de Produtos</h2>
         </div>
         <div class="form-group">
-          <input type="text" id="busca-produto" placeholder="Buscar produto por referência ou descrição..." style="margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #d1d5db; padding: 10px 12px; font-size: 1em;" />
+          <input type="text" id="busca-produto" class="catalog-search-input" placeholder="Buscar produto por referência ou descrição..." />
           <div id="sugestoes-produtos" style="position: relative; z-index: 10;"></div>
         </div>
         <div id="produtos-container" class="table-responsive"></div>
@@ -1236,35 +1238,24 @@
       }
 
       function renderizarProdutos(produtos = window.produtosData) {
-        const table = document.createElement("table");
-        table.innerHTML = `<thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>MEDIDA</th><th>Desc. Extra</th><th>QTD</th><th>AÇÃO</th></tr></thead>`;
-        const tbody = document.createElement("tbody");
         const mobileContainer = document.getElementById("produtos-mobile-container");
         if (mobileContainer) mobileContainer.innerHTML = "";
         const isMobile = isMobileView();
-        let categoriaAtual = "";
+        if (isMobile) {
+          let categoriaAtual = "";
+          produtos.forEach((produto) => {
+            const preco = produto.PRECO;
+            const medida = produto.TAM || "—";
 
-        produtos.forEach((produto) => {
-          const preco = produto.PRECO;
-          const medida = produto.TAM || "—";
-
-          if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual) {
-            categoriaAtual = produto.CATEGORIA;
-            if (!isMobile) {
-              const headerRow = document.createElement("tr");
-              headerRow.className = "categoria-header";
-              headerRow.innerHTML = `<td colspan="7">${categoriaAtual}</td>`;
-              tbody.appendChild(headerRow);
-            } else if (mobileContainer) {
+            if (produto.CATEGORIA && produto.CATEGORIA !== categoriaAtual && mobileContainer) {
+              categoriaAtual = produto.CATEGORIA;
               const catHeader = document.createElement("div");
               catHeader.className = "categoria-header-mobile";
               catHeader.style.cssText = "background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%); color: #1e3a8a; font-weight: 700; padding: 10px 15px; margin: 15px 0 8px 0; border-radius: 8px; font-size: 1rem;";
               catHeader.textContent = categoriaAtual;
               mobileContainer.appendChild(catHeader);
             }
-          }
 
-          if (isMobile) {
             if (mobileContainer) {
               const mobileCard = document.createElement("div");
               mobileCard.className = "produto-card-mobile";
@@ -1279,11 +1270,11 @@
                 </div>
                 <div class="produto-tamanhos-mobile">
                   <label>Desc. extra (%):</label>
-                  <input type="number" min="0" value="0" class="desconto-input" id="desconto-mobile-${produto.REF}" style="width: 100%; max-width: 120px; padding: 8px;">
+                  <input type="number" min="0" value="0" class="desconto-input input-mobile-mini" id="desconto-mobile-${produto.REF}">
                 </div>
                 <div class="produto-cor-mobile">
                   <label>Quantidade:</label>
-                  <input type="number" min="0" value="" placeholder="0" id="qty-mobile-${produto.REF}" style="width: 100%; max-width: 120px; padding: 8px;">
+                  <input type="number" min="0" value="" placeholder="0" class="input-mobile-mini" id="qty-mobile-${produto.REF}">
                 </div>
                 <div class="produto-actions-mobile">
                   <button class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
@@ -1292,19 +1283,49 @@
               mobileCard.querySelector(".btn-adicionar-mobile").addEventListener("click", () => adicionarAoPedidoMobile(produto.REF));
               mobileContainer.appendChild(mobileCard);
             }
-          } else {
-            const row = document.createElement("tr");
-            row.innerHTML = `<td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td>${medida}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REF}" style="width: 70px;"></td><td><input type="number" min="0" value="" placeholder="0" id="qty-${produto.REF}" style="width: 64px; text-align: center;"></td><td><button data-ref="${produto.REF}" class="btn btn-success btn-sm">Adicionar</button></td>`;
-            row.querySelector("button").addEventListener("click", () => adicionarAoPedido(produto.REF));
-            tbody.appendChild(row);
-          }
-        });
+          });
 
-        if (!isMobile) {
-          table.appendChild(tbody);
           produtosContainer.innerHTML = "";
-          produtosContainer.appendChild(table);
+          return;
         }
+
+        produtosContainer.innerHTML = "";
+        const categoriasAgrupadas = produtos.reduce((acc, produto) => {
+          const categoria = produto.CATEGORIA || "Sem Categoria";
+          if (!acc[categoria]) acc[categoria] = [];
+          acc[categoria].push(produto);
+          return acc;
+        }, {});
+
+        const ordemReferencia = (typeof CATEGORIAS_ORDEM !== "undefined" && Array.isArray(CATEGORIAS_ORDEM))
+          ? CATEGORIAS_ORDEM
+          : Object.keys(categoriasAgrupadas);
+        const ordemCategorias = Array.isArray(ordemReferencia)
+          ? [...ordemReferencia, ...Object.keys(categoriasAgrupadas).filter((c) => !ordemReferencia.includes(c))]
+          : Object.keys(categoriasAgrupadas);
+
+        ordemCategorias.forEach((categoria) => {
+          const categoriaProdutos = categoriasAgrupadas[categoria];
+          if (!categoriaProdutos || categoriaProdutos.length === 0) return;
+
+          const categoriaDiv = document.createElement("section");
+          categoriaDiv.className = "card";
+          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>MEDIDA</th><th>Desc. Extra</th><th>QTD</th><th>Ação</th></tr></thead><tbody>`;
+
+          categoriaProdutos.forEach((produto) => {
+            const preco = produto.PRECO;
+            const medida = produto.TAM || "—";
+            tabelaHTML += `<tr><td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td class="table-measure-cell">${medida}</td><td class="table-discount-cell"><input type="number" min="0" value="0" class="desconto-input input-mini" id="desconto-${produto.REF}"></td><td class="table-qty-cell"><input type="number" min="0" value="" placeholder="0" class="input-qty-mini" id="qty-${produto.REF}"></td><td class="table-action-cell"><button data-ref="${produto.REF}" class="btn btn-success btn-sm table-action-btn">Adicionar</button></td></tr>`;
+          });
+
+          tabelaHTML += `</tbody></table></div>`;
+          categoriaDiv.innerHTML = tabelaHTML;
+          produtosContainer.appendChild(categoriaDiv);
+
+          categoriaDiv.querySelectorAll("button[data-ref]").forEach((btn) => {
+            btn.addEventListener("click", () => adicionarAoPedido(btn.getAttribute("data-ref")));
+          });
+        });
       }
 
       function adicionarAoPedidoMobile(ref) {
@@ -1432,7 +1453,7 @@
             const precoTotalItem = item.preco * item.quantidade;
             subtotalPedido += precoTotalItem;
             const medidaTxt = item.medida || item.tamanho || "—";
-            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${item.MODELO || "Produto"} (Ref: ${item.REF || "N/A"})</strong><br><small>Medida: ${medidaTxt} | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidadeItem(${index}, this.value)" style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> | Unit: R$ <input type="number" step="0.01" min="0" value="${(item.preco || 0).toFixed(2)}" onchange="alterarPrecoItem(${index}, this.value)" style="width: 80px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: right; font-size: 0.9rem;">${item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""} | Total: R$ ${precoTotalItem.toFixed(2)}</small></div><button type="button" class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${item.MODELO || "Produto"} (Ref: ${item.REF || "N/A"})</strong><br><small>Medida: ${medidaTxt} | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidadeItem(${index}, this.value)" class="input-qty-mini"> | Unit: R$ <input type="number" step="0.01" min="0" value="${(item.preco || 0).toFixed(2)}" onchange="alterarPrecoItem(${index}, this.value)" class="input-mini input-price-mini">${item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""} | Total: R$ ${precoTotalItem.toFixed(2)}</small></div><button type="button" class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
             pedidoItensLista.appendChild(itemDiv);
           });
         } else {
