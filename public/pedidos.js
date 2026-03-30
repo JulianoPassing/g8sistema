@@ -14,6 +14,348 @@ function formatarData(data) {
   }
 }
 
+function parseNumeroBR(valor) {
+  if (valor === null || valor === undefined) return 0;
+  if (typeof valor === 'number') return isNaN(valor) ? 0 : valor;
+  const txt = String(valor).replace(/\s/g, '').replace('R$', '').replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(txt);
+  return isNaN(num) ? 0 : num;
+}
+
+function formatarMoedaBR(valor) {
+  return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function obterDadosPedidoNormalizados(pedido) {
+  let dadosParsed = pedido?.dados;
+  if (typeof dadosParsed === 'string') {
+    try {
+      dadosParsed = JSON.parse(dadosParsed);
+    } catch {
+      dadosParsed = null;
+    }
+  }
+
+  let cliente = 'N/A';
+  let qtdItens = 0;
+  let total = 0;
+
+  if (dadosParsed) {
+    if (dadosParsed.cliente?.razao) cliente = dadosParsed.cliente.razao;
+    else if (dadosParsed.cliente?.nome) cliente = dadosParsed.cliente.nome;
+    else if (dadosParsed.clienteInfo?.razao) cliente = dadosParsed.clienteInfo.razao;
+    else if (typeof dadosParsed.cliente === 'string') cliente = dadosParsed.cliente;
+
+    if (Array.isArray(dadosParsed.itens)) qtdItens = dadosParsed.itens.length;
+    if (dadosParsed.total !== undefined && dadosParsed.total !== null) total = parseNumeroBR(dadosParsed.total);
+  }
+
+  if (cliente === 'N/A' && pedido?.descricao) {
+    const m = pedido.descricao.match(/Cliente:\s*(.+?)(?=\s+(?:Itens?|Total)|$)/i);
+    if (m) cliente = m[1].trim();
+  }
+
+  if (!qtdItens && pedido?.descricao) {
+    const mItens = pedido.descricao.match(/Itens?:\s*(.+?)(?=\s+Total:|$)/i);
+    if (mItens && mItens[1]) {
+      qtdItens = mItens[1].split(',').map((s) => s.trim()).filter(Boolean).length;
+    }
+  }
+
+  if (!total && pedido?.descricao) {
+    const mTotal = pedido.descricao.match(/Total:\s*(R\$\s*[\d.,]+|[\d.,]+)/i);
+    if (mTotal) total = parseNumeroBR(mTotal[1]);
+  }
+
+  return { cliente, qtdItens, total };
+}
+
+function obterPedidosDoMesSelecionado() {
+  const mesEl = document.getElementById('export-mes');
+  const mesSelecionado = mesEl?.value;
+  if (!mesSelecionado) {
+    alert('Selecione um mês para exportar.');
+    return null;
+  }
+  if (!Array.isArray(todosPedidos) || todosPedidos.length === 0) {
+    alert('Nenhum pedido carregado para exportação.');
+    return null;
+  }
+
+  const [ano, mes] = mesSelecionado.split('-').map(Number);
+  const pedidosMes = todosPedidos.filter((pedido) => {
+    if (!pedido?.data_pedido) return false;
+    const dt = new Date(pedido.data_pedido);
+    if (isNaN(dt.getTime())) return false;
+    return dt.getFullYear() === ano && (dt.getMonth() + 1) === mes;
+  });
+
+  if (pedidosMes.length === 0) {
+    alert('Nenhum pedido encontrado para o mês selecionado.');
+    return null;
+  }
+
+  pedidosMes.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+  return { mesSelecionado, pedidosMes };
+}
+
+function gerarLinhasRelatorioMensal(pedidosMes) {
+  const linhas = [];
+  let totalMes = 0;
+
+  pedidosMes.forEach((pedido) => {
+    const info = obterDadosPedidoNormalizados(pedido);
+    totalMes += info.total;
+    linhas.push({
+      id: pedido.id ?? '',
+      data: formatarData(pedido.data_pedido),
+      empresa: (pedido.empresa || '').toUpperCase(),
+      cliente: String(info.cliente || ''),
+      qtdItens: info.qtdItens || 0,
+      total: info.total
+    });
+  });
+
+  return { linhas, totalMes };
+}
+
+async function exportarPedidosMesExcel() {
+  const dadosMes = obterPedidosDoMesSelecionado();
+  if (!dadosMes) return;
+  const { mesSelecionado, pedidosMes } = dadosMes;
+  const { linhas, totalMes } = gerarLinhasRelatorioMensal(pedidosMes);
+
+  if (!window.ExcelJS) {
+    alert('Biblioteca de Excel não carregada. Tente recarregar a página.');
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Pedidos');
+
+  worksheet.mergeCells('A1:F1');
+  worksheet.getCell('A1').value = `Relatório de Pedidos - ${mesSelecionado}`;
+  worksheet.getCell('A1').font = { bold: true, size: 14, color: { argb: 'FF1F2937' } };
+  worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(1).height = 26;
+
+  worksheet.mergeCells('A2:F2');
+  worksheet.getCell('A2').value = `Gerado em: ${new Date().toLocaleString('pt-BR')}`;
+  worksheet.getCell('A2').font = { italic: true, size: 10, color: { argb: 'FF64748B' } };
+  worksheet.getCell('A2').alignment = { horizontal: 'center' };
+
+  const cabecalhoLinha = 4;
+  const cabecalhos = ['ID', 'Data', 'Empresa', 'Cliente', 'Qtd Itens', 'Total (R$)'];
+  worksheet.addRow([]);
+  worksheet.addRow(cabecalhos);
+
+  const headerRow = worksheet.getRow(cabecalhoLinha);
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+  headerRow.height = 22;
+  headerRow.eachCell((cell) => {
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1E293B' }
+    };
+    cell.border = {
+      top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+      left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+      bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+      right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+    };
+  });
+
+  linhas.forEach((item) => {
+    worksheet.addRow([
+      item.id,
+      item.data,
+      item.empresa,
+      item.cliente,
+      item.qtdItens,
+      item.total
+    ]);
+  });
+
+  const inicioDados = cabecalhoLinha + 1;
+  const fimDados = inicioDados + linhas.length - 1;
+
+  for (let r = inicioDados; r <= fimDados; r++) {
+    const row = worksheet.getRow(r);
+    row.height = 20;
+    row.getCell(1).alignment = { horizontal: 'center' };
+    row.getCell(2).alignment = { horizontal: 'center' };
+    row.getCell(3).alignment = { horizontal: 'center' };
+    row.getCell(4).alignment = { horizontal: 'left' };
+    row.getCell(5).alignment = { horizontal: 'center' };
+    row.getCell(6).alignment = { horizontal: 'right' };
+    row.getCell(6).numFmt = '#,##0.00';
+
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+        left: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+        bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+        right: { style: 'thin', color: { argb: 'FFE5E7EB' } }
+      };
+      if (r % 2 === 0) {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF8FAFC' }
+        };
+      }
+    });
+  }
+
+  const totalRowIdx = fimDados + 2;
+  worksheet.getCell(`A${totalRowIdx}`).value = 'TOTAL DO MÊS';
+  worksheet.mergeCells(`A${totalRowIdx}:E${totalRowIdx}`);
+  worksheet.getCell(`F${totalRowIdx}`).value = totalMes;
+  worksheet.getCell(`F${totalRowIdx}`).numFmt = '#,##0.00';
+
+  worksheet.getRow(totalRowIdx).font = { bold: true, size: 12 };
+  worksheet.getCell(`A${totalRowIdx}`).alignment = { horizontal: 'right' };
+  worksheet.getCell(`F${totalRowIdx}`).alignment = { horizontal: 'right' };
+  ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col) => {
+    const cell = worksheet.getCell(`${col}${totalRowIdx}`);
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE2E8F0' }
+    };
+    cell.border = {
+      top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+      left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+      bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+      right: { style: 'thin', color: { argb: 'FF94A3B8' } }
+    };
+  });
+
+  worksheet.columns = [
+    { width: 8 },
+    { width: 14 },
+    { width: 20 },
+    { width: 40 },
+    { width: 12 },
+    { width: 16 }
+  ];
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `pedidos_${mesSelecionado}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  alert(`Excel exportado com sucesso: ${linhas.length} pedidos | Total: ${formatarMoedaBR(totalMes)}`);
+}
+
+function exportarPedidosMesPDF() {
+  const dadosMes = obterPedidosDoMesSelecionado();
+  if (!dadosMes) return;
+  const { mesSelecionado, pedidosMes } = dadosMes;
+  const { linhas, totalMes } = gerarLinhasRelatorioMensal(pedidosMes);
+
+  if (!window.jspdf) {
+    alert('Biblioteca de PDF não carregada. Tente recarregar a página.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+
+  const drawHeaderAndFooter = (data) => {
+    doc.setDrawColor(148, 163, 184);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, 10, 58, 15, 2, 2, 'FD');
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('G8 Sistema de Pedidos', margin + 29, 19, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Relatório Mensal de Pedidos', pageWidth - margin, 18, { align: 'right' });
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Mês: ${mesSelecionado}`, pageWidth - margin, 24, { align: 'right' });
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth - margin, 29, { align: 'right' });
+
+    const pageCount = doc.internal.getNumberOfPages();
+    doc.setFontSize(8);
+    doc.text(`Página ${data.pageNumber} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+  };
+
+  drawHeaderAndFooter({ pageNumber: 1 });
+
+  const tableBody = linhas.map((item) => ([
+    String(item.id),
+    item.data,
+    item.empresa,
+    item.cliente,
+    String(item.qtdItens),
+    formatarMoedaBR(item.total)
+  ]));
+
+  doc.autoTable({
+    startY: 36,
+    head: [['ID', 'Data', 'Empresa', 'Cliente', 'Qtd', 'Total (R$)']],
+    body: tableBody,
+    theme: 'grid',
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+      overflow: 'linebreak',
+      valign: 'middle'
+    },
+    headStyles: {
+      fillColor: [30, 41, 59],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 12 },
+      1: { halign: 'center', cellWidth: 20 },
+      2: { halign: 'center', cellWidth: 26 },
+      3: { cellWidth: 'auto' },
+      4: { halign: 'center', cellWidth: 12 },
+      5: { halign: 'right', cellWidth: 22 }
+    },
+    didDrawPage: (data) => {
+      if (data.pageNumber > 1) drawHeaderAndFooter(data);
+    },
+    margin: { top: 36, bottom: 20, left: margin, right: margin }
+  });
+
+  const finalY = doc.autoTable.previous.finalY + 6;
+  doc.autoTable({
+    startY: finalY,
+    theme: 'plain',
+    body: [[
+      { content: 'TOTAL DO MÊS:', styles: { fontStyle: 'bold', halign: 'right', fontSize: 11 } },
+      { content: formatarMoedaBR(totalMes), styles: { fontStyle: 'bold', halign: 'right', fontSize: 11 } }
+    ]],
+    columnStyles: {
+      0: { cellWidth: pageWidth - margin * 2 - 35 },
+      1: { cellWidth: 35 }
+    },
+    margin: { left: margin, right: margin }
+  });
+
+  doc.save(`relatorio_pedidos_${mesSelecionado}.pdf`);
+  alert(`PDF exportado com sucesso: ${linhas.length} pedidos | Total: ${formatarMoedaBR(totalMes)}`);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Mensagem de boas-vindas
   const loggedInUser = sessionStorage.getItem('loggedInUser');
@@ -35,6 +377,17 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('busca-pedidos').addEventListener('input', function(e) {
     filtrarPedidos(e.target.value);
   });
+
+  const exportMesEl = document.getElementById('export-mes');
+  if (exportMesEl) {
+    const hoje = new Date();
+    exportMesEl.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+  }
+  const exportExcelBtn = document.getElementById('exportar-mes-excel-btn');
+  if (exportExcelBtn) exportExcelBtn.addEventListener('click', exportarPedidosMesExcel);
+
+  const exportPdfBtn = document.getElementById('exportar-mes-pdf-btn');
+  if (exportPdfBtn) exportPdfBtn.addEventListener('click', exportarPedidosMesPDF);
 
   // Evento de submit do formulário de edição - DESABILITADO (usando editor-pedido.js)
   document.getElementById('form-editar-pedido').addEventListener('submit', async function (e) {

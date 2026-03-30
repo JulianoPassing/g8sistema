@@ -1407,6 +1407,7 @@
       </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <script src="offline-system.js"></script>
     
     <script>
@@ -1580,6 +1581,12 @@
             ">
               <!-- Contador será preenchido pelo JavaScript -->
             </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;margin-top:16px;">
+            <label for="export-mes" style="font-weight:600;color:#334155;">Exportar mês:</label>
+            <input type="month" id="export-mes" style="padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;" />
+            <button type="button" id="exportar-mes-excel-btn" class="btn-secondary">📊 Exportar Excel</button>
+            <button type="button" id="exportar-mes-pdf-btn" class="btn-secondary">🖨️ Exportar PDF</button>
           </div>
         </div>
       </section>
