@@ -37,29 +37,6 @@ function formatarNomeEmpresaFiltro(empresa) {
   return empresaLower.toUpperCase();
 }
 
-function atualizarOpcoesFiltroEmpresa() {
-  const select = document.getElementById('filtro-empresa');
-  if (!select) return;
-
-  const valoresSelecionadosAtuais = new Set(
-    Array.from(select.selectedOptions || []).map((option) => option.value)
-  );
-  const empresas = [...new Set(
-    (Array.isArray(todosPedidos) ? todosPedidos : [])
-      .map((pedido) => String(pedido?.empresa || '').trim())
-      .filter(Boolean)
-  )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-  select.innerHTML = '';
-  empresas.forEach((empresa) => {
-    const option = document.createElement('option');
-    option.value = empresa;
-    option.textContent = formatarNomeEmpresaFiltro(empresa);
-    option.selected = valoresSelecionadosAtuais.has(empresa);
-    select.appendChild(option);
-  });
-}
-
 function abrirModalExportacaoPorEmpresas(tipo) {
   const dadosMes = obterPedidosDoMesSelecionado();
   if (!dadosMes) return;
@@ -498,13 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
     filtrarPedidos();
   });
 
-  const filtroEmpresaEl = document.getElementById('filtro-empresa');
-  if (filtroEmpresaEl) {
-    filtroEmpresaEl.addEventListener('change', function() {
-      filtrarPedidos();
-    });
-  }
-
   const exportMesEl = document.getElementById('export-mes');
   if (exportMesEl) {
     const hoje = new Date();
@@ -608,14 +578,12 @@ async function carregarPedidos() {
     if (!Array.isArray(pedidos) || pedidos.length === 0) {
       lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       todosPedidos = [];
-      atualizarOpcoesFiltroEmpresa();
       atualizarContadorResultados(0);
       return;
     }
     
     // Armazenar todos os pedidos na variável global
     todosPedidos = pedidos;
-    atualizarOpcoesFiltroEmpresa();
     // Função para extrair informações do pedido
     function extrairInfoPedido(descricao, dados) {
       console.log('📋 Descrição do pedido:', descricao); // Debug
@@ -859,7 +827,6 @@ async function carregarPedidos() {
   } catch (err) {
     lista.innerHTML = '<p>Erro ao carregar pedidos.</p>';
     todosPedidos = [];
-    atualizarOpcoesFiltroEmpresa();
     atualizarContadorResultados(0);
   }
 }
@@ -867,27 +834,14 @@ async function carregarPedidos() {
 // Função para filtrar pedidos
 function filtrarPedidos() {
   const termoBusca = document.getElementById('busca-pedidos')?.value || '';
-  const filtroEmpresaEl = document.getElementById('filtro-empresa');
-  const empresasSelecionadas = filtroEmpresaEl
-    ? Array.from(filtroEmpresaEl.selectedOptions || []).map((option) => option.value).filter(Boolean)
-    : [];
   const termo = termoBusca.toLowerCase().trim();
 
-  if (!termo && empresasSelecionadas.length === 0) {
+  if (!termo) {
     renderizarPedidos(todosPedidos);
     return;
   }
 
   const pedidosFiltrados = todosPedidos.filter(pedido => {
-    const empresaPedido = String(pedido?.empresa || '');
-    if (empresasSelecionadas.length > 0 && !empresasSelecionadas.includes(empresaPedido)) {
-      return false;
-    }
-
-    if (!termo) {
-      return true;
-    }
-
     // Buscar por ID
     if (pedido.id.toString().includes(termo)) {
       return true;
