@@ -26,6 +26,42 @@ function formatarMoedaBR(valor) {
   return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function formatarNomeEmpresaFiltro(empresa) {
+  if (!empresa) return '';
+  const empresaLower = String(empresa).toLowerCase();
+  if (empresaLower === 'distribuicao') return 'Distribuicao';
+  if (empresaLower.startsWith('b2b-')) {
+    return `B2B ${empresaLower.replace('b2b-', '').toUpperCase()}`;
+  }
+  return empresaLower.toUpperCase();
+}
+
+function atualizarOpcoesFiltroEmpresa() {
+  const select = document.getElementById('filtro-empresa');
+  if (!select) return;
+
+  const valorAtual = select.value || '';
+  const empresas = [...new Set(
+    (Array.isArray(todosPedidos) ? todosPedidos : [])
+      .map((pedido) => String(pedido?.empresa || '').trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+  select.innerHTML = '<option value="">Todas as empresas</option>';
+  empresas.forEach((empresa) => {
+    const option = document.createElement('option');
+    option.value = empresa;
+    option.textContent = formatarNomeEmpresaFiltro(empresa);
+    select.appendChild(option);
+  });
+
+  if (valorAtual && empresas.includes(valorAtual)) {
+    select.value = valorAtual;
+  } else {
+    select.value = '';
+  }
+}
+
 function obterDadosPedidoNormalizados(pedido) {
   let dadosParsed = pedido?.dados;
   if (typeof dadosParsed === 'string') {
@@ -373,10 +409,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   carregarPedidos();
 
-  // Event listener para busca de pedidos
-  document.getElementById('busca-pedidos').addEventListener('input', function(e) {
-    filtrarPedidos(e.target.value);
+  // Event listeners de filtro
+  document.getElementById('busca-pedidos').addEventListener('input', function() {
+    filtrarPedidos();
   });
+
+  const filtroEmpresaEl = document.getElementById('filtro-empresa');
+  if (filtroEmpresaEl) {
+    filtroEmpresaEl.addEventListener('change', function() {
+      filtrarPedidos();
+    });
+  }
 
   const exportMesEl = document.getElementById('export-mes');
   if (exportMesEl) {
@@ -426,12 +469,14 @@ async function carregarPedidos() {
     if (!Array.isArray(pedidos) || pedidos.length === 0) {
       lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       todosPedidos = [];
+      atualizarOpcoesFiltroEmpresa();
       atualizarContadorResultados(0);
       return;
     }
     
     // Armazenar todos os pedidos na variável global
     todosPedidos = pedidos;
+    atualizarOpcoesFiltroEmpresa();
     // Função para extrair informações do pedido
     function extrairInfoPedido(descricao, dados) {
       console.log('📋 Descrição do pedido:', descricao); // Debug
@@ -675,20 +720,31 @@ async function carregarPedidos() {
   } catch (err) {
     lista.innerHTML = '<p>Erro ao carregar pedidos.</p>';
     todosPedidos = [];
+    atualizarOpcoesFiltroEmpresa();
     atualizarContadorResultados(0);
   }
 }
 
 // Função para filtrar pedidos
-function filtrarPedidos(termoBusca) {
-  if (!termoBusca || termoBusca.trim() === '') {
-    // Se não há termo de busca, mostrar todos os pedidos
+function filtrarPedidos() {
+  const termoBusca = document.getElementById('busca-pedidos')?.value || '';
+  const empresaSelecionada = document.getElementById('filtro-empresa')?.value || '';
+  const termo = termoBusca.toLowerCase().trim();
+
+  if (!termo && !empresaSelecionada) {
     renderizarPedidos(todosPedidos);
     return;
   }
-  
-  const termo = termoBusca.toLowerCase().trim();
+
   const pedidosFiltrados = todosPedidos.filter(pedido => {
+    if (empresaSelecionada && String(pedido?.empresa || '') !== empresaSelecionada) {
+      return false;
+    }
+
+    if (!termo) {
+      return true;
+    }
+
     // Buscar por ID
     if (pedido.id.toString().includes(termo)) {
       return true;
