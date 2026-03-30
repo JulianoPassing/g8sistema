@@ -40,26 +40,23 @@ function atualizarOpcoesFiltroEmpresa() {
   const select = document.getElementById('filtro-empresa');
   if (!select) return;
 
-  const valorAtual = select.value || '';
+  const valoresSelecionadosAtuais = new Set(
+    Array.from(select.selectedOptions || []).map((option) => option.value)
+  );
   const empresas = [...new Set(
     (Array.isArray(todosPedidos) ? todosPedidos : [])
       .map((pedido) => String(pedido?.empresa || '').trim())
       .filter(Boolean)
   )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
-  select.innerHTML = '<option value="">Todas as empresas</option>';
+  select.innerHTML = '';
   empresas.forEach((empresa) => {
     const option = document.createElement('option');
     option.value = empresa;
     option.textContent = formatarNomeEmpresaFiltro(empresa);
+    option.selected = valoresSelecionadosAtuais.has(empresa);
     select.appendChild(option);
   });
-
-  if (valorAtual && empresas.includes(valorAtual)) {
-    select.value = valorAtual;
-  } else {
-    select.value = '';
-  }
 }
 
 function obterDadosPedidoNormalizados(pedido) {
@@ -728,16 +725,20 @@ async function carregarPedidos() {
 // Função para filtrar pedidos
 function filtrarPedidos() {
   const termoBusca = document.getElementById('busca-pedidos')?.value || '';
-  const empresaSelecionada = document.getElementById('filtro-empresa')?.value || '';
+  const filtroEmpresaEl = document.getElementById('filtro-empresa');
+  const empresasSelecionadas = filtroEmpresaEl
+    ? Array.from(filtroEmpresaEl.selectedOptions || []).map((option) => option.value).filter(Boolean)
+    : [];
   const termo = termoBusca.toLowerCase().trim();
 
-  if (!termo && !empresaSelecionada) {
+  if (!termo && empresasSelecionadas.length === 0) {
     renderizarPedidos(todosPedidos);
     return;
   }
 
   const pedidosFiltrados = todosPedidos.filter(pedido => {
-    if (empresaSelecionada && String(pedido?.empresa || '') !== empresaSelecionada) {
+    const empresaPedido = String(pedido?.empresa || '');
+    if (empresasSelecionadas.length > 0 && !empresasSelecionadas.includes(empresaPedido)) {
       return false;
     }
 

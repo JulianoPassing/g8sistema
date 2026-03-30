@@ -1575,9 +1575,11 @@
             <div style="display:flex;justify-content:flex-end;margin-top:10px;">
               <select
                 id="filtro-empresa"
+                multiple
+                size="5"
                 style="
                   min-width: 230px;
-                  padding: 10px 12px;
+                  padding: 8px 10px;
                   border: 1px solid #d1d5db;
                   border-radius: 8px;
                   background: #fff;
@@ -1585,8 +1587,10 @@
                   font-size: 0.95rem;
                 "
               >
-                <option value="">Todas as empresas</option>
               </select>
+            </div>
+            <div style="text-align:right;margin-top:6px;color:#64748b;font-size:0.8rem;">
+              Selecione uma ou mais empresas (Ctrl/Cmd + clique)
             </div>
             <div id="contador-resultados" style="
               text-align: center; 
