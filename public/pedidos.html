@@ -962,6 +962,89 @@
         transform: scale(1.1);
       }
 
+      /* Modal de seleção de empresas para exportação */
+      #modal-export-empresas {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(3px);
+        z-index: 3500;
+        padding: 16px;
+      }
+
+      #modal-export-empresas .export-modal-content {
+        width: 100%;
+        max-width: 560px;
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+        overflow: hidden;
+      }
+
+      #modal-export-empresas .export-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: #ffffff;
+      }
+
+      #modal-export-empresas .export-modal-header h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      #modal-export-empresas .export-close-btn {
+        border: none;
+        background: transparent;
+        color: #ffffff;
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+
+      #modal-export-empresas .export-modal-body {
+        padding: 16px;
+      }
+
+      #lista-empresas-exportacao {
+        max-height: 260px;
+        overflow-y: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px;
+        background: #f8fafc;
+      }
+
+      #lista-empresas-exportacao .empresa-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 8px;
+      }
+
+      #lista-empresas-exportacao .empresa-option:hover {
+        background: #eef2ff;
+      }
+
+      #modal-export-empresas .export-modal-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      #modal-export-empresas .export-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
       /* Responsividade do modal */
       @media (max-width: 768px) {
         #modal-produtos > div {
@@ -1632,6 +1715,28 @@
         </form>
       </section>
     </main>
+    <div id="modal-export-empresas">
+      <div class="export-modal-content">
+        <div class="export-modal-header">
+          <h3 id="modal-export-titulo">Selecionar empresas para exportação</h3>
+          <button type="button" id="fechar-modal-export-empresas" class="export-close-btn" aria-label="Fechar modal">✕</button>
+        </div>
+        <div class="export-modal-body">
+          <p style="margin:0 0 10px 0;color:#475569;font-size:0.92rem;">
+            Marque as empresas que deseja incluir na exportação.
+          </p>
+          <div id="lista-empresas-exportacao"></div>
+          <div class="export-modal-actions">
+            <button type="button" id="selecionar-todas-empresas-export" class="btn-secondary">Selecionar todas</button>
+            <button type="button" id="limpar-empresas-export" class="btn-secondary">Limpar seleção</button>
+          </div>
+          <div class="export-modal-footer">
+            <button type="button" id="cancelar-modal-export-empresas" class="btn-secondary">Cancelar</button>
+            <button type="button" id="confirmar-export-empresas" class="btn-primary">Exportar</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <footer>
       © 2025 J.P. Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
     </footer>

@@ -2,6 +2,7 @@
 
 // Variável global para armazenar todos os pedidos
 let todosPedidos = [];
+let tipoExportacaoPendente = null;
 
 // Função global para formatar data
 function formatarData(data) {
@@ -59,6 +60,81 @@ function atualizarOpcoesFiltroEmpresa() {
   });
 }
 
+function abrirModalExportacaoPorEmpresas(tipo) {
+  const dadosMes = obterPedidosDoMesSelecionado();
+  if (!dadosMes) return;
+
+  const { pedidosMes } = dadosMes;
+  const empresas = [...new Set(
+    pedidosMes
+      .map((pedido) => String(pedido?.empresa || '').trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+  if (empresas.length === 0) {
+    alert('Não há empresas disponíveis para exportação no mês selecionado.');
+    return;
+  }
+
+  tipoExportacaoPendente = tipo;
+  const titulo = document.getElementById('modal-export-titulo');
+  const botaoConfirmar = document.getElementById('confirmar-export-empresas');
+  const lista = document.getElementById('lista-empresas-exportacao');
+  const modal = document.getElementById('modal-export-empresas');
+
+  if (!titulo || !botaoConfirmar || !lista || !modal) return;
+
+  const nomeTipo = tipo === 'pdf' ? 'PDF' : 'Excel';
+  titulo.textContent = `Selecionar empresas para exportar ${nomeTipo}`;
+  botaoConfirmar.textContent = `Exportar ${nomeTipo}`;
+
+  lista.innerHTML = empresas
+    .map((empresa) => `
+      <label class="empresa-option">
+        <input type="checkbox" class="empresa-export-checkbox" value="${empresa}" checked />
+        <span>${formatarNomeEmpresaFiltro(empresa)}</span>
+      </label>
+    `)
+    .join('');
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharModalExportacaoPorEmpresas() {
+  const modal = document.getElementById('modal-export-empresas');
+  if (!modal) return;
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+  tipoExportacaoPendente = null;
+}
+
+function alternarSelecaoEmpresasExportacao(selecionar) {
+  const checks = document.querySelectorAll('.empresa-export-checkbox');
+  checks.forEach((checkbox) => {
+    checkbox.checked = selecionar;
+  });
+}
+
+function confirmarExportacaoComEmpresas() {
+  const checksMarcados = Array.from(document.querySelectorAll('.empresa-export-checkbox:checked'));
+  const empresasSelecionadas = checksMarcados.map((checkbox) => checkbox.value).filter(Boolean);
+
+  if (empresasSelecionadas.length === 0) {
+    alert('Selecione pelo menos uma empresa para exportar.');
+    return;
+  }
+
+  const tipo = tipoExportacaoPendente;
+  fecharModalExportacaoPorEmpresas();
+
+  if (tipo === 'pdf') {
+    exportarPedidosMesPDF(empresasSelecionadas);
+  } else {
+    exportarPedidosMesExcel(empresasSelecionadas);
+  }
+}
+
 function obterDadosPedidoNormalizados(pedido) {
   let dadosParsed = pedido?.dados;
   if (typeof dadosParsed === 'string') {
@@ -103,7 +179,7 @@ function obterDadosPedidoNormalizados(pedido) {
   return { cliente, qtdItens, total };
 }
 
-function obterPedidosDoMesSelecionado() {
+function obterPedidosDoMesSelecionado(empresasSelecionadas = []) {
   const mesEl = document.getElementById('export-mes');
   const mesSelecionado = mesEl?.value;
   if (!mesSelecionado) {
@@ -120,11 +196,22 @@ function obterPedidosDoMesSelecionado() {
     if (!pedido?.data_pedido) return false;
     const dt = new Date(pedido.data_pedido);
     if (isNaN(dt.getTime())) return false;
-    return dt.getFullYear() === ano && (dt.getMonth() + 1) === mes;
+    const ehDoMes = dt.getFullYear() === ano && (dt.getMonth() + 1) === mes;
+    if (!ehDoMes) return false;
+
+    if (Array.isArray(empresasSelecionadas) && empresasSelecionadas.length > 0) {
+      return empresasSelecionadas.includes(String(pedido?.empresa || ''));
+    }
+
+    return true;
   });
 
   if (pedidosMes.length === 0) {
-    alert('Nenhum pedido encontrado para o mês selecionado.');
+    if (Array.isArray(empresasSelecionadas) && empresasSelecionadas.length > 0) {
+      alert('Nenhum pedido encontrado para as empresas selecionadas neste mês.');
+    } else {
+      alert('Nenhum pedido encontrado para o mês selecionado.');
+    }
     return null;
   }
 
@@ -152,8 +239,8 @@ function gerarLinhasRelatorioMensal(pedidosMes) {
   return { linhas, totalMes };
 }
 
-async function exportarPedidosMesExcel() {
-  const dadosMes = obterPedidosDoMesSelecionado();
+async function exportarPedidosMesExcel(empresasSelecionadas = []) {
+  const dadosMes = obterPedidosDoMesSelecionado(empresasSelecionadas);
   if (!dadosMes) return;
   const { mesSelecionado, pedidosMes } = dadosMes;
   const { linhas, totalMes } = gerarLinhasRelatorioMensal(pedidosMes);
@@ -291,8 +378,8 @@ async function exportarPedidosMesExcel() {
   alert(`Excel exportado com sucesso: ${linhas.length} pedidos | Total: ${formatarMoedaBR(totalMes)}`);
 }
 
-function exportarPedidosMesPDF() {
-  const dadosMes = obterPedidosDoMesSelecionado();
+function exportarPedidosMesPDF(empresasSelecionadas = []) {
+  const dadosMes = obterPedidosDoMesSelecionado(empresasSelecionadas);
   if (!dadosMes) return;
   const { mesSelecionado, pedidosMes } = dadosMes;
   const { linhas, totalMes } = gerarLinhasRelatorioMensal(pedidosMes);
@@ -424,10 +511,65 @@ document.addEventListener('DOMContentLoaded', () => {
     exportMesEl.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
   }
   const exportExcelBtn = document.getElementById('exportar-mes-excel-btn');
-  if (exportExcelBtn) exportExcelBtn.addEventListener('click', exportarPedidosMesExcel);
+  if (exportExcelBtn) {
+    exportExcelBtn.addEventListener('click', function() {
+      abrirModalExportacaoPorEmpresas('excel');
+    });
+  }
 
   const exportPdfBtn = document.getElementById('exportar-mes-pdf-btn');
-  if (exportPdfBtn) exportPdfBtn.addEventListener('click', exportarPedidosMesPDF);
+  if (exportPdfBtn) {
+    exportPdfBtn.addEventListener('click', function() {
+      abrirModalExportacaoPorEmpresas('pdf');
+    });
+  }
+
+  const fecharModalExportBtn = document.getElementById('fechar-modal-export-empresas');
+  if (fecharModalExportBtn) {
+    fecharModalExportBtn.addEventListener('click', fecharModalExportacaoPorEmpresas);
+  }
+
+  const cancelarModalExportBtn = document.getElementById('cancelar-modal-export-empresas');
+  if (cancelarModalExportBtn) {
+    cancelarModalExportBtn.addEventListener('click', fecharModalExportacaoPorEmpresas);
+  }
+
+  const selecionarTodasEmpresasBtn = document.getElementById('selecionar-todas-empresas-export');
+  if (selecionarTodasEmpresasBtn) {
+    selecionarTodasEmpresasBtn.addEventListener('click', function() {
+      alternarSelecaoEmpresasExportacao(true);
+    });
+  }
+
+  const limparEmpresasBtn = document.getElementById('limpar-empresas-export');
+  if (limparEmpresasBtn) {
+    limparEmpresasBtn.addEventListener('click', function() {
+      alternarSelecaoEmpresasExportacao(false);
+    });
+  }
+
+  const confirmarExportBtn = document.getElementById('confirmar-export-empresas');
+  if (confirmarExportBtn) {
+    confirmarExportBtn.addEventListener('click', confirmarExportacaoComEmpresas);
+  }
+
+  const modalExportEmpresas = document.getElementById('modal-export-empresas');
+  if (modalExportEmpresas) {
+    modalExportEmpresas.addEventListener('click', function(event) {
+      if (event.target === modalExportEmpresas) {
+        fecharModalExportacaoPorEmpresas();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      const modal = document.getElementById('modal-export-empresas');
+      if (modal && modal.style.display === 'flex') {
+        fecharModalExportacaoPorEmpresas();
+      }
+    }
+  });
 
   // Evento de submit do formulário de edição - DESABILITADO (usando editor-pedido.js)
   document.getElementById('form-editar-pedido').addEventListener('submit', async function (e) {
