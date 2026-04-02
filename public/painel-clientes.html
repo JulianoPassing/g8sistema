@@ -773,48 +773,15 @@
   </footer>
   <script>
     const API_URL = '/api/clientes';
-    const NOME_FANTASIA_STORAGE_KEY = 'clientes_nomes_fantasia';
     let clientes = [];
     let clientesFiltrados = [];
-    let nomesFantasiaPorCnpj = carregarNomesFantasiaStorage();
 
     function normalizarCnpj(cnpj) {
       return String(cnpj || '').replace(/\D/g, '');
     }
 
-    function carregarNomesFantasiaStorage() {
-      try {
-        const raw = localStorage.getItem(NOME_FANTASIA_STORAGE_KEY);
-        if (!raw) return {};
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === 'object' ? parsed : {};
-      } catch (error) {
-        console.warn('Falha ao carregar nomes fantasia do storage:', error);
-        return {};
-      }
-    }
-
-    function salvarNomesFantasiaStorage() {
-      localStorage.setItem(NOME_FANTASIA_STORAGE_KEY, JSON.stringify(nomesFantasiaPorCnpj));
-    }
-
     function obterNomeFantasia(cliente) {
-      const cnpjNormalizado = normalizarCnpj(cliente?.cnpj);
-      const nomeLocal = nomesFantasiaPorCnpj[cnpjNormalizado];
-      return (nomeLocal || cliente?.nome_fantasia || cliente?.fantasia || '').trim();
-    }
-
-    function definirNomeFantasiaPorCnpj(cnpj, nomeFantasia) {
-      const cnpjNormalizado = normalizarCnpj(cnpj);
-      const nome = String(nomeFantasia || '').trim();
-      if (!cnpjNormalizado) return;
-
-      if (!nome) {
-        delete nomesFantasiaPorCnpj[cnpjNormalizado];
-      } else {
-        nomesFantasiaPorCnpj[cnpjNormalizado] = nome;
-      }
-      salvarNomesFantasiaStorage();
+      return String(cliente?.nome_fantasia || cliente?.fantasia || '').trim();
     }
 
     async function buscarNomeFantasiaPorCnpj(cnpj) {
@@ -828,6 +795,35 @@
       } catch (erro) {
         console.warn(`Falha ao buscar nome fantasia para CNPJ ${cnpjNormalizado}:`, erro);
         return '';
+      }
+    }
+
+    async function atualizarClienteNomeFantasiaAPI(cliente, nomeFantasia) {
+      const payload = {
+        razao: cliente.razao || '',
+        nome_fantasia: nomeFantasia || '',
+        cnpj: cliente.cnpj || '',
+        ie: cliente.ie || '',
+        endereco: cliente.endereco || '',
+        bairro: cliente.bairro || '',
+        cidade: cliente.cidade || '',
+        estado: cliente.estado || '',
+        cep: cliente.cep || '',
+        email: cliente.email || '',
+        telefone: cliente.telefone || '',
+        transporte: cliente.transporte || '',
+        prazo: cliente.prazo || '',
+        obs: cliente.obs || ''
+      };
+
+      const response = await fetch(`${API_URL}/${cliente.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Falha ao atualizar cliente ${cliente.id}`);
       }
     }
 
@@ -856,8 +852,12 @@
       for (const cliente of pendentes) {
         const nomeFantasia = await buscarNomeFantasiaPorCnpj(cliente.cnpj);
         if (nomeFantasia) {
-          definirNomeFantasiaPorCnpj(cliente.cnpj, nomeFantasia);
-          atualizados += 1;
+          try {
+            await atualizarClienteNomeFantasiaAPI(cliente, nomeFantasia);
+            atualizados += 1;
+          } catch (erro) {
+            console.warn(`Nao foi possivel salvar nome fantasia para o cliente ${cliente.id}:`, erro);
+          }
         }
         // Pequeno intervalo para reduzir chance de bloqueio por taxa.
         await new Promise(resolve => setTimeout(resolve, 250));
@@ -865,7 +865,7 @@
 
       botao.disabled = false;
       botao.textContent = '🔎 Buscar Nome Fantasia';
-      renderTabela();
+      await carregarClientes();
       alert(`Busca finalizada. ${atualizados} nome(s) fantasia encontrado(s).`);
     }
     async function carregarClientes() {
@@ -1304,6 +1304,7 @@
       const nomeFantasiaInformado = document.getElementById('nome-fantasia').value;
       const cliente = {
         razao: document.getElementById('razao').value,
+        nome_fantasia: nomeFantasiaInformado,
         cnpj: document.getElementById('cnpj').value,
         ie: document.getElementById('ie').value,
         endereco: document.getElementById('endereco').value,
@@ -1317,8 +1318,6 @@
         prazo: document.getElementById('prazo').value,
         obs: document.getElementById('obs').value
       };
-
-      definirNomeFantasiaPorCnpj(cliente.cnpj, nomeFantasiaInformado);
       const id = document.getElementById('cliente-id').value;
       console.log('Tentando salvar cliente:', { id, cliente, API_URL });
       

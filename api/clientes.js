@@ -42,6 +42,25 @@ const logRequest = (req, additionalInfo = {}) => {
   console.log('API Request:', JSON.stringify(logData, null, 2));
 };
 
+const ensureNomeFantasiaColumn = async (connection) => {
+  const [columns] = await connection.execute(
+    `SELECT COLUMN_NAME
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND TABLE_NAME = 'clientes'
+       AND COLUMN_NAME = 'nome_fantasia'
+     LIMIT 1`
+  );
+
+  if (columns.length === 0) {
+    await connection.execute(
+      `ALTER TABLE clientes
+       ADD COLUMN nome_fantasia VARCHAR(255) NULL AFTER razao`
+    );
+    console.log('Coluna nome_fantasia criada na tabela clientes.');
+  }
+};
+
 module.exports = async (req, res) => {
   // Adicionar headers de segurança
   addSecurityHeaders(res);
@@ -77,6 +96,14 @@ module.exports = async (req, res) => {
   } catch (dbError) {
     console.log('Erro ao conectar com MySQL, usando arquivo JSON:', dbError.message);
     useJSON = true;
+  }
+
+  if (connection) {
+    try {
+      await ensureNomeFantasiaColumn(connection);
+    } catch (columnError) {
+      console.warn('Nao foi possivel validar/criar a coluna nome_fantasia:', columnError.message);
+    }
   }
 
   try {
@@ -118,13 +145,14 @@ module.exports = async (req, res) => {
       }
 
       const {
-        razao, cnpj, ie, endereco, bairro, cidade, estado, cep,
+        razao, nome_fantasia, cnpj, ie, endereco, bairro, cidade, estado, cep,
         email, telefone, transporte, prazo, obs
       } = req.body;
 
       // Sanitizar dados
       const sanitizedData = {
         razao: razao?.trim(),
+        nome_fantasia: nome_fantasia?.trim(),
         cnpj: cnpj?.replace(/\D/g, ''), // Remover caracteres não numéricos
         ie: ie?.trim(),
         endereco: endereco?.trim(),
@@ -140,8 +168,8 @@ module.exports = async (req, res) => {
       };
 
       const [result] = await connection.execute(
-        `INSERT INTO clientes (razao, cnpj, ie, endereco, bairro, cidade, estado, cep, email, telefone, transporte, prazo, obs)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO clientes (razao, nome_fantasia, cnpj, ie, endereco, bairro, cidade, estado, cep, email, telefone, transporte, prazo, obs)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         Object.values(sanitizedData)
       );
 
@@ -156,15 +184,15 @@ module.exports = async (req, res) => {
 
     if (req.method === 'PUT' && id) {
       const {
-        razao, cnpj, ie, endereco, bairro, cidade, estado, cep,
+        razao, nome_fantasia, cnpj, ie, endereco, bairro, cidade, estado, cep,
         email, telefone, transporte, prazo, obs
       } = req.body;
 
       console.log('Tentando atualizar cliente ID:', id);
 
       const [result] = await connection.execute(
-        `UPDATE clientes SET razao=?, cnpj=?, ie=?, endereco=?, bairro=?, cidade=?, estado=?, cep=?, email=?, telefone=?, transporte=?, prazo=?, obs=? WHERE id=?`,
-        [razao, cnpj, ie, endereco, bairro, cidade, estado, cep, email, telefone, transporte, prazo, obs, id]
+        `UPDATE clientes SET razao=?, nome_fantasia=?, cnpj=?, ie=?, endereco=?, bairro=?, cidade=?, estado=?, cep=?, email=?, telefone=?, transporte=?, prazo=?, obs=? WHERE id=?`,
+        [razao, nome_fantasia, cnpj, ie, endereco, bairro, cidade, estado, cep, email, telefone, transporte, prazo, obs, id]
       );
 
       if (result.affectedRows === 0) {
