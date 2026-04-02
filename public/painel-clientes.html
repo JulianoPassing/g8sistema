@@ -673,6 +673,10 @@
             <input type="text" id="razao" name="razao" required />
           </div>
           <div class="form-group">
+            <label for="nome-fantasia">Nome Fantasia (Loja)</label>
+            <input type="text" id="nome-fantasia" name="nome_fantasia" placeholder="Ex.: Dinho Motos" />
+          </div>
+          <div class="form-group">
             <label for="cnpj">CNPJ</label>
             <input type="text" id="cnpj" name="cnpj" required />
           </div>
@@ -732,6 +736,7 @@
       <div class="card-header">
         <h2>Lista de Clientes</h2>
         <div class="btn-group">
+          <button class="btn btn-warning" id="btn-buscar-fantasia">🔎 Buscar Nome Fantasia</button>
           <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
           <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
         </div>
@@ -750,6 +755,7 @@
             <tr>
               <th>ID</th>
               <th>Razão Social</th>
+              <th>Nome Fantasia</th>
               <th>CNPJ</th>
               <th>Cidade/UF</th>
               <th>Ações</th>
@@ -767,8 +773,101 @@
   </footer>
   <script>
     const API_URL = '/api/clientes';
+    const NOME_FANTASIA_STORAGE_KEY = 'clientes_nomes_fantasia';
     let clientes = [];
     let clientesFiltrados = [];
+    let nomesFantasiaPorCnpj = carregarNomesFantasiaStorage();
+
+    function normalizarCnpj(cnpj) {
+      return String(cnpj || '').replace(/\D/g, '');
+    }
+
+    function carregarNomesFantasiaStorage() {
+      try {
+        const raw = localStorage.getItem(NOME_FANTASIA_STORAGE_KEY);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (error) {
+        console.warn('Falha ao carregar nomes fantasia do storage:', error);
+        return {};
+      }
+    }
+
+    function salvarNomesFantasiaStorage() {
+      localStorage.setItem(NOME_FANTASIA_STORAGE_KEY, JSON.stringify(nomesFantasiaPorCnpj));
+    }
+
+    function obterNomeFantasia(cliente) {
+      const cnpjNormalizado = normalizarCnpj(cliente?.cnpj);
+      const nomeLocal = nomesFantasiaPorCnpj[cnpjNormalizado];
+      return (nomeLocal || cliente?.nome_fantasia || cliente?.fantasia || '').trim();
+    }
+
+    function definirNomeFantasiaPorCnpj(cnpj, nomeFantasia) {
+      const cnpjNormalizado = normalizarCnpj(cnpj);
+      const nome = String(nomeFantasia || '').trim();
+      if (!cnpjNormalizado) return;
+
+      if (!nome) {
+        delete nomesFantasiaPorCnpj[cnpjNormalizado];
+      } else {
+        nomesFantasiaPorCnpj[cnpjNormalizado] = nome;
+      }
+      salvarNomesFantasiaStorage();
+    }
+
+    async function buscarNomeFantasiaPorCnpj(cnpj) {
+      const cnpjNormalizado = normalizarCnpj(cnpj);
+      if (cnpjNormalizado.length !== 14) return '';
+      try {
+        const resposta = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjNormalizado}`);
+        if (!resposta.ok) return '';
+        const dados = await resposta.json();
+        return String(dados?.nome_fantasia || '').trim();
+      } catch (erro) {
+        console.warn(`Falha ao buscar nome fantasia para CNPJ ${cnpjNormalizado}:`, erro);
+        return '';
+      }
+    }
+
+    async function buscarNomesFantasiaClientes() {
+      const pendentes = (clientes || []).filter(cli => {
+        const cnpjNormalizado = normalizarCnpj(cli.cnpj);
+        return cnpjNormalizado.length === 14 && !obterNomeFantasia(cli);
+      });
+
+      if (pendentes.length === 0) {
+        alert('Todos os clientes já possuem nome fantasia no painel.');
+        return;
+      }
+
+      const confirmar = confirm(
+        `Serão consultados ${pendentes.length} clientes sem nome fantasia.\n` +
+        `Deseja continuar?`
+      );
+      if (!confirmar) return;
+
+      const botao = document.getElementById('btn-buscar-fantasia');
+      botao.disabled = true;
+      botao.textContent = '⏳ Pesquisando...';
+
+      let atualizados = 0;
+      for (const cliente of pendentes) {
+        const nomeFantasia = await buscarNomeFantasiaPorCnpj(cliente.cnpj);
+        if (nomeFantasia) {
+          definirNomeFantasiaPorCnpj(cliente.cnpj, nomeFantasia);
+          atualizados += 1;
+        }
+        // Pequeno intervalo para reduzir chance de bloqueio por taxa.
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+
+      botao.disabled = false;
+      botao.textContent = '🔎 Buscar Nome Fantasia';
+      renderTabela();
+      alert(`Busca finalizada. ${atualizados} nome(s) fantasia encontrado(s).`);
+    }
     async function carregarClientes() {
       try {
         console.log('Carregando clientes da API:', API_URL);
@@ -796,10 +895,12 @@
       tbody.innerHTML = '';
       cardsContainer.innerHTML = '';
       (clientesFiltrados || []).forEach(cli => {
+        const nomeFantasia = obterNomeFantasia(cli);
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${cli.id ?? ''}</td>
           <td>${cli.razao ?? ''}</td>
+          <td>${nomeFantasia || '-'}</td>
           <td>${cli.cnpj ?? ''}</td>
           <td>${cli.cidade ?? ''} / ${cli.estado ?? ''}</td>
           <td>
@@ -817,6 +918,7 @@
             <span class="cliente-card-id">#${cli.id ?? ''}</span>
           </div>
           <div class="cliente-card-info">
+            <span><strong>Loja:</strong> ${nomeFantasia || '-'}</span>
             <span><strong>CNPJ:</strong> ${cli.cnpj ?? ''}</span>
             <span><strong>Cidade/UF:</strong> ${cli.cidade ?? ''} / ${cli.estado ?? ''}</span>
           </div>
@@ -857,6 +959,7 @@
       } else {
         clientesFiltrados = clientes.filter(cli =>
           (cli.razao && String(cli.razao).toLowerCase().includes(termo)) ||
+          (obterNomeFantasia(cli) && String(obterNomeFantasia(cli)).toLowerCase().includes(termo)) ||
           (cli.cnpj && String(cli.cnpj).toLowerCase().includes(termo)) ||
           (cli.cidade && String(cli.cidade).toLowerCase().includes(termo)) ||
           (cli.estado && String(cli.estado).toLowerCase().includes(termo)) ||
@@ -878,7 +981,7 @@
       // Mostra até 8 sugestões
       const sugestoes = clientesFiltrados.slice(0, 8);
       ul.innerHTML = sugestoes.map(cli =>
-        `<li data-cnpj="${cli.cnpj}"><strong>${cli.razao}</strong><br><small>${cli.cnpj} - ${cli.cidade}/${cli.estado}</small></li>`
+        `<li data-cnpj="${cli.cnpj}"><strong>${cli.razao}</strong>${obterNomeFantasia(cli) ? `<br><small>Loja: ${obterNomeFantasia(cli)}</small>` : ''}<br><small>${cli.cnpj} - ${cli.cidade}/${cli.estado}</small></li>`
       ).join('');
       ul.classList.add('show');
     }
@@ -896,6 +999,7 @@
         window.location.href = 'index.html';
       }
       carregarClientes();
+      document.getElementById('btn-buscar-fantasia').onclick = buscarNomesFantasiaClientes;
       document.getElementById('btn-exportar-pdf').onclick = exportarClientesPDF;
       document.getElementById('btn-exportar-excel').onclick = exportarClientesExcel;
       // Busca em tempo real
@@ -986,12 +1090,13 @@
       
       // Tabela com todas as informações
       const head = [[
-        'ID', 'Razão Social', 'CNPJ', 'IE', 'Endereço', 'Bairro', 'Cidade', 'Estado', 'CEP', 'E-mail', 'Telefone', 'Transporte', 'Prazo', 'Observações'
+        'ID', 'Razão Social', 'Nome Fantasia', 'CNPJ', 'IE', 'Endereço', 'Bairro', 'Cidade', 'Estado', 'CEP', 'E-mail', 'Telefone', 'Transporte', 'Prazo', 'Observações'
       ]];
       
       const body = clientes.map(cli => [
         cli.id || '',
         cli.razao || '',
+        obterNomeFantasia(cli) || '',
         cli.cnpj || '',
         cli.ie || '',
         cli.endereco || '',
@@ -1022,18 +1127,19 @@
         columnStyles: {
           0: { cellWidth: 8 },   // ID
           1: { cellWidth: 35 },  // Razão Social
-          2: { cellWidth: 20 },  // CNPJ
-          3: { cellWidth: 15 },  // IE
-          4: { cellWidth: 30 },  // Endereço
-          5: { cellWidth: 20 },  // Bairro
-          6: { cellWidth: 20 },  // Cidade
-          7: { cellWidth: 12 },  // Estado
-          8: { cellWidth: 15 },  // CEP
-          9: { cellWidth: 25 },  // E-mail
-          10: { cellWidth: 20 }, // Telefone
-          11: { cellWidth: 20 }, // Transporte
-          12: { cellWidth: 15 }, // Prazo
-          13: { cellWidth: 25 }  // Observações
+          2: { cellWidth: 28 },  // Nome Fantasia
+          3: { cellWidth: 20 },  // CNPJ
+          4: { cellWidth: 15 },  // IE
+          5: { cellWidth: 30 },  // Endereço
+          6: { cellWidth: 20 },  // Bairro
+          7: { cellWidth: 20 },  // Cidade
+          8: { cellWidth: 12 },  // Estado
+          9: { cellWidth: 15 },  // CEP
+          10: { cellWidth: 25 }, // E-mail
+          11: { cellWidth: 20 }, // Telefone
+          12: { cellWidth: 20 }, // Transporte
+          13: { cellWidth: 15 }, // Prazo
+          14: { cellWidth: 25 }  // Observações
         },
         margin: { left: margin, right: margin },
         didDrawPage: function (data) {
@@ -1057,10 +1163,11 @@
       }
       
       const ws_data = [
-        ['ID', 'Razão Social', 'CNPJ', 'IE', 'Endereço', 'Bairro', 'Cidade', 'Estado', 'CEP', 'E-mail', 'Telefone', 'Transporte', 'Prazo', 'Observações'],
+        ['ID', 'Razão Social', 'Nome Fantasia', 'CNPJ', 'IE', 'Endereço', 'Bairro', 'Cidade', 'Estado', 'CEP', 'E-mail', 'Telefone', 'Transporte', 'Prazo', 'Observações'],
         ...clientes.map(cli => [
           cli.id || '',
           cli.razao || '',
+          obterNomeFantasia(cli) || '',
           cli.cnpj || '',
           cli.ie || '',
           cli.endereco || '',
@@ -1084,6 +1191,7 @@
       const colWidths = [
         { wch: 5 },   // ID
         { wch: 40 },  // Razão Social
+        { wch: 30 },  // Nome Fantasia
         { wch: 20 },  // CNPJ
         { wch: 15 },  // IE
         { wch: 35 },  // Endereço
@@ -1140,6 +1248,7 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;">
           <div><b>ID:</b><br>${cli.id ?? ''}</div>
           <div><b>Razão Social:</b><br>${cli.razao ?? ''}</div>
+          <div><b>Nome Fantasia:</b><br>${obterNomeFantasia(cli) || '-'}</div>
           <div><b>CNPJ:</b><br>${cli.cnpj ?? ''}</div>
           <div><b>IE:</b><br>${cli.ie ?? ''}</div>
           <div style="grid-column:1/3"><b>Endereço:</b><br>${cli.endereco ?? ''}</div>
@@ -1161,6 +1270,7 @@
     function preencherFormularioEdicao(cli) {
       document.getElementById('form-title').textContent = 'Editar Cliente';
       document.getElementById('razao').value = cli.razao || '';
+      document.getElementById('nome-fantasia').value = obterNomeFantasia(cli) || '';
       document.getElementById('cnpj').value = cli.cnpj || '';
       document.getElementById('ie').value = cli.ie || '';
       document.getElementById('endereco').value = cli.endereco || '';
@@ -1184,12 +1294,14 @@
     function limparFormulario() {
       document.getElementById('form-title').textContent = 'Cadastrar Novo Cliente';
       document.getElementById('cliente-form').reset();
+      document.getElementById('nome-fantasia').value = '';
       document.getElementById('cliente-id').value = '';
       document.getElementById('btn-cancelar').style.display = 'none';
     }
 
     document.getElementById('cliente-form').onsubmit = async function(e) {
       e.preventDefault();
+      const nomeFantasiaInformado = document.getElementById('nome-fantasia').value;
       const cliente = {
         razao: document.getElementById('razao').value,
         cnpj: document.getElementById('cnpj').value,
@@ -1205,6 +1317,8 @@
         prazo: document.getElementById('prazo').value,
         obs: document.getElementById('obs').value
       };
+
+      definirNomeFantasiaPorCnpj(cliente.cnpj, nomeFantasiaInformado);
       const id = document.getElementById('cliente-id').value;
       console.log('Tentando salvar cliente:', { id, cliente, API_URL });
       
