@@ -42,6 +42,63 @@ const logRequest = (req, additionalInfo = {}) => {
   console.log('API Request:', JSON.stringify(logData, null, 2));
 };
 
+const extrairQueryParam = (req, key) => {
+  try {
+    const urlObj = new URL(req.url || '/', 'http://localhost');
+    return urlObj.searchParams.get(key);
+  } catch (error) {
+    return null;
+  }
+};
+
+const fetchJsonComTimeout = async (url, timeoutMs = 8000) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (error) {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const limparRazaoParaNome = (razao = '') => {
+  if (!razao) return '';
+  return String(razao)
+    .replace(/\b(LTDA|EIRELI|MEI|ME|EPP|S\/A|SA)\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+-\s+/g, ' ')
+    .trim();
+};
+
+const buscarNomeFantasiaExterno = async (cnpj, razao = '') => {
+  const cnpjLimpo = String(cnpj || '').replace(/\D/g, '');
+  if (cnpjLimpo.length !== 14) {
+    return { nome_fantasia: '', fonte: 'cnpj-invalido' };
+  }
+
+  const brasilApi = await fetchJsonComTimeout(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`);
+  if (brasilApi?.nome_fantasia && String(brasilApi.nome_fantasia).trim()) {
+    return { nome_fantasia: String(brasilApi.nome_fantasia).trim(), fonte: 'brasilapi' };
+  }
+
+  const minhaReceita = await fetchJsonComTimeout(`https://minhareceita.org/${cnpjLimpo}`);
+  if (minhaReceita?.fantasia && String(minhaReceita.fantasia).trim()) {
+    return { nome_fantasia: String(minhaReceita.fantasia).trim(), fonte: 'minhareceita' };
+  }
+
+  const receitaWs = await fetchJsonComTimeout(`https://receitaws.com.br/v1/cnpj/${cnpjLimpo}`);
+  if (receitaWs?.fantasia && String(receitaWs.fantasia).trim()) {
+    return { nome_fantasia: String(receitaWs.fantasia).trim(), fonte: 'receitaws' };
+  }
+
+  const fallback = limparRazaoParaNome(razao);
+  return { nome_fantasia: fallback, fonte: fallback ? 'fallback-razao' : 'nao-encontrado' };
+};
+
 const ensureNomeFantasiaColumn = async (connection) => {
   const [columns] = await connection.execute(
     `SELECT COLUMN_NAME
@@ -133,6 +190,17 @@ module.exports = async (req, res) => {
     }
 
     console.log('ID final extraído:', id);
+
+    // GET dedicado para buscar nome fantasia em multiplas fontes por CNPJ
+    const cnpjConsulta = extrairQueryParam(req, 'cnpj_consulta');
+    const razaoConsulta = extrairQueryParam(req, 'razao');
+    if (req.method === 'GET' && cnpjConsulta) {
+      const resultado = await buscarNomeFantasiaExterno(cnpjConsulta, razaoConsulta || '');
+      return res.status(200).json({
+        cnpj: String(cnpjConsulta).replace(/\D/g, ''),
+        ...resultado
+      });
+    }
 
     if (req.method === 'POST') {
       // Validar dados de entrada

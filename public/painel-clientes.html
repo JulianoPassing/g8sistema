@@ -784,17 +784,21 @@
       return String(cliente?.nome_fantasia || cliente?.fantasia || '').trim();
     }
 
-    async function buscarNomeFantasiaPorCnpj(cnpj) {
+    async function buscarNomeFantasiaPorCnpj(cnpj, razao = '') {
       const cnpjNormalizado = normalizarCnpj(cnpj);
-      if (cnpjNormalizado.length !== 14) return '';
+      if (cnpjNormalizado.length !== 14) return { nome: '', fonte: 'cnpj-invalido' };
       try {
-        const resposta = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjNormalizado}`);
-        if (!resposta.ok) return '';
+        const urlBusca = `${API_URL}?cnpj_consulta=${cnpjNormalizado}&razao=${encodeURIComponent(razao || '')}`;
+        const resposta = await fetch(urlBusca);
+        if (!resposta.ok) return { nome: '', fonte: 'erro-api' };
         const dados = await resposta.json();
-        return String(dados?.nome_fantasia || '').trim();
+        return {
+          nome: String(dados?.nome_fantasia || '').trim(),
+          fonte: String(dados?.fonte || 'desconhecida')
+        };
       } catch (erro) {
         console.warn(`Falha ao buscar nome fantasia para CNPJ ${cnpjNormalizado}:`, erro);
-        return '';
+        return { nome: '', fonte: 'erro-requisicao' };
       }
     }
 
@@ -849,15 +853,20 @@
       botao.textContent = '⏳ Pesquisando...';
 
       let atualizados = 0;
+      let viaFallbackRazao = 0;
+      let naoEncontrados = 0;
       for (const cliente of pendentes) {
-        const nomeFantasia = await buscarNomeFantasiaPorCnpj(cliente.cnpj);
-        if (nomeFantasia) {
+        const resultado = await buscarNomeFantasiaPorCnpj(cliente.cnpj, cliente.razao);
+        if (resultado.nome) {
           try {
-            await atualizarClienteNomeFantasiaAPI(cliente, nomeFantasia);
+            await atualizarClienteNomeFantasiaAPI(cliente, resultado.nome);
             atualizados += 1;
+            if (resultado.fonte === 'fallback-razao') viaFallbackRazao += 1;
           } catch (erro) {
             console.warn(`Nao foi possivel salvar nome fantasia para o cliente ${cliente.id}:`, erro);
           }
+        } else {
+          naoEncontrados += 1;
         }
         // Pequeno intervalo para reduzir chance de bloqueio por taxa.
         await new Promise(resolve => setTimeout(resolve, 250));
@@ -866,7 +875,12 @@
       botao.disabled = false;
       botao.textContent = '🔎 Buscar Nome Fantasia';
       await carregarClientes();
-      alert(`Busca finalizada. ${atualizados} nome(s) fantasia encontrado(s).`);
+      alert(
+        `Busca finalizada.\n` +
+        `${atualizados} nome(s) fantasia salvo(s).\n` +
+        `${viaFallbackRazao} preenchido(s) por fallback da razao social.\n` +
+        `${naoEncontrados} sem resultado.`
+      );
     }
     async function carregarClientes() {
       try {
