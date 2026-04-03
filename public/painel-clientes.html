@@ -1238,16 +1238,67 @@
         return;
       }
 
-      const ws_data = [
-        ['Razao Social', 'Nome Fantasia', 'CNPJ', 'Cidade', 'Telefone'],
-        ...clientes.map(cli => [
-          cli.razao || '',
-          obterNomeFantasia(cli) || '',
-          cli.cnpj || '',
-          cli.cidade || '',
-          cli.telefone || ''
-        ])
-      ];
+      const normalizarTexto = (valor) =>
+        String(valor || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .trim()
+          .toLowerCase();
+
+      const cidadesDisponiveis = Array.from(
+        new Set((clientes || []).map(cli => String(cli.cidade || '').trim()).filter(Boolean))
+      ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+      const textoSugestao = cidadesDisponiveis.slice(0, 25).join(', ');
+      const filtroCidadeInput = prompt(
+        'Filtrar por cidade no Cad. Rapido?\n' +
+        'Deixe vazio para exportar todas agrupadas por cidade.\n\n' +
+        `Cidades (exemplos): ${textoSugestao}`
+      );
+
+      if (filtroCidadeInput === null) return;
+
+      const filtroCidade = String(filtroCidadeInput || '').trim();
+      const filtroNormalizado = normalizarTexto(filtroCidade);
+      const clientesBase = !filtroNormalizado
+        ? [...clientes]
+        : clientes.filter(cli => normalizarTexto(cli.cidade) === filtroNormalizado);
+
+      if (clientesBase.length === 0) {
+        alert('Nenhum cliente encontrado para a cidade informada.');
+        return;
+      }
+
+      const grupos = {};
+      clientesBase.forEach(cli => {
+        const cidade = String(cli.cidade || 'SEM CIDADE').trim() || 'SEM CIDADE';
+        if (!grupos[cidade]) grupos[cidade] = [];
+        grupos[cidade].push(cli);
+      });
+
+      const cidadesOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      const ws_data = [];
+
+      cidadesOrdenadas.forEach((cidade, idx) => {
+        ws_data.push([`CIDADE: ${cidade}`, '', '', '', '']);
+        ws_data.push(['Razao Social', 'Nome Fantasia', 'CNPJ', 'Cidade', 'Telefone']);
+
+        grupos[cidade]
+          .sort((a, b) => String(a.razao || '').localeCompare(String(b.razao || ''), 'pt-BR'))
+          .forEach(cli => {
+            ws_data.push([
+              cli.razao || '',
+              obterNomeFantasia(cli) || '',
+              cli.cnpj || '',
+              cli.cidade || '',
+              cli.telefone || ''
+            ]);
+          });
+
+        if (idx < cidadesOrdenadas.length - 1) {
+          ws_data.push(['', '', '', '', '']);
+        }
+      });
 
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
       ws['!cols'] = [
@@ -1262,7 +1313,8 @@
       XLSX.utils.book_append_sheet(wb, ws, 'Cadastro Rapido');
       const hoje = new Date();
       const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}-${(hoje.getMonth() + 1).toString().padStart(2, '0')}-${hoje.getFullYear()}`;
-      XLSX.writeFile(wb, `Cadastro_Rapido_Clientes_${dataAtual}.xlsx`);
+      const sufixoCidade = filtroCidade ? `_${filtroCidade.replace(/[^\w-]/g, '_')}` : '_Todas_Cidades';
+      XLSX.writeFile(wb, `Cadastro_Rapido_Clientes${sufixoCidade}_${dataAtual}.xlsx`);
     }
 
 
