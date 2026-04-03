@@ -737,6 +737,7 @@
         <h2>Lista de Clientes</h2>
         <div class="btn-group">
           <button class="btn btn-warning" id="btn-buscar-fantasia">🔎 Buscar Nome Fantasia</button>
+          <button class="btn btn-primary" id="btn-exportar-cadastro-rapido">⬇️ Cad. Rapido</button>
           <button class="btn btn-primary" id="btn-exportar-pdf">⬇️ Baixar PDF</button>
           <button class="btn btn-success" id="btn-exportar-excel">⬇️ Baixar Excel</button>
         </div>
@@ -1014,6 +1015,7 @@
       }
       carregarClientes();
       document.getElementById('btn-buscar-fantasia').onclick = buscarNomesFantasiaClientes;
+      document.getElementById('btn-exportar-cadastro-rapido').onclick = exportarCadastroRapidoExcel;
       document.getElementById('btn-exportar-pdf').onclick = exportarClientesPDF;
       document.getElementById('btn-exportar-excel').onclick = exportarClientesExcel;
       // Busca em tempo real
@@ -1228,6 +1230,39 @@
       XLSX.writeFile(wb, `Carteira_Clientes_${dataAtual}.xlsx`);
       
       console.log('Arquivo Excel gerado com sucesso!');
+    }
+
+    function exportarCadastroRapidoExcel() {
+      if (!clientes || clientes.length === 0) {
+        alert('Nenhum cliente encontrado para exportar.');
+        return;
+      }
+
+      const ws_data = [
+        ['Razao Social', 'Nome Fantasia', 'CNPJ', 'Cidade', 'Telefone'],
+        ...clientes.map(cli => [
+          cli.razao || '',
+          obterNomeFantasia(cli) || '',
+          cli.cnpj || '',
+          cli.cidade || '',
+          cli.telefone || ''
+        ])
+      ];
+
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      ws['!cols'] = [
+        { wch: 42 }, // Razao Social
+        { wch: 30 }, // Nome Fantasia
+        { wch: 20 }, // CNPJ
+        { wch: 22 }, // Cidade
+        { wch: 18 }  // Telefone
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Cadastro Rapido');
+      const hoje = new Date();
+      const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}-${(hoje.getMonth() + 1).toString().padStart(2, '0')}-${hoje.getFullYear()}`;
+      XLSX.writeFile(wb, `Cadastro_Rapido_Clientes_${dataAtual}.xlsx`);
     }
 
 
