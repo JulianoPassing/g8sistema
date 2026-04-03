@@ -1246,28 +1246,23 @@
       });
 
       const cidadesOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-      const ws_data = [];
-
-      cidadesOrdenadas.forEach((cidade, idx) => {
-        ws_data.push([`CIDADE: ${cidade}`, '', '', '', '']);
-        ws_data.push(['Razao Social', 'Nome Fantasia', 'CNPJ', 'Cidade', 'Telefone']);
-
+      const clientesOrdenados = [];
+      cidadesOrdenadas.forEach((cidade) => {
         grupos[cidade]
           .sort((a, b) => String(a.razao || '').localeCompare(String(b.razao || ''), 'pt-BR'))
-          .forEach(cli => {
-            ws_data.push([
-              cli.razao || '',
-              obterNomeFantasia(cli) || '',
-              cli.cnpj || '',
-              cli.cidade || '',
-              cli.telefone || ''
-            ]);
-          });
-
-        if (idx < cidadesOrdenadas.length - 1) {
-          ws_data.push(['', '', '', '', '']);
-        }
+          .forEach(cli => clientesOrdenados.push(cli));
       });
+
+      const ws_data = [
+        ['Razao Social', 'Nome Fantasia', 'CNPJ', 'Cidade', 'Telefone'],
+        ...clientesOrdenados.map(cli => [
+          cli.razao || '',
+          obterNomeFantasia(cli) || '',
+          cli.cnpj || '',
+          cli.cidade || '',
+          cli.telefone || ''
+        ])
+      ];
 
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
       ws['!cols'] = [
