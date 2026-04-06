@@ -1,6 +1,27 @@
 const mysql = require('mysql2/promise');
 const emailNotification = require('./notifications/email');
 
+function parseDadosJson(raw) {
+  if (!raw) return null;
+  try {
+    return typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch {
+    return null;
+  }
+}
+
+/** Coluna `enviado_producao` é opcional; senão usa `dados.enviado_producao`. Padrão 1 = legado (considerado enviado). */
+function resolveEnviadoProducao(row, dadosParsed) {
+  if (row.enviado_producao !== undefined && row.enviado_producao !== null) {
+    return row.enviado_producao === 1 || row.enviado_producao === true ? 1 : 0;
+  }
+  if (dadosParsed && dadosParsed.enviado_producao !== undefined && dadosParsed.enviado_producao !== null) {
+    const v = dadosParsed.enviado_producao;
+    return v === true || v === 1 || v === '1' ? 1 : 0;
+  }
+  return 1;
+}
+
 // Cache para prevenir operações duplicadas
 const operationCache = new Map();
 
@@ -106,21 +127,30 @@ module.exports = async (req, res) => {
         }
       }
       
-      // Garantir que não há valores undefined
       const empresaFinal = empresa !== undefined ? empresa : null;
       const descricaoFinal = descricao !== undefined ? descricao : null;
-      const dadosFinal = dados !== undefined ? JSON.stringify(dados) : JSON.stringify({});
-      
+
+      let dadosObj = {};
+      if (dados !== undefined) {
+        try {
+          dadosObj = typeof dados === 'string' ? JSON.parse(dados) : { ...dados };
+        } catch (e) {
+          dadosObj = {};
+        }
+      }
       const enviadoProducao =
         req.body && req.body.enviado_producao !== undefined && req.body.enviado_producao !== null
           ? req.body.enviado_producao === true || req.body.enviado_producao === 1 || req.body.enviado_producao === '1'
             ? 1
             : 0
           : 0;
+      dadosObj.enviado_producao = enviadoProducao;
+
+      const dadosFinal = JSON.stringify(dadosObj);
 
       const [result] = await connection.execute(
-        `INSERT INTO pedidos (empresa, descricao, dados, data_pedido, enviado_producao) VALUES (?, ?, ?, NOW(), ?)` ,
-        [empresaFinal, descricaoFinal, dadosFinal, enviadoProducao]
+        `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
+        [empresaFinal, descricaoFinal, dadosFinal]
       );
       
       // Enviar notificação por e-mail (await garante envio antes da resposta - importante em serverless/Vercel)
@@ -163,7 +193,7 @@ module.exports = async (req, res) => {
       
       // VERIFICAÇÃO CRÍTICA: Verificar se o pedido realmente existe antes de atualizar
       const [existingCheck] = await connection.execute(
-        'SELECT id, empresa, descricao FROM pedidos WHERE id = ?',
+        'SELECT id, empresa, descricao, dados FROM pedidos WHERE id = ?',
         [id]
       );
       
@@ -182,11 +212,26 @@ module.exports = async (req, res) => {
         return;
       }
       
-      // Garantir que não há valores undefined
       const empresaFinal = empresa !== undefined ? empresa : null;
       const descricaoFinal = descricao !== undefined ? descricao : null;
-      const dadosFinal = dados !== undefined ? JSON.stringify(dados) : JSON.stringify({});
-      
+
+      let dadosFinal;
+      if (dados !== undefined) {
+        let dadosObj = {};
+        try {
+          dadosObj = typeof dados === 'string' ? JSON.parse(dados) : { ...dados };
+        } catch (e) {
+          dadosObj = {};
+        }
+        const prevDados = parseDadosJson(existingCheck[0].dados);
+        if (prevDados && dadosObj.enviado_producao === undefined && prevDados.enviado_producao !== undefined) {
+          dadosObj.enviado_producao = prevDados.enviado_producao;
+        }
+        dadosFinal = JSON.stringify(dadosObj);
+      } else {
+        dadosFinal = JSON.stringify({});
+      }
+
       console.log(`🔄 [${operationId}] Executando UPDATE com parâmetros:`, {
         empresa: empresaFinal,
         descricao: descricaoFinal,
@@ -260,10 +305,18 @@ module.exports = async (req, res) => {
       }
       const enviadoVal =
         body.enviado_producao === true || body.enviado_producao === 1 || body.enviado_producao === '1' ? 1 : 0;
-      const [patchResult] = await connection.execute(
-        'UPDATE pedidos SET enviado_producao = ? WHERE id = ?',
-        [enviadoVal, id]
-      );
+
+      const [patchRows] = await connection.execute('SELECT id, dados FROM pedidos WHERE id = ?', [id]);
+      if (patchRows.length === 0) {
+        res.status(404).json({ error: 'Pedido não encontrado.' });
+        return;
+      }
+      let dadosPatch = parseDadosJson(patchRows[0].dados) || {};
+      dadosPatch.enviado_producao = enviadoVal;
+      const [patchResult] = await connection.execute('UPDATE pedidos SET dados = ? WHERE id = ?', [
+        JSON.stringify(dadosPatch),
+        id
+      ]);
       if (patchResult.affectedRows === 0) {
         res.status(404).json({ error: 'Pedido não encontrado.' });
         return;
@@ -274,11 +327,15 @@ module.exports = async (req, res) => {
 
     // GET - listar todos os pedidos
     const [rows] = await connection.execute('SELECT * FROM pedidos ORDER BY data_pedido DESC');
-    // Parse o campo dados para JSON, se existir
-    const pedidos = rows.map(row => ({
-      ...row,
-      dados: row.dados ? JSON.parse(row.dados) : null
-    }));
+    const pedidos = rows.map(row => {
+      const dadosParsed = parseDadosJson(row.dados);
+      const enviado_producao = resolveEnviadoProducao(row, dadosParsed);
+      return {
+        ...row,
+        dados: dadosParsed,
+        enviado_producao
+      };
+    });
     res.status(200).json(pedidos);
   } catch (err) {
     console.error('Erro na API de pedidos:', err);

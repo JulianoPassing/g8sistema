@@ -26,11 +26,12 @@ module.exports = async (req, res) => {
         ...dados,
         origem: 'b2b',
         clienteId: clienteId,
-        observacoes: observacoes || ''
+        observacoes: observacoes || '',
+        enviado_producao: 0
       };
       
       const [result] = await connection.execute(
-        `INSERT INTO pedidos (empresa, descricao, dados, data_pedido, enviado_producao) VALUES (?, ?, ?, NOW(), 0)`,
+        `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
         [empresa, descricao, JSON.stringify(dadosCompletos)]
       );
       
