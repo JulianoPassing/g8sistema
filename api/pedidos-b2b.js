@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
       };
       
       const [result] = await connection.execute(
-        `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
+        `INSERT INTO pedidos (empresa, descricao, dados, data_pedido, enviado_producao) VALUES (?, ?, ?, NOW(), 0)`,
         [empresa, descricao, JSON.stringify(dadosCompletos)]
       );
       

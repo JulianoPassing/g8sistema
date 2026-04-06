@@ -111,9 +111,16 @@ module.exports = async (req, res) => {
       const descricaoFinal = descricao !== undefined ? descricao : null;
       const dadosFinal = dados !== undefined ? JSON.stringify(dados) : JSON.stringify({});
       
+      const enviadoProducao =
+        req.body && req.body.enviado_producao !== undefined && req.body.enviado_producao !== null
+          ? req.body.enviado_producao === true || req.body.enviado_producao === 1 || req.body.enviado_producao === '1'
+            ? 1
+            : 0
+          : 0;
+
       const [result] = await connection.execute(
-        `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())` ,
-        [empresaFinal, descricaoFinal, dadosFinal]
+        `INSERT INTO pedidos (empresa, descricao, dados, data_pedido, enviado_producao) VALUES (?, ?, ?, NOW(), ?)` ,
+        [empresaFinal, descricaoFinal, dadosFinal, enviadoProducao]
       );
       
       // Enviar notificação por e-mail (await garante envio antes da resposta - importante em serverless/Vercel)
@@ -230,6 +237,38 @@ module.exports = async (req, res) => {
       }
       await connection.execute('DELETE FROM pedidos WHERE id = ?', [id]);
       res.status(200).json({ message: 'Pedido cancelado/removido com sucesso!' });
+      return;
+    }
+
+    if (req.method === 'PATCH') {
+      let body = req.body || {};
+      if (typeof req.body === 'string') {
+        try {
+          body = JSON.parse(req.body || '{}');
+        } catch (e) {
+          body = {};
+        }
+      }
+      const id = body.id;
+      if (!id) {
+        res.status(400).json({ error: 'ID do pedido é obrigatório.' });
+        return;
+      }
+      if (body.enviado_producao === undefined || body.enviado_producao === null) {
+        res.status(400).json({ error: 'enviado_producao é obrigatório (0 ou 1).' });
+        return;
+      }
+      const enviadoVal =
+        body.enviado_producao === true || body.enviado_producao === 1 || body.enviado_producao === '1' ? 1 : 0;
+      const [patchResult] = await connection.execute(
+        'UPDATE pedidos SET enviado_producao = ? WHERE id = ?',
+        [enviadoVal, id]
+      );
+      if (patchResult.affectedRows === 0) {
+        res.status(404).json({ error: 'Pedido não encontrado.' });
+        return;
+      }
+      res.status(200).json({ success: true, id, enviado_producao: enviadoVal });
       return;
     }
 

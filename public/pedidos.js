@@ -37,6 +37,23 @@ function formatarNomeEmpresaFiltro(empresa) {
   return empresaLower.toUpperCase();
 }
 
+/** Pedidos antigos sem coluna no banco são tratados como já enviados para produção. */
+function normalizarEnvioProducao(pedidos) {
+  if (!Array.isArray(pedidos)) return;
+  pedidos.forEach(p => {
+    if (p.enviado_producao === undefined || p.enviado_producao === null) {
+      p.enviado_producao = 1;
+    } else if (typeof p.enviado_producao === 'boolean') {
+      p.enviado_producao = p.enviado_producao ? 1 : 0;
+    }
+  });
+}
+
+function isPedidoEnviadoProducao(p) {
+  const v = p.enviado_producao;
+  return v === 1 || v === true || v === '1';
+}
+
 function abrirModalExportacaoPorEmpresas(tipo) {
   const dadosMes = obterPedidosDoMesSelecionado();
   if (!dadosMes) return;
@@ -475,6 +492,13 @@ document.addEventListener('DOMContentLoaded', () => {
     filtrarPedidos();
   });
 
+  const filtroEnvioEl = document.getElementById('filtro-envio-producao');
+  if (filtroEnvioEl) {
+    filtroEnvioEl.addEventListener('change', function() {
+      filtrarPedidos();
+    });
+  }
+
   const exportMesEl = document.getElementById('export-mes');
   if (exportMesEl) {
     const hoje = new Date();
@@ -582,248 +606,10 @@ async function carregarPedidos() {
       return;
     }
     
-    // Armazenar todos os pedidos na variável global
     todosPedidos = pedidos;
-    // Função para extrair informações do pedido
-    function extrairInfoPedido(descricao, dados) {
-      console.log('📋 Descrição do pedido:', descricao); // Debug
-      console.log('📋 Dados do pedido:', dados); // Debug
-      
-      const info = {
-        cliente: 'N/A',
-        itens: [],
-        total: 'R$ 0,00'
-      };
-      
-      // Parse dos dados se for string JSON
-      let dadosParsed = dados;
-      if (typeof dados === 'string') {
-        try {
-          dadosParsed = JSON.parse(dados);
-          console.log('📋 Dados parseados:', dadosParsed);
-        } catch (e) {
-          console.log('❌ Erro ao parsear dados:', e);
-          dadosParsed = null;
-        }
-      }
-      
-    // Se tem dados estruturados (pedidos B2B, Distribuição, etc), usar eles primeiro
-    if (dadosParsed && dadosParsed.cliente) {
-      info.cliente = dadosParsed.cliente.razao || dadosParsed.cliente.nome || 'N/A';
-      
-      if (dadosParsed.itens && Array.isArray(dadosParsed.itens)) {
-        info.itens = dadosParsed.itens.map(item => {
-          const ref = item.REFERENCIA || item.ref || item.REF || '';
-          const qtd = item.quantidade || 0;
-          const tam = item.tamanho || '';
-          const cor = item.cor || '';
-          
-          let itemStr = `${ref} x${qtd}`;
-          if (tam) itemStr += ` - T:${tam}`;
-          if (cor) itemStr += ` - C:${cor}`;
-          
-          return itemStr;
-        });
-      }
-      
-      // Para pedidos da distribuição, o total está em dadosParsed.total
-      if (dadosParsed.total !== undefined && dadosParsed.total !== null) {
-        info.total = `R$ ${parseFloat(dadosParsed.total).toFixed(2)}`;
-      }
-      
-      console.log('✅ Informações extraídas dos dados estruturados:', info);
-      return info;
-    }
-      
-      // Fallback: extrair da descrição (pedidos antigos)
-      // Extrair cliente - versões mais flexíveis da regex
-      let clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Itens?:)/i);
-      if (!clienteMatch) {
-        clienteMatch = descricao.match(/Cliente:\s*([^I]+?)(?:\s+Item)/i);
-      }
-      if (!clienteMatch) {
-        clienteMatch = descricao.match(/Cliente:\s*(.+?)(?:\s+Itens)/i);
-      }
-      if (!clienteMatch) {
-        // Tentar extrair tudo após "Cliente:" até encontrar "Itens" ou similar
-        clienteMatch = descricao.match(/Cliente:\s*(.+?)(?=\s+(?:Itens?|Total))/i);
-      }
-      
-      if (clienteMatch) {
-        info.cliente = clienteMatch[1].trim();
-        console.log('👤 Cliente extraído:', info.cliente); // Debug
-      } else {
-        console.log('❌ Não foi possível extrair o cliente'); // Debug
-      }
-      
-      // Extrair itens - mais flexível
-      let itensMatch = descricao.match(/Itens?:\s*([^T]+?)(?:\s+Total:)/i);
-      if (!itensMatch) {
-        itensMatch = descricao.match(/Itens?:\s*(.+?)(?:\s+Total)/i);
-      }
-      
-      if (itensMatch) {
-        const itensStr = itensMatch[1].trim();
-        info.itens = itensStr.split(', ').filter(item => item.trim());
-        console.log('📦 Itens extraídos:', info.itens.length); // Debug
-      }
-      
-      // Extrair total - mais flexível
-      let totalMatch = descricao.match(/Total:\s*(R\$\s*[\d.,]+)/i);
-      if (!totalMatch) {
-        totalMatch = descricao.match(/Total:\s*([\d.,]+)/i);
-      }
-      
-      if (totalMatch) {
-        info.total = totalMatch[1].includes('R$') ? totalMatch[1] : `R$ ${totalMatch[1]}`;
-        console.log('💰 Total extraído:', info.total); // Debug
-      }
-      
-      return info;
-    }
-
-    // Função para formatar data
-
-    // Ordenar pedidos do ID mais alto para o mais baixo
-    pedidos.sort((a, b) => parseInt(b.id) - parseInt(a.id));
-
-    let html = '<div class="pedidos-grid">';
-    for (const pedido of pedidos) {
-      // Debug temporário para pedidos da distribuição
-      if (pedido.empresa === 'distribuicao') {
-        console.log('🔍 === PEDIDO DISTRIBUIÇÃO DEBUG ===');
-        console.log('ID:', pedido.id);
-        console.log('Empresa:', pedido.empresa);
-        console.log('Descrição:', pedido.descricao);
-        console.log('Dados (raw):', pedido.dados);
-        console.log('Tipo dos dados:', typeof pedido.dados);
-        console.log('Dados tem cliente?', !!pedido.dados?.cliente);
-        console.log('Dados tem itens?', !!pedido.dados?.itens);
-        console.log('Dados tem total?', pedido.dados?.total !== undefined);
-      }
-      
-      let info = extrairInfoPedido(pedido.descricao, pedido.dados);
-      
-      // Verificar se é um pedido B2B ou Distribuição
-      let isB2B = false;
-      let isDistribuicao = false;
-      let clienteB2BInfo = null;
-      
-      // Verificar se é pedido B2B pelo campo empresa
-      if (pedido.empresa && pedido.empresa.startsWith('b2b-')) {
-        isB2B = true;
-      }
-      
-      // Verificar se é pedido Distribuição pelo campo empresa
-      if (pedido.empresa && pedido.empresa === 'distribuicao') {
-        isDistribuicao = true;
-      }
-      
-      if (pedido.dados) {
-        try {
-          const dados = typeof pedido.dados === 'string' ? JSON.parse(pedido.dados) : pedido.dados;
-          
-          // Verificar se é pedido B2B pelos dados também
-          if (dados.origem && dados.origem.includes('B2B')) {
-            isB2B = true;
-            clienteB2BInfo = dados.clienteInfo;
-            
-            // Para pedidos B2B, usar as informações do cliente B2B
-            if (clienteB2BInfo && clienteB2BInfo.razao) {
-              info.cliente = clienteB2BInfo.razao;
-            }
-          }
-          
-          // Verificar se é pedido Distribuição pelos dados
-          if (dados.origem && dados.origem.includes('Loja Distribuição')) {
-            isDistribuicao = true;
-            
-            // Para pedidos Distribuição, usar as informações do cliente
-            if (dados.cliente && dados.cliente.razao) {
-              info.cliente = dados.cliente.razao;
-            }
-          }
-          
-          // Se não conseguiu extrair o cliente da descrição, tentar dos dados estruturados
-          if (info.cliente === 'N/A') {
-            if (dados.cliente && dados.cliente.nome) {
-              info.cliente = dados.cliente.nome;
-              console.log('👤 Cliente extraído dos dados estruturados:', info.cliente);
-            } else if (dados.cliente && typeof dados.cliente === 'string') {
-              info.cliente = dados.cliente;
-              console.log('👤 Cliente extraído dos dados (string):', info.cliente);
-            }
-          }
-        } catch (e) {
-          console.log('❌ Erro ao parsear dados do pedido:', e);
-        }
-      }
-      
-      const dataFormatada = formatarData(pedido.data_pedido);
-      
-      html += `
-        <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''} ${isDistribuicao ? 'pedido-distribuicao' : ''}" data-pedido-id="${pedido.id}">
-          <div class="pedido-header">
-            <div class="pedido-id-badge">
-              <span class="id-label">Pedido</span>
-              <span class="id-number">#${pedido.id}</span>
-            </div>
-            <div class="pedido-badges">
-              <div class="pedido-empresa-badge">
-                <span class="empresa-name">${isDistribuicao ? 'DISTRIBUIÇÃO' : (isB2B ? pedido.empresa.toUpperCase() : pedido.empresa.toUpperCase())}</span>
-              </div>
-              ${isB2B ? '<div class="pedido-b2b-badge"><span class="b2b-label">🌐 B2B</span></div>' : ''}
-              ${isDistribuicao ? '<div class="pedido-distribuicao-badge"><span class="distribuicao-label">🛒 LOJA</span></div>' : ''}
-            </div>
-          </div>
-          
-          <div class="pedido-body">
-            <div class="cliente-info">
-              <div class="info-label">👤 Cliente</div>
-              <div class="info-value cliente-name">${info.cliente}</div>
-            </div>
-            
-            <div class="itens-info">
-              <div class="info-label">📦 Itens (${info.itens.length})</div>
-              <div class="itens-container">
-                ${info.itens.slice(0, 6).map(item => `<span class="item-badge">${item}</span>`).join('')}
-                ${info.itens.length > 6 ? `<span class="item-badge more">+${info.itens.length - 6} mais</span>` : ''}
-              </div>
-            </div>
-            
-            <div class="valor-info">
-              <div class="info-label">💰 Valor Total</div>
-              <div class="info-value valor-total">${info.total}</div>
-            </div>
-            
-            <div class="data-info">
-              <div class="info-label">📅 Data do Pedido</div>
-              <div class="info-value data-pedido">${dataFormatada}</div>
-            </div>
-          </div>
-          
-          <div class="pedido-actions">
-            <button class="btn-action btn-view" onclick="visualizarPDFPedido(${pedido.id})">
-              👁️ Visualizar
-            </button>
-            <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
-              ✏️ Editar
-            </button>
-            <button class="btn-action btn-duplicate" onclick="duplicarPedido(${pedido.id})">
-              📋 Duplicar
-            </button>
-            <button class="btn-action btn-delete" onclick="excluirPedido(${pedido.id})">
-              🗑️ Excluir
-            </button>
-          </div>
-        </div>
-      `;
-    }
-    html += '</div>';
-    lista.innerHTML = html;
-    
-    // Atualizar contador de resultados
-    atualizarContadorResultados(pedidos.length);
+    todosPedidos.sort((a, b) => parseInt(b.id, 10) - parseInt(a.id, 10));
+    normalizarEnvioProducao(todosPedidos);
+    filtrarPedidos();
   } catch (err) {
     lista.innerHTML = '<p>Erro ao carregar pedidos.</p>';
     todosPedidos = [];
@@ -835,13 +621,21 @@ async function carregarPedidos() {
 function filtrarPedidos() {
   const termoBusca = document.getElementById('busca-pedidos')?.value || '';
   const termo = termoBusca.toLowerCase().trim();
+  const filtroEnvio = document.getElementById('filtro-envio-producao')?.value || 'todos';
+
+  let base = todosPedidos;
+  if (filtroEnvio === 'enviado') {
+    base = base.filter(p => isPedidoEnviadoProducao(p));
+  } else if (filtroEnvio === 'pendente') {
+    base = base.filter(p => !isPedidoEnviadoProducao(p));
+  }
 
   if (!termo) {
-    renderizarPedidos(todosPedidos);
+    renderizarPedidos(base);
     return;
   }
 
-  const pedidosFiltrados = todosPedidos.filter(pedido => {
+  const pedidosFiltrados = base.filter(pedido => {
     // Buscar por ID
     if (pedido.id.toString().includes(termo)) {
       return true;
@@ -1073,9 +867,13 @@ function renderizarPedidos(pedidos) {
     }
     
     const dataFormatada = formatarData(pedido.data_pedido);
-    
+    const enviadoProducao = isPedidoEnviadoProducao(pedido);
+    const badgeEnvioProducao = enviadoProducao
+      ? '<div class="pedido-enviado-badge" title="Pedido enviado para produção"><span class="envio-label">ENVIADO</span></div>'
+      : '<div class="pedido-pendente-envio-badge" title="Ainda não enviado para produção"><span class="envio-label">NÃO ENVIADO</span></div>';
+
     html += `
-      <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''} ${isDistribuicao ? 'pedido-distribuicao' : ''}">
+      <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''} ${isDistribuicao ? 'pedido-distribuicao' : ''}" data-pedido-id="${pedido.id}">
         <div class="pedido-header">
           <div class="pedido-id-badge">
             <span class="id-label">Pedido</span>
@@ -1085,6 +883,7 @@ function renderizarPedidos(pedidos) {
             <div class="pedido-empresa-badge">
               <span class="empresa-name">${isDistribuicao ? 'DISTRIBUIÇÃO' : (isB2B ? pedido.empresa.toUpperCase() : pedido.empresa.toUpperCase())}</span>
             </div>
+            ${badgeEnvioProducao}
             ${isB2B ? '<div class="pedido-b2b-badge"><span class="b2b-label">🌐 B2B</span></div>' : ''}
             ${isDistribuicao ? '<div class="pedido-distribuicao-badge"><span class="distribuicao-label">🛒 LOJA</span></div>' : ''}
           </div>
@@ -1115,7 +914,10 @@ function renderizarPedidos(pedidos) {
           </div>
         </div>
         
-        <div class="pedido-actions">
+          <div class="pedido-actions">
+          <button type="button" class="btn-action btn-toggle-envio" onclick="alternarEnvioProducao(${pedido.id})" title="Alternar envio para produção">
+            ${enviadoProducao ? '↩ Desmarcar envio' : '✓ Marcar ENVIADO'}
+          </button>
           <button class="btn-action btn-view" onclick="visualizarPDFPedido(${pedido.id})">
             👁️ Visualizar
           </button>
@@ -1138,6 +940,32 @@ function renderizarPedidos(pedidos) {
   // Atualizar contador de resultados
   atualizarContadorResultados(pedidos.length);
 }
+
+window.alternarEnvioProducao = async function(pedidoId) {
+  const pedido = todosPedidos.find(p => String(p.id) === String(pedidoId));
+  if (!pedido) {
+    alert('Pedido não encontrado.');
+    return;
+  }
+  const novo = isPedidoEnviadoProducao(pedido) ? 0 : 1;
+  try {
+    const resp = await fetch('/api/pedidos', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: pedidoId, enviado_producao: novo })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      alert(data.error || 'Não foi possível atualizar o status. Verifique se o banco tem a coluna enviado_producao.');
+      return;
+    }
+    pedido.enviado_producao = novo;
+    filtrarPedidos();
+  } catch (e) {
+    console.error(e);
+    alert('Erro de rede ao atualizar o status.');
+  }
+};
 
 // Função para atualizar o contador de resultados
 function atualizarContadorResultados(total) {
