@@ -1268,7 +1268,7 @@
       const ws_data = [];
       cidadesOrdenadas.forEach((cidadeNormalizada, index) => {
         const cidadeExibicao = cidadeParaExibicao(cidadeNormalizada);
-        ws_data.push([cidadeExibicao]);
+        ws_data.push([cidadeExibicao, '']);
 
         const clientesDaCidade = clientesPorCidade[cidadeNormalizada]
           .slice()
@@ -1276,6 +1276,7 @@
 
         clientesDaCidade.forEach((cli) => {
           ws_data.push([
+            '',
             [
               cli.razao || '',
               obterNomeFantasia(cli) || '',
@@ -1287,13 +1288,14 @@
         });
 
         if (index < cidadesOrdenadas.length - 1) {
-          ws_data.push(['']);
+          ws_data.push(['', '']);
         }
       });
 
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
       ws['!cols'] = [
-        { wch: 120 } // Bloco por cidade e clientes
+        { wch: 28 },  // Cidade
+        { wch: 120 }  // Clientes
       ];
 
       const wb = XLSX.utils.book_new();
