@@ -1247,12 +1247,11 @@
 
       const cidadesOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
-      const headerDados = ['Razao Social', 'Nome Fantasia', 'CNPJ', 'Cidade', 'Telefone'];
+      const headerDados = ['RAZAO', 'NOME FANTASIA', 'CNPJ', 'CIDADE', 'TELEFONE'];
       const ws_data = [];
       cidadesOrdenadas.forEach((cidade, idx) => {
         if (idx > 0) ws_data.push([]);
-        ws_data.push(['cidade', cidade]);
-        ws_data.push(['clientes', '']);
+        ws_data.push([cidade]);
         ws_data.push(headerDados);
         grupos[cidade]
           .sort((a, b) => String(a.razao || '').localeCompare(String(b.razao || ''), 'pt-BR'))
