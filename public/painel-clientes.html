@@ -1250,39 +1250,50 @@
       };
 
       const cidadeParaExibicao = (cidadeNormalizada) => {
-        if (cidadeNormalizada === 'SEM CIDADE') return 'Sem cidade';
-        return cidadeNormalizada
-          .toLowerCase()
-          .split(' ')
-          .map(parte => parte ? (parte.charAt(0).toUpperCase() + parte.slice(1)) : parte)
-          .join(' ');
+        if (cidadeNormalizada === 'SEM CIDADE') return 'SEM CIDADE';
+        return cidadeNormalizada;
       };
 
-      const contagemPorCidade = {};
+      const clientesPorCidade = {};
       clientes.forEach((cli) => {
         const chaveCidade = normalizarCidade(cli.cidade);
-        if (!contagemPorCidade[chaveCidade]) {
-          contagemPorCidade[chaveCidade] = 0;
+        if (!clientesPorCidade[chaveCidade]) {
+          clientesPorCidade[chaveCidade] = [];
         }
-        contagemPorCidade[chaveCidade] += 1;
+        clientesPorCidade[chaveCidade].push(cli);
       });
 
-      const linhasResumo = Object.entries(contagemPorCidade)
-        .sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'))
-        .map(([cidadeNormalizada, totalClientes]) => [
-          cidadeParaExibicao(cidadeNormalizada),
-          totalClientes
-        ]);
+      const cidadesOrdenadas = Object.keys(clientesPorCidade).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
-      const ws_data = [
-        ['Cidade', 'Clientes'],
-        ...linhasResumo
-      ];
+      const ws_data = [];
+      cidadesOrdenadas.forEach((cidadeNormalizada, index) => {
+        const cidadeExibicao = cidadeParaExibicao(cidadeNormalizada);
+        ws_data.push([cidadeExibicao]);
+
+        const clientesDaCidade = clientesPorCidade[cidadeNormalizada]
+          .slice()
+          .sort((a, b) => String(a.razao || '').localeCompare(String(b.razao || ''), 'pt-BR'));
+
+        clientesDaCidade.forEach((cli) => {
+          ws_data.push([
+            [
+              cli.razao || '',
+              obterNomeFantasia(cli) || '',
+              cli.cnpj || '',
+              cidadeExibicao,
+              cli.telefone || ''
+            ].join(' - ')
+          ]);
+        });
+
+        if (index < cidadesOrdenadas.length - 1) {
+          ws_data.push(['']);
+        }
+      });
 
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
       ws['!cols'] = [
-        { wch: 28 }, // Cidade
-        { wch: 12 }  // Clientes
+        { wch: 120 } // Bloco por cidade e clientes
       ];
 
       const wb = XLSX.utils.book_new();
