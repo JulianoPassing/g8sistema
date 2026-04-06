@@ -1247,7 +1247,7 @@
 
       const cidadesOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
-      const headerDados = ['RAZAO', 'NOME FANTASIA', 'CNPJ', 'CIDADE', 'TELEFONE'];
+      const headerDados = ['RAZAO', 'NOME FANTASIA', 'CNPJ', 'TELEFONE'];
       const ws_data = [];
       cidadesOrdenadas.forEach((cidade, idx) => {
         if (idx > 0) ws_data.push([]);
@@ -1260,7 +1260,6 @@
               cli.razao || '',
               obterNomeFantasia(cli) || '',
               cli.cnpj || '',
-              cli.cidade || '',
               cli.telefone || ''
             ]);
           });
@@ -1268,10 +1267,9 @@
 
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
       ws['!cols'] = [
-        { wch: 42 }, // Razao Social
+        { wch: 42 }, // Razao
         { wch: 30 }, // Nome Fantasia
         { wch: 20 }, // CNPJ
-        { wch: 22 }, // Cidade
         { wch: 18 }  // Telefone
       ];
 
