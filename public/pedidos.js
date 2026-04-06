@@ -250,13 +250,15 @@ function gerarLinhasRelatorioMensal(pedidosMes) {
   pedidosMes.forEach((pedido) => {
     const info = obterDadosPedidoNormalizados(pedido);
     totalMes += info.total;
+    const envioProducao = isPedidoEnviadoProducao(pedido) ? 'ENVIADO' : 'NÃO ENVIADO';
     linhas.push({
       id: pedido.id ?? '',
       data: formatarData(pedido.data_pedido),
       empresa: (pedido.empresa || '').toUpperCase(),
       cliente: String(info.cliente || ''),
       qtdItens: info.qtdItens || 0,
-      total: info.total
+      total: info.total,
+      envioProducao
     });
   });
 
@@ -277,19 +279,19 @@ async function exportarPedidosMesExcel(empresasSelecionadas = []) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Pedidos');
 
-  worksheet.mergeCells('A1:F1');
+  worksheet.mergeCells('A1:G1');
   worksheet.getCell('A1').value = `Relatório de Pedidos - ${mesSelecionado}`;
   worksheet.getCell('A1').font = { bold: true, size: 14, color: { argb: 'FF1F2937' } };
   worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
   worksheet.getRow(1).height = 26;
 
-  worksheet.mergeCells('A2:F2');
+  worksheet.mergeCells('A2:G2');
   worksheet.getCell('A2').value = `Gerado em: ${new Date().toLocaleString('pt-BR')}`;
   worksheet.getCell('A2').font = { italic: true, size: 10, color: { argb: 'FF64748B' } };
   worksheet.getCell('A2').alignment = { horizontal: 'center' };
 
   const cabecalhoLinha = 4;
-  const cabecalhos = ['ID', 'Data', 'Empresa', 'Cliente', 'Qtd Itens', 'Total (R$)'];
+  const cabecalhos = ['ID', 'Data', 'Empresa', 'Cliente', 'Qtd Itens', 'Total (R$)', 'Produção'];
   worksheet.addRow([]);
   worksheet.addRow(cabecalhos);
 
@@ -318,7 +320,8 @@ async function exportarPedidosMesExcel(empresasSelecionadas = []) {
       item.empresa,
       item.cliente,
       item.qtdItens,
-      item.total
+      item.total,
+      item.envioProducao
     ]);
   });
 
@@ -335,6 +338,13 @@ async function exportarPedidosMesExcel(empresasSelecionadas = []) {
     row.getCell(5).alignment = { horizontal: 'center' };
     row.getCell(6).alignment = { horizontal: 'right' };
     row.getCell(6).numFmt = '#,##0.00';
+    row.getCell(7).alignment = { horizontal: 'center' };
+    const st = row.getCell(7).value;
+    if (st === 'NÃO ENVIADO') {
+      row.getCell(7).font = { bold: true, color: { argb: 'FF9A3412' } };
+    } else if (st === 'ENVIADO') {
+      row.getCell(7).font = { color: { argb: 'FF047857' } };
+    }
 
     row.eachCell((cell) => {
       cell.border = {
@@ -355,14 +365,14 @@ async function exportarPedidosMesExcel(empresasSelecionadas = []) {
 
   const totalRowIdx = fimDados + 2;
   worksheet.getCell(`A${totalRowIdx}`).value = 'TOTAL DO MÊS';
-  worksheet.mergeCells(`A${totalRowIdx}:E${totalRowIdx}`);
-  worksheet.getCell(`F${totalRowIdx}`).value = totalMes;
-  worksheet.getCell(`F${totalRowIdx}`).numFmt = '#,##0.00';
+  worksheet.mergeCells(`A${totalRowIdx}:F${totalRowIdx}`);
+  worksheet.getCell(`G${totalRowIdx}`).value = totalMes;
+  worksheet.getCell(`G${totalRowIdx}`).numFmt = '#,##0.00';
 
   worksheet.getRow(totalRowIdx).font = { bold: true, size: 12 };
   worksheet.getCell(`A${totalRowIdx}`).alignment = { horizontal: 'right' };
-  worksheet.getCell(`F${totalRowIdx}`).alignment = { horizontal: 'right' };
-  ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col) => {
+  worksheet.getCell(`G${totalRowIdx}`).alignment = { horizontal: 'right' };
+  ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach((col) => {
     const cell = worksheet.getCell(`${col}${totalRowIdx}`);
     cell.fill = {
       type: 'pattern',
@@ -381,8 +391,9 @@ async function exportarPedidosMesExcel(empresasSelecionadas = []) {
     { width: 8 },
     { width: 14 },
     { width: 20 },
-    { width: 40 },
+    { width: 36 },
     { width: 12 },
+    { width: 14 },
     { width: 16 }
   ];
 
@@ -408,96 +419,155 @@ function exportarPedidosMesPDF(empresasSelecionadas = []) {
   const { mesSelecionado, pedidosMes } = dadosMes;
   const { linhas, totalMes } = gerarLinhasRelatorioMensal(pedidosMes);
 
+  const qtdEnviados = linhas.filter((l) => l.envioProducao === 'ENVIADO').length;
+  const qtdNaoEnviados = linhas.filter((l) => l.envioProducao === 'NÃO ENVIADO').length;
+  const somaValorEnviados = linhas
+    .filter((l) => l.envioProducao === 'ENVIADO')
+    .reduce((acc, l) => acc + (Number(l.total) || 0), 0);
+  const somaValorNaoEnviados = linhas
+    .filter((l) => l.envioProducao === 'NÃO ENVIADO')
+    .reduce((acc, l) => acc + (Number(l.total) || 0), 0);
+
   if (!window.jspdf) {
     alert('Biblioteca de PDF não carregada. Tente recarregar a página.');
     return;
   }
 
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'mm', 'a4');
+  const doc = new jsPDF('l', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 15;
+  const margin = 12;
 
   const drawHeaderAndFooter = (data) => {
     doc.setDrawColor(148, 163, 184);
     doc.setFillColor(248, 250, 252);
-    doc.roundedRect(margin, 10, 58, 15, 2, 2, 'FD');
-    doc.setFontSize(12);
+    doc.roundedRect(margin, 8, 52, 14, 2, 2, 'FD');
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('G8 Sistema de Pedidos', margin + 29, 19, { align: 'center' });
-    doc.setFontSize(16);
+    doc.setTextColor(30, 41, 59);
+    doc.text('G8 Sistema de Pedidos', margin + 26, 16, { align: 'center' });
+    doc.setFontSize(15);
     doc.setFont('helvetica', 'bold');
-    doc.text('Relatório Mensal de Pedidos', pageWidth - margin, 18, { align: 'right' });
-    doc.setFontSize(10);
+    doc.text('Relatório mensal de pedidos', pageWidth - margin, 15, { align: 'right' });
+    doc.setFontSize(9.5);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Mês: ${mesSelecionado}`, pageWidth - margin, 24, { align: 'right' });
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth - margin, 29, { align: 'right' });
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Mês de referência: ${mesSelecionado}`, pageWidth - margin, 21, { align: 'right' });
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth - margin, 26, { align: 'right' });
+    doc.setFontSize(8.5);
+    doc.text(
+      `Resumo produção: ${qtdEnviados} ENVIADO · ${qtdNaoEnviados} NÃO ENVIADO`,
+      pageWidth - margin,
+      31,
+      { align: 'right' }
+    );
+    doc.setTextColor(0, 0, 0);
 
     const pageCount = doc.internal.getNumberOfPages();
     doc.setFontSize(8);
-    doc.text(`Página ${data.pageNumber} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Página ${data.pageNumber} de ${pageCount}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
   };
 
   drawHeaderAndFooter({ pageNumber: 1 });
 
-  const tableBody = linhas.map((item) => ([
+  const tableBody = linhas.map((item) => [
     String(item.id),
     item.data,
     item.empresa,
     item.cliente,
     String(item.qtdItens),
-    formatarMoedaBR(item.total)
-  ]));
+    formatarMoedaBR(item.total),
+    item.envioProducao
+  ]);
 
   doc.autoTable({
     startY: 36,
-    head: [['ID', 'Data', 'Empresa', 'Cliente', 'Qtd', 'Total (R$)']],
+    head: [['ID', 'Data', 'Empresa', 'Cliente', 'Qtd', 'Total (R$)', 'Produção']],
     body: tableBody,
     theme: 'grid',
     styles: {
-      fontSize: 8,
-      cellPadding: 2,
+      fontSize: 7.5,
+      cellPadding: 1.8,
       overflow: 'linebreak',
-      valign: 'middle'
+      valign: 'middle',
+      lineColor: [226, 232, 240],
+      lineWidth: 0.1
     },
     headStyles: {
       fillColor: [30, 41, 59],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
+      fontSize: 8
+    },
+    alternateRowStyles: {
+      fillColor: [252, 252, 253]
     },
     columnStyles: {
-      0: { halign: 'center', cellWidth: 12 },
-      1: { halign: 'center', cellWidth: 20 },
-      2: { halign: 'center', cellWidth: 26 },
-      3: { cellWidth: 'auto' },
-      4: { halign: 'center', cellWidth: 12 },
-      5: { halign: 'right', cellWidth: 22 }
+      0: { halign: 'center', cellWidth: 14 },
+      1: { halign: 'center', cellWidth: 22 },
+      2: { halign: 'center', cellWidth: 28 },
+      3: { halign: 'left', cellWidth: 'auto' },
+      4: { halign: 'center', cellWidth: 11 },
+      5: { halign: 'right', cellWidth: 26 },
+      6: { halign: 'center', cellWidth: 28, fontStyle: 'bold' }
+    },
+    didParseCell: (data) => {
+      if (data.section === 'body' && data.column.index === 6) {
+        const raw = data.cell.text;
+        const val = Array.isArray(raw) ? raw.join('') : String(raw || '');
+        if (val.indexOf('NÃO') !== -1) {
+          data.cell.styles.fillColor = [255, 237, 213];
+          data.cell.styles.textColor = [154, 52, 18];
+        } else {
+          data.cell.styles.fillColor = [236, 253, 245];
+          data.cell.styles.textColor = [4, 120, 87];
+        }
+      }
     },
     didDrawPage: (data) => {
       if (data.pageNumber > 1) drawHeaderAndFooter(data);
     },
-    margin: { top: 36, bottom: 20, left: margin, right: margin }
+    margin: { top: 36, bottom: 18, left: margin, right: margin }
   });
 
-  const finalY = doc.autoTable.previous.finalY + 6;
-  doc.autoTable({
-    startY: finalY,
-    theme: 'plain',
-    body: [[
-      { content: 'TOTAL DO MÊS:', styles: { fontStyle: 'bold', halign: 'right', fontSize: 11 } },
-      { content: formatarMoedaBR(totalMes), styles: { fontStyle: 'bold', halign: 'right', fontSize: 11 } }
-    ]],
-    columnStyles: {
-      0: { cellWidth: pageWidth - margin * 2 - 35 },
-      1: { cellWidth: 35 }
-    },
-    margin: { left: margin, right: margin }
-  });
+  const finalY = doc.autoTable.previous.finalY + 5;
+  const boxH = 30;
+
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(148, 163, 184);
+  doc.roundedRect(margin, finalY, pageWidth - margin * 2, boxH, 1.5, 1.5, 'FD');
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(4, 120, 87);
+  doc.text('Soma total ENVIADOS (produção):', margin + 4, finalY + 7);
+  doc.setFont('helvetica', 'normal');
+  doc.text(formatarMoedaBR(somaValorEnviados), pageWidth - margin - 4, finalY + 7, { align: 'right' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(154, 52, 18);
+  doc.text('Soma total NÃO ENVIADOS:', margin + 4, finalY + 14);
+  doc.setFont('helvetica', 'normal');
+  doc.text(formatarMoedaBR(somaValorNaoEnviados), pageWidth - margin - 4, finalY + 14, { align: 'right' });
+
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.3);
+  doc.line(margin + 4, finalY + 17.5, pageWidth - margin - 4, finalY + 17.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(30, 41, 59);
+  doc.text('Soma total geral (mês):', margin + 4, finalY + 24);
+  doc.text(formatarMoedaBR(totalMes), pageWidth - margin - 4, finalY + 24, { align: 'right' });
 
   doc.save(`relatorio_pedidos_${mesSelecionado}.pdf`);
-  alert(`PDF exportado com sucesso: ${linhas.length} pedidos | Total: ${formatarMoedaBR(totalMes)}`);
+  alert(
+    `PDF exportado: ${linhas.length} pedidos | Enviados: ${formatarMoedaBR(somaValorEnviados)} | Não enviados: ${formatarMoedaBR(somaValorNaoEnviados)} | Geral: ${formatarMoedaBR(totalMes)} (${qtdEnviados} env., ${qtdNaoEnviados} não env.)`
+  );
 }
 
 document.addEventListener('DOMContentLoaded', () => {
