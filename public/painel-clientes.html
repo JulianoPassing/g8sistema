@@ -1238,71 +1238,46 @@
         return;
       }
 
-      const normalizarCidade = (valor) => {
-        const texto = String(valor || '').trim();
-        if (!texto) return 'SEM CIDADE';
-        return texto
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toUpperCase()
-          .replace(/\s+/g, ' ')
-          .trim();
-      };
-
-      const cidadeParaExibicao = (cidadeNormalizada) => {
-        if (cidadeNormalizada === 'SEM CIDADE') return 'SEM CIDADE';
-        return cidadeNormalizada;
-      };
-
-      const clientesPorCidade = {};
-      clientes.forEach((cli) => {
-        const chaveCidade = normalizarCidade(cli.cidade);
-        if (!clientesPorCidade[chaveCidade]) {
-          clientesPorCidade[chaveCidade] = [];
-        }
-        clientesPorCidade[chaveCidade].push(cli);
+      const grupos = {};
+      clientes.forEach(cli => {
+        const cidade = String(cli.cidade || 'SEM CIDADE').trim() || 'SEM CIDADE';
+        if (!grupos[cidade]) grupos[cidade] = [];
+        grupos[cidade].push(cli);
       });
 
-      const cidadesOrdenadas = Object.keys(clientesPorCidade).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-      const ws_data = [];
-      cidadesOrdenadas.forEach((cidadeNormalizada, index) => {
-        const cidadeExibicao = cidadeParaExibicao(cidadeNormalizada);
-        ws_data.push([cidadeExibicao, '']);
-
-        const clientesDaCidade = clientesPorCidade[cidadeNormalizada]
-          .slice()
-          .sort((a, b) => String(a.razao || '').localeCompare(String(b.razao || ''), 'pt-BR'));
-
-        clientesDaCidade.forEach((cli) => {
-          ws_data.push([
-            '',
-            [
-              cli.razao || '',
-              obterNomeFantasia(cli) || '',
-              cli.cnpj || '',
-              cidadeExibicao,
-              cli.telefone || ''
-            ].join(' - ')
-          ]);
-        });
-
-        if (index < cidadesOrdenadas.length - 1) {
-          ws_data.push(['', '']);
-        }
+      const cidadesOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      const clientesOrdenados = [];
+      cidadesOrdenadas.forEach((cidade) => {
+        grupos[cidade]
+          .sort((a, b) => String(a.razao || '').localeCompare(String(b.razao || ''), 'pt-BR'))
+          .forEach(cli => clientesOrdenados.push(cli));
       });
+
+      const ws_data = [
+        ['Razao Social', 'Nome Fantasia', 'CNPJ', 'Cidade', 'Telefone'],
+        ...clientesOrdenados.map(cli => [
+          cli.razao || '',
+          obterNomeFantasia(cli) || '',
+          cli.cnpj || '',
+          cli.cidade || '',
+          cli.telefone || ''
+        ])
+      ];
 
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
       ws['!cols'] = [
-        { wch: 28 },  // Cidade
-        { wch: 120 }  // Clientes
+        { wch: 42 }, // Razao Social
+        { wch: 30 }, // Nome Fantasia
+        { wch: 20 }, // CNPJ
+        { wch: 22 }, // Cidade
+        { wch: 18 }  // Telefone
       ];
 
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Cadastro Rapido Cidades');
+      XLSX.utils.book_append_sheet(wb, ws, 'Cadastro Rapido');
       const hoje = new Date();
       const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}-${(hoje.getMonth() + 1).toString().padStart(2, '0')}-${hoje.getFullYear()}`;
-      XLSX.writeFile(wb, `Cadastro_Rapido_Clientes_Por_Cidade_${dataAtual}.xlsx`);
+      XLSX.writeFile(wb, `Cadastro_Rapido_Clientes_Todas_Cidades_${dataAtual}.xlsx`);
     }
 
 
