@@ -627,7 +627,7 @@
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
   <script src="cache-system.js"></script>
 </head>
   <body class="g8-theme-g8-default app-layout">
@@ -1247,17 +1247,20 @@
 
       const cidadesOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
-      const headerDados = ['RAZAO', 'NOME FANTASIA', 'CNPJ', 'TELEFONE'];
       const ws_data = [];
+      const linhasCidade = [];
       cidadesOrdenadas.forEach((cidade, idx) => {
-        if (idx > 0) ws_data.push([]);
+        if (idx > 0) {
+          ws_data.push(['', '', '']);
+        }
         ws_data.push([cidade]);
-        ws_data.push(headerDados);
+        linhasCidade.push(ws_data.length - 1);
         grupos[cidade]
-          .sort((a, b) => String(a.razao || '').localeCompare(String(b.razao || ''), 'pt-BR'))
+          .sort((a, b) =>
+            String(obterNomeFantasia(a) || '').localeCompare(String(obterNomeFantasia(b) || ''), 'pt-BR')
+          )
           .forEach(cli => {
             ws_data.push([
-              cli.razao || '',
               obterNomeFantasia(cli) || '',
               cli.cnpj || '',
               cli.telefone || ''
@@ -1267,11 +1270,17 @@
 
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
       ws['!cols'] = [
-        { wch: 42 }, // Razao
-        { wch: 30 }, // Nome Fantasia
+        { wch: 36 }, // Nome Fantasia
         { wch: 20 }, // CNPJ
         { wch: 18 }  // Telefone
       ];
+
+      linhasCidade.forEach((r) => {
+        const ref = XLSX.utils.encode_cell({ r, c: 0 });
+        if (ws[ref]) {
+          ws[ref].s = { font: { bold: true } };
+        }
+      });
 
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Cadastro Rapido');
