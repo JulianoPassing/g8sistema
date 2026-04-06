@@ -265,11 +265,26 @@ function gerarLinhasRelatorioMensal(pedidosMes) {
   return { linhas, totalMes };
 }
 
+/** Totais em valor e quantidade por status de envio (PDF/Excel). */
+function calcularTotaisEnvioPorValor(linhas) {
+  const somaValorEnviados = linhas
+    .filter((l) => l.envioProducao === 'ENVIADO')
+    .reduce((acc, l) => acc + (Number(l.total) || 0), 0);
+  const somaValorNaoEnviados = linhas
+    .filter((l) => l.envioProducao === 'NÃO ENVIADO')
+    .reduce((acc, l) => acc + (Number(l.total) || 0), 0);
+  const qtdEnviados = linhas.filter((l) => l.envioProducao === 'ENVIADO').length;
+  const qtdNaoEnviados = linhas.filter((l) => l.envioProducao === 'NÃO ENVIADO').length;
+  return { somaValorEnviados, somaValorNaoEnviados, qtdEnviados, qtdNaoEnviados };
+}
+
 async function exportarPedidosMesExcel(empresasSelecionadas = []) {
   const dadosMes = obterPedidosDoMesSelecionado(empresasSelecionadas);
   if (!dadosMes) return;
   const { mesSelecionado, pedidosMes } = dadosMes;
   const { linhas, totalMes } = gerarLinhasRelatorioMensal(pedidosMes);
+  const { somaValorEnviados, somaValorNaoEnviados, qtdEnviados, qtdNaoEnviados } =
+    calcularTotaisEnvioPorValor(linhas);
 
   if (!window.ExcelJS) {
     alert('Biblioteca de Excel não carregada. Tente recarregar a página.');
@@ -363,29 +378,55 @@ async function exportarPedidosMesExcel(empresasSelecionadas = []) {
     });
   }
 
-  const totalRowIdx = fimDados + 2;
-  worksheet.getCell(`A${totalRowIdx}`).value = 'TOTAL DO MÊS';
+  const aplicarEstiloResumo = (rowIdx, opcoes) => {
+    const { destaque } = opcoes;
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach((col) => {
+      const cell = worksheet.getCell(`${col}${rowIdx}`);
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: destaque ? 'FFE2E8F0' : 'FFF1F5F9' }
+      };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        right: { style: 'thin', color: { argb: 'FF94A3B8' } }
+      };
+    });
+    if (destaque) {
+      worksheet.getRow(rowIdx).font = { bold: true, size: 12 };
+    }
+  };
+
+  let totalRowIdx = fimDados + 2;
+  worksheet.getCell(`A${totalRowIdx}`).value = 'Soma total ENVIADOS (produção):';
+  worksheet.mergeCells(`A${totalRowIdx}:F${totalRowIdx}`);
+  worksheet.getCell(`G${totalRowIdx}`).value = somaValorEnviados;
+  worksheet.getCell(`G${totalRowIdx}`).numFmt = '#,##0.00';
+  worksheet.getCell(`A${totalRowIdx}`).alignment = { horizontal: 'right' };
+  worksheet.getCell(`G${totalRowIdx}`).alignment = { horizontal: 'right' };
+  worksheet.getRow(totalRowIdx).font = { bold: true, color: { argb: 'FF047857' } };
+  aplicarEstiloResumo(totalRowIdx, { destaque: false });
+
+  totalRowIdx += 1;
+  worksheet.getCell(`A${totalRowIdx}`).value = 'Soma total NÃO ENVIADOS:';
+  worksheet.mergeCells(`A${totalRowIdx}:F${totalRowIdx}`);
+  worksheet.getCell(`G${totalRowIdx}`).value = somaValorNaoEnviados;
+  worksheet.getCell(`G${totalRowIdx}`).numFmt = '#,##0.00';
+  worksheet.getCell(`A${totalRowIdx}`).alignment = { horizontal: 'right' };
+  worksheet.getCell(`G${totalRowIdx}`).alignment = { horizontal: 'right' };
+  worksheet.getRow(totalRowIdx).font = { bold: true, color: { argb: 'FF9A3412' } };
+  aplicarEstiloResumo(totalRowIdx, { destaque: false });
+
+  totalRowIdx += 1;
+  worksheet.getCell(`A${totalRowIdx}`).value = 'Soma total geral (mês):';
   worksheet.mergeCells(`A${totalRowIdx}:F${totalRowIdx}`);
   worksheet.getCell(`G${totalRowIdx}`).value = totalMes;
   worksheet.getCell(`G${totalRowIdx}`).numFmt = '#,##0.00';
-
-  worksheet.getRow(totalRowIdx).font = { bold: true, size: 12 };
   worksheet.getCell(`A${totalRowIdx}`).alignment = { horizontal: 'right' };
   worksheet.getCell(`G${totalRowIdx}`).alignment = { horizontal: 'right' };
-  ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach((col) => {
-    const cell = worksheet.getCell(`${col}${totalRowIdx}`);
-    cell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE2E8F0' }
-    };
-    cell.border = {
-      top: { style: 'thin', color: { argb: 'FF94A3B8' } },
-      left: { style: 'thin', color: { argb: 'FF94A3B8' } },
-      bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
-      right: { style: 'thin', color: { argb: 'FF94A3B8' } }
-    };
-  });
+  aplicarEstiloResumo(totalRowIdx, { destaque: true });
 
   worksheet.columns = [
     { width: 8 },
@@ -410,7 +451,9 @@ async function exportarPedidosMesExcel(empresasSelecionadas = []) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  alert(`Excel exportado com sucesso: ${linhas.length} pedidos | Total: ${formatarMoedaBR(totalMes)}`);
+  alert(
+    `Excel exportado: ${linhas.length} pedidos | Enviados: ${formatarMoedaBR(somaValorEnviados)} | Não enviados: ${formatarMoedaBR(somaValorNaoEnviados)} | Geral: ${formatarMoedaBR(totalMes)} (${qtdEnviados} env., ${qtdNaoEnviados} não env.)`
+  );
 }
 
 function exportarPedidosMesPDF(empresasSelecionadas = []) {
@@ -418,15 +461,8 @@ function exportarPedidosMesPDF(empresasSelecionadas = []) {
   if (!dadosMes) return;
   const { mesSelecionado, pedidosMes } = dadosMes;
   const { linhas, totalMes } = gerarLinhasRelatorioMensal(pedidosMes);
-
-  const qtdEnviados = linhas.filter((l) => l.envioProducao === 'ENVIADO').length;
-  const qtdNaoEnviados = linhas.filter((l) => l.envioProducao === 'NÃO ENVIADO').length;
-  const somaValorEnviados = linhas
-    .filter((l) => l.envioProducao === 'ENVIADO')
-    .reduce((acc, l) => acc + (Number(l.total) || 0), 0);
-  const somaValorNaoEnviados = linhas
-    .filter((l) => l.envioProducao === 'NÃO ENVIADO')
-    .reduce((acc, l) => acc + (Number(l.total) || 0), 0);
+  const { somaValorEnviados, somaValorNaoEnviados, qtdEnviados, qtdNaoEnviados } =
+    calcularTotaisEnvioPorValor(linhas);
 
   if (!window.jspdf) {
     alert('Biblioteca de PDF não carregada. Tente recarregar a página.');
