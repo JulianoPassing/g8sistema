@@ -1238,46 +1238,58 @@
         return;
       }
 
-      const grupos = {};
-      clientes.forEach(cli => {
-        const cidade = String(cli.cidade || 'SEM CIDADE').trim() || 'SEM CIDADE';
-        if (!grupos[cidade]) grupos[cidade] = [];
-        grupos[cidade].push(cli);
+      const normalizarCidade = (valor) => {
+        const texto = String(valor || '').trim();
+        if (!texto) return 'SEM CIDADE';
+        return texto
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toUpperCase()
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
+
+      const cidadeParaExibicao = (cidadeNormalizada) => {
+        if (cidadeNormalizada === 'SEM CIDADE') return 'Sem cidade';
+        return cidadeNormalizada
+          .toLowerCase()
+          .split(' ')
+          .map(parte => parte ? (parte.charAt(0).toUpperCase() + parte.slice(1)) : parte)
+          .join(' ');
+      };
+
+      const contagemPorCidade = {};
+      clientes.forEach((cli) => {
+        const chaveCidade = normalizarCidade(cli.cidade);
+        if (!contagemPorCidade[chaveCidade]) {
+          contagemPorCidade[chaveCidade] = 0;
+        }
+        contagemPorCidade[chaveCidade] += 1;
       });
 
-      const cidadesOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-      const clientesOrdenados = [];
-      cidadesOrdenadas.forEach((cidade) => {
-        grupos[cidade]
-          .sort((a, b) => String(a.razao || '').localeCompare(String(b.razao || ''), 'pt-BR'))
-          .forEach(cli => clientesOrdenados.push(cli));
-      });
+      const linhasResumo = Object.entries(contagemPorCidade)
+        .sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'))
+        .map(([cidadeNormalizada, totalClientes]) => [
+          cidadeParaExibicao(cidadeNormalizada),
+          totalClientes
+        ]);
 
       const ws_data = [
-        ['Razao Social', 'Nome Fantasia', 'CNPJ', 'Cidade', 'Telefone'],
-        ...clientesOrdenados.map(cli => [
-          cli.razao || '',
-          obterNomeFantasia(cli) || '',
-          cli.cnpj || '',
-          cli.cidade || '',
-          cli.telefone || ''
-        ])
+        ['Cidade', 'Clientes'],
+        ...linhasResumo
       ];
 
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
       ws['!cols'] = [
-        { wch: 42 }, // Razao Social
-        { wch: 30 }, // Nome Fantasia
-        { wch: 20 }, // CNPJ
-        { wch: 22 }, // Cidade
-        { wch: 18 }  // Telefone
+        { wch: 28 }, // Cidade
+        { wch: 12 }  // Clientes
       ];
 
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Cadastro Rapido');
+      XLSX.utils.book_append_sheet(wb, ws, 'Cadastro Rapido Cidades');
       const hoje = new Date();
       const dataAtual = `${hoje.getDate().toString().padStart(2, '0')}-${(hoje.getMonth() + 1).toString().padStart(2, '0')}-${hoje.getFullYear()}`;
-      XLSX.writeFile(wb, `Cadastro_Rapido_Clientes_Todas_Cidades_${dataAtual}.xlsx`);
+      XLSX.writeFile(wb, `Cadastro_Rapido_Clientes_Por_Cidade_${dataAtual}.xlsx`);
     }
 
 
