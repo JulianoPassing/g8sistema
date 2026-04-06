@@ -220,6 +220,94 @@
         flex: 1;
       }
 
+      .alerta-pendentes-banner {
+        margin-bottom: 20px;
+        border-radius: var(--border-radius-lg, 12px);
+        border: 2px solid #f59e0b;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+        animation: fadeIn 0.45s ease-out;
+      }
+
+      .alerta-pendentes-inner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 18px;
+      }
+
+      .alerta-pendentes-icon {
+        font-size: 1.75rem;
+        flex-shrink: 0;
+      }
+
+      .alerta-pendentes-text {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      .alerta-pendentes-text strong {
+        display: block;
+        color: #92400e;
+        font-size: 1rem;
+        margin-bottom: 4px;
+      }
+
+      .alerta-pendentes-msg {
+        margin: 0;
+        color: #78350f;
+        font-size: 0.95rem;
+        line-height: 1.45;
+      }
+
+      .alerta-pendentes-btn {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.88rem;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        white-space: nowrap;
+      }
+
+      .alerta-pendentes-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.45);
+      }
+
+      .alerta-pendentes-close {
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 8px;
+        background: rgba(120, 53, 15, 0.12);
+        color: #78350f;
+        font-size: 1.1rem;
+        line-height: 1;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background 0.2s ease;
+      }
+
+      .alerta-pendentes-close:hover {
+        background: rgba(120, 53, 15, 0.22);
+      }
+
+      @media (max-width: 600px) {
+        .alerta-pendentes-inner {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .alerta-pendentes-btn {
+          width: 100%;
+        }
+      }
+
       #logo {
         height: 35px;
         width: auto;
@@ -1668,6 +1756,34 @@
           <p class="dashboard-subtitle">Visualize e gerencie seus pedidos realizados</p>
         </div>
       </div>
+
+      <div
+        id="alerta-pedidos-pendentes"
+        class="alerta-pendentes-banner"
+        style="display: none"
+        role="alert"
+        aria-hidden="true"
+      >
+        <div class="alerta-pendentes-inner">
+          <span class="alerta-pendentes-icon" aria-hidden="true">⚠️</span>
+          <div class="alerta-pendentes-text">
+            <strong>Atenção — envio para produção</strong>
+            <p id="alerta-pendentes-msg" class="alerta-pendentes-msg"></p>
+          </div>
+          <button type="button" id="alerta-pendentes-ver-filtro" class="alerta-pendentes-btn">
+            Ver só pendentes
+          </button>
+          <button
+            type="button"
+            id="alerta-pendentes-fechar"
+            class="alerta-pendentes-close"
+            aria-label="Fechar aviso"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
       <!-- Seção de Busca -->
       <section class="card" style="margin-bottom: 20px;">
         <div class="card-header">

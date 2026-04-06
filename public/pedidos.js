@@ -3,6 +3,8 @@
 // Variável global para armazenar todos os pedidos
 let todosPedidos = [];
 let tipoExportacaoPendente = null;
+/** Quando o usuário fecha o aviso, não reaparece até mudar a quantidade de pendentes. */
+let alertaPendentesDismissedParaContagem = null;
 
 // Função global para formatar data
 function formatarData(data) {
@@ -52,6 +54,34 @@ function normalizarEnvioProducao(pedidos) {
 function isPedidoEnviadoProducao(p) {
   const v = p.enviado_producao;
   return v === 1 || v === true || v === '1';
+}
+
+function atualizarAlertaPedidosPendentes() {
+  const el = document.getElementById('alerta-pedidos-pendentes');
+  const msgEl = document.getElementById('alerta-pendentes-msg');
+  if (!el || !msgEl) return;
+
+  const n = todosPedidos.filter(p => !isPedidoEnviadoProducao(p)).length;
+
+  if (n === 0) {
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden', 'true');
+    alertaPendentesDismissedParaContagem = null;
+    return;
+  }
+
+  if (alertaPendentesDismissedParaContagem === n) {
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden', 'true');
+    return;
+  }
+
+  msgEl.textContent =
+    n === 1
+      ? 'Existe 1 pedido ainda não enviado para produção.'
+      : `Existem ${n} pedidos ainda não enviados para produção.`;
+  el.style.display = 'block';
+  el.setAttribute('aria-hidden', 'false');
 }
 
 function abrirModalExportacaoPorEmpresas(tipo) {
@@ -499,6 +529,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const alertaFechar = document.getElementById('alerta-pendentes-fechar');
+  if (alertaFechar) {
+    alertaFechar.addEventListener('click', function() {
+      const n = todosPedidos.filter(p => !isPedidoEnviadoProducao(p)).length;
+      alertaPendentesDismissedParaContagem = n;
+      const banner = document.getElementById('alerta-pedidos-pendentes');
+      if (banner) {
+        banner.style.display = 'none';
+        banner.setAttribute('aria-hidden', 'true');
+      }
+    });
+  }
+
+  const alertaVerPendentes = document.getElementById('alerta-pendentes-ver-filtro');
+  if (alertaVerPendentes) {
+    alertaVerPendentes.addEventListener('click', function() {
+      const sel = document.getElementById('filtro-envio-producao');
+      if (sel) sel.value = 'pendente';
+      filtrarPedidos();
+      document.getElementById('pedidos-lista')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   const exportMesEl = document.getElementById('export-mes');
   if (exportMesEl) {
     const hoje = new Date();
@@ -603,6 +656,7 @@ async function carregarPedidos() {
       lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       todosPedidos = [];
       atualizarContadorResultados(0);
+      atualizarAlertaPedidosPendentes();
       return;
     }
     
@@ -614,6 +668,7 @@ async function carregarPedidos() {
     lista.innerHTML = '<p>Erro ao carregar pedidos.</p>';
     todosPedidos = [];
     atualizarContadorResultados(0);
+    atualizarAlertaPedidosPendentes();
   }
 }
 
@@ -632,6 +687,7 @@ function filtrarPedidos() {
 
   if (!termo) {
     renderizarPedidos(base);
+    atualizarAlertaPedidosPendentes();
     return;
   }
 
@@ -682,6 +738,7 @@ function filtrarPedidos() {
   });
   
   renderizarPedidos(pedidosFiltrados);
+  atualizarAlertaPedidosPendentes();
 }
 
 // Função para renderizar pedidos (extraída da função carregarPedidos)
