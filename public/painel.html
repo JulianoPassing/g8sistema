@@ -481,6 +481,55 @@
         background: linear-gradient(135deg, rgba(255, 0, 0, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
       }
 
+      /* Cards tabela Pantaneiro: Excel + PDF (sem link único envolvendo o card) */
+      .tabela-export-card-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+      }
+
+      .tabela-export-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+      }
+
+      .tabela-export-actions a {
+        flex: 1;
+        min-width: 108px;
+        max-width: 160px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+        text-align: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: inline-block;
+      }
+
+      .tabela-export-actions a:hover {
+        transform: translateY(-2px);
+      }
+
+      .tabela-export-excel {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: #fff !important;
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
+      }
+
+      .tabela-export-pdf {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: #fff !important;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+      }
+
       /* Rodapé G8 */
       footer {
         width: 100vw;
@@ -849,22 +898,30 @@
             </a>
           </div>
           <div class="option-card pantaneiro-card card-modern animate-on-scroll" data-animation-delay="820">
-            <a href="#" onclick="event.preventDefault(); baixarTabelaPantaneiroExcel(5); return false;">
+            <div class="tabela-export-card-inner">
               <span class="option-icon">📥</span>
-              <div class="option-title">Tabela Pantaneiro 5 (Excel)</div>
+              <div class="option-title">Tabela Pantaneiro 5</div>
               <div class="option-description">
-                Baixar planilha com preços atuais da tabela 5, por categorias (mesmo cadastro de pantaneiro5.html).
+                Preços atuais e categorias como em pantaneiro5.html — logos G8 no arquivo.
               </div>
-            </a>
+              <div class="tabela-export-actions">
+                <a href="#" class="tabela-export-excel" onclick="event.preventDefault(); baixarTabelaPantaneiroExcel(5); return false;">📊 Excel</a>
+                <a href="#" class="tabela-export-pdf" onclick="event.preventDefault(); baixarTabelaPantaneiroPdf(5); return false;">📄 PDF</a>
+              </div>
+            </div>
           </div>
           <div class="option-card pantaneiro-card card-modern animate-on-scroll" data-animation-delay="830">
-            <a href="#" onclick="event.preventDefault(); baixarTabelaPantaneiroExcel(7); return false;">
+            <div class="tabela-export-card-inner">
               <span class="option-icon">📥</span>
-              <div class="option-title">Tabela Pantaneiro 7 (Excel)</div>
+              <div class="option-title">Tabela Pantaneiro 7</div>
               <div class="option-description">
-                Baixar planilha com preços atuais da tabela 7, por categorias (mesmo cadastro de pantaneiro7.html).
+                Preços atuais e categorias como em pantaneiro7.html — logos G8 no arquivo.
               </div>
-            </a>
+              <div class="tabela-export-actions">
+                <a href="#" class="tabela-export-excel" onclick="event.preventDefault(); baixarTabelaPantaneiroExcel(7); return false;">📊 Excel</a>
+                <a href="#" class="tabela-export-pdf" onclick="event.preventDefault(); baixarTabelaPantaneiroPdf(7); return false;">📄 PDF</a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -874,6 +931,8 @@
       © 2025 J.P. Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
     </footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <script src="pantaneiro-tabelas-export.js"></script>
     <script>
