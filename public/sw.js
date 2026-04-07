@@ -48,6 +48,7 @@ const STATIC_FILES = [
   '/dashboard-metrics.js',
   '/editor-pedido.js',
   '/pedidos.js',
+  '/pantaneiro-tabelas-export.js',
   '/manifest.json',
   '/sw-register.js'
 ];
@@ -61,6 +62,7 @@ const EXTERNAL_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+  'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
   'https://i.imgur.com/WveVVY5.png',
   'https://i.imgur.com/vjq26ym.png'
 ];
