@@ -127,6 +127,10 @@
     right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
   };
 
+  /** Preenchimento zebrado (linhas de item): branco / cinza clarinho — padrão visual tipo planilha de referência. */
+  const FILL_ITEM_PAR = { argb: 'FFFFFFFF' };
+  const FILL_ITEM_IMPAR = { argb: 'FFF3F4F6' };
+
   async function gerarExcelPantaneiro(produtos, opts) {
     const ExcelJS = window.ExcelJS || window.exceljs;
     if (!ExcelJS) {
@@ -148,7 +152,7 @@
     const { titulo, nomeArquivo, corTituloCategoria } = opts;
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Tabela', {
-      properties: { defaultRowHeight: 18 },
+      properties: { defaultRowHeight: 14.3 },
       views: [{ showGridLines: true }],
     });
 
@@ -156,19 +160,38 @@
       ws.mergeCells('A' + row + ':D' + row);
     }
 
-    ws.getRow(1).height = 56;
+    function aplicarBordaCompleta(cell) {
+      cell.border = {
+        top: bordaFina.top,
+        left: bordaFina.left,
+        bottom: bordaFina.bottom,
+        right: bordaFina.right,
+      };
+    }
+
+    /* Cabeçalho: mesmas proporções do modelo “Tabela Pantaneiro 5 - 2026.xlsx” (linhas 1–2). */
+    ws.mergeCells('A1:D1');
+    ws.mergeCells('A2:D2');
+    ws.getRow(1).height = 56.05;
+    ws.getRow(2).height = 18;
+    ['A1', 'A2'].forEach(function (addr) {
+      const c = ws.getCell(addr);
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+      c.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
     if (b64Banner) {
       const idBanner = wb.addImage({ base64: b64Banner, extension: 'png' });
       ws.addImage(idBanner, {
-        tl: { col: 0, row: 0 },
-        ext: { width: 280, height: 52 },
+        tl: { col: 0.12, row: 0.06 },
+        ext: { width: 400, height: 58 },
       });
     }
     if (b64Icon) {
       const idIcon = wb.addImage({ base64: b64Icon, extension: 'png' });
       ws.addImage(idIcon, {
-        tl: { col: 3, row: 0 },
-        ext: { width: 48, height: 48 },
+        tl: { col: 3.02, row: 0.08 },
+        ext: { width: 46, height: 46 },
       });
     }
 
@@ -180,8 +203,9 @@
     const cTit = ws.getCell(r, 1);
     cTit.value = titulo;
     cTit.font = { size: 16, bold: true, color: { argb: 'FFDC2626' } };
+    cTit.fill = { type: 'pattern', pattern: 'solid', fgColor: FILL_ITEM_PAR };
     cTit.alignment = { horizontal: 'center', vertical: 'middle' };
-    ws.getRow(r).height = 28;
+    ws.getRow(r).height = 28.05;
     r++;
 
     mergeColsRow(r);
@@ -192,8 +216,17 @@
       ' — Tabela ' +
       ano;
     cSub.font = { size: 10, italic: true, color: { argb: 'FF64748B' } };
-    cSub.alignment = { horizontal: 'center', vertical: 'middle' };
-    r += 2;
+    cSub.fill = { type: 'pattern', pattern: 'solid', fgColor: FILL_ITEM_PAR };
+    cSub.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    ws.getRow(r).height = 14.3;
+    r++;
+
+    mergeColsRow(r);
+    ws.getCell(r, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: FILL_ITEM_PAR };
+    ws.getRow(r).height = 18;
+    r++;
+
+    let indiceItemGlobal = 0;
 
     for (let ci = 0; ci < cats.length; ci++) {
       const cat = cats[ci];
@@ -207,11 +240,12 @@
       headCat.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: corTituloCategoria || 'FF1E293B' },
+        fgColor: { argb: corTituloCategoria || 'FFB91C1C' },
       };
       headCat.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
       headCat.alignment = { horizontal: 'center', vertical: 'middle' };
-      ws.getRow(r).height = 24;
+      aplicarBordaCompleta(headCat);
+      ws.getRow(r).height = 23.95;
       r++;
 
       const hdr = ['Referência', 'Descrição', 'Tamanhos', 'Preço (R$)'];
@@ -224,34 +258,60 @@
           pattern: 'solid',
           fgColor: { argb: 'FFF1F5F9' },
         };
-        cell.border = bordaFina;
+        aplicarBordaCompleta(cell);
         cell.alignment = {
           vertical: 'middle',
-          horizontal: h === 3 ? 'right' : 'left',
+          horizontal: 'center',
+          wrapText: true,
         };
       }
+      ws.getRow(r).height = 14.3;
       r++;
 
       for (let j = 0; j < itens.length; j++) {
         const p = itens[j];
         const preco = precoNum(p);
-        ws.getCell(r, 1).value = p.REFERENCIA != null ? String(p.REFERENCIA) : '';
-        ws.getCell(r, 2).value = descricaoProduto(p);
-        ws.getCell(r, 3).value = formatarTamanhos(p);
-        ws.getCell(r, 3).alignment = { wrapText: true, vertical: 'top' };
-        ws.getCell(r, 4).value = preco;
-        ws.getCell(r, 4).numFmt = '#,##0.00';
-        ws.getCell(r, 4).alignment = { horizontal: 'right' };
-        for (let c = 1; c <= 4; c++) {
-          ws.getCell(r, c).border = bordaFina;
-        }
+        const zebra = indiceItemGlobal % 2 === 1;
+        const fg = zebra ? FILL_ITEM_IMPAR : FILL_ITEM_PAR;
+        indiceItemGlobal++;
+
+        const c1 = ws.getCell(r, 1);
+        c1.value = p.REFERENCIA != null ? String(p.REFERENCIA) : '';
+        c1.fill = { type: 'pattern', pattern: 'solid', fgColor: fg };
+        c1.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        aplicarBordaCompleta(c1);
+
+        const c2 = ws.getCell(r, 2);
+        c2.value = descricaoProduto(p);
+        c2.fill = { type: 'pattern', pattern: 'solid', fgColor: fg };
+        c2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        aplicarBordaCompleta(c2);
+
+        const c3 = ws.getCell(r, 3);
+        c3.value = formatarTamanhos(p);
+        c3.fill = { type: 'pattern', pattern: 'solid', fgColor: fg };
+        c3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        aplicarBordaCompleta(c3);
+
+        const c4 = ws.getCell(r, 4);
+        c4.value = preco;
+        c4.numFmt = '#,##0.00';
+        c4.fill = { type: 'pattern', pattern: 'solid', fgColor: fg };
+        c4.alignment = { horizontal: 'center', vertical: 'middle' };
+        aplicarBordaCompleta(c4);
+
+        ws.getRow(r).height = 14.3;
         r++;
       }
-
-      r++;
     }
 
-    ws.columns = [{ width: 14 }, { width: 48 }, { width: 38 }, { width: 14 }];
+    /* Larguras do modelo “Tabela Pantaneiro 5 - 2026.xlsx”. */
+    ws.columns = [
+      { width: 10.25 },
+      { width: 78.25 },
+      { width: 35.875 },
+      { width: 8.75 },
+    ];
 
     const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], {
