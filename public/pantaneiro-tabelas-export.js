@@ -120,16 +120,64 @@
       });
   }
 
-  const bordaFina = {
-    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-    right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-  };
+  /** Borda nova a cada célula (ExcelJS aplica melhor que objeto compartilhado). */
+  function novaBordaItem() {
+    const cor = { argb: 'FF94A3B8' };
+    return {
+      top: { style: 'thin', color: cor },
+      left: { style: 'thin', color: cor },
+      bottom: { style: 'thin', color: cor },
+      right: { style: 'thin', color: cor },
+    };
+  }
 
-  /** Preenchimento zebrado (linhas de item): branco / cinza clarinho — padrão visual tipo planilha de referência. */
-  const FILL_ITEM_PAR = { argb: 'FFFFFFFF' };
-  const FILL_ITEM_IMPAR = { argb: 'FFF3F4F6' };
+  /** Preenchimento sólido compatível com Excel (fg + bg). */
+  function aplicarFillSolid(cell, argb8) {
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: argb8 },
+      bgColor: { argb: argb8 },
+    };
+  }
+
+  /** Larguras do modelo Tabela Pantaneiro — deve vir antes de posicionar imagens. */
+  const LARGURAS_COLS = [10.25, 78.25, 35.875, 8.75];
+
+  function aplicarLargurasColunas(ws) {
+    for (let i = 0; i < LARGURAS_COLS.length; i++) {
+      ws.getColumn(i + 1).width = LARGURAS_COLS[i];
+    }
+  }
+
+  /**
+   * Coluna decimal (0=A) para alinhar imagem ao centro sobre A:D.
+   * Aproxima largura em px: unidade Excel × fator (Calibri ~7px por unidade).
+   */
+  function tlColImagemCentralizada(ws, larguraImagemPx, pxPorUnidade) {
+    pxPorUnidade = pxPorUnidade || 7;
+    const colPx = [];
+    let totalPx = 0;
+    for (let c = 1; c <= 4; c++) {
+      const w = (ws.getColumn(c).width || 8) * pxPorUnidade;
+      colPx.push(w);
+      totalPx += w;
+    }
+    const margemEsquerdaPx = Math.max(0, (totalPx - larguraImagemPx) / 2);
+    let acc = 0;
+    for (let i = 0; i < 4; i++) {
+      if (margemEsquerdaPx <= acc + colPx[i]) {
+        const dentro = margemEsquerdaPx - acc;
+        return i + dentro / colPx[i];
+      }
+      acc += colPx[i];
+    }
+    return 0;
+  }
+
+  /** Preenchimento zebrado (linhas de item): branco / cinza clarinho. */
+  const FILL_ITEM_PAR = 'FFFFFFFF';
+  const FILL_ITEM_IMPAR = 'FFE5E7EB';
 
   async function gerarExcelPantaneiro(produtos, opts) {
     const ExcelJS = window.ExcelJS || window.exceljs;
@@ -156,42 +204,47 @@
       views: [{ showGridLines: true }],
     });
 
+    aplicarLargurasColunas(ws);
+
     function mergeColsRow(row) {
       ws.mergeCells('A' + row + ':D' + row);
     }
 
-    function aplicarBordaCompleta(cell) {
-      cell.border = {
-        top: bordaFina.top,
-        left: bordaFina.left,
-        bottom: bordaFina.bottom,
-        right: bordaFina.right,
-      };
-    }
-
-    /* Cabeçalho: mesmas proporções do modelo “Tabela Pantaneiro 5 - 2026.xlsx” (linhas 1–2). */
+    /* Cabeçalho: linhas 1–2 — fundo branco; logos centralizadas na faixa A:D acima do título. */
     ws.mergeCells('A1:D1');
     ws.mergeCells('A2:D2');
     ws.getRow(1).height = 56.05;
     ws.getRow(2).height = 18;
     ['A1', 'A2'].forEach(function (addr) {
       const c = ws.getCell(addr);
-      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+      aplicarFillSolid(c, 'FFFFFFFF');
       c.alignment = { horizontal: 'center', vertical: 'middle' };
     });
+
+    const LARGURA_BANNER_PX = 320;
+    const ALTURA_BANNER_PX = 50;
+    const PX_ICONE = 44;
+    const GAP_LOGOS_PX = 10;
+    let larguraFaixaLogosPx = 0;
+    if (b64Banner) larguraFaixaLogosPx += LARGURA_BANNER_PX;
+    if (b64Icon) larguraFaixaLogosPx += (b64Banner ? GAP_LOGOS_PX : 0) + PX_ICONE;
+    if (!larguraFaixaLogosPx && b64Icon) larguraFaixaLogosPx = PX_ICONE;
+    const colInicioLogos =
+      larguraFaixaLogosPx > 0 ? tlColImagemCentralizada(ws, larguraFaixaLogosPx, 7) : 0;
 
     if (b64Banner) {
       const idBanner = wb.addImage({ base64: b64Banner, extension: 'png' });
       ws.addImage(idBanner, {
-        tl: { col: 0.12, row: 0.06 },
-        ext: { width: 400, height: 58 },
+        tl: { col: colInicioLogos, row: 0.1 },
+        ext: { width: LARGURA_BANNER_PX, height: ALTURA_BANNER_PX },
       });
     }
     if (b64Icon) {
       const idIcon = wb.addImage({ base64: b64Icon, extension: 'png' });
+      const colIcone = b64Banner ? colInicioLogos + 0.64 : colInicioLogos;
       ws.addImage(idIcon, {
-        tl: { col: 3.02, row: 0.08 },
-        ext: { width: 46, height: 46 },
+        tl: { col: Math.min(colIcone, 3.2), row: 0.11 },
+        ext: { width: PX_ICONE, height: PX_ICONE },
       });
     }
 
@@ -203,7 +256,7 @@
     const cTit = ws.getCell(r, 1);
     cTit.value = titulo;
     cTit.font = { size: 16, bold: true, color: { argb: 'FFDC2626' } };
-    cTit.fill = { type: 'pattern', pattern: 'solid', fgColor: FILL_ITEM_PAR };
+    aplicarFillSolid(cTit, FILL_ITEM_PAR);
     cTit.alignment = { horizontal: 'center', vertical: 'middle' };
     ws.getRow(r).height = 28.05;
     r++;
@@ -216,13 +269,13 @@
       ' — Tabela ' +
       ano;
     cSub.font = { size: 10, italic: true, color: { argb: 'FF64748B' } };
-    cSub.fill = { type: 'pattern', pattern: 'solid', fgColor: FILL_ITEM_PAR };
+    aplicarFillSolid(cSub, FILL_ITEM_PAR);
     cSub.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     ws.getRow(r).height = 14.3;
     r++;
 
     mergeColsRow(r);
-    ws.getCell(r, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: FILL_ITEM_PAR };
+    aplicarFillSolid(ws.getCell(r, 1), FILL_ITEM_PAR);
     ws.getRow(r).height = 18;
     r++;
 
@@ -237,14 +290,10 @@
       mergeColsRow(r);
       const headCat = ws.getCell(r, 1);
       headCat.value = String(cat).toUpperCase();
-      headCat.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: corTituloCategoria || 'FFB91C1C' },
-      };
+      aplicarFillSolid(headCat, corTituloCategoria || 'FFB91C1C');
       headCat.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
       headCat.alignment = { horizontal: 'center', vertical: 'middle' };
-      aplicarBordaCompleta(headCat);
+      headCat.border = novaBordaItem();
       ws.getRow(r).height = 23.95;
       r++;
 
@@ -253,12 +302,8 @@
         const cell = ws.getCell(r, h + 1);
         cell.value = hdr[h];
         cell.font = { bold: true, size: 10 };
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFF1F5F9' },
-        };
-        aplicarBordaCompleta(cell);
+        aplicarFillSolid(cell, 'FFF1F5F9');
+        cell.border = novaBordaItem();
         cell.alignment = {
           vertical: 'middle',
           horizontal: 'center',
@@ -272,46 +317,38 @@
         const p = itens[j];
         const preco = precoNum(p);
         const zebra = indiceItemGlobal % 2 === 1;
-        const fg = zebra ? FILL_ITEM_IMPAR : FILL_ITEM_PAR;
+        const fgArgb = zebra ? FILL_ITEM_IMPAR : FILL_ITEM_PAR;
         indiceItemGlobal++;
 
         const c1 = ws.getCell(r, 1);
         c1.value = p.REFERENCIA != null ? String(p.REFERENCIA) : '';
-        c1.fill = { type: 'pattern', pattern: 'solid', fgColor: fg };
+        aplicarFillSolid(c1, fgArgb);
         c1.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        aplicarBordaCompleta(c1);
+        c1.border = novaBordaItem();
 
         const c2 = ws.getCell(r, 2);
         c2.value = descricaoProduto(p);
-        c2.fill = { type: 'pattern', pattern: 'solid', fgColor: fg };
+        aplicarFillSolid(c2, fgArgb);
         c2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        aplicarBordaCompleta(c2);
+        c2.border = novaBordaItem();
 
         const c3 = ws.getCell(r, 3);
         c3.value = formatarTamanhos(p);
-        c3.fill = { type: 'pattern', pattern: 'solid', fgColor: fg };
+        aplicarFillSolid(c3, fgArgb);
         c3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        aplicarBordaCompleta(c3);
+        c3.border = novaBordaItem();
 
         const c4 = ws.getCell(r, 4);
         c4.value = preco;
-        c4.numFmt = '#,##0.00';
-        c4.fill = { type: 'pattern', pattern: 'solid', fgColor: fg };
+        aplicarFillSolid(c4, fgArgb);
+        c4.border = novaBordaItem();
         c4.alignment = { horizontal: 'center', vertical: 'middle' };
-        aplicarBordaCompleta(c4);
+        c4.numFmt = '#,##0.00';
 
         ws.getRow(r).height = 14.3;
         r++;
       }
     }
-
-    /* Larguras do modelo “Tabela Pantaneiro 5 - 2026.xlsx”. */
-    ws.columns = [
-      { width: 10.25 },
-      { width: 78.25 },
-      { width: 35.875 },
-      { width: 8.75 },
-    ];
 
     const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], {
