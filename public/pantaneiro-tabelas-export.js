@@ -1,12 +1,11 @@
 /**
- * Exporta tabelas Pantaneiro 5 e 7 para Excel e PDF com logos G8,
+ * Exporta tabelas Pantaneiro 5 e 7 para Excel e PDF com logo G8 (banner),
  * usando os mesmos preços e categorias de pantaneiro5.html / pantaneiro7.html.
  */
 (function () {
   'use strict';
 
   const LOGO_BANNER = 'https://i.imgur.com/vjq26ym.png';
-  const LOGO_ICONE = 'https://i.imgur.com/WveVVY5.png';
 
   const MARKER = 'window.produtosData = ';
 
@@ -187,14 +186,11 @@
     }
 
     let b64Banner;
-    let b64Icon;
     try {
       b64Banner = await fetchImageBase64(LOGO_BANNER);
-      b64Icon = await fetchImageBase64(LOGO_ICONE);
     } catch (e) {
-      console.warn('Logos Excel:', e);
+      console.warn('Logo Excel:', e);
       b64Banner = null;
-      b64Icon = null;
     }
 
     const { titulo, nomeArquivo, corTituloCategoria } = opts;
@@ -210,10 +206,10 @@
       ws.mergeCells('A' + row + ':D' + row);
     }
 
-    /* Cabeçalho: linhas 1–2 — fundo branco; logos centralizadas na faixa A:D acima do título. */
+    /* Cabeçalho: linhas 1–2 — fundo branco; logo G8 (banner) centralizada sobre A:D. */
     ws.mergeCells('A1:D1');
     ws.mergeCells('A2:D2');
-    ws.getRow(1).height = 56.05;
+    ws.getRow(1).height = 62;
     ws.getRow(2).height = 18;
     ['A1', 'A2'].forEach(function (addr) {
       const c = ws.getCell(addr);
@@ -221,30 +217,18 @@
       c.alignment = { horizontal: 'center', vertical: 'middle' };
     });
 
-    const LARGURA_BANNER_PX = 320;
-    const ALTURA_BANNER_PX = 50;
-    const PX_ICONE = 44;
-    const GAP_LOGOS_PX = 10;
-    let larguraFaixaLogosPx = 0;
-    if (b64Banner) larguraFaixaLogosPx += LARGURA_BANNER_PX;
-    if (b64Icon) larguraFaixaLogosPx += (b64Banner ? GAP_LOGOS_PX : 0) + PX_ICONE;
-    if (!larguraFaixaLogosPx && b64Icon) larguraFaixaLogosPx = PX_ICONE;
-    const colInicioLogos =
-      larguraFaixaLogosPx > 0 ? tlColImagemCentralizada(ws, larguraFaixaLogosPx, 7) : 0;
+    const LARGURA_BANNER_PX = 400;
+    const ALTURA_BANNER_PX = 58;
+    const colInicioLogo =
+      b64Banner && LARGURA_BANNER_PX > 0
+        ? tlColImagemCentralizada(ws, LARGURA_BANNER_PX, 7)
+        : 0;
 
     if (b64Banner) {
       const idBanner = wb.addImage({ base64: b64Banner, extension: 'png' });
       ws.addImage(idBanner, {
-        tl: { col: colInicioLogos, row: 0.1 },
+        tl: { col: colInicioLogo, row: 0.08 },
         ext: { width: LARGURA_BANNER_PX, height: ALTURA_BANNER_PX },
-      });
-    }
-    if (b64Icon) {
-      const idIcon = wb.addImage({ base64: b64Icon, extension: 'png' });
-      const colIcone = b64Banner ? colInicioLogos + 0.64 : colInicioLogos;
-      ws.addImage(idIcon, {
-        tl: { col: Math.min(colIcone, 3.2), row: 0.11 },
-        ext: { width: PX_ICONE, height: PX_ICONE },
       });
     }
 
@@ -372,12 +356,10 @@
     }
 
     let dataUrlBanner = null;
-    let dataUrlIcon = null;
     try {
       dataUrlBanner = await loadImageDataUrl(LOGO_BANNER);
-      dataUrlIcon = await loadImageDataUrl(LOGO_ICONE);
     } catch (e) {
-      console.warn('Logos PDF:', e);
+      console.warn('Logo PDF:', e);
     }
 
     const { titulo, nomeArquivo, corCategoriaRgb } = opts;
@@ -387,16 +369,15 @@
     const m = 10;
 
     if (dataUrlBanner) {
-      doc.addImage(dataUrlBanner, 'PNG', m, 8, 115, 18);
-    }
-    if (dataUrlIcon) {
-      doc.addImage(dataUrlIcon, 'PNG', pageW - m - 20, 7, 20, 20);
+      const imgW = 150;
+      const imgH = 22;
+      doc.addImage(dataUrlBanner, 'PNG', (pageW - imgW) / 2, 7, imgW, imgH);
     }
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(13);
     doc.setTextColor(220, 38, 38);
-    doc.text(titulo, pageW / 2, 32, { align: 'center' });
+    doc.text(titulo, pageW / 2, 34, { align: 'center' });
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
@@ -405,13 +386,13 @@
       'G8 Representações — Preços atualizados conforme pantaneiro5/7.html — ' +
         new Date().toLocaleDateString('pt-BR'),
       pageW / 2,
-      37,
+      39,
       { align: 'center' }
     );
 
     const cats = ordemCategorias(produtos);
     const catFill = corCategoriaRgb || [185, 28, 28];
-    let y = 41;
+    let y = 43;
     const bottomSafe = 18;
     const tableMargins = { left: m, right: m, bottom: 14 };
     const colStyles = {
