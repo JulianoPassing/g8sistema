@@ -150,18 +150,18 @@
   }
 
   /**
-   * Coluna decimal (0=A) para alinhar imagem ao centro sobre A:D.
-   * Aproxima largura em px: unidade Excel × fator (Calibri ~7px por unidade).
+   * Posição horizontal da logo (coluna decimal 0=A) centralizada em A:D.
+   * Usa LARGURAS_COLS fixas (não lê ws.getColumn — no ExcelJS o width às vezes ainda não entra no cálculo).
+   * Largura em “px” aproximada: unidade Excel × fator (Calibri 11 ~7 px por unidade de largura).
    */
-  function tlColImagemCentralizada(ws, larguraImagemPx, pxPorUnidade) {
+  function tlColLogoCentralizadoSobreAD(larguraImagemPx, pxPorUnidade) {
     pxPorUnidade = pxPorUnidade || 7;
-    const colPx = [];
-    let totalPx = 0;
-    for (let c = 1; c <= 4; c++) {
-      const w = (ws.getColumn(c).width || 8) * pxPorUnidade;
-      colPx.push(w);
-      totalPx += w;
-    }
+    const colPx = LARGURAS_COLS.map(function (w) {
+      return w * pxPorUnidade;
+    });
+    const totalPx = colPx.reduce(function (a, b) {
+      return a + b;
+    }, 0);
     const margemEsquerdaPx = Math.max(0, (totalPx - larguraImagemPx) / 2);
     let acc = 0;
     for (let i = 0; i < 4; i++) {
@@ -206,7 +206,24 @@
       ws.mergeCells('A' + row + ':D' + row);
     }
 
-    /* Cabeçalho: linhas 1–2 — fundo branco; logo G8 (banner) centralizada sobre A:D. */
+    /* Logo: inserir ANTES de mesclar A1:D1 — merge pode alterar âncora do desenho no Excel. */
+    const LARGURA_BANNER_PX = 400;
+    const ALTURA_BANNER_PX = 58;
+    const colInicioLogo =
+      b64Banner && LARGURA_BANNER_PX > 0
+        ? tlColLogoCentralizadoSobreAD(LARGURA_BANNER_PX, 7)
+        : 0;
+
+    if (b64Banner) {
+      const idBanner = wb.addImage({ base64: b64Banner, extension: 'png' });
+      ws.addImage(idBanner, {
+        tl: { col: colInicioLogo, row: 0.05 },
+        ext: { width: LARGURA_BANNER_PX, height: ALTURA_BANNER_PX },
+        editAs: 'absolute',
+      });
+    }
+
+    /* Cabeçalho: linhas 1–2 — fundo branco; texto alinhado ao centro na área A:D. */
     ws.mergeCells('A1:D1');
     ws.mergeCells('A2:D2');
     ws.getRow(1).height = 62;
@@ -216,21 +233,6 @@
       aplicarFillSolid(c, 'FFFFFFFF');
       c.alignment = { horizontal: 'center', vertical: 'middle' };
     });
-
-    const LARGURA_BANNER_PX = 400;
-    const ALTURA_BANNER_PX = 58;
-    const colInicioLogo =
-      b64Banner && LARGURA_BANNER_PX > 0
-        ? tlColImagemCentralizada(ws, LARGURA_BANNER_PX, 7)
-        : 0;
-
-    if (b64Banner) {
-      const idBanner = wb.addImage({ base64: b64Banner, extension: 'png' });
-      ws.addImage(idBanner, {
-        tl: { col: colInicioLogo, row: 0.08 },
-        ext: { width: LARGURA_BANNER_PX, height: ALTURA_BANNER_PX },
-      });
-    }
 
     const cats = ordemCategorias(produtos);
     let r = 3;
