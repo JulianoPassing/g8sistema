@@ -1084,6 +1084,9 @@ function renderizarPedidos(pedidos) {
           <button class="btn-action btn-view" onclick="visualizarPDFPedido(${pedido.id})">
             👁️ Visualizar
           </button>
+          <button type="button" class="btn-action btn-download" onclick="baixarPDFPedido(${pedido.id})" title="Baixar PDF com o nome padrão (G8 Pedido …)">
+            ⬇️ Baixar PDF
+          </button>
           <button class="btn-action btn-edit" onclick="editarPedido(${pedido.id})">
             ✏️ Editar
           </button>
@@ -2845,6 +2848,36 @@ window.visualizarPDFPedido = async function(pedidoId) {
       );
     } else {
       alert('❌ Erro ao gerar PDF para visualização');
+    }
+  }
+};
+
+/** Baixa o PDF do pedido com o mesmo nome de arquivo usado na geração (G8 Pedido … / empresa). */
+window.baixarPDFPedido = async function(pedidoId) {
+  try {
+    const resp = await fetch('/api/pedidos');
+    const pedidos = await resp.json();
+    const pedido = pedidos.find(p => p.id == pedidoId);
+
+    if (!pedido) {
+      alert('❌ Pedido não encontrado.');
+      return;
+    }
+
+    gerarPDFPedidoEditado(pedido);
+  } catch (error) {
+    console.error('Erro ao baixar PDF:', error);
+
+    if (window.advancedNotifications) {
+      advancedNotifications.error(
+        'Erro ao baixar o PDF do pedido',
+        {
+          title: 'Erro no download',
+          duration: 6000
+        }
+      );
+    } else {
+      alert('❌ Erro ao baixar o PDF do pedido');
     }
   }
 };
