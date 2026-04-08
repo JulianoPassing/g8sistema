@@ -154,35 +154,35 @@
   }
 
   /**
+   * Converte célula de % (B ou D) para número: aceita número da lista ou texto 1,2 / 1.2.
+   */
+  function excelExprPctDesconto(colLetter, selRow) {
+    const ref = '$' + colLetter + '$' + selRow;
+    const nvBR = 'NUMBERVALUE(' + ref + ',",",".")';
+    const nvUS = 'NUMBERVALUE(' + ref + ',".",",")';
+    return 'IF(ISNUMBER(' + ref + '),' + ref + ',IFERROR(' + nvBR + ',' + nvUS + '))';
+  }
+
+  /**
    * Preço final: base × (1 − prazo%) × (1 − volume%).
    * IFERROR devolve o preço tabela se a fórmula falhar.
    */
   function formulaPrecoComPrazoEVolumeExcel(dataRow, baseColLetter, selRow) {
     const br = baseColLetter + dataRow;
-    return (
-      'IFERROR(' +
-      br +
-      '*(1-$B$' +
-      selRow +
-      '/100)*(1-$D$' +
-      selRow +
-      '/100),' +
-      br +
-      ')'
-    );
+    const pB = excelExprPctDesconto('B', selRow);
+    const pD = excelExprPctDesconto('D', selRow);
+    return 'IFERROR(' + br + '*(1-' + pB + '/100)*(1-' + pD + '/100),' + br + ')';
   }
 
   /**
-   * Lista para validação no Excel em português (BR): itens separados por ;
-   * (vírgula é separador decimal; usar , em decimais tipo 1,2 e 2,5).
-   * Listas com vírgula entre itens quebram o dropdown e os % deixam de recalcular.
+   * Lista para validação: itens separados por ; e decimais com PONTO (1.2;2.5).
+   * Vírgula dentro do item quebra o Excel PT-BR (1,2 virava dois itens).
    */
   function listaValidacaoExcelPT(valores) {
     const partes = valores.map(function (v) {
       const n = Number(v);
       if (!Number.isFinite(n)) return '0';
-      if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
-      return String(n).replace('.', ',');
+      return String(n);
     });
     return '"' + partes.join(';') + '"';
   }
@@ -199,8 +199,8 @@
     return s;
   }
 
-  /** Col. E = preço tabela (oculta); A–D = tabela visível como antes. */
-  const LARGURAS_COM_COL_BASE = [10.25, 78.25, 35.875, 8.75, 12];
+  /** Col. E = preço tabela (oculta); A um pouco maior para rótulo em 2 linhas. */
+  const LARGURAS_COM_COL_BASE = [12.5, 76.5, 35.875, 8.75, 12];
 
   function aplicarLargurasColunas(ws, larguras) {
     const arr = larguras || LARGURAS_COLS_ATUAL;
@@ -303,7 +303,7 @@
     const { titulo, nomeArquivo, corTituloCategoria } = opts;
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Tabela', {
-      properties: { defaultRowHeight: 14.3 },
+      properties: { defaultRowHeight: 14.3, defaultColWidth: 9 },
       views: [{ showGridLines: true }],
     });
 
@@ -369,6 +369,7 @@
 
     mergeColsRow(r);
     aplicarFillSolid(ws.getCell(r, 1), FILL_ITEM_PAR);
+    ws.getCell(r, 1).alignment = { horizontal: 'center', vertical: 'middle' };
     ws.getRow(r).height = 12.1;
     r++;
 
@@ -378,17 +379,17 @@
       'Descontos na linha abaixo (listas). Padrão 0% = preço igual ao da tabela. Coluna E (oculta) = preço tabela; coluna D = preço com os dois descontos.';
     cInstr.font = { size: 10, italic: true, color: { argb: 'FF334155' } };
     aplicarFillSolid(cInstr, FILL_ITEM_PAR);
-    cInstr.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+    cInstr.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     cInstr.border = novaBordaItem();
     ws.getRow(r).height = 28.05;
     r++;
 
     const selDescontoRow = r;
     const cLabPrazo = ws.getCell(r, 1);
-    cLabPrazo.value = 'Desconto prazo (%)';
+    cLabPrazo.value = 'Desconto prazo\n(%)';
     cLabPrazo.font = { bold: true, size: 10 };
     aplicarFillSolid(cLabPrazo, 'FFF1F5F9');
-    cLabPrazo.alignment = { horizontal: 'left', vertical: 'middle' };
+    cLabPrazo.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     cLabPrazo.border = novaBordaItem();
 
     const cValPrazo = ws.getCell(r, 2);
@@ -409,10 +410,10 @@
     };
 
     const cLabVol = ws.getCell(r, 3);
-    cLabVol.value = 'Desconto volume (%)';
+    cLabVol.value = 'Desconto volume\n(%)';
     cLabVol.font = { bold: true, size: 10 };
     aplicarFillSolid(cLabVol, 'FFF1F5F9');
-    cLabVol.alignment = { horizontal: 'left', vertical: 'middle' };
+    cLabVol.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     cLabVol.border = novaBordaItem();
 
     const cValVol = ws.getCell(r, 4);
@@ -435,11 +436,12 @@
     const cEResto = ws.getCell(r, 5);
     aplicarFillSolid(cEResto, FILL_ITEM_PAR);
     cEResto.border = novaBordaItem();
-    ws.getRow(r).height = 27.2;
+    ws.getRow(r).height = 27.25;
     r++;
 
     mergeColsRow(r);
     aplicarFillSolid(ws.getCell(r, 1), FILL_ITEM_PAR);
+    ws.getCell(r, 1).alignment = { horizontal: 'center', vertical: 'middle' };
     ws.getRow(r).height = 8;
     r++;
 
@@ -545,7 +547,7 @@
       cPol.value = POLITICA_COMERCIAL_ITENS[pi];
       aplicarFillSolid(cPol, FILL_ITEM_PAR);
       cPol.font = { bold: true, italic: true, size: 10, color: { argb: 'FF000000' } };
-      cPol.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+      cPol.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
       cPol.border = novaBordaPreta();
       ws.getRow(r).height = alturasPolitica[pi] || 20;
       r++;
