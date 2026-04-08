@@ -178,6 +178,12 @@
   const FILL_ITEM_PAR = 'FFFFFFFF';
   const FILL_ITEM_IMPAR = 'FFE5E7EB';
 
+  /** Mesmas cores do Excel, para PDF (RGB 0–255). */
+  const PDF_FILL_ZEBRA_PAR = [255, 255, 255];
+  const PDF_FILL_ZEBRA_IMPAR = [229, 231, 235];
+  const PDF_BORDA = [148, 163, 184];
+  const PDF_HEAD_BG = [241, 245, 249];
+
   async function gerarExcelPantaneiro(produtos, opts) {
     const ExcelJS = window.ExcelJS || window.exceljs;
     if (!ExcelJS) {
@@ -369,6 +375,7 @@
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
     const m = 10;
+    const anoAtual = new Date().getFullYear();
 
     if (dataUrlBanner) {
       const imgW = Math.min(132, pageW - 2 * m);
@@ -377,32 +384,36 @@
     }
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(14);
     doc.setTextColor(220, 38, 38);
     doc.text(titulo, pageW / 2, 33, { align: 'center' });
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(71, 85, 105);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
     doc.text(
-      'G8 Representações — Preços atualizados conforme pantaneiro5/7.html — ' +
-        new Date().toLocaleDateString('pt-BR'),
+      'G8 Representações — Preços conforme tabela no sistema em ' +
+        new Date().toLocaleDateString('pt-BR') +
+        ' — Tabela ' +
+        anoAtual,
       pageW / 2,
-      38,
+      39,
       { align: 'center' }
     );
 
     const cats = ordemCategorias(produtos);
     const catFill = corCategoriaRgb || [185, 28, 28];
-    let y = 42;
+    let y = 44;
     const bottomSafe = 18;
     const tableMargins = { left: m, right: m, bottom: 14 };
     const colStyles = {
       0: { cellWidth: 18, halign: 'center' },
-      1: { cellWidth: 'auto' },
-      2: { cellWidth: 38 },
-      3: { cellWidth: 22, halign: 'right' },
+      1: { cellWidth: 'auto', halign: 'center' },
+      2: { cellWidth: 38, halign: 'center' },
+      3: { cellWidth: 22, halign: 'center' },
     };
+
+    let indiceItemGlobalPdf = 0;
 
     for (let c = 0; c < cats.length; c++) {
       const cat = cats[c];
@@ -425,15 +436,21 @@
         y = m;
       }
 
+      const faixaCat = 8.5;
       doc.setFillColor(catFill[0], catFill[1], catFill[2]);
-      doc.rect(m, y, pageW - 2 * m, 7, 'F');
+      doc.rect(m, y, pageW - 2 * m, faixaCat, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.text(String(cat).toUpperCase(), pageW / 2, y + 5, { align: 'center' });
+      doc.setFontSize(11);
+      doc.text(String(cat).toUpperCase(), pageW / 2, y + faixaCat / 2 + 1.4, {
+        align: 'center',
+        baseline: 'middle',
+      });
       doc.setTextColor(0, 0, 0);
       doc.setFont('helvetica', 'normal');
-      y += 10;
+      y += faixaCat + 2;
+
+      const zebraInicio = indiceItemGlobalPdf;
 
       doc.autoTable({
         startY: y,
@@ -441,22 +458,51 @@
         body: bodyRows,
         theme: 'grid',
         headStyles: {
-          fillColor: [241, 245, 249],
-          textColor: 30,
-          fontSize: 7,
+          fillColor: PDF_HEAD_BG,
+          textColor: [30, 41, 59],
+          fontSize: 9,
           fontStyle: 'bold',
+          halign: 'center',
+          valign: 'middle',
+          lineColor: PDF_BORDA,
+          lineWidth: 0.15,
         },
-        styles: { fontSize: 7, cellPadding: 1.2, overflow: 'linebreak', valign: 'middle' },
+        styles: {
+          fontSize: 8,
+          cellPadding: 1.35,
+          overflow: 'linebreak',
+          valign: 'middle',
+          halign: 'center',
+          lineColor: PDF_BORDA,
+          lineWidth: 0.15,
+        },
         columnStyles: colStyles,
         margin: tableMargins,
+        didParseCell: function (data) {
+          if (data.section === 'head') {
+            data.cell.styles.fillColor = PDF_HEAD_BG;
+            data.cell.styles.halign = 'center';
+            data.cell.styles.valign = 'middle';
+          }
+          if (data.section === 'body') {
+            const gi = zebraInicio + data.row.index;
+            const zebra = gi % 2 === 1;
+            data.cell.styles.fillColor = zebra ? PDF_FILL_ZEBRA_IMPAR : PDF_FILL_ZEBRA_PAR;
+            data.cell.styles.halign = 'center';
+            data.cell.styles.valign = 'middle';
+            data.cell.styles.textColor = [15, 23, 42];
+          }
+        },
       });
 
+      indiceItemGlobalPdf += bodyRows.length;
       y = doc.autoTable.previous.finalY + 8;
     }
 
     const totalPages = doc.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
       doc.setPage(p);
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(120, 120, 120);
       doc.text(
