@@ -155,28 +155,36 @@
 
   /**
    * Preço final: base × (1 − prazo%) × (1 − volume%).
-   * VALUE() força número; IFERROR devolve o preço tabela se algo falhar.
+   * IFERROR devolve o preço tabela se a fórmula falhar.
    */
   function formulaPrecoComPrazoEVolumeExcel(dataRow, baseColLetter, selRow) {
     const br = baseColLetter + dataRow;
     return (
       'IFERROR(' +
       br +
-      '*(1-VALUE($B$' +
+      '*(1-$B$' +
       selRow +
-      ')/100)*(1-VALUE($D$' +
+      '/100)*(1-$D$' +
       selRow +
-      ')/100),' +
+      '/100),' +
       br +
       ')'
     );
   }
 
-  function listaValidacaoExcel(valores) {
+  /**
+   * Lista para validação no Excel em português (BR): itens separados por ;
+   * (vírgula é separador decimal; usar , em decimais tipo 1,2 e 2,5).
+   * Listas com vírgula entre itens quebram o dropdown e os % deixam de recalcular.
+   */
+  function listaValidacaoExcelPT(valores) {
     const partes = valores.map(function (v) {
-      return String(v).replace(',', '.');
+      const n = Number(v);
+      if (!Number.isFinite(n)) return '0';
+      if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
+      return String(n).replace('.', ',');
     });
-    return '"' + partes.join(',') + '"';
+    return '"' + partes.join(';') + '"';
   }
 
   /** Letra da coluna Excel 0-based (0=A). */
@@ -361,7 +369,7 @@
 
     mergeColsRow(r);
     aplicarFillSolid(ws.getCell(r, 1), FILL_ITEM_PAR);
-    ws.getRow(r).height = 12;
+    ws.getRow(r).height = 12.1;
     r++;
 
     mergeColsRow(r);
@@ -372,7 +380,7 @@
     aplicarFillSolid(cInstr, FILL_ITEM_PAR);
     cInstr.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
     cInstr.border = novaBordaItem();
-    ws.getRow(r).height = 28;
+    ws.getRow(r).height = 28.05;
     r++;
 
     const selDescontoRow = r;
@@ -393,7 +401,7 @@
     cValPrazo.dataValidation = {
       type: 'list',
       allowBlank: true,
-      formulae: [listaValidacaoExcel(listaPrazoValid)],
+      formulae: [listaValidacaoExcelPT(listaPrazoValid)],
       showErrorMessage: true,
       errorStyle: 'warning',
       errorTitle: 'Lista',
@@ -417,7 +425,7 @@
     cValVol.dataValidation = {
       type: 'list',
       allowBlank: true,
-      formulae: [listaValidacaoExcel(listaVolValid)],
+      formulae: [listaValidacaoExcelPT(listaVolValid)],
       showErrorMessage: true,
       errorStyle: 'warning',
       errorTitle: 'Lista',
@@ -427,7 +435,7 @@
     const cEResto = ws.getCell(r, 5);
     aplicarFillSolid(cEResto, FILL_ITEM_PAR);
     cEResto.border = novaBordaItem();
-    ws.getRow(r).height = 22;
+    ws.getRow(r).height = 27.2;
     r++;
 
     mergeColsRow(r);
