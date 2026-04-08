@@ -1,6 +1,7 @@
 /**
  * Exporta tabelas Pantaneiro 5 e 7 para Excel e PDF com logo G8 (banner),
  * usando os mesmos preços e categorias de pantaneiro5.html / pantaneiro7.html.
+ * No Excel, linha editável de % e colunas com fórmulas (preço tabela × (1 − %/100)).
  */
 (function () {
   'use strict';
@@ -140,23 +141,57 @@
     };
   }
 
-  /** Larguras do modelo Tabela Pantaneiro — deve vir antes de posicionar imagens. */
-  const LARGURAS_COLS = [10.25, 78.25, 35.875, 8.75];
+  /** Valores iniciais na linha editável do Excel (o usuário altera direto na planilha). */
+  const DESCONTOS_PRAZO_PADRAO = [1.2, 2.5, 5.0];
+  const DESCONTOS_VOLUME_PADRAO = [2, 4, 6, 8, 10];
 
-  function aplicarLargurasColunas(ws) {
-    for (let i = 0; i < LARGURAS_COLS.length; i++) {
-      ws.getColumn(i + 1).width = LARGURAS_COLS[i];
+  /**
+   * Um desconto por coluna, sempre sobre o preço tabela (D) apenas — não compõe prazo + volume.
+   * Fórmula: D × (1 − %/100) com o % da mesma coluna (linha paramRow).
+   */
+  function formulaPrecoComDescontoExcel(dataRow, colIndex1Based, paramRow) {
+    const letter = colLetterFromIndex(colIndex1Based - 1);
+    return '$D' + dataRow + '*(1-' + letter + '$' + paramRow + '/100)';
+  }
+
+  /** Letra da coluna Excel 0-based (0=A). */
+  function colLetterFromIndex(i0) {
+    let n = i0 + 1;
+    let s = '';
+    while (n > 0) {
+      n--;
+      s = String.fromCharCode(65 + (n % 26)) + s;
+      n = Math.floor(n / 26);
+    }
+    return s;
+  }
+
+  /** Larguras base; índices 0–3 = ref/desc/tam/preço; demais = colunas de desconto (estreitas). */
+  function montarLargurasColunas(nPrazo, nVol) {
+    const base = [10.25, 78.25, 35.875, 8.75];
+    const nExtra = nPrazo + nVol;
+    const extra = [];
+    for (let i = 0; i < nExtra; i++) extra.push(11.25);
+    return base.concat(extra);
+  }
+
+  function aplicarLargurasColunas(ws, larguras) {
+    const arr = larguras || LARGURAS_COLS_ATUAL;
+    for (let i = 0; i < arr.length; i++) {
+      ws.getColumn(i + 1).width = arr[i];
     }
   }
 
+  /** Atualizado em gerarExcelPantaneiro conforme quantidade de colunas. */
+  let LARGURAS_COLS_ATUAL = [10.25, 78.25, 35.875, 8.75];
+
   /**
-   * Posição horizontal da logo (coluna decimal 0=A) centralizada em A:D.
-   * Usa LARGURAS_COLS fixas (não lê ws.getColumn — no ExcelJS o width às vezes ainda não entra no cálculo).
+   * Posição horizontal da logo (coluna decimal 0=A) centralizada em todas as colunas da tabela.
    * Largura em “px” aproximada: unidade Excel × fator (Calibri 11 ~7 px por unidade de largura).
    */
-  function tlColLogoCentralizadoSobreAD(larguraImagemPx, pxPorUnidade) {
+  function tlColLogoCentralizadoSobreGrade(largurasCols, larguraImagemPx, pxPorUnidade) {
     pxPorUnidade = pxPorUnidade || 7;
-    const colPx = LARGURAS_COLS.map(function (w) {
+    const colPx = largurasCols.map(function (w) {
       return w * pxPorUnidade;
     });
     const totalPx = colPx.reduce(function (a, b) {
@@ -164,7 +199,7 @@
     }, 0);
     const margemEsquerdaPx = Math.max(0, (totalPx - larguraImagemPx) / 2);
     let acc = 0;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < colPx.length; i++) {
       if (margemEsquerdaPx <= acc + colPx[i]) {
         const dentro = margemEsquerdaPx - acc;
         return i + dentro / colPx[i];
@@ -215,6 +250,18 @@
       return;
     }
 
+    opts = opts || {};
+    const descontosPrazo =
+      Array.isArray(opts.descontosPrazo) && opts.descontosPrazo.length
+        ? opts.descontosPrazo
+        : DESCONTOS_PRAZO_PADRAO.slice();
+    const descontosVolume =
+      Array.isArray(opts.descontosVolume) && opts.descontosVolume.length
+        ? opts.descontosVolume
+        : DESCONTOS_VOLUME_PADRAO.slice();
+    LARGURAS_COLS_ATUAL = montarLargurasColunas(descontosPrazo.length, descontosVolume.length);
+    const lastColLetter = colLetterFromIndex(LARGURAS_COLS_ATUAL.length - 1);
+
     let b64Banner;
     try {
       b64Banner = await fetchImageBase64(LOGO_BANNER);
@@ -233,15 +280,15 @@
     aplicarLargurasColunas(ws);
 
     function mergeColsRow(row) {
-      ws.mergeCells('A' + row + ':D' + row);
+      ws.mergeCells('A' + row + ':' + lastColLetter + row);
     }
 
-    /* Logo: inserir ANTES de mesclar A1:D1 — merge pode alterar âncora do desenho no Excel. */
+    /* Logo: inserir ANTES de mesclar linha 1 — merge pode alterar âncora do desenho no Excel. */
     const LARGURA_BANNER_PX = 400;
     const ALTURA_BANNER_PX = 58;
     const colInicioLogo =
       b64Banner && LARGURA_BANNER_PX > 0
-        ? tlColLogoCentralizadoSobreAD(LARGURA_BANNER_PX, 7)
+        ? tlColLogoCentralizadoSobreGrade(LARGURAS_COLS_ATUAL, LARGURA_BANNER_PX, 7)
         : 0;
 
     if (b64Banner) {
@@ -253,9 +300,9 @@
       });
     }
 
-    /* Cabeçalho: linhas 1–2 — fundo branco; texto alinhado ao centro na área A:D. */
-    ws.mergeCells('A1:D1');
-    ws.mergeCells('A2:D2');
+    /* Cabeçalho: linhas 1–2 — fundo branco; texto alinhado ao centro na largura total. */
+    ws.mergeCells('A1:' + lastColLetter + '1');
+    ws.mergeCells('A2:' + lastColLetter + '2');
     ws.getRow(1).height = 62;
     ws.getRow(2).height = 18;
     ['A1', 'A2'].forEach(function (addr) {
@@ -295,6 +342,83 @@
     ws.getRow(r).height = 18;
     r++;
 
+    mergeColsRow(r);
+    const cInstr = ws.getCell(r, 1);
+    cInstr.value =
+      'Dois descontos separados — Prazo e Volume: não se somam nem se combinam na mesma célula. Cada coluna de preço usa só o % daquela coluna sobre o preço de tabela (linha amarela abaixo).';
+    cInstr.font = { size: 10, italic: true, color: { argb: 'FF334155' } };
+    aplicarFillSolid(cInstr, FILL_ITEM_PAR);
+    cInstr.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+    cInstr.border = novaBordaItem();
+    ws.getRow(r).height = 36;
+    r++;
+
+    const iFirstPrazoCol = 5;
+    const iLastPrazoCol = 4 + descontosPrazo.length;
+    const iFirstVolCol = iLastPrazoCol + 1;
+    const iLastVolCol = iLastPrazoCol + descontosVolume.length;
+    const Ltr = colLetterFromIndex;
+
+    ws.mergeCells('A' + r + ':D' + r);
+    const cTipo = ws.getCell(r, 1);
+    cTipo.value = 'Tipos (independentes)';
+    cTipo.font = { size: 10, bold: true, color: { argb: 'FF475569' } };
+    aplicarFillSolid(cTipo, 'FFE8EEF4');
+    cTipo.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+    cTipo.border = novaBordaItem();
+
+    ws.mergeCells(Ltr(iFirstPrazoCol - 1) + r + ':' + Ltr(iLastPrazoCol - 1) + r);
+    const cHdrPrazo = ws.getCell(r, iFirstPrazoCol);
+    cHdrPrazo.value = 'Desconto prazo (cada faixa à parte)';
+    cHdrPrazo.font = { size: 10, bold: true, color: { argb: 'FF92400E' } };
+    aplicarFillSolid(cHdrPrazo, 'FFFEF3C7');
+    cHdrPrazo.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    cHdrPrazo.border = novaBordaItem();
+
+    ws.mergeCells(Ltr(iFirstVolCol - 1) + r + ':' + Ltr(iLastVolCol - 1) + r);
+    const cHdrVol = ws.getCell(r, iFirstVolCol);
+    cHdrVol.value = 'Desconto volume (cada faixa à parte)';
+    cHdrVol.font = { size: 10, bold: true, color: { argb: 'FF1E40AF' } };
+    aplicarFillSolid(cHdrVol, 'FFDBEAFE');
+    cHdrVol.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    cHdrVol.border = novaBordaItem();
+
+    ws.getRow(r).height = 22;
+    r++;
+
+    const paramValueRow = r;
+    ws.mergeCells('A' + r + ':D' + r);
+    const cPctLabel = ws.getCell(r, 1);
+    cPctLabel.value = '% editáveis (prazo → volume) — cada uma vale só para a coluna acima dela nas categorias';
+    cPctLabel.font = { size: 9, bold: true };
+    aplicarFillSolid(cPctLabel, 'FFFFF3CD');
+    cPctLabel.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+    cPctLabel.border = novaBordaItem();
+
+    let colPct = 5;
+    for (let di = 0; di < descontosPrazo.length; di++) {
+      const cPct = ws.getCell(r, colPct);
+      cPct.value = descontosPrazo[di];
+      cPct.numFmt = '0.00';
+      aplicarFillSolid(cPct, 'FFFEF3C7');
+      cPct.font = { bold: true };
+      cPct.alignment = { horizontal: 'center', vertical: 'middle' };
+      cPct.border = novaBordaItem();
+      colPct++;
+    }
+    for (let di = 0; di < descontosVolume.length; di++) {
+      const cPct = ws.getCell(r, colPct);
+      cPct.value = descontosVolume[di];
+      cPct.numFmt = '0.00';
+      aplicarFillSolid(cPct, 'FFDBEAFE');
+      cPct.font = { bold: true };
+      cPct.alignment = { horizontal: 'center', vertical: 'middle' };
+      cPct.border = novaBordaItem();
+      colPct++;
+    }
+    ws.getRow(r).height = 20;
+    r++;
+
     let indiceItemGlobal = 0;
 
     for (let ci = 0; ci < cats.length; ci++) {
@@ -313,7 +437,13 @@
       ws.getRow(r).height = 23.95;
       r++;
 
-      const hdr = ['Ref.', 'Descrição', 'Tamanhos', 'Preço (R$)'];
+      const hdr = ['Ref.', 'Descrição', 'Tamanhos', 'Preço tabela (R$)'];
+      for (let hi = 0; hi < descontosPrazo.length; hi++) {
+        hdr.push('Só prazo ' + (hi + 1));
+      }
+      for (let hi = 0; hi < descontosVolume.length; hi++) {
+        hdr.push('Só volume ' + (hi + 1));
+      }
       for (let h = 0; h < hdr.length; h++) {
         const cell = ws.getCell(r, h + 1);
         cell.value = hdr[h];
@@ -360,6 +490,26 @@
         c4.border = novaBordaItem();
         c4.alignment = { horizontal: 'center', vertical: 'middle' };
         c4.numFmt = '#,##0.00';
+
+        let col = 5;
+        for (let di = 0; di < descontosPrazo.length; di++) {
+          const cx = ws.getCell(r, col);
+          cx.value = { formula: formulaPrecoComDescontoExcel(r, col, paramValueRow) };
+          aplicarFillSolid(cx, fgArgb);
+          cx.border = novaBordaItem();
+          cx.alignment = { horizontal: 'center', vertical: 'middle' };
+          cx.numFmt = '#,##0.00';
+          col++;
+        }
+        for (let di = 0; di < descontosVolume.length; di++) {
+          const cx = ws.getCell(r, col);
+          cx.value = { formula: formulaPrecoComDescontoExcel(r, col, paramValueRow) };
+          aplicarFillSolid(cx, fgArgb);
+          cx.border = novaBordaItem();
+          cx.alignment = { horizontal: 'center', vertical: 'middle' };
+          cx.numFmt = '#,##0.00';
+          col++;
+        }
 
         ws.getRow(r).height = 14.3;
         r++;
@@ -659,7 +809,9 @@
 
       if (window.notifications && typeof window.notifications.success === 'function') {
         window.notifications.success(
-          isPdf ? 'PDF gerado com logos e preços atuais.' : 'Excel gerado com logos e preços atuais.',
+          isPdf
+            ? 'PDF gerado com logos e preços atuais.'
+            : 'Excel gerado com preço de tabela, linha editável de % e fórmulas de desconto, e logos G8.',
           { title: 'Download', duration: 3200 }
         );
       }
@@ -687,4 +839,5 @@
   window.baixarTabelaPantaneiroPdf = function (tabela) {
     return exportarTabelaPantaneiro(tabela, 'pdf');
   };
+
 })();
