@@ -1,7 +1,7 @@
 /**
  * Exporta tabelas Pantaneiro 5 e 7 para Excel e PDF com logo G8 (banner),
  * usando os mesmos preços e categorias de pantaneiro5.html / pantaneiro7.html.
- * No Excel, linha editável de % e colunas com fórmulas (preço tabela × (1 − %/100)).
+ * No Excel: dois campos no cabeçalho (listas) e coluna Preço como a tabela antiga (fórmula sobre col. base oculta).
  */
 (function () {
   'use strict';
@@ -145,13 +145,22 @@
   const DESCONTOS_PRAZO_PADRAO = [1.2, 2.5, 5.0];
   const DESCONTOS_VOLUME_PADRAO = [2, 4, 6, 8, 10];
 
-  /**
-   * Um desconto por coluna, sempre sobre o preço tabela (D) apenas — não compõe prazo + volume.
-   * Fórmula: D × (1 − %/100) com o % da mesma coluna (linha paramRow).
-   */
-  function formulaPrecoComDescontoExcel(dataRow, colIndex1Based, paramRow) {
-    const letter = colLetterFromIndex(colIndex1Based - 1);
-    return '$D' + dataRow + '*(1-' + letter + '$' + paramRow + '/100)';
+  /** Preço final: base × (1 − prazo%) × (1 − volume%) — células B e D da linha selRow. */
+  function formulaPrecoComPrazoEVolumeExcel(dataRow, baseColLetter, selRow) {
+    return (
+      '$' +
+      baseColLetter +
+      dataRow +
+      '*(1-$B$' +
+      selRow +
+      '/100)*(1-$D$' +
+      selRow +
+      '/100)'
+    );
+  }
+
+  function listaValidacaoExcel(valores) {
+    return '"' + valores.join(',') + '"';
   }
 
   /** Letra da coluna Excel 0-based (0=A). */
@@ -166,14 +175,8 @@
     return s;
   }
 
-  /** Larguras base; índices 0–3 = ref/desc/tam/preço; demais = colunas de desconto (estreitas). */
-  function montarLargurasColunas(nPrazo, nVol) {
-    const base = [10.25, 78.25, 35.875, 8.75];
-    const nExtra = nPrazo + nVol;
-    const extra = [];
-    for (let i = 0; i < nExtra; i++) extra.push(11.25);
-    return base.concat(extra);
-  }
+  /** Col. E = preço tabela (oculta); A–D = tabela visível como antes. */
+  const LARGURAS_COM_COL_BASE = [10.25, 78.25, 35.875, 8.75, 12];
 
   function aplicarLargurasColunas(ws, larguras) {
     const arr = larguras || LARGURAS_COLS_ATUAL;
@@ -259,8 +262,9 @@
       Array.isArray(opts.descontosVolume) && opts.descontosVolume.length
         ? opts.descontosVolume
         : DESCONTOS_VOLUME_PADRAO.slice();
-    LARGURAS_COLS_ATUAL = montarLargurasColunas(descontosPrazo.length, descontosVolume.length);
+    LARGURAS_COLS_ATUAL = LARGURAS_COM_COL_BASE.slice();
     const lastColLetter = colLetterFromIndex(LARGURAS_COLS_ATUAL.length - 1);
+    const colBaseLetter = colLetterFromIndex(4);
 
     let b64Banner;
     try {
@@ -339,84 +343,78 @@
 
     mergeColsRow(r);
     aplicarFillSolid(ws.getCell(r, 1), FILL_ITEM_PAR);
-    ws.getRow(r).height = 18;
+    ws.getRow(r).height = 12;
     r++;
 
     mergeColsRow(r);
     const cInstr = ws.getCell(r, 1);
     cInstr.value =
-      'Dois descontos separados — Prazo e Volume: não se somam nem se combinam na mesma célula. Cada coluna de preço usa só o % daquela coluna sobre o preço de tabela (linha amarela abaixo).';
+      'Escolha os dois descontos na linha abaixo (listas). A coluna Preço (R$) aplica prazo e volume sobre o preço de tabela (coluna E, oculta), no mesmo formato de tabela de antes.';
     cInstr.font = { size: 10, italic: true, color: { argb: 'FF334155' } };
     aplicarFillSolid(cInstr, FILL_ITEM_PAR);
     cInstr.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
     cInstr.border = novaBordaItem();
-    ws.getRow(r).height = 36;
+    ws.getRow(r).height = 28;
     r++;
 
-    const iFirstPrazoCol = 5;
-    const iLastPrazoCol = 4 + descontosPrazo.length;
-    const iFirstVolCol = iLastPrazoCol + 1;
-    const iLastVolCol = iLastPrazoCol + descontosVolume.length;
-    const Ltr = colLetterFromIndex;
+    const selDescontoRow = r;
+    const cLabPrazo = ws.getCell(r, 1);
+    cLabPrazo.value = 'Desconto prazo (%)';
+    cLabPrazo.font = { bold: true, size: 10 };
+    aplicarFillSolid(cLabPrazo, 'FFF1F5F9');
+    cLabPrazo.alignment = { horizontal: 'left', vertical: 'middle' };
+    cLabPrazo.border = novaBordaItem();
 
-    ws.mergeCells('A' + r + ':D' + r);
-    const cTipo = ws.getCell(r, 1);
-    cTipo.value = 'Tipos (independentes)';
-    cTipo.font = { size: 10, bold: true, color: { argb: 'FF475569' } };
-    aplicarFillSolid(cTipo, 'FFE8EEF4');
-    cTipo.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-    cTipo.border = novaBordaItem();
+    const cValPrazo = ws.getCell(r, 2);
+    cValPrazo.value = descontosPrazo[1] != null ? descontosPrazo[1] : 2.5;
+    cValPrazo.numFmt = '0.00';
+    aplicarFillSolid(cValPrazo, 'FFFEF3C7');
+    cValPrazo.font = { bold: true, size: 11 };
+    cValPrazo.alignment = { horizontal: 'center', vertical: 'middle' };
+    cValPrazo.border = novaBordaItem();
+    cValPrazo.dataValidation = {
+      type: 'list',
+      allowBlank: false,
+      formulae: [listaValidacaoExcel(descontosPrazo)],
+      showErrorMessage: true,
+      errorStyle: 'error',
+      errorTitle: 'Valor inválido',
+      error: 'Escolha um percentual da lista.',
+    };
 
-    ws.mergeCells(Ltr(iFirstPrazoCol - 1) + r + ':' + Ltr(iLastPrazoCol - 1) + r);
-    const cHdrPrazo = ws.getCell(r, iFirstPrazoCol);
-    cHdrPrazo.value = 'Desconto prazo (cada faixa à parte)';
-    cHdrPrazo.font = { size: 10, bold: true, color: { argb: 'FF92400E' } };
-    aplicarFillSolid(cHdrPrazo, 'FFFEF3C7');
-    cHdrPrazo.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-    cHdrPrazo.border = novaBordaItem();
+    const cLabVol = ws.getCell(r, 3);
+    cLabVol.value = 'Desconto volume (%)';
+    cLabVol.font = { bold: true, size: 10 };
+    aplicarFillSolid(cLabVol, 'FFF1F5F9');
+    cLabVol.alignment = { horizontal: 'left', vertical: 'middle' };
+    cLabVol.border = novaBordaItem();
 
-    ws.mergeCells(Ltr(iFirstVolCol - 1) + r + ':' + Ltr(iLastVolCol - 1) + r);
-    const cHdrVol = ws.getCell(r, iFirstVolCol);
-    cHdrVol.value = 'Desconto volume (cada faixa à parte)';
-    cHdrVol.font = { size: 10, bold: true, color: { argb: 'FF1E40AF' } };
-    aplicarFillSolid(cHdrVol, 'FFDBEAFE');
-    cHdrVol.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-    cHdrVol.border = novaBordaItem();
+    const cValVol = ws.getCell(r, 4);
+    cValVol.value = descontosVolume[0] != null ? descontosVolume[0] : 2;
+    cValVol.numFmt = '0.00';
+    aplicarFillSolid(cValVol, 'FFDBEAFE');
+    cValVol.font = { bold: true, size: 11 };
+    cValVol.alignment = { horizontal: 'center', vertical: 'middle' };
+    cValVol.border = novaBordaItem();
+    cValVol.dataValidation = {
+      type: 'list',
+      allowBlank: false,
+      formulae: [listaValidacaoExcel(descontosVolume)],
+      showErrorMessage: true,
+      errorStyle: 'error',
+      errorTitle: 'Valor inválido',
+      error: 'Escolha um percentual da lista.',
+    };
 
+    const cEResto = ws.getCell(r, 5);
+    aplicarFillSolid(cEResto, FILL_ITEM_PAR);
+    cEResto.border = novaBordaItem();
     ws.getRow(r).height = 22;
     r++;
 
-    const paramValueRow = r;
-    ws.mergeCells('A' + r + ':D' + r);
-    const cPctLabel = ws.getCell(r, 1);
-    cPctLabel.value = '% editáveis (prazo → volume) — cada uma vale só para a coluna acima dela nas categorias';
-    cPctLabel.font = { size: 9, bold: true };
-    aplicarFillSolid(cPctLabel, 'FFFFF3CD');
-    cPctLabel.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-    cPctLabel.border = novaBordaItem();
-
-    let colPct = 5;
-    for (let di = 0; di < descontosPrazo.length; di++) {
-      const cPct = ws.getCell(r, colPct);
-      cPct.value = descontosPrazo[di];
-      cPct.numFmt = '0.00';
-      aplicarFillSolid(cPct, 'FFFEF3C7');
-      cPct.font = { bold: true };
-      cPct.alignment = { horizontal: 'center', vertical: 'middle' };
-      cPct.border = novaBordaItem();
-      colPct++;
-    }
-    for (let di = 0; di < descontosVolume.length; di++) {
-      const cPct = ws.getCell(r, colPct);
-      cPct.value = descontosVolume[di];
-      cPct.numFmt = '0.00';
-      aplicarFillSolid(cPct, 'FFDBEAFE');
-      cPct.font = { bold: true };
-      cPct.alignment = { horizontal: 'center', vertical: 'middle' };
-      cPct.border = novaBordaItem();
-      colPct++;
-    }
-    ws.getRow(r).height = 20;
+    mergeColsRow(r);
+    aplicarFillSolid(ws.getCell(r, 1), FILL_ITEM_PAR);
+    ws.getRow(r).height = 8;
     r++;
 
     let indiceItemGlobal = 0;
@@ -437,13 +435,7 @@
       ws.getRow(r).height = 23.95;
       r++;
 
-      const hdr = ['Ref.', 'Descrição', 'Tamanhos', 'Preço tabela (R$)'];
-      for (let hi = 0; hi < descontosPrazo.length; hi++) {
-        hdr.push('Só prazo ' + (hi + 1));
-      }
-      for (let hi = 0; hi < descontosVolume.length; hi++) {
-        hdr.push('Só volume ' + (hi + 1));
-      }
+      const hdr = ['Ref.', 'Descrição', 'Tamanhos', 'Preço (R$)', ''];
       for (let h = 0; h < hdr.length; h++) {
         const cell = ws.getCell(r, h + 1);
         cell.value = hdr[h];
@@ -484,32 +476,21 @@
         c3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         c3.border = novaBordaItem();
 
-        const c4 = ws.getCell(r, 4);
-        c4.value = preco;
-        aplicarFillSolid(c4, fgArgb);
-        c4.border = novaBordaItem();
-        c4.alignment = { horizontal: 'center', vertical: 'middle' };
-        c4.numFmt = '#,##0.00';
+        const cBase = ws.getCell(r, 5);
+        cBase.value = preco;
+        aplicarFillSolid(cBase, fgArgb);
+        cBase.border = novaBordaItem();
+        cBase.alignment = { horizontal: 'center', vertical: 'middle' };
+        cBase.numFmt = '#,##0.00';
 
-        let col = 5;
-        for (let di = 0; di < descontosPrazo.length; di++) {
-          const cx = ws.getCell(r, col);
-          cx.value = { formula: formulaPrecoComDescontoExcel(r, col, paramValueRow) };
-          aplicarFillSolid(cx, fgArgb);
-          cx.border = novaBordaItem();
-          cx.alignment = { horizontal: 'center', vertical: 'middle' };
-          cx.numFmt = '#,##0.00';
-          col++;
-        }
-        for (let di = 0; di < descontosVolume.length; di++) {
-          const cx = ws.getCell(r, col);
-          cx.value = { formula: formulaPrecoComDescontoExcel(r, col, paramValueRow) };
-          aplicarFillSolid(cx, fgArgb);
-          cx.border = novaBordaItem();
-          cx.alignment = { horizontal: 'center', vertical: 'middle' };
-          cx.numFmt = '#,##0.00';
-          col++;
-        }
+        const cPreco = ws.getCell(r, 4);
+        cPreco.value = {
+          formula: formulaPrecoComPrazoEVolumeExcel(r, colBaseLetter, selDescontoRow),
+        };
+        aplicarFillSolid(cPreco, fgArgb);
+        cPreco.border = novaBordaItem();
+        cPreco.alignment = { horizontal: 'center', vertical: 'middle' };
+        cPreco.numFmt = '#,##0.00';
 
         ws.getRow(r).height = 14.3;
         r++;
@@ -543,6 +524,8 @@
       ws.getRow(r).height = alturasPolitica[pi] || 20;
       r++;
     }
+
+    ws.getColumn(5).hidden = true;
 
     const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], {
@@ -811,7 +794,7 @@
         window.notifications.success(
           isPdf
             ? 'PDF gerado com logos e preços atuais.'
-            : 'Excel gerado com preço de tabela, linha editável de % e fórmulas de desconto, e logos G8.',
+            : 'Excel gerado no formato da tabela (4 colunas visíveis), com 2 campos de desconto no cabeçalho e logos G8.',
           { title: 'Download', duration: 3200 }
         );
       }
