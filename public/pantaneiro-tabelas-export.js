@@ -175,16 +175,11 @@
   }
 
   /**
-   * Lista para validação: itens separados por ; e decimais com PONTO (1.2;2.5).
-   * Vírgula dentro do item quebra o Excel PT-BR (1,2 virava dois itens).
+   * Referência de intervalo para validação tipo lista (uma célula = um valor).
+   * Listas inline ("0;1.2;...") viram texto único no Excel — não usar.
    */
-  function listaValidacaoExcelPT(valores) {
-    const partes = valores.map(function (v) {
-      const n = Number(v);
-      if (!Number.isFinite(n)) return '0';
-      return String(n);
-    });
-    return '"' + partes.join(';') + '"';
+  function refListaValidacaoAbs(colLetter, rowIni, rowFim) {
+    return '$' + colLetter + '$' + rowIni + ':$' + colLetter + '$' + rowFim;
   }
 
   /** Letra da coluna Excel 0-based (0=A). */
@@ -309,6 +304,26 @@
 
     aplicarLargurasColunas(ws);
 
+    /* Uma célula por opção (col. F e G, depois ocultas) — listas inline viram texto e não aplicam %. */
+    const LIST_ROW0 = 1;
+    let li;
+    for (li = 0; li < listaPrazoValid.length; li++) {
+      ws.getCell(LIST_ROW0 + li, 6).value = Number(listaPrazoValid[li]);
+    }
+    for (li = 0; li < listaVolValid.length; li++) {
+      ws.getCell(LIST_ROW0 + li, 7).value = Number(listaVolValid[li]);
+    }
+    const refPrazoLista = refListaValidacaoAbs(
+      'F',
+      LIST_ROW0,
+      LIST_ROW0 + listaPrazoValid.length - 1
+    );
+    const refVolLista = refListaValidacaoAbs(
+      'G',
+      LIST_ROW0,
+      LIST_ROW0 + listaVolValid.length - 1
+    );
+
     function mergeColsRow(row) {
       ws.mergeCells('A' + row + ':' + lastColLetter + row);
     }
@@ -376,7 +391,7 @@
     mergeColsRow(r);
     const cInstr = ws.getCell(r, 1);
     cInstr.value =
-      'Descontos na linha abaixo (listas). Padrão 0% = preço igual ao da tabela. Coluna E (oculta) = preço tabela; coluna D = preço com os dois descontos.';
+      'Dois descontos independentes: prazo (col. B) e volume (col. D). Listas separadas. Padrão 0%. Col. E oculta = preço tabela; col. D = preço final.';
     cInstr.font = { size: 10, italic: true, color: { argb: 'FF334155' } };
     aplicarFillSolid(cInstr, FILL_ITEM_PAR);
     cInstr.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
@@ -402,11 +417,11 @@
     cValPrazo.dataValidation = {
       type: 'list',
       allowBlank: true,
-      formulae: [listaValidacaoExcelPT(listaPrazoValid)],
+      formulae: ['=' + refPrazoLista],
       showErrorMessage: true,
       errorStyle: 'warning',
       errorTitle: 'Lista',
-      error: 'Use um valor da lista ou digite um número (ex.: 2,5).',
+      error: 'Escolha um valor da lista ou digite o percentual.',
     };
 
     const cLabVol = ws.getCell(r, 3);
@@ -426,11 +441,11 @@
     cValVol.dataValidation = {
       type: 'list',
       allowBlank: true,
-      formulae: [listaValidacaoExcelPT(listaVolValid)],
+      formulae: ['=' + refVolLista],
       showErrorMessage: true,
       errorStyle: 'warning',
       errorTitle: 'Lista',
-      error: 'Use um valor da lista ou digite um número (ex.: 4).',
+      error: 'Escolha um valor da lista ou digite o percentual.',
     };
 
     const cEResto = ws.getCell(r, 5);
@@ -554,6 +569,8 @@
     }
 
     ws.getColumn(5).hidden = true;
+    ws.getColumn(6).hidden = true;
+    ws.getColumn(7).hidden = true;
 
     const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], {
