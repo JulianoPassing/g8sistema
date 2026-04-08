@@ -365,43 +365,43 @@
     }
 
     const { titulo, nomeArquivo, corCategoriaRgb } = opts;
-    const doc = new JSPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const doc = new JSPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
     const m = 10;
 
     if (dataUrlBanner) {
-      const imgW = 150;
-      const imgH = 22;
+      const imgW = Math.min(132, pageW - 2 * m);
+      const imgH = (imgW * 22) / 150;
       doc.addImage(dataUrlBanner, 'PNG', (pageW - imgW) / 2, 7, imgW, imgH);
     }
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(13);
+    doc.setFontSize(12);
     doc.setTextColor(220, 38, 38);
-    doc.text(titulo, pageW / 2, 34, { align: 'center' });
+    doc.text(titulo, pageW / 2, 33, { align: 'center' });
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
+    doc.setFontSize(8);
     doc.setTextColor(71, 85, 105);
     doc.text(
       'G8 Representações — Preços atualizados conforme pantaneiro5/7.html — ' +
         new Date().toLocaleDateString('pt-BR'),
       pageW / 2,
-      39,
+      38,
       { align: 'center' }
     );
 
     const cats = ordemCategorias(produtos);
     const catFill = corCategoriaRgb || [185, 28, 28];
-    let y = 43;
+    let y = 42;
     const bottomSafe = 18;
     const tableMargins = { left: m, right: m, bottom: 14 };
     const colStyles = {
-      0: { cellWidth: 22 },
+      0: { cellWidth: 18, halign: 'center' },
       1: { cellWidth: 'auto' },
-      2: { cellWidth: 52 },
-      3: { cellWidth: 24, halign: 'right' },
+      2: { cellWidth: 38 },
+      3: { cellWidth: 22, halign: 'right' },
     };
 
     for (let c = 0; c < cats.length; c++) {
