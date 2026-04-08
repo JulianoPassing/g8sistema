@@ -282,6 +282,27 @@
       color: var(--text-color); 
       font-size: 0.9rem; 
     }
+    .cnpj-input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .cnpj-input-row input {
+      flex: 1;
+      min-width: 160px;
+    }
+    .cnpj-input-row .btn {
+      flex-shrink: 0;
+      white-space: nowrap;
+      align-self: center;
+    }
+    .cnpj-consulta-hint {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted, #64748b);
+      line-height: 1.35;
+    }
     input[type="text"], input[type="email"] { 
       width: 100%; 
       padding: 10px 12px; 
@@ -676,9 +697,15 @@
             <label for="nome-fantasia">Nome Fantasia (Loja)</label>
             <input type="text" id="nome-fantasia" name="nome_fantasia" placeholder="Ex.: Dinho Motos" />
           </div>
-          <div class="form-group">
+          <div class="form-group form-group-cnpj-consulta">
             <label for="cnpj">CNPJ</label>
-            <input type="text" id="cnpj" name="cnpj" required />
+            <div class="cnpj-input-row">
+              <input type="text" id="cnpj" name="cnpj" required inputmode="numeric" autocomplete="off" placeholder="00.000.000/0000-00" />
+              <button type="button" class="btn btn-secondary" id="btn-consultar-cnpj" title="Preenche razão social, endereço e telefone com dados públicos da Receita Federal">
+                Preencher pelo CNPJ
+              </button>
+            </div>
+            <p class="cnpj-consulta-hint">Consulta automática nas bases públicas (Brasil API / ReceitaWS). Revise os dados antes de salvar.</p>
           </div>
           <div class="form-group">
             <label for="ie">IE</label>
@@ -779,6 +806,78 @@
 
     function normalizarCnpj(cnpj) {
       return String(cnpj || '').replace(/\D/g, '');
+    }
+
+    function formatarCnpjComMascara(valor) {
+      const d = normalizarCnpj(valor);
+      if (d.length !== 14) return String(valor || '').trim();
+      return (
+        d.slice(0, 2) +
+        '.' +
+        d.slice(2, 5) +
+        '.' +
+        d.slice(5, 8) +
+        '/' +
+        d.slice(8, 12) +
+        '-' +
+        d.slice(12)
+      );
+    }
+
+    function notificarCadastro(mensagem, tipo) {
+      if (window.notifications && typeof window.notifications[tipo] === 'function') {
+        window.notifications[tipo](mensagem, { title: 'Cadastro', duration: 4200 });
+      } else if (tipo === 'success') {
+        alert(mensagem);
+      } else {
+        alert(mensagem);
+      }
+    }
+
+    async function consultarCnpjPreencherCadastro() {
+      const cnpjDigits = normalizarCnpj(document.getElementById('cnpj').value);
+      if (cnpjDigits.length !== 14) {
+        notificarCadastro('Informe um CNPJ válido com 14 dígitos.', 'warning');
+        return;
+      }
+      const btn = document.getElementById('btn-consultar-cnpj');
+      btn.disabled = true;
+      try {
+        const url = `${API_URL}?cnpj_consulta=${encodeURIComponent(cnpjDigits)}&consulta_completa=1`;
+        const resposta = await fetch(url);
+        const dados = await resposta.json();
+        if (!dados.ok) {
+          notificarCadastro(dados.erro || 'Não foi possível consultar o CNPJ.', 'error');
+          return;
+        }
+        document.getElementById('cnpj').value = formatarCnpjComMascara(cnpjDigits);
+        document.getElementById('razao').value = dados.razao || '';
+        if (dados.nome_fantasia) {
+          document.getElementById('nome-fantasia').value = dados.nome_fantasia;
+        }
+        document.getElementById('endereco').value = dados.endereco || '';
+        document.getElementById('bairro').value = dados.bairro || '';
+        document.getElementById('cidade').value = dados.cidade || '';
+        document.getElementById('estado').value = dados.estado || '';
+        document.getElementById('cep').value = dados.cep || '';
+        if (dados.telefone) {
+          document.getElementById('telefone').value = dados.telefone;
+        }
+        if (dados.email) {
+          document.getElementById('email').value = dados.email;
+        }
+        const fonteLabel = dados.fonte === 'brasilapi' ? 'Brasil API' : 'ReceitaWS';
+        let msg = 'Campos preenchidos com dados públicos do CNPJ (' + fonteLabel + ').';
+        if (dados.situacao && String(dados.situacao).toUpperCase().indexOf('ATIVA') === -1) {
+          msg += ' Situação cadastral: ' + dados.situacao + '.';
+        }
+        notificarCadastro(msg, 'success');
+      } catch (erro) {
+        console.warn('Consulta CNPJ:', erro);
+        notificarCadastro('Erro de rede ao consultar o CNPJ. Tente novamente.', 'error');
+      } finally {
+        btn.disabled = false;
+      }
     }
 
     function obterNomeFantasia(cliente) {
@@ -1045,6 +1144,7 @@
       }
       carregarClientes();
       document.getElementById('btn-buscar-fantasia').onclick = buscarNomesFantasiaClientes;
+      document.getElementById('btn-consultar-cnpj').onclick = consultarCnpjPreencherCadastro;
       document.getElementById('btn-exportar-cadastro-rapido').onclick = exportarCadastroRapidoExcel;
       document.getElementById('btn-exportar-pdf').onclick = exportarClientesPDF;
       document.getElementById('btn-exportar-excel').onclick = exportarClientesExcel;

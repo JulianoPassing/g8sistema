@@ -99,6 +99,96 @@ const buscarNomeFantasiaExterno = async (cnpj, razao = '') => {
   return { nome_fantasia: fallback, fonte: fallback ? 'fallback-razao' : 'nao-encontrado' };
 };
 
+const formatarCepCadastro = (cep) => {
+  const d = String(cep || '').replace(/\D/g, '');
+  if (d.length === 8) return `${d.slice(0, 5)}-${d.slice(5)}`;
+  return String(cep || '').trim();
+};
+
+const formatarTelefoneCadastro = (dddTel) => {
+  const d = String(dddTel || '').replace(/\D/g, '');
+  if (d.length === 10) {
+    return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  }
+  if (d.length === 11) {
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  }
+  return String(dddTel || '').trim();
+};
+
+const montarLogradouroCadastro = (logradouro, numero, complemento) => {
+  const base = [logradouro, numero].filter((x) => x != null && String(x).trim() !== '').join(', ');
+  const comp = complemento != null ? String(complemento).trim() : '';
+  if (comp) return base ? `${base} — ${comp}` : comp;
+  return base;
+};
+
+/**
+ * Dados de PJ para cadastro (Brasil API prioritária; ReceitaWS como fallback).
+ */
+const buscarDadosCadastroCnpj = async (cnpj) => {
+  const cnpjLimpo = String(cnpj || '').replace(/\D/g, '');
+  if (cnpjLimpo.length !== 14) {
+    return { ok: false, erro: 'CNPJ deve ter 14 dígitos.' };
+  }
+
+  const brasilApi = await fetchJsonComTimeout(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`);
+  if (brasilApi && !brasilApi.message && brasilApi.razao_social) {
+    return {
+      ok: true,
+      fonte: 'brasilapi',
+      cnpj: cnpjLimpo,
+      razao: String(brasilApi.razao_social).trim(),
+      nome_fantasia: String(brasilApi.nome_fantasia || '').trim(),
+      endereco: montarLogradouroCadastro(brasilApi.logradouro, brasilApi.numero, brasilApi.complemento),
+      bairro: String(brasilApi.bairro || '').trim(),
+      cidade: String(brasilApi.municipio || '').trim(),
+      estado: String(brasilApi.uf || '')
+        .trim()
+        .toUpperCase(),
+      cep: formatarCepCadastro(brasilApi.cep),
+      telefone: formatarTelefoneCadastro(brasilApi.ddd_telefone_1),
+      email: brasilApi.email ? String(brasilApi.email).trim() : '',
+      situacao: String(brasilApi.descricao_situacao_cadastral || '').trim(),
+    };
+  }
+
+  const receitaWs = await fetchJsonComTimeout(`https://receitaws.com.br/v1/cnpj/${cnpjLimpo}`, 12000);
+  if (
+    receitaWs &&
+    receitaWs.status !== 'ERROR' &&
+    receitaWs.message == null &&
+    (receitaWs.nome || receitaWs.fantasia)
+  ) {
+    const tel =
+      receitaWs.telefone != null && String(receitaWs.telefone).replace(/\D/g, '').length >= 10
+        ? formatarTelefoneCadastro(receitaWs.telefone)
+        : '';
+    return {
+      ok: true,
+      fonte: 'receitaws',
+      cnpj: cnpjLimpo,
+      razao: String(receitaWs.nome || receitaWs.razao_social || '').trim(),
+      nome_fantasia: String(receitaWs.fantasia || receitaWs.nome_fantasia || '').trim(),
+      endereco: montarLogradouroCadastro(receitaWs.logradouro, receitaWs.numero, receitaWs.complemento),
+      bairro: String(receitaWs.bairro || '').trim(),
+      cidade: String(receitaWs.municipio || '').trim(),
+      estado: String(receitaWs.uf || '')
+        .trim()
+        .toUpperCase(),
+      cep: formatarCepCadastro(receitaWs.cep),
+      telefone: tel,
+      email: receitaWs.email ? String(receitaWs.email).trim() : '',
+      situacao: String(receitaWs.situacao || '').trim(),
+    };
+  }
+
+  return {
+    ok: false,
+    erro: 'Não foi possível obter dados deste CNPJ. Confira os dígitos ou tente mais tarde.',
+  };
+};
+
 const ensureNomeFantasiaColumn = async (connection) => {
   const [columns] = await connection.execute(
     `SELECT COLUMN_NAME
@@ -194,7 +284,12 @@ module.exports = async (req, res) => {
     // GET dedicado para buscar nome fantasia em multiplas fontes por CNPJ
     const cnpjConsulta = extrairQueryParam(req, 'cnpj_consulta');
     const razaoConsulta = extrairQueryParam(req, 'razao');
+    const consultaCompleta = extrairQueryParam(req, 'consulta_completa');
     if (req.method === 'GET' && cnpjConsulta) {
+      if (consultaCompleta === '1') {
+        const dadosCadastro = await buscarDadosCadastroCnpj(cnpjConsulta);
+        return res.status(200).json(dadosCadastro);
+      }
       const resultado = await buscarNomeFantasiaExterno(cnpjConsulta, razaoConsulta || '');
       return res.status(200).json({
         cnpj: String(cnpjConsulta).replace(/\D/g, ''),
