@@ -141,26 +141,42 @@
     };
   }
 
-  /** Valores iniciais na linha editável do Excel (o usuário altera direto na planilha). */
+  /** Opções de lista no Excel (0 = sem desconto). */
   const DESCONTOS_PRAZO_PADRAO = [1.2, 2.5, 5.0];
   const DESCONTOS_VOLUME_PADRAO = [2, 4, 6, 8, 10];
 
-  /** Preço final: base × (1 − prazo%) × (1 − volume%) — células B e D da linha selRow. */
+  function listaComZero(opcoes) {
+    const out = [0];
+    for (let i = 0; i < opcoes.length; i++) {
+      if (opcoes[i] !== 0) out.push(opcoes[i]);
+    }
+    return out;
+  }
+
+  /**
+   * Preço final: base × (1 − prazo%) × (1 − volume%).
+   * VALUE() força número; IFERROR devolve o preço tabela se algo falhar.
+   */
   function formulaPrecoComPrazoEVolumeExcel(dataRow, baseColLetter, selRow) {
+    const br = baseColLetter + dataRow;
     return (
-      '$' +
-      baseColLetter +
-      dataRow +
-      '*(1-$B$' +
+      'IFERROR(' +
+      br +
+      '*(1-VALUE($B$' +
       selRow +
-      '/100)*(1-$D$' +
+      ')/100)*(1-VALUE($D$' +
       selRow +
-      '/100)'
+      ')/100),' +
+      br +
+      ')'
     );
   }
 
   function listaValidacaoExcel(valores) {
-    return '"' + valores.join(',') + '"';
+    const partes = valores.map(function (v) {
+      return String(v).replace(',', '.');
+    });
+    return '"' + partes.join(',') + '"';
   }
 
   /** Letra da coluna Excel 0-based (0=A). */
@@ -262,6 +278,8 @@
       Array.isArray(opts.descontosVolume) && opts.descontosVolume.length
         ? opts.descontosVolume
         : DESCONTOS_VOLUME_PADRAO.slice();
+    const listaPrazoValid = listaComZero(descontosPrazo);
+    const listaVolValid = listaComZero(descontosVolume);
     LARGURAS_COLS_ATUAL = LARGURAS_COM_COL_BASE.slice();
     const lastColLetter = colLetterFromIndex(LARGURAS_COLS_ATUAL.length - 1);
     const colBaseLetter = colLetterFromIndex(4);
@@ -349,7 +367,7 @@
     mergeColsRow(r);
     const cInstr = ws.getCell(r, 1);
     cInstr.value =
-      'Escolha os dois descontos na linha abaixo (listas). A coluna Preço (R$) aplica prazo e volume sobre o preço de tabela (coluna E, oculta), no mesmo formato de tabela de antes.';
+      'Descontos na linha abaixo (listas). Padrão 0% = preço igual ao da tabela. Coluna E (oculta) = preço tabela; coluna D = preço com os dois descontos.';
     cInstr.font = { size: 10, italic: true, color: { argb: 'FF334155' } };
     aplicarFillSolid(cInstr, FILL_ITEM_PAR);
     cInstr.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
@@ -366,7 +384,7 @@
     cLabPrazo.border = novaBordaItem();
 
     const cValPrazo = ws.getCell(r, 2);
-    cValPrazo.value = descontosPrazo[1] != null ? descontosPrazo[1] : 2.5;
+    cValPrazo.value = 0;
     cValPrazo.numFmt = '0.00';
     aplicarFillSolid(cValPrazo, 'FFFEF3C7');
     cValPrazo.font = { bold: true, size: 11 };
@@ -374,12 +392,12 @@
     cValPrazo.border = novaBordaItem();
     cValPrazo.dataValidation = {
       type: 'list',
-      allowBlank: false,
-      formulae: [listaValidacaoExcel(descontosPrazo)],
+      allowBlank: true,
+      formulae: [listaValidacaoExcel(listaPrazoValid)],
       showErrorMessage: true,
-      errorStyle: 'error',
-      errorTitle: 'Valor inválido',
-      error: 'Escolha um percentual da lista.',
+      errorStyle: 'warning',
+      errorTitle: 'Lista',
+      error: 'Use um valor da lista ou digite um número (ex.: 2,5).',
     };
 
     const cLabVol = ws.getCell(r, 3);
@@ -390,7 +408,7 @@
     cLabVol.border = novaBordaItem();
 
     const cValVol = ws.getCell(r, 4);
-    cValVol.value = descontosVolume[0] != null ? descontosVolume[0] : 2;
+    cValVol.value = 0;
     cValVol.numFmt = '0.00';
     aplicarFillSolid(cValVol, 'FFDBEAFE');
     cValVol.font = { bold: true, size: 11 };
@@ -398,12 +416,12 @@
     cValVol.border = novaBordaItem();
     cValVol.dataValidation = {
       type: 'list',
-      allowBlank: false,
-      formulae: [listaValidacaoExcel(descontosVolume)],
+      allowBlank: true,
+      formulae: [listaValidacaoExcel(listaVolValid)],
       showErrorMessage: true,
-      errorStyle: 'error',
-      errorTitle: 'Valor inválido',
-      error: 'Escolha um percentual da lista.',
+      errorStyle: 'warning',
+      errorTitle: 'Lista',
+      error: 'Use um valor da lista ou digite um número (ex.: 4).',
     };
 
     const cEResto = ws.getCell(r, 5);
@@ -477,7 +495,7 @@
         c3.border = novaBordaItem();
 
         const cBase = ws.getCell(r, 5);
-        cBase.value = preco;
+        cBase.value = Number(preco);
         aplicarFillSolid(cBase, fgArgb);
         cBase.border = novaBordaItem();
         cBase.alignment = { horizontal: 'center', vertical: 'middle' };
