@@ -183,6 +183,30 @@
   const PDF_FILL_ZEBRA_IMPAR = [229, 231, 235];
   const PDF_BORDA = [148, 163, 184];
   const PDF_HEAD_BG = [241, 245, 249];
+  /** Cabeçalho amarelo / ouro — política comercial (PDF). */
+  const PDF_POLITICA_HEADER_BG = [255, 213, 0];
+  const PDF_POLITICA_BORDA = [0, 0, 0];
+
+  const POLITICA_COMERCIAL_TITULO = 'POLITICA COMERCIAL';
+  const POLITICA_COMERCIAL_ITENS = [
+    'PEDIDO MÍNIMO PARA FATURAMENTO R$ 2.000,00;',
+    'PRIMEIRA COMPRA PAGAMENTO A VISTA ANTECIPADO;',
+    'ACRESCIMO DE 15% NO VALOR PARA TAMANHOS EXG / 2G E 3G;',
+    'ACRESCIMO DE 40% NO VALOR PARA TAMANHOS 4G E 5G;',
+    'DESCONTO POR PRAZO MÉDIO: Á VISTA 5% / 30 DIAS 2,5% / 45 DIAS 1,2%',
+    'DESCONTO DE VOLUME POR PEDIDO: 30 A 100 PEÇAS - 2% / 101 A 300 - 4% / 301 A 600 - 6% / 601 A 1000 - 8% / 1001 A 2000 - 9% / EM DIANTE 10%;',
+    'CORTA VENTO E BOTAS DE COURO SEM DESCONTO VOLUME;',
+  ];
+
+  function novaBordaPreta() {
+    const cor = { argb: 'FF000000' };
+    return {
+      top: { style: 'thin', color: cor },
+      left: { style: 'thin', color: cor },
+      bottom: { style: 'thin', color: cor },
+      right: { style: 'thin', color: cor },
+    };
+  }
 
   async function gerarExcelPantaneiro(produtos, opts) {
     const ExcelJS = window.ExcelJS || window.exceljs;
@@ -289,7 +313,7 @@
       ws.getRow(r).height = 23.95;
       r++;
 
-      const hdr = ['Referência', 'Descrição', 'Tamanhos', 'Preço (R$)'];
+      const hdr = ['Ref.', 'Descrição', 'Tamanhos', 'Preço (R$)'];
       for (let h = 0; h < hdr.length; h++) {
         const cell = ws.getCell(r, h + 1);
         cell.value = hdr[h];
@@ -340,6 +364,34 @@
         ws.getRow(r).height = 14.3;
         r++;
       }
+    }
+
+    mergeColsRow(r);
+    aplicarFillSolid(ws.getCell(r, 1), FILL_ITEM_PAR);
+    ws.getRow(r).height = 10;
+    r++;
+
+    mergeColsRow(r);
+    const cPolTit = ws.getCell(r, 1);
+    cPolTit.value = POLITICA_COMERCIAL_TITULO;
+    aplicarFillSolid(cPolTit, 'FFFFFF00');
+    cPolTit.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
+    cPolTit.alignment = { horizontal: 'center', vertical: 'middle' };
+    cPolTit.border = novaBordaPreta();
+    ws.getRow(r).height = 20;
+    r++;
+
+    const alturasPolitica = [18, 18, 18, 18, 22, 36, 22];
+    for (let pi = 0; pi < POLITICA_COMERCIAL_ITENS.length; pi++) {
+      mergeColsRow(r);
+      const cPol = ws.getCell(r, 1);
+      cPol.value = POLITICA_COMERCIAL_ITENS[pi];
+      aplicarFillSolid(cPol, FILL_ITEM_PAR);
+      cPol.font = { bold: true, italic: true, size: 10, color: { argb: 'FF000000' } };
+      cPol.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+      cPol.border = novaBordaPreta();
+      ws.getRow(r).height = alturasPolitica[pi] || 20;
+      r++;
     }
 
     const buf = await wb.xlsx.writeBuffer();
@@ -454,7 +506,7 @@
 
       doc.autoTable({
         startY: y,
-        head: [['Referência', 'Descrição', 'Tamanhos', 'Preço (R$)']],
+        head: [['Ref.', 'Descrição', 'Tamanhos', 'Preço (R$)']],
         body: bodyRows,
         theme: 'grid',
         headStyles: {
@@ -498,6 +550,53 @@
       indiceItemGlobalPdf += bodyRows.length;
       y = doc.autoTable.previous.finalY + 8;
     }
+
+    const alturaPoliticaEstimada = 14 + POLITICA_COMERCIAL_ITENS.length * 11;
+    if (y + alturaPoliticaEstimada > pageH - bottomSafe) {
+      doc.addPage();
+      y = m;
+    } else {
+      y += 4;
+    }
+
+    doc.autoTable({
+      startY: y,
+      head: [[POLITICA_COMERCIAL_TITULO]],
+      body: POLITICA_COMERCIAL_ITENS.map(function (linha) {
+        return [linha];
+      }),
+      theme: 'grid',
+      headStyles: {
+        fillColor: PDF_POLITICA_HEADER_BG,
+        textColor: [0, 0, 0],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+        valign: 'middle',
+        lineColor: PDF_POLITICA_BORDA,
+        lineWidth: 0.2,
+      },
+      styles: {
+        fontSize: 7.2,
+        cellPadding: 1.6,
+        overflow: 'linebreak',
+        valign: 'middle',
+        halign: 'left',
+        lineColor: PDF_POLITICA_BORDA,
+        lineWidth: 0.2,
+        textColor: [0, 0, 0],
+      },
+      columnStyles: {
+        0: { cellWidth: pageW - 2 * m },
+      },
+      margin: { left: m, right: m, bottom: 14 },
+      didParseCell: function (data) {
+        if (data.section === 'body') {
+          data.cell.styles.fontStyle = 'bolditalic';
+          data.cell.styles.fillColor = [255, 255, 255];
+        }
+      },
+    });
 
     const totalPages = doc.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
