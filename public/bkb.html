@@ -760,6 +760,8 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
       }
 
       .btn-adicionar-mobile:hover {
@@ -1026,6 +1028,27 @@
       const produtosContainer = document.getElementById("produtos-container");
       const pedidoContainer = document.getElementById("pedido-container");
       const pedidoVazio = document.getElementById("pedido-vazio");
+
+      /** Mesmo breakpoint do CSS (768px); evita divergir de innerWidth em mobile. */
+      function isMobileLayout() {
+        if (typeof window.matchMedia === "function") {
+          return window.matchMedia("(max-width: 768px)").matches;
+        }
+        return window.innerWidth <= 768;
+      }
+
+      if (produtosContainer) {
+        produtosContainer.addEventListener("click", (e) => {
+          const btn = e.target.closest("button[data-bkb-ref]");
+          if (!btn || !produtosContainer.contains(btn)) return;
+          const ref = btn.getAttribute("data-bkb-ref");
+          const produto = (window.produtosData || []).find((p) => p.REFERENCIA === ref);
+          if (produto) {
+            e.preventDefault();
+            adicionarAoPedido(produto);
+          }
+        });
+      }
       
       // Variáveis para controle do pedido
       window.pedidoItens = [];
@@ -1227,17 +1250,13 @@ window.produtosData = [
         }
         produtosContainer.innerHTML = "";
         
-        // Função para detectar se é mobile
-        function isMobile() {
-          return window.innerWidth <= 768;
-        }
-
         // Função para gerar card de produto para mobile
         function gerarCardProdutoMobile(produto) {
+          const ref = produto.REFERENCIA;
           return `
             <div class="produto-card-mobile">
               <div class="produto-header-mobile">
-                <div class="produto-ref-mobile">${produto.REFERENCIA}</div>
+                <div class="produto-ref-mobile">${ref}</div>
                 <div class="produto-preco-mobile">R$ ${produto.PRECO.toFixed(2)}</div>
               </div>
               <div class="produto-descricao-mobile">
@@ -1245,10 +1264,10 @@ window.produtosData = [
               </div>
               <div class="produto-quantidade-mobile">
                 <label>Quantidade:</label>
-                <input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}">
+                <input type="number" min="0" inputmode="numeric" value="0" id="quantidade-${ref}">
               </div>
               <div class="produto-actions-mobile">
-                <button class="btn-adicionar-mobile" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>
+                <button type="button" class="btn-adicionar-mobile" data-bkb-ref="${String(ref).replace(/"/g, "&quot;")}">
                   ➕ Adicionar ao Pedido
                 </button>
               </div>
@@ -1259,7 +1278,7 @@ window.produtosData = [
         const sectionDiv = document.createElement("section");
         sectionDiv.className = "card";
         
-        if (isMobile()) {
+        if (isMobileLayout()) {
           // Layout de cards para mobile
           let cardsHTML = '<div class="card-header"><h2>Produtos BKB</h2></div><div class="produtos-mobile-container">';
           produtos.forEach((produto) => {
@@ -1271,7 +1290,8 @@ window.produtosData = [
           // Layout de tabela para desktop
           let tabelaHTML = '<div class="card-header"><h2>Produtos BKB</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Quantidade</th><th>Ação</th></tr></thead><tbody>';
           produtos.forEach((produto) => {
-            tabelaHTML += `<tr><td style="font-weight: 600;">${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}</td><td style="font-weight: 600; color: var(--success-color);">R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}" style="width: 80px; text-align: center;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+            const ref = produto.REFERENCIA;
+            tabelaHTML += `<tr><td style="font-weight: 600;">${ref}</td><td>${produto.DESCRIÇÃO}</td><td style="font-weight: 600; color: var(--success-color);">R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" inputmode="numeric" value="0" id="quantidade-${ref}" style="width: 80px; text-align: center;"></td><td><button type="button" class="btn btn-success btn-sm" data-bkb-ref="${String(ref).replace(/"/g, "&quot;")}">Adicionar</button></td></tr>`;
           });
           tabelaHTML += `</tbody></table></div>`;
           sectionDiv.innerHTML = tabelaHTML;
@@ -1282,35 +1302,48 @@ window.produtosData = [
 
       // Função para adicionar produto ao pedido
       function adicionarAoPedido(produto) {
-        const quantidadeInput = document.getElementById(`quantidade-${produto.REFERENCIA}`);
-        const quantidade = parseInt(quantidadeInput.value) || 0;
-        
-        if (quantidade <= 0) {
-          alert('Por favor, informe a quantidade do produto.');
+        if (!produto || !produto.REFERENCIA) return;
+        const ref = produto.REFERENCIA;
+        const quantidadeInput = document.getElementById(`quantidade-${ref}`);
+        if (!quantidadeInput) {
+          alert("Não foi possível ler a quantidade. Recarregue a página e tente de novo.");
           return;
         }
 
-        const itemExistente = window.pedidoItens.find(
-          (item) => item.REFERENCIA === produto.REFERENCIA
-        );
-        
-        if (itemExistente) {
-          itemExistente.quantidade += quantidade;
-        } else {
-          window.pedidoItens.push({
-            REFERENCIA: produto.REFERENCIA,
-            DESCRIÇÃO: produto.DESCRIÇÃO,
-            tamanho: '',  // BKB não usa tamanhos, mas manter compatibilidade
-            preco: produto.PRECO,
-            quantidade: quantidade,
-            descontoExtra: 0
-          });
+        const aplicar = () => {
+          const raw = String(quantidadeInput.value ?? "").trim();
+          const quantidade = parseInt(raw, 10);
+          if (!Number.isFinite(quantidade) || quantidade <= 0) {
+            alert("Por favor, informe a quantidade do produto.");
+            return;
+          }
+
+          const itemExistente = window.pedidoItens.find((item) => item.REFERENCIA === ref);
+
+          if (itemExistente) {
+            itemExistente.quantidade += quantidade;
+          } else {
+            window.pedidoItens.push({
+              REFERENCIA: produto.REFERENCIA,
+              DESCRIÇÃO: produto.DESCRIÇÃO,
+              tamanho: "",
+              preco: produto.PRECO,
+              quantidade: quantidade,
+              descontoExtra: 0,
+            });
+          }
+
+          quantidadeInput.value = 0;
+          atualizarVisualizacaoPedido();
+        };
+
+        // Safari/iOS: valor de input number pode não refletir até o campo perder o foco
+        if (document.activeElement === quantidadeInput) {
+          quantidadeInput.blur();
+          setTimeout(aplicar, 50);
+          return;
         }
-        
-        // Resetar quantidade
-        quantidadeInput.value = 0;
-        
-        atualizarVisualizacaoPedido();
+        aplicar();
       }
 
       // Função para alterar quantidade de um item
