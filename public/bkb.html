@@ -1795,7 +1795,14 @@ window.produtosData = [
 
       // Inicializar página
       if (checkAuth()) {
-        carregarProdutos();
+        const modoEdicaoUrl = new URLSearchParams(window.location.search).get('modo') === 'edicao';
+        if (modoEdicaoUrl) {
+          setTimeout(function() {
+            carregarProdutos();
+          }, 0);
+        } else {
+          carregarProdutos();
+        }
         
         // Botão Gerar Pedido em PDF
         const gerarPedidoBtn = document.getElementById("gerar-pedido-btn");

@@ -3321,8 +3321,14 @@ window.produtosData = [
           });
         // --- Fim da lógica de autenticação ---
 
-        // Carregar produtos diretamente do próprio index
-        renderizarProdutosPorCategoria(window.produtosData);
+        const modoEdicaoUrl = new URLSearchParams(window.location.search).get('modo') === 'edicao';
+        if (modoEdicaoUrl) {
+          setTimeout(function() {
+            renderizarProdutosPorCategoria(window.produtosData);
+          }, 0);
+        } else {
+          renderizarProdutosPorCategoria(window.produtosData);
+        }
 
         // Carregar clientes e só então ativar eventos relacionados a clientes
         await popularClientes().then(() => {

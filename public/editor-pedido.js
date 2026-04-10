@@ -8,10 +8,22 @@
   const pedidoId = urlParams.get('id');
 
   if (modoEdicao && pedidoId) {
-    // Aguardar o carregamento da página
-    document.addEventListener('DOMContentLoaded', function() {
-      iniciarModoEdicao();
-    });
+    function agendarInicioEdicao() {
+      try {
+        iniciarModoEdicao();
+      } catch (e) {
+        console.error('Erro ao iniciar modo edição:', e);
+      }
+    }
+    // DOM já carregado (script no fim do body) ou ainda não: ambos os casos
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', agendarInicioEdicao, { once: true });
+    } else {
+      // Próximo frame + macrotask: roda depois do catálogo se este foi adiado com setTimeout(0)
+      requestAnimationFrame(function() {
+        setTimeout(agendarInicioEdicao, 0);
+      });
+    }
   }
 
   function iniciarModoEdicao() {

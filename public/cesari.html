@@ -1826,8 +1826,16 @@
         // Lógica original da página
         await carregarClientes();
         await popularClientes().then(() => {
-          renderizarProdutos();
-          atualizarVisualizacaoPedido();
+          const modoEdicaoUrl = new URLSearchParams(window.location.search).get('modo') === 'edicao';
+          const montarCatalogo = function() {
+            renderizarProdutos();
+            atualizarVisualizacaoPedido();
+          };
+          if (modoEdicaoUrl) {
+            setTimeout(montarCatalogo, 0);
+          } else {
+            montarCatalogo();
+          }
 
           selectCliente.addEventListener("change", (e) =>
             preencherFormularioCliente(e.target.value)
