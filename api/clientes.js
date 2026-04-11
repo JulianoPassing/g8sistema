@@ -10,6 +10,53 @@ const addSecurityHeaders = (res) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 };
 
+/** CNPJ sempre no padrão brasileiro: 00.000.000/0000-00 */
+const formatarCnpjBrasil = (cnpj) => {
+  const d = String(cnpj || '').replace(/\D/g, '');
+  if (d.length !== 14) return '';
+  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+};
+
+/** IE numérica: grupos de 3 dígitos (ex.: 401.234.568). "ISENTO" é normalizado em maiúsculas. */
+const formatarInscricaoEstadualBrasil = (ie) => {
+  const raw = String(ie ?? '').trim();
+  if (!raw) return '';
+  const compactAlpha = raw.replace(/[\s.\-\/]/g, '');
+  if (/^isento$/i.test(compactAlpha)) return 'ISENTO';
+  const d = raw.replace(/\D/g, '');
+  if (!d) return '';
+  return d.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
+const isRequisicaoPadronizarDocumentos = (req) => {
+  if (req.method !== 'POST') return false;
+  const pathPart = (req.headers['x-vercel-path'] || req.url || '').split('?')[0];
+  const last = pathPart.split('/').filter(Boolean).pop() || '';
+  if (last === 'padronizar-documentos') return true;
+  return extrairQueryParam(req, 'padronizar_documentos') === '1';
+};
+
+/** Só aplica máscara de CNPJ se houver 14 dígitos; caso contrário mantém o valor original. */
+const padronizarCnpjMantendoInvalidos = (raw) => {
+  if (raw == null) return '';
+  const s = String(raw).trim();
+  if (!s) return '';
+  const d = s.replace(/\D/g, '');
+  if (d.length === 14) return formatarCnpjBrasil(raw);
+  return s;
+};
+
+/** Formata IE com dígitos ou ISENTO; texto sem dígitos (inválido) permanece inalterado. */
+const padronizarIeMantendoInvalidos = (raw) => {
+  const s = raw == null ? '' : String(raw).trim();
+  if (!s) return '';
+  const compact = s.replace(/[\s.\-\/]/g, '');
+  if (/^isento$/i.test(compact)) return 'ISENTO';
+  const d = s.replace(/\D/g, '');
+  if (d.length > 0) return d.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return s;
+};
+
 // Validação de dados
 const validateClienteData = (data) => {
   const errors = [];
@@ -18,8 +65,8 @@ const validateClienteData = (data) => {
     errors.push('Razão social é obrigatória e deve ter pelo menos 2 caracteres');
   }
   
-  if (data.cnpj && !/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$|^\d{14}$/.test(data.cnpj)) {
-    errors.push('CNPJ deve estar em formato válido');
+  if (data.cnpj && String(data.cnpj).replace(/\D/g, '').length !== 14) {
+    errors.push('CNPJ deve conter 14 dígitos');
   }
   
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
@@ -297,6 +344,116 @@ module.exports = async (req, res) => {
       });
     }
 
+    if (req.method === 'POST' && isRequisicaoPadronizarDocumentos(req)) {
+      const jsonPathPadronizar = path.join(__dirname, '../public/clientes.json');
+      try {
+        if (connection) {
+          const [rows] = await connection.execute(
+            'SELECT id, cnpj, ie FROM clientes ORDER BY id'
+          );
+          let registrosAtualizados = 0;
+          let cnpjCorrigidos = 0;
+          let ieCorrigidas = 0;
+          let cnpjInvalidosInalterados = 0;
+          let ieInvalidasInalteradas = 0;
+
+          for (const row of rows) {
+            const oldC = row.cnpj == null ? '' : String(row.cnpj);
+            const oldI = row.ie == null ? '' : String(row.ie);
+            const dc = oldC.replace(/\D/g, '');
+            const compactI = oldI.replace(/[\s.\-\/]/g, '');
+            const isIsento = /^isento$/i.test(compactI);
+            const di = oldI.replace(/\D/g, '');
+
+            if (oldC && dc.length !== 14) cnpjInvalidosInalterados++;
+            if (oldI && !isIsento && di.length === 0) ieInvalidasInalteradas++;
+
+            const novoC = padronizarCnpjMantendoInvalidos(row.cnpj);
+            const novoI = padronizarIeMantendoInvalidos(row.ie);
+
+            if (novoC === oldC && novoI === oldI) continue;
+
+            await connection.execute('UPDATE clientes SET cnpj = ?, ie = ? WHERE id = ?', [
+              novoC,
+              novoI,
+              row.id
+            ]);
+            registrosAtualizados++;
+            if (novoC !== oldC) cnpjCorrigidos++;
+            if (novoI !== oldI) ieCorrigidas++;
+          }
+
+          logRequest(req, { action: 'PADRONIZAR_DOCUMENTOS', mysql: true, registrosAtualizados });
+          return res.status(200).json({
+            ok: true,
+            fonte: 'mysql',
+            total_analisados: rows.length,
+            registros_atualizados: registrosAtualizados,
+            cnpj_formatados: cnpjCorrigidos,
+            ie_formatadas: ieCorrigidas,
+            cnpj_invalidos_inalterados: cnpjInvalidosInalterados,
+            ie_invalidas_inalteradas: ieInvalidasInalteradas
+          });
+        }
+
+        if (useJSON) {
+          const lista = carregarClientesJSON();
+          if (!Array.isArray(lista)) {
+            return res.status(500).json({ ok: false, erro: 'Formato inválido em clientes.json' });
+          }
+          let registrosAtualizados = 0;
+          let cnpjCorrigidos = 0;
+          let ieCorrigidas = 0;
+          let cnpjInvalidosInalterados = 0;
+          let ieInvalidasInalteradas = 0;
+
+          for (const row of lista) {
+            const oldC = row.cnpj == null ? '' : String(row.cnpj);
+            const oldI = row.ie == null ? '' : String(row.ie);
+            const dc = oldC.replace(/\D/g, '');
+            const compactI = oldI.replace(/[\s.\-\/]/g, '');
+            const isIsento = /^isento$/i.test(compactI);
+            const di = oldI.replace(/\D/g, '');
+
+            if (oldC && dc.length !== 14) cnpjInvalidosInalterados++;
+            if (oldI && !isIsento && di.length === 0) ieInvalidasInalteradas++;
+
+            const novoC = padronizarCnpjMantendoInvalidos(row.cnpj);
+            const novoI = padronizarIeMantendoInvalidos(row.ie);
+
+            if (novoC === oldC && novoI === oldI) continue;
+
+            row.cnpj = novoC;
+            row.ie = novoI;
+            registrosAtualizados++;
+            if (novoC !== oldC) cnpjCorrigidos++;
+            if (novoI !== oldI) ieCorrigidas++;
+          }
+
+          fs.writeFileSync(jsonPathPadronizar, JSON.stringify(lista, null, 2), 'utf8');
+          logRequest(req, { action: 'PADRONIZAR_DOCUMENTOS', json: true, registrosAtualizados });
+          return res.status(200).json({
+            ok: true,
+            fonte: 'clientes.json',
+            total_analisados: lista.length,
+            registros_atualizados: registrosAtualizados,
+            cnpj_formatados: cnpjCorrigidos,
+            ie_formatadas: ieCorrigidas,
+            cnpj_invalidos_inalterados: cnpjInvalidosInalterados,
+            ie_invalidas_inalteradas: ieInvalidasInalteradas
+          });
+        }
+
+        return res.status(503).json({
+          ok: false,
+          erro: 'Não foi possível acessar o banco nem o arquivo de clientes.'
+        });
+      } catch (padErr) {
+        console.error('Padronizar documentos:', padErr);
+        return res.status(500).json({ ok: false, erro: padErr.message || String(padErr) });
+      }
+    }
+
     if (req.method === 'POST') {
       // Validar dados de entrada
       const validationErrors = validateClienteData(req.body);
@@ -316,8 +473,8 @@ module.exports = async (req, res) => {
       const sanitizedData = {
         razao: razao?.trim(),
         nome_fantasia: nome_fantasia?.trim(),
-        cnpj: cnpj?.replace(/\D/g, ''), // Remover caracteres não numéricos
-        ie: ie?.trim(),
+        cnpj: cnpj ? formatarCnpjBrasil(cnpj) : '',
+        ie: formatarInscricaoEstadualBrasil(ie),
         endereco: endereco?.trim(),
         bairro: bairro?.trim(),
         cidade: cidade?.trim(),
@@ -351,11 +508,38 @@ module.exports = async (req, res) => {
         email, telefone, transporte, prazo, obs
       } = req.body;
 
+      const validationErrors = validateClienteData(req.body);
+      if (validationErrors.length > 0) {
+        return res.status(400).json({
+          error: 'Dados inválidos',
+          details: validationErrors
+        });
+      }
+
       console.log('Tentando atualizar cliente ID:', id);
+
+      const cnpjFormatado = cnpj ? formatarCnpjBrasil(cnpj) : '';
+      const ieFormatado = formatarInscricaoEstadualBrasil(ie);
 
       const [result] = await connection.execute(
         `UPDATE clientes SET razao=?, nome_fantasia=?, cnpj=?, ie=?, endereco=?, bairro=?, cidade=?, estado=?, cep=?, email=?, telefone=?, transporte=?, prazo=?, obs=? WHERE id=?`,
-        [razao, nome_fantasia, cnpj, ie, endereco, bairro, cidade, estado, cep, email, telefone, transporte, prazo, obs, id]
+        [
+          razao?.trim(),
+          nome_fantasia?.trim(),
+          cnpjFormatado,
+          ieFormatado,
+          endereco?.trim(),
+          bairro?.trim(),
+          cidade?.trim(),
+          estado?.trim(),
+          cep?.replace(/\D/g, ''),
+          email?.toLowerCase().trim(),
+          telefone?.replace(/\D/g, ''),
+          transporte?.trim(),
+          prazo?.trim(),
+          obs?.trim(),
+          id
+        ]
       );
 
       if (result.affectedRows === 0) {

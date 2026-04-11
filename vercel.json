@@ -22,6 +22,10 @@
       "destination": "/api/clientes.js"
     },
     {
+      "source": "/api/clientes/padronizar-documentos",
+      "destination": "/api/clientes.js"
+    },
+    {
       "source": "/api/clientes/:id",
       "destination": "/api/clientes.js"
     },
