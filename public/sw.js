@@ -1,8 +1,8 @@
 // ========== SERVICE WORKER G8SISTEMA ==========
 
 const CACHE_NAME = 'g8sistema-v1.2.0';
-const STATIC_CACHE = 'g8sistema-static-v4';
-const DYNAMIC_CACHE = 'g8sistema-dynamic-v4';
+const STATIC_CACHE = 'g8sistema-static-v6';
+const DYNAMIC_CACHE = 'g8sistema-dynamic-v6';
 
 // Arquivos para cache estático (prioridade: páginas e assets locais)
 const STATIC_FILES = [
@@ -38,6 +38,8 @@ const STATIC_FILES = [
   '/loading-system.js',
   '/common-utils.js',
   '/offline-system.js',
+  '/offline-auth-b2b.js',
+  '/g8-offline-data.js',
   '/draft-system.js',
   '/advanced-notifications.js',
   '/animations.js',

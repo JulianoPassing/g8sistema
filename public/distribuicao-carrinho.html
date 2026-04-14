@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="mobile.css">
     <link rel="stylesheet" href="professional-ui.css">
     <script src="sw-register.js"></script>
+    <script src="g8-offline-data.js"></script>
     <script src="mobile-menu.js" defer></script>
     <link rel="stylesheet" href="connection-status.css">
     <script src="advanced-notifications.js"></script>
@@ -2113,9 +2114,13 @@
           nenhumPedido.style.display = 'none';
           listaPedidos.style.display = 'none';
           
-          // Buscar pedidos do cliente na API
-          const response = await fetch('/api/pedidos');
-          const pedidos = await response.json();
+          let pedidos;
+          if (window.G8OfflineData) {
+            pedidos = await G8OfflineData.getPedidos();
+          } else {
+            const response = await fetch('/api/pedidos');
+            pedidos = await response.json();
+          }
           
           // Filtrar apenas pedidos de distribuição do cliente atual
           const pedidosDistribuicao = pedidos.filter(pedido => {

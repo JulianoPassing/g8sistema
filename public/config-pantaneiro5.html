@@ -175,6 +175,7 @@
     </div>
   </main>
 
+  <script src="g8-offline-data.js"></script>
   <script>
     const API = '/api/acessos-pantaneiro5';
     const API_JSON = '/acessos-pantaneiro5.json';
@@ -184,11 +185,15 @@
 
     async function carregarClientes() {
       try {
-        const res = await fetch(API_CLIENTES);
-        if (res.ok) clientesCadastrados = await res.json();
-        else {
-          const resJson = await fetch('clientes.json');
-          if (resJson.ok) clientesCadastrados = await resJson.json();
+        if (window.G8OfflineData) {
+          clientesCadastrados = await G8OfflineData.getClientes();
+        } else {
+          const res = await fetch(API_CLIENTES);
+          if (res.ok) clientesCadastrados = await res.json();
+          else {
+            const resJson = await fetch('clientes.json');
+            if (resJson.ok) clientesCadastrados = await resJson.json();
+          }
         }
       } catch (e) {
         try {

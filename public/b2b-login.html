@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="professional-ui.css">
     <script src="sw-register.js"></script>
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff0000" />
+    <meta name="color-scheme" content="light" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="G8 B2B" />
   <style>
     :root {
       /* === CORES G8 === */
@@ -411,6 +416,8 @@
     }
   </style>
   <script src="cache-system.js"></script>
+  <script src="offline-auth-b2b.js"></script>
+  <script src="g8-offline-data.js"></script>
 </head>
 <body>
   <div class="login-container">
@@ -422,6 +429,11 @@
     <div class="info-box">
       <h3>🏢 Acesso para Clientes</h3>
       <p>Digite seu CNPJ e a senha fornecida para acessar o sistema de pedidos.</p>
+      <p style="margin-top:10px;font-size:0.88rem;opacity:0.92;line-height:1.45;">
+        <strong>Sem internet:</strong> após entrar <strong>uma vez online</strong> neste aparelho, você pode fazer login offline com o mesmo CNPJ e senha.
+        Para instalar como app: <strong>Android</strong> (Chrome) menu ⋮ → &quot;Instalar app&quot; ou &quot;Adicionar à tela inicial&quot;;
+        <strong>iPhone/iPad</strong> (Safari) botão Compartilhar → &quot;Adicionar à Tela de Início&quot;.
+      </p>
     </div>
 
     <div id="errorMessage" class="error-message"></div>
@@ -504,6 +516,15 @@
       rememberMeCheckbox.checked = true;
     }
 
+    async function tentarLoginOfflineB2B(cnpjDigits, password) {
+      if (!window.G8OfflineAuthB2B) return false;
+      const r = await G8OfflineAuthB2B.tryOfflineLogin({ ns: 'b2b', cnpjDigits: cnpjDigits, password: password });
+      if (!r.ok) return false;
+      localStorage.setItem('clienteB2B', JSON.stringify(r.cliente));
+      window.location.href = 'b2b-pedidos.html';
+      return true;
+    }
+
     // Função de login
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -517,6 +538,25 @@
       // Validações básicas
       if (!cnpj || !password) {
         showError('Por favor, preencha todos os campos.');
+        return;
+      }
+
+      const cnpjDigits = (cnpj || '').replace(/\D/g, '');
+
+      // Sem rede: só login offline (precisa ter logado online antes neste aparelho)
+      if (!navigator.onLine) {
+        loadingDiv.style.display = 'block';
+        loginBtn.disabled = true;
+        errorDiv.style.display = 'none';
+        try {
+          const ok = await tentarLoginOfflineB2B(cnpjDigits, password);
+          if (!ok) {
+            showError('Sem conexão. Faça login uma vez com internet neste aparelho para habilitar o acesso offline.');
+          }
+        } finally {
+          loadingDiv.style.display = 'none';
+          loginBtn.disabled = false;
+        }
         return;
       }
 
@@ -545,6 +585,15 @@
         if (data.success) {
           // Salvar dados do cliente no localStorage
           localStorage.setItem('clienteB2B', JSON.stringify(data.cliente));
+
+          if (window.G8OfflineAuthB2B && data.cliente) {
+            await G8OfflineAuthB2B.saveOfflineCredentials({
+              ns: 'b2b',
+              cnpjDigits: cnpjDigits,
+              password: password,
+              cliente: data.cliente
+            });
+          }
           
           // Gerenciar dados salvos baseado no checkbox "Lembrar"
           if (rememberMeCheckbox.checked) {
@@ -554,18 +603,29 @@
             localStorage.removeItem('savedCnpjB2B');
             localStorage.removeItem('savedPasswordB2B');
           }
-          
-          // Redirecionar para a página de pedidos
+
+          const loadingP = loadingDiv.querySelector('p');
+          if (loadingP) loadingP.textContent = 'Sincronizando dados e catálogos para uso offline...';
+          try {
+            if (window.G8OfflineData && typeof G8OfflineData.syncAllOnLogin === 'function' && navigator.onLine) {
+              await G8OfflineData.syncAllOnLogin();
+            }
+          } catch (syncErr) {
+            console.warn('Sincronização offline:', syncErr);
+          }
+
           window.location.href = 'b2b-pedidos.html';
         } else {
           showError(data.message || 'Erro ao fazer login. Verifique suas credenciais.');
         }
       } catch (error) {
         console.error('Erro no login:', error);
-        if (error.message.includes('JSON')) {
+        const off = await tentarLoginOfflineB2B(cnpjDigits, password);
+        if (off) return;
+        if (error.message && error.message.includes('JSON')) {
           showError('Erro no servidor. Tente novamente em alguns instantes.');
         } else {
-          showError('Erro de conexão. Tente novamente.');
+          showError('Sem conexão ou servidor indisponível. Se já entrou online neste aparelho, verifique CNPJ e senha para modo offline.');
         }
       } finally {
         loadingDiv.style.display = 'none';

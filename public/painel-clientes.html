@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="professional-ui.css">
     <link rel="stylesheet" href="connection-status.css">
   <script src="sw-register.js"></script>
+  <script src="g8-offline-data.js"></script>
   <script src="mobile-menu.js" defer></script>
   <script src="table-mobile-cards.js" defer></script>
   <script src="advanced-notifications.js" defer></script>
@@ -1077,15 +1078,17 @@
 
     async function carregarClientes() {
       try {
-        console.log('Carregando clientes da API:', API_URL);
-        const resp = await fetch(API_URL);
-        if (!resp.ok) throw new Error('Erro ao buscar clientes na API');
-        clientes = await resp.json();
+        if (window.G8OfflineData) {
+          clientes = await G8OfflineData.getClientes();
+        } else {
+          console.log('Carregando clientes da API:', API_URL);
+          const resp = await fetch(API_URL);
+          if (!resp.ok) throw new Error('Erro ao buscar clientes na API');
+          clientes = await resp.json();
+        }
         console.log('Clientes carregados:', clientes);
         clientesFiltrados = clientes;
         renderTabela();
-        
-        // Verificar se há clientes
         if (clientes.length === 0) {
           console.log('Nenhum cliente encontrado na base de dados');
         } else {
@@ -1093,7 +1096,7 @@
         }
       } catch (e) {
         console.error('Erro ao carregar clientes:', e);
-        alert('Erro ao carregar os dados dos clientes. Verifique se a API está disponível.');
+        alert('Erro ao carregar clientes. Com internet, a lista sincroniza automaticamente.');
       }
     }
     function renderTabela() {

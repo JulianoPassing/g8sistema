@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="modern-design.css">
     <link rel="stylesheet" href="professional-ui.css">
     <script src="sw-register.js"></script>
+    <script src="g8-offline-data.js"></script>
     <script src="offline-system.js"></script>
     <script src="mobile-menu.js" defer></script>
     <script src="animations.js" defer></script>
@@ -693,8 +694,7 @@
               const result = await authSystem.authenticate(usernameInput, passwordInput);
               
               if (result.success) {
-                authSystem.showMessage(successMessage, 'Login realizado com sucesso! Redirecionando...', 'success');
-                
+                sessionStorage.setItem("loggedInUser", usernameInput);
                 if (rememberMe) {
                   localStorage.setItem("savedUsername", usernameInput);
                   localStorage.setItem("savedPassword", passwordInput);
@@ -702,13 +702,20 @@
                   localStorage.removeItem("savedUsername");
                   localStorage.removeItem("savedPassword");
                 }
-                
-                sessionStorage.setItem("loggedInUser", usernameInput);
-                
-                // Redirecionamento com delay melhorado
+
+                authSystem.showMessage(successMessage, 'Sincronizando dados para uso offline...', 'success');
+                try {
+                  if (window.G8OfflineData && typeof G8OfflineData.syncAllOnLogin === 'function' && navigator.onLine) {
+                    await G8OfflineData.syncAllOnLogin();
+                  }
+                } catch (syncErr) {
+                  console.warn('Sincronização offline:', syncErr);
+                }
+                authSystem.showMessage(successMessage, 'Pronto! Redirecionando...', 'success');
+
                 setTimeout(() => {
                   window.location.href = "painel.html";
-                }, 1200);
+                }, 500);
               } else {
                 authSystem.showMessage(errorMessage, result.message || "Usuário ou senha inválidos.");
                 passwordField.value = '';

@@ -51,26 +51,24 @@ class AuthSystem {
     }
   }
 
-  // Sistema híbrido - tenta API primeiro, fallback depois
+  // Sistema híbrido: online valida na API; offline ou falha de rede usa lista local (representantes).
   async authenticate(username, password) {
-    // Sem conexão: usar fallback imediato (permite login offline)
     if (!navigator.onLine) {
       console.log('Modo offline - usando autenticação local');
       return this.loginFallback(username, password);
     }
 
     try {
-      // Tenta autenticação via API primeiro
       const apiResult = await this.login(username, password);
       if (apiResult.success) {
         return apiResult;
       }
+      // API respondeu: credenciais inválidas — não usar fallback (evita login com senha errada).
+      return apiResult;
     } catch (error) {
       console.log('API indisponível, usando fallback local');
+      return this.loginFallback(username, password);
     }
-
-    // Se API falhar, usa sistema local
-    return this.loginFallback(username, password);
   }
 
   // Melhorar feedback visual

@@ -756,8 +756,13 @@ async function carregarPedidos() {
   const lista = document.getElementById('pedidos-lista');
   lista.innerHTML = '<p>Carregando pedidos...</p>';
   try {
-    const resp = await fetch('/api/pedidos');
-    const pedidos = await resp.json();
+    let pedidos;
+    if (window.G8OfflineData) {
+      pedidos = await G8OfflineData.getPedidos();
+    } else {
+      const resp = await fetch('/api/pedidos');
+      pedidos = await resp.json();
+    }
     if (!Array.isArray(pedidos) || pedidos.length === 0) {
       lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       todosPedidos = [];
@@ -1035,6 +1040,10 @@ function renderizarPedidos(pedidos) {
       ? '<div class="pedido-enviado-badge" title="Pedido enviado para produção"><span class="envio-label">ENVIADO</span></div>'
       : '<div class="pedido-pendente-envio-badge" title="Ainda não enviado para produção"><span class="envio-label">NÃO ENVIADO</span></div>';
 
+    const nomeEmpresaBadge = isDistribuicao
+      ? 'DISTRIBUIÇÃO'
+      : String(pedido.empresa != null ? pedido.empresa : 'N/A').toUpperCase();
+
     html += `
       <div class="pedido-card-modern ${isB2B ? 'pedido-b2b' : ''} ${isDistribuicao ? 'pedido-distribuicao' : ''}" data-pedido-id="${pedido.id}">
         <div class="pedido-header">
@@ -1044,7 +1053,7 @@ function renderizarPedidos(pedidos) {
           </div>
           <div class="pedido-badges">
             <div class="pedido-empresa-badge">
-              <span class="empresa-name">${isDistribuicao ? 'DISTRIBUIÇÃO' : (isB2B ? pedido.empresa.toUpperCase() : pedido.empresa.toUpperCase())}</span>
+              <span class="empresa-name">${nomeEmpresaBadge}</span>
             </div>
             ${badgeEnvioProducao}
             ${isB2B ? '<div class="pedido-b2b-badge"><span class="b2b-label">🌐 B2B</span></div>' : ''}
@@ -1351,51 +1360,6 @@ window.excluirPedido = async function(id) {
       botaoExcluir.innerHTML = '🗑️ Excluir';
     }
   }
-};
-
-window.editarPedido = function(id) {
-  fetch('/api/pedidos')
-    .then(resp => resp.json())
-    .then(pedidos => {
-      const pedido = pedidos.find(p => p.id == id);
-      if (!pedido) {
-        alert('Pedido não encontrado.');
-        return;
-      }
-      
-      // Salvar dados do pedido no localStorage para edição
-      localStorage.setItem('pedidoParaEdicao', JSON.stringify(pedido));
-      
-      // Redirecionar para a página da empresa
-      let paginaEmpresa = '';
-      switch(pedido.empresa) {
-        case 'pantaneiro5':
-        case 'b2b-pantaneiro5':
-          paginaEmpresa = 'pantaneiro5.html';
-          break;
-        case 'pantaneiro7':
-        case 'b2b-pantaneiro7':
-          paginaEmpresa = 'pantaneiro7.html';
-          break;
-        case 'steitz':
-        case 'b2b-steitz':
-          paginaEmpresa = 'steitz.html';
-          break;
-        case 'cesari':
-        case 'b2b-cesari':
-          paginaEmpresa = 'cesari.html';
-          break;
-        case 'bkb':
-          paginaEmpresa = 'bkb.html';
-          break;
-        default:
-          alert('Empresa não reconhecida.');
-          return;
-      }
-      
-      // Redirecionar para a página da empresa
-      window.location.href = paginaEmpresa + '?modo=edicao&id=' + id;
-    });
 };
 
 // Função para carregar produtos via AJAX
@@ -3471,27 +3435,43 @@ async function carregarProdutosDistribuicao() {
 
 // Função para editar pedido (modificada para suportar distribuição)
 window.editarPedido = function(id) {
-  fetch('/api/pedidos')
-    .then(resp => resp.json())
-    .then(pedidos => {
-      const pedido = pedidos.find(p => p.id == id);
+  const pedidosPromise = window.G8OfflineData
+    ? G8OfflineData.getPedidos()
+    : fetch('/api/pedidos').then((resp) => {
+        if (!resp.ok) throw new Error('Não foi possível carregar os pedidos.');
+        return resp.json();
+      });
+
+  Promise.resolve(pedidosPromise)
+    .then((pedidos) => {
+      const pedido = pedidos.find((p) => p.id == id);
       if (!pedido) {
         alert('Pedido não encontrado.');
         return;
       }
-      
+
+      const empresa = pedido.empresa != null ? String(pedido.empresa).trim() : '';
+
       // Se for pedido da distribuição, usar modal específico
-      if (pedido.empresa === 'distribuicao') {
+      if (empresa === 'distribuicao') {
         editarPedidoDistribuicao(pedido);
         return;
       }
-      
+
+      if (!empresa) {
+        alert(
+          'Este pedido não tem empresa vinculada no cadastro, então não é possível abrir o editor.\n\n' +
+            'Corrija o registro no banco de dados ou entre em contato com o suporte.'
+        );
+        return;
+      }
+
       // Salvar dados do pedido no localStorage para edição
       localStorage.setItem('pedidoParaEdicao', JSON.stringify(pedido));
-      
+
       // Redirecionar para a página da empresa
       let paginaEmpresa = '';
-      switch(pedido.empresa) {
+      switch (empresa) {
         case 'pantaneiro5':
         case 'b2b-pantaneiro5':
           paginaEmpresa = 'pantaneiro5.html';
@@ -3512,12 +3492,19 @@ window.editarPedido = function(id) {
           paginaEmpresa = 'bkb.html';
           break;
         default:
-          alert('Empresa não reconhecida.');
+          alert(
+            'Empresa não reconhecida: "' +
+              empresa +
+              '".\n\nNão há página de edição configurada para este valor.'
+          );
           return;
       }
-      
-      // Redirecionar para a página da empresa
-      window.location.href = paginaEmpresa + '?modo=edicao&id=' + id;
+
+      window.location.href = paginaEmpresa + '?modo=edicao&id=' + encodeURIComponent(id);
+    })
+    .catch((err) => {
+      console.error('editarPedido:', err);
+      alert(err.message || 'Erro ao carregar pedidos. Verifique a conexão.');
     });
 };
 

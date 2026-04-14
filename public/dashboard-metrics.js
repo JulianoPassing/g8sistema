@@ -181,6 +181,17 @@ class DashboardMetrics {
 
   async loadClientes() {
     try {
+      if (typeof window !== 'undefined' && window.G8OfflineData) {
+        const snap = await G8OfflineData.getClientes();
+        if (Array.isArray(snap) && snap.length > 0) {
+          console.log('✅ Clientes (cache/API via G8OfflineData):', snap.length);
+          return snap;
+        }
+      }
+    } catch (e) {
+      console.warn('G8OfflineData clientes:', e);
+    }
+    try {
       // 1. Tentar carregar da API primeiro (dados mais atualizados)
       console.log('🔍 Carregando clientes da API...');
       const apiResponse = await fetch('/api/clientes');
@@ -215,6 +226,17 @@ class DashboardMetrics {
   }
 
   async loadPedidos() {
+    try {
+      if (typeof window !== 'undefined' && window.G8OfflineData) {
+        const snap = await G8OfflineData.getPedidos();
+        if (Array.isArray(snap) && snap.length > 0) {
+          console.log('✅ Pedidos (cache/API via G8OfflineData):', snap.length);
+          return snap;
+        }
+      }
+    } catch (e) {
+      console.warn('G8OfflineData pedidos:', e);
+    }
     try {
       // 1. Tentar carregar da API primeiro (dados mais atualizados)
       console.log('🔍 Carregando pedidos da API...');

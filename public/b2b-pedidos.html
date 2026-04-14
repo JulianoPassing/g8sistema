@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="connection-status.css">
     <link rel="manifest" href="manifest.json">
     <script src="sw-register.js"></script>
+    <script src="g8-offline-data.js"></script>
     <script src="mobile-menu.js" defer></script>
   <style>
     :root {
@@ -1013,8 +1014,13 @@
       pedidosList.innerHTML = '';
 
       try {
-        const response = await fetch('/api/pedidos');
-        const todosPedidos = await response.json();
+        let todosPedidos;
+        if (window.G8OfflineData) {
+          todosPedidos = await G8OfflineData.getPedidos();
+        } else {
+          const response = await fetch('/api/pedidos');
+          todosPedidos = await response.json();
+        }
 
         // Filtrar apenas os pedidos do cliente logado
         const pedidosCliente = todosPedidos.filter(pedido => {
