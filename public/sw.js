@@ -55,6 +55,8 @@ const STATIC_FILES = [
   '/sw-register.js'
 ];
 
+const STATIC_FILE_SET = new Set(STATIC_FILES);
+
 // Recursos externos (cache separado - falhas não bloqueiam instalação)
 const EXTERNAL_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
@@ -117,6 +119,11 @@ self.addEventListener('fetch', (event) => {
   if (!request.url.startsWith('http')) {
     return;
   }
+
+  // Apenas GET deve ser tratado pelo cache do SW.
+  if (request.method !== 'GET') {
+    return;
+  }
   
   // Estratégia para diferentes tipos de requisição
   if (request.url.includes('/api/')) {
@@ -128,7 +135,7 @@ self.addEventListener('fetch', (event) => {
   } else if (request.destination === 'document' || request.headers.get('accept')?.includes('text/html')) {
     // Páginas HTML: Cache First com fallback offline
     event.respondWith(cacheFirstStrategy(request));
-  } else if (STATIC_FILES.some(file => request.url.includes(file))) {
+  } else if (STATIC_FILE_SET.has(url.pathname)) {
     // Arquivos estáticos: Cache First
     event.respondWith(cacheFirstStrategy(request));
   } else {

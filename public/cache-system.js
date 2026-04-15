@@ -7,6 +7,7 @@ class CacheSystem {
   constructor() {
     this.isServiceWorkerSupported = 'serviceWorker' in navigator;
     this.registration = null;
+    this.hasReloadedForControllerChange = false;
     this.init();
   }
 
@@ -62,7 +63,9 @@ class CacheSystem {
     // Detectar quando o Service Worker assume controle
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       console.log('🔄 Service Worker assumiu controle');
-      // Recarregar página para usar nova versão
+      // Evita loop de reload no mobile quando múltiplos scripts observam o mesmo evento.
+      if (this.hasReloadedForControllerChange) return;
+      this.hasReloadedForControllerChange = true;
       window.location.reload();
     });
   }
