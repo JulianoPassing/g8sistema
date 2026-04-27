@@ -99,11 +99,20 @@ module.exports = async (req, res) => {
         const [ins] = await withTimeout(
           connection.execute(
             `INSERT INTO pedidos (empresa, descricao, dados, data_pedido)
-             SELECT empresa, descricao, dados, NOW() FROM pedidos WHERE id = ?`,
+             SELECT
+               empresa,
+               descricao,
+               JSON_SET(
+                 CAST(IFNULL(NULLIF(TRIM(IFNULL(dados, '')), ''), '{}') AS JSON),
+                 '$.enviado_producao',
+                 CAST(0 AS JSON)
+               ),
+               NOW()
+             FROM pedidos WHERE id = ?`,
             [duplicateFromId]
           ),
-          30000,
-          'Duplicação (INSERT…SELECT)'
+          60000,
+          'Duplicação (INSERT…SELECT + JSON_SET)'
         );
         const newId = ins.insertId;
         if (!newId) {
@@ -111,19 +120,10 @@ module.exports = async (req, res) => {
           return;
         }
 
-        const [newDadosRow] = await withTimeout(
-          connection.execute('SELECT dados FROM pedidos WHERE id = ?', [newId]),
-          20000,
-          'Leitura dados duplicata'
-        );
-        const dadosObjDup = parseDadosJson(newDadosRow[0]?.dados) || {};
-        dadosObjDup.enviado_producao = 0;
-        const dadosFinalDup = JSON.stringify(dadosObjDup);
-        await withTimeout(
-          connection.execute('UPDATE pedidos SET dados = ? WHERE id = ?', [dadosFinalDup, newId]),
-          20000,
-          'Ajuste enviado_producao (duplicata)'
-        );
+        // E-mail: mesmo ajuste em memória (evita outro SELECT/UPDATE no banco, que ainda dava timeout)
+        const dadosObjEmail = parseDadosJson(srcRows[0].dados) || {};
+        dadosObjEmail.enviado_producao = 0;
+        const dadosFinalDup = JSON.stringify(dadosObjEmail);
 
         res.status(201).json({ id: newId, message: 'Pedido duplicado com sucesso!' });
 
