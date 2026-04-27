@@ -71,8 +71,76 @@ module.exports = async (req, res) => {
     console.log('📍 Headers:', req.headers['x-operation-id'] || 'sem-id');
     console.log('📍 Body:', req.body);
     if (req.method === 'POST') {
+      const isDuplicacaoIntentional = (req.headers['x-duplicate-pedido'] || '').toLowerCase() === 'true';
+      const duplicateFromHeader = req.headers['x-duplicate-from-id'];
+      const duplicateFromId =
+        duplicateFromHeader !== undefined && duplicateFromHeader !== null && String(duplicateFromHeader).trim() !== ''
+          ? parseInt(String(duplicateFromHeader).trim(), 10)
+          : NaN;
+
+      // Duplicação pelo botão: copia a linha no MySQL (INSERT…SELECT) — não reenvia JSON enorme
+      // pelo corpo; isso evita timeout de minutos em pedidos grandes (Vercel → banco remoto).
+      if (isDuplicacaoIntentional && Number.isFinite(duplicateFromId) && duplicateFromId > 0) {
+        const [srcRows] = await withTimeout(
+          connection.execute('SELECT id, empresa, descricao, dados FROM pedidos WHERE id = ? LIMIT 1', [
+            duplicateFromId
+          ]),
+          20000,
+          'Busca pedido origem (duplicação)'
+        );
+        if (!srcRows.length) {
+          res.status(404).json({
+            error: 'Pedido origem não encontrado para duplicação.',
+            code: 'SOURCE_NOT_FOUND'
+          });
+          return;
+        }
+
+        const [ins] = await withTimeout(
+          connection.execute(
+            `INSERT INTO pedidos (empresa, descricao, dados, data_pedido)
+             SELECT empresa, descricao, dados, NOW() FROM pedidos WHERE id = ?`,
+            [duplicateFromId]
+          ),
+          30000,
+          'Duplicação (INSERT…SELECT)'
+        );
+        const newId = ins.insertId;
+        if (!newId) {
+          res.status(500).json({ error: 'Falha ao obter id da duplicata.', code: 'INSERT_NO_ID' });
+          return;
+        }
+
+        const [newDadosRow] = await withTimeout(
+          connection.execute('SELECT dados FROM pedidos WHERE id = ?', [newId]),
+          20000,
+          'Leitura dados duplicata'
+        );
+        const dadosObjDup = parseDadosJson(newDadosRow[0]?.dados) || {};
+        dadosObjDup.enviado_producao = 0;
+        const dadosFinalDup = JSON.stringify(dadosObjDup);
+        await withTimeout(
+          connection.execute('UPDATE pedidos SET dados = ? WHERE id = ?', [dadosFinalDup, newId]),
+          20000,
+          'Ajuste enviado_producao (duplicata)'
+        );
+
+        res.status(201).json({ id: newId, message: 'Pedido duplicado com sucesso!' });
+
+        void emailNotification
+          .notifyNewOrder({
+            id: newId,
+            empresa: srcRows[0].empresa,
+            descricao: srcRows[0].descricao,
+            dados: dadosFinalDup,
+            origem: 'normal'
+          })
+          .catch((err) => console.error('Erro ao enviar notificação por e-mail (duplicata):', err));
+        return;
+      }
+
       const { id, empresa, descricao, dados } = req.body;
-      
+
       // VERIFICAÇÃO CRÍTICA: Se tem ID no POST, deveria ser PUT
       if (id) {
         console.error('❌ ERRO CRÍTICO: POST com ID detectado - deveria ser PUT!', {
@@ -80,18 +148,17 @@ module.exports = async (req, res) => {
           method: req.method,
           url: req.url
         });
-        res.status(400).json({ 
+        res.status(400).json({
           error: 'Erro: Tentativa de criar pedido com ID existente. Use PUT para atualizar.',
           receivedId: id,
           correctMethod: 'PUT'
         });
         return;
       }
-      
+
       // PROTEÇÃO CONTRA CRIAÇÃO DUPLICADA: Verificar CNPJ + valor no mesmo dia
       // (evita duplicatas quando mobile reporta offline mas o pedido já foi enviado)
       // Pular essa verificação quando for duplicação intencional (botão Duplicar)
-      const isDuplicacaoIntentional = (req.headers['x-duplicate-pedido'] || '').toLowerCase() === 'true';
       
       if (dados && !isDuplicacaoIntentional) {
         let dadosParsed;

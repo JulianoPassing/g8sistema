@@ -1178,74 +1178,16 @@ window.duplicarPedido = async function(id) {
       botaoDuplicar.innerHTML = '⏳ Duplicando...';
     }
 
-    let dadosParaEnviar = pedido.dados;
-    if (typeof dadosParaEnviar === 'string') {
-      try {
-        dadosParaEnviar = JSON.parse(dadosParaEnviar);
-      } catch (e) {
-        dadosParaEnviar = {};
-      }
-    }
-    if (dadosParaEnviar && Array.isArray(dadosParaEnviar.itens)) {
-      // Normaliza itens e consolida linhas repetidas para evitar payload "explodido"
-      // na duplicação (caso observado em produção com timeout no INSERT).
-      const itensConsolidados = new Map();
-      dadosParaEnviar.itens.forEach((item) => {
-        const referencia = (item?.REFERENCIA || item?.REF || item?.referencia || '').toString();
-        const descricao = (item?.DESCRIÇÃO || item?.MODELO || item?.descricao || '').toString();
-        const tamanho = (item?.tamanho || '').toString();
-        const cor = (item?.cor || '').toString();
-        const quantidade = Number(item?.quantidade) || 0;
-        const preco = Number(item?.preco) || 0;
-        const descontoExtra = Number(item?.descontoExtra) || 0;
-
-        // Arredondar reduz ruído de ponto flutuante (ex.: 12.30000000004)
-        const precoKey = Math.round(preco * 10000) / 10000;
-        const descontoKey = Math.round(descontoExtra * 10000) / 10000;
-        const key = `${referencia}|${descricao}|${tamanho}|${cor}|${precoKey}|${descontoKey}`;
-
-        const existente = itensConsolidados.get(key);
-        if (existente) {
-          existente.quantidade += quantidade;
-          return;
-        }
-
-        itensConsolidados.set(key, {
-          referencia,
-          descricao,
-          tamanho,
-          cor,
-          quantidade,
-          preco,
-          descontoExtra
-        });
-      });
-
-      // Só REF + MODELO (e campos de linha) — evita JSON gigante com REFERENCIA/DESCRIÇÃO duplicados,
-      // que em produção fazia o INSERT passar de 30s e retornar 504.
-      dadosParaEnviar.itens = Array.from(itensConsolidados.values()).map((row) => ({
-        REF: row.referencia,
-        MODELO: row.descricao,
-        tamanho: row.tamanho,
-        cor: row.cor,
-        quantidade: row.quantidade,
-        preco: row.preco,
-        descontoExtra: row.descontoExtra
-      }));
-    }
-    const body = {
-      empresa: pedido.empresa,
-      descricao: pedido.descricao,
-      dados: dadosParaEnviar || {}
-    };
-
+    // A duplicação é feita no servidor (INSERT…SELECT) — corpo mínimo, sem reenviar o JSON
+    // inteiro do pedido (isso ainda dava timeout com pedidos grandes).
     const resp = await fetch('/api/pedidos', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Duplicate-Pedido': 'true'
+        'X-Duplicate-Pedido': 'true',
+        'X-Duplicate-From-Id': String(id)
       },
-      body: JSON.stringify(body)
+      body: '{}'
     });
 
     if (resp.ok) {
