@@ -66,18 +66,33 @@ function resumoBodyPedido(body) {
   return `keys=[${keys.join(',')}]${nItens}`;
 }
 
+// Pool reutilizável: cada createConnection no cold start costuma 1–5s+ e no Hobby (limite ~10s)
+// a requisição vira 504 antes de concluir. O pool quente nas próximas invocações pula isso.
+function getPool() {
+  const g = global;
+  if (!g.__g8PedidosMysqlPool) {
+    g.__g8PedidosMysqlPool = mysql.createPool({
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'julianopassing',
+      password: process.env.DB_PASSWORD || 'Juliano@95',
+      database: process.env.DB_NAME || 'sistemajuliano',
+      waitForConnections: true,
+      connectionLimit: 3,
+      queueLimit: 0,
+      connectTimeout: 8000,
+      enableKeepAlive: true
+    });
+  }
+  return g.__g8PedidosMysqlPool;
+}
+
 module.exports = async (req, res) => {
   let connection;
   try {
     cleanupOperationCache();
 
-    connection = await withTimeout(mysql.createConnection({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'julianopassing',
-      password: process.env.DB_PASSWORD || 'Juliano@95',
-      database: process.env.DB_NAME || 'sistemajuliano',
-      connectTimeout: 20000
-    }), 25000, 'Conexão com banco');
+    const pool = getPool();
+    connection = await withTimeout(pool.getConnection(), 5000, 'Obter conexão do pool');
     // Extrair ID da URL se presente (para /api/pedidos/123)
     const urlParts = req.url.split('/');
     const idFromUrl = urlParts[urlParts.length - 1];
@@ -454,14 +469,11 @@ module.exports = async (req, res) => {
       });
     }
   } finally {
-    // Não use await connection.end() — o handshake de encerrar TCP com MySQL remoto pode levar
-    // minutos; a resposta HTTP já saiu (201/200) e a invocação serverless fica "rodando" até
-    // o fim, gerando 500 INTERNAL_FUNCTION_INVOCATION_FAILED e duração absurda no log da Vercel.
     if (connection) {
       try {
-        connection.destroy();
-      } catch (closeErr) {
-        console.error('Erro ao destruir conexão MySQL:', closeErr);
+        connection.release();
+      } catch (e) {
+        console.error('Erro ao liberar conexão do pool:', e);
       }
     }
   }
