@@ -1226,15 +1226,18 @@ window.duplicarPedido = async function(id) {
         }
       });
     } else {
-      const errorData = await resp.json().catch(() => ({ message: 'Erro desconhecido' }));
+      const errorData = await resp.json().catch(() => ({
+        message: `Falha HTTP ${resp.status}${resp.statusText ? ` (${resp.statusText})` : ''}`
+      }));
+      const msgErro = errorData.error || errorData.message || `Falha HTTP ${resp.status}`;
 
       if (window.advancedNotifications) {
         advancedNotifications.error(
-          errorData.error || errorData.message || 'Erro ao duplicar pedido',
+          msgErro,
           { title: 'Erro na Duplicação', duration: 6000 }
         );
       } else {
-        alert(`❌ Erro ao duplicar pedido: ${errorData.error || errorData.message || 'Erro desconhecido'}`);
+        alert(`❌ Erro ao duplicar pedido: ${msgErro}`);
       }
 
       if (botaoDuplicar) {

@@ -353,7 +353,11 @@ module.exports = async (req, res) => {
   } catch (err) {
     console.error('Erro na API de pedidos:', err);
     if (!res.headersSent) {
-      res.status(500).json({ error: err.message || 'Erro interno' });
+      const isTimeout = err && err.code === 'OP_TIMEOUT';
+      res.status(isTimeout ? 504 : 500).json({
+        error: err.message || (isTimeout ? 'Tempo limite excedido em operação do banco' : 'Erro interno'),
+        code: err && err.code ? err.code : (isTimeout ? 'OP_TIMEOUT' : 'INTERNAL_ERROR')
+      });
     }
   } finally {
     // Não use await connection.end() — o handshake de encerrar TCP com MySQL remoto pode levar
