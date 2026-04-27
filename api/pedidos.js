@@ -1,13 +1,15 @@
 const zlib = require('zlib');
+const { promisify } = require('util');
+const gunzipAsync = promisify(zlib.gunzip);
 const mysql = require('mysql2/promise');
 const emailNotification = require('./notifications/email');
 
-function maybeDecompressBody(body) {
+async function maybeDecompressBodyAsync(body) {
   if (!body || typeof body !== 'object' || typeof body._v1GzipB64 !== 'string') {
     return body;
   }
-  const json = zlib.gunzipSync(Buffer.from(body._v1GzipB64, 'base64')).toString('utf8');
-  return JSON.parse(json);
+  const u8 = await gunzipAsync(Buffer.from(body._v1GzipB64, 'base64'));
+  return JSON.parse(u8.toString('utf8'));
 }
 
 function parseDadosJson(raw) {
@@ -75,6 +77,28 @@ function resumoBodyPedido(body) {
   return `keys=[${keys.join(',')}]${nItens}`;
 }
 
+/** Nunca logar a linha inteira: `dados` em pedidos grandes vira centenas de MB e estoura o tempo da função (504). */
+function resumoRowPedidoMySQL(row) {
+  if (!row || typeof row !== 'object') return String(row);
+  const d = row.dados;
+  return {
+    id: row.id,
+    empresa: row.empresa,
+    descricaoLen: row.descricao != null ? String(row.descricao).length : 0,
+    dadosColChars: d != null ? String(d).length : 0,
+    prevEnviadoRaw: row._prevEnv
+  };
+}
+
+function normalizarEnviadoProducaoDb(val) {
+  if (val == null) return undefined;
+  const s = String(val).toLowerCase();
+  if (s === 'null' || s === '') return undefined;
+  if (val === 1 || val === true || s === '1' || s === 'true') return 1;
+  if (val === 0 || val === false || s === '0' || s === 'false') return 0;
+  return undefined;
+}
+
 // Pool reutilizável: cada createConnection no cold start costuma 1–5s+ e no Hobby (limite ~10s)
 // a requisição vira 504 antes de concluir. O pool quente nas próximas invocações pula isso.
 function getPool() {
@@ -102,7 +126,7 @@ module.exports = async (req, res) => {
 
     if (req.body && typeof req.body === 'object' && typeof req.body._v1GzipB64 === 'string') {
       try {
-        req.body = maybeDecompressBody(req.body);
+        req.body = await maybeDecompressBodyAsync(req.body);
       } catch (e) {
         console.error('Corpo compactado inválido:', e && e.message);
         res.status(400).json({ error: 'Corpo JSON compactado inválido.' });
@@ -325,11 +349,29 @@ module.exports = async (req, res) => {
       operationCache.set(cacheKey, Date.now());
       console.log(`📝 [${operationId}] Operação registrada no cache:`, cacheKey);
       
-      // VERIFICAÇÃO CRÍTICA: Verificar se o pedido realmente existe antes de atualizar
-      const [existingCheck] = await withTimeout(connection.execute(
-        'SELECT id, empresa, descricao, dados FROM pedidos WHERE id = ?',
-        [id]
-      ), 30000, 'Busca de pedido existente');
+      // Evitar SELECT de `dados` inteiro (pode ser enorme) — só puxamos o campo usado no merge
+      let existingCheck;
+      try {
+        [existingCheck] = await withTimeout(
+          connection.execute(
+            `SELECT id, empresa, descricao, JSON_UNQUOTE(JSON_EXTRACT(dados, '$.enviado_producao')) AS _prevEnv
+             FROM pedidos WHERE id = ?`,
+            [id]
+          ),
+          30000,
+          'Busca de pedido existente (leve)'
+        );
+      } catch (sqlErr) {
+        console.warn(
+          `⚠️ [${operationId}] SELECT leve falhou, usando SELECT completo (JSON inválido no banco?)`,
+          sqlErr && sqlErr.message
+        );
+        [existingCheck] = await withTimeout(
+          connection.execute('SELECT id, empresa, descricao, dados FROM pedidos WHERE id = ?', [id]),
+          30000,
+          'Busca de pedido existente (fallback)'
+        );
+      }
       
       if (existingCheck.length === 0) {
         console.error(`❌ [${operationId}] ERRO: Tentativa de atualizar pedido inexistente:`, id);
@@ -337,7 +379,7 @@ module.exports = async (req, res) => {
         return;
       }
       
-      console.log(`✅ [${operationId}] Pedido existe, prosseguindo com UPDATE:`, existingCheck[0]);
+      console.log(`✅ [${operationId}] Pedido OK (resumo, sem coluna dados):`, resumoRowPedidoMySQL(existingCheck[0]));
       
       // Validar parâmetros obrigatórios
       if (!id) {
@@ -350,6 +392,7 @@ module.exports = async (req, res) => {
       const descricaoFinal = descricao !== undefined ? descricao : null;
 
       let dadosFinal;
+      let emailDadosResumo;
       if (dados !== undefined) {
         let dadosObj = {};
         try {
@@ -357,9 +400,17 @@ module.exports = async (req, res) => {
         } catch (e) {
           dadosObj = {};
         }
-        const prevDados = parseDadosJson(existingCheck[0].dados);
-        if (prevDados && dadosObj.enviado_producao === undefined && prevDados.enviado_producao !== undefined) {
-          dadosObj.enviado_producao = prevDados.enviado_producao;
+        if (dadosObj.enviado_producao === undefined) {
+          const ex0 = existingCheck[0];
+          const fromJsonPath = normalizarEnviadoProducaoDb(ex0._prevEnv);
+          if (fromJsonPath !== undefined) {
+            dadosObj.enviado_producao = fromJsonPath;
+          } else if (ex0.dados != null) {
+            const prevDados = parseDadosJson(ex0.dados);
+            if (prevDados && prevDados.enviado_producao !== undefined) {
+              dadosObj.enviado_producao = prevDados.enviado_producao;
+            }
+          }
         }
         // Observações: mesmo texto em cliente.obs e dados.observacoes (sistemas antigos divergiam)
         if (!dadosObj.cliente) dadosObj.cliente = {};
@@ -372,8 +423,19 @@ module.exports = async (req, res) => {
         dadosObj.cliente.obs = obsUnico;
         dadosObj.observacoes = obsUnico;
         dadosFinal = JSON.stringify(dadosObj);
+        // Não reparsear o JSON enorme no notificador (evita travar a função após o 200)
+        emailDadosResumo = {
+          origem: dadosObj.origem || 'normal',
+          clienteNome: dadosObj.clienteNome || (dadosObj.cliente && dadosObj.cliente.razao) || 'Cliente não identificado',
+          observacoes: dadosObj.observacoes || 'Sem observações'
+        };
       } else {
         dadosFinal = JSON.stringify({});
+        emailDadosResumo = {
+          origem: 'normal',
+          clienteNome: 'Cliente não identificado',
+          observacoes: 'Sem observações'
+        };
       }
 
       console.log(`🔄 [${operationId}] Executando UPDATE com parâmetros:`, {
@@ -408,7 +470,7 @@ module.exports = async (req, res) => {
           id: id,
           empresa: empresaFinal,
           descricao: descricaoFinal,
-          dados: dadosFinal,
+          dados: emailDadosResumo,
           origem: 'normal'
         })
         .catch((err) => console.error('Erro ao enviar notificação de atualização por e-mail:', err));

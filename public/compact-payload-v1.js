@@ -3,7 +3,8 @@
  * timeout no Vercel / rede. A API reconhece `_v1GzipB64` e descompacta antes do processamento.
  */
 (function (global) {
-  var THRESHOLD = 8000;
+  /** Abaixo disso, envia JSON cru; acima, gzip+base64 (alivia parse no edge e 504 no Hobby ~10s). */
+  var THRESHOLD = 2000;
 
   function uint8ToBase64(u8) {
     var CHUNK = 0x8000;
