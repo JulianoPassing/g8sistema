@@ -103,16 +103,16 @@ module.exports = async (req, res) => {
                empresa,
                descricao,
                JSON_SET(
-                 CAST(IFNULL(NULLIF(TRIM(IFNULL(dados, '')), ''), '{}') AS JSON),
+                 IFNULL(NULLIF(TRIM(IFNULL(dados, '')), ''), '{}'),
                  '$.enviado_producao',
-                 CAST(0 AS JSON)
+                 0
                ),
                NOW()
              FROM pedidos WHERE id = ?`,
             [duplicateFromId]
           ),
           60000,
-          'Duplicação (INSERT…SELECT + JSON_SET)'
+          'Duplicação (INSERT…SELECT + JSON_SET, MariaDB)'
         );
         const newId = ins.insertId;
         if (!newId) {
