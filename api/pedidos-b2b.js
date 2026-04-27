@@ -6,7 +6,8 @@ module.exports = async (req, res) => {
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'julianopassing',
     password: process.env.DB_PASSWORD || 'Juliano@95',
-    database: process.env.DB_NAME || 'sistemajuliano'
+    database: process.env.DB_NAME || 'sistemajuliano',
+    connectTimeout: 20000
   });
 
   try {
