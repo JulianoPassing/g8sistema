@@ -49,6 +49,23 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
+/** Evita logar req.body inteiro em PUT (pedidos grandes travam a função serverless). */
+function resumoBodyPedido(body) {
+  if (body == null) return '(null)';
+  if (typeof body !== 'object') return String(body).slice(0, 120);
+  const keys = Object.keys(body);
+  let nItens = '';
+  try {
+    const d = body.dados;
+    if (d && typeof d === 'object' && Array.isArray(d.itens)) {
+      nItens = ` itens=${d.itens.length}`;
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  return `keys=[${keys.join(',')}]${nItens}`;
+}
+
 module.exports = async (req, res) => {
   let connection;
   try {
@@ -69,7 +86,7 @@ module.exports = async (req, res) => {
     console.log('📍 Requisição:', req.method, req.url);
     console.log('📍 ID da URL:', idFromUrl, 'É numérico:', isNumericId);
     console.log('📍 Headers:', req.headers['x-operation-id'] || 'sem-id');
-    console.log('📍 Body:', req.body);
+    console.log('📍 Body:', resumoBodyPedido(req.body));
     if (req.method === 'POST') {
       const isDuplicacaoIntentional = (req.headers['x-duplicate-pedido'] || '').toLowerCase() === 'true';
       const duplicateFromHeader = req.headers['x-duplicate-from-id'];
@@ -335,7 +352,7 @@ module.exports = async (req, res) => {
       const [result] = await withTimeout(connection.execute(
         `UPDATE pedidos SET empresa = ?, descricao = ?, dados = ?, data_pedido = NOW() WHERE id = ?`,
         [empresaFinal, descricaoFinal, dadosFinal, id]
-      ), 30000, 'Atualização de pedido');
+      ), 90000, 'Atualização de pedido');
       
       console.log(`✅ [${operationId}] Resultado do UPDATE:`, {
         affectedRows: result.affectedRows,

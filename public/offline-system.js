@@ -614,11 +614,12 @@ class OfflineSystem {
       const editData = offlineEdit.data;
       const id = editData.id;
       const url = `/api/pedidos/${id}`;
+      const opId = editData && editData.operationId ? String(editData.operationId) : offlineEdit.id;
       const response = await fetch(url, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'X-Operation-ID': offlineEdit.id
+          'X-Operation-ID': opId
         },
         body: JSON.stringify(editData)
       });
@@ -645,9 +646,13 @@ class OfflineSystem {
     if (shouldTrySend) {
       try {
         const id = editData.id;
+        const opHeader = editData && editData.operationId ? String(editData.operationId) : 'sem-id';
         const response = await fetch(`/api/pedidos/${id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Operation-ID': opHeader
+          },
           body: JSON.stringify(editData)
         });
         if (response.ok) {
