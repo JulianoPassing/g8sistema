@@ -1192,56 +1192,67 @@ window.duplicarPedido = async function(id) {
       dados: dadosParaEnviar || {}
     };
 
-    const resp = await fetch('/api/pedidos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Duplicate-Pedido': 'true'
-      },
-      body: JSON.stringify(body)
-    });
+    const abortCtl = new AbortController();
+    const timeoutId = setTimeout(() => abortCtl.abort(), 120000);
+    try {
+      const resp = await fetch('/api/pedidos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Duplicate-Pedido': 'true'
+        },
+        body: JSON.stringify(body),
+        signal: abortCtl.signal
+      });
 
-    if (resp.ok) {
-      const resultado = await resp.json();
-      const novoId = resultado.id;
-      
-      if (window.advancedNotifications) {
-        advancedNotifications.success(
-          `Pedido #${id} duplicado com sucesso! Novo pedido: #${novoId}`,
-          { title: 'Pedido Duplicado', duration: 4000 }
-        );
+      if (resp.ok) {
+        const resultado = await resp.json();
+        const novoId = resultado.id;
+
+        if (window.advancedNotifications) {
+          advancedNotifications.success(
+            `Pedido #${id} duplicado com sucesso! Novo pedido: #${novoId}`,
+            { title: 'Pedido Duplicado', duration: 4000 }
+          );
+        } else {
+          alert(`✅ Pedido duplicado com sucesso! Novo pedido: #${novoId}`);
+        }
+
+        await carregarPedidos();
       } else {
-        alert(`✅ Pedido duplicado com sucesso! Novo pedido: #${novoId}`);
+        const errorData = await resp.json().catch(() => ({ message: 'Erro desconhecido' }));
+
+        if (window.advancedNotifications) {
+          advancedNotifications.error(
+            errorData.error || errorData.message || 'Erro ao duplicar pedido',
+            { title: 'Erro na Duplicação', duration: 6000 }
+          );
+        } else {
+          alert(`❌ Erro ao duplicar pedido: ${errorData.error || errorData.message || 'Erro desconhecido'}`);
+        }
+
+        if (botaoDuplicar) {
+          botaoDuplicar.disabled = false;
+          botaoDuplicar.innerHTML = '📋 Duplicar';
+        }
       }
-      
-      await carregarPedidos();
-    } else {
-      const errorData = await resp.json().catch(() => ({ message: 'Erro desconhecido' }));
-      
-      if (window.advancedNotifications) {
-        advancedNotifications.error(
-          errorData.error || errorData.message || 'Erro ao duplicar pedido',
-          { title: 'Erro na Duplicação', duration: 6000 }
-        );
-      } else {
-        alert(`❌ Erro ao duplicar pedido: ${errorData.error || errorData.message || 'Erro desconhecido'}`);
-      }
-      
-      if (botaoDuplicar) {
-        botaoDuplicar.disabled = false;
-        botaoDuplicar.innerHTML = '📋 Duplicar';
-      }
+    } finally {
+      clearTimeout(timeoutId);
     }
   } catch (error) {
     console.error('Erro ao duplicar pedido:', error);
-    
+
+    const msg =
+      error && error.name === 'AbortError'
+        ? 'A duplicação demorou demais (tempo esgotado). Tente de novo; se o pedido tiver sido criado, recarregue a lista.'
+        : 'Erro de conexão ao duplicar pedido';
     if (window.advancedNotifications) {
-      advancedNotifications.error('Erro de conexão ao duplicar pedido', {
-        title: 'Erro de Conexão',
-        duration: 6000
+      advancedNotifications.error(msg, {
+        title: error && error.name === 'AbortError' ? 'Tempo esgotado' : 'Erro de Conexão',
+        duration: 8000
       });
     } else {
-      alert('❌ Erro de conexão ao duplicar pedido');
+      alert(`❌ ${msg}`);
     }
     
     const botaoDuplicar = document.querySelector(`button[onclick="duplicarPedido(${id})"]`);

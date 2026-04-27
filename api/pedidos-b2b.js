@@ -34,24 +34,21 @@ module.exports = async (req, res) => {
         `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
         [empresa, descricao, JSON.stringify(dadosCompletos)]
       );
-      
-      // Enviar notificação por e-mail (await garante envio antes da resposta - importante em serverless/Vercel)
-      try {
-        await emailNotification.notifyNewOrder({
+
+      res.status(201).json({
+        id: result.insertId,
+        message: 'Pedido enviado com sucesso! Em breve entraremos em contato.'
+      });
+
+      void emailNotification
+        .notifyNewOrder({
           id: result.insertId,
           empresa: empresa,
           descricao: descricao,
           dados: dadosCompletos,
           origem: 'b2b'
-        });
-      } catch (err) {
-        console.error('Erro ao enviar notificação por e-mail (B2B):', err);
-      }
-      
-      res.status(201).json({ 
-        id: result.insertId, 
-        message: 'Pedido enviado com sucesso! Em breve entraremos em contato.' 
-      });
+        })
+        .catch((err) => console.error('Erro ao enviar notificação por e-mail (B2B):', err));
       return;
     }
 

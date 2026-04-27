@@ -152,21 +152,20 @@ module.exports = async (req, res) => {
         `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
         [empresaFinal, descricaoFinal, dadosFinal]
       );
-      
-      // Enviar notificação por e-mail (await garante envio antes da resposta - importante em serverless/Vercel)
-      try {
-        await emailNotification.notifyNewOrder({
+
+      // Responder logo após gravar no banco. Aguardar SMTP (Gmail) costuma estourar o limite de tempo
+      // das funções serverless no Vercel e o cliente fica eternamente em "carregando".
+      res.status(201).json({ id: result.insertId, message: 'Pedido cadastrado com sucesso!' });
+
+      void emailNotification
+        .notifyNewOrder({
           id: result.insertId,
           empresa: empresaFinal,
           descricao: descricaoFinal,
           dados: dadosFinal,
           origem: 'normal'
-        });
-      } catch (err) {
-        console.error('Erro ao enviar notificação por e-mail:', err);
-      }
-      
-      res.status(201).json({ id: result.insertId, message: 'Pedido cadastrado com sucesso!' });
+        })
+        .catch((err) => console.error('Erro ao enviar notificação por e-mail:', err));
       return;
     }
 
@@ -255,22 +254,19 @@ module.exports = async (req, res) => {
         res.status(404).json({ error: 'Pedido não encontrado.' });
         return;
       }
-      
-      // Enviar notificação de pedido atualizado por e-mail
-      try {
-        await emailNotification.notifyOrderUpdated({
+
+      console.log(`✅ [${operationId}] Pedido atualizado com sucesso:`, id);
+      res.status(200).json({ success: true, message: 'Pedido atualizado com sucesso!' });
+
+      void emailNotification
+        .notifyOrderUpdated({
           id: id,
           empresa: empresaFinal,
           descricao: descricaoFinal,
           dados: dadosFinal,
           origem: 'normal'
-        });
-      } catch (err) {
-        console.error('Erro ao enviar notificação de atualização por e-mail:', err);
-      }
-      
-      console.log(`✅ [${operationId}] Pedido atualizado com sucesso:`, id);
-      res.status(200).json({ success: true, message: 'Pedido atualizado com sucesso!' });
+        })
+        .catch((err) => console.error('Erro ao enviar notificação de atualização por e-mail:', err));
       return;
     }
 
