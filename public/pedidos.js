@@ -1186,6 +1186,31 @@ window.duplicarPedido = async function(id) {
         dadosParaEnviar = {};
       }
     }
+    if (dadosParaEnviar && Array.isArray(dadosParaEnviar.itens)) {
+      // Alguns pedidos antigos carregam itens com chaves especiais (ex.: DESCRIÇÃO)
+      // que têm causado timeout no INSERT ao duplicar em produção. Normalizamos
+      // para um formato estável e mantemos chaves legadas por compatibilidade.
+      dadosParaEnviar.itens = dadosParaEnviar.itens.map((item) => {
+        const referencia = (item?.REFERENCIA || item?.REF || item?.referencia || '').toString();
+        const descricao = (item?.DESCRIÇÃO || item?.MODELO || item?.descricao || '').toString();
+        const quantidade = Number(item?.quantidade) || 0;
+        const preco = Number(item?.preco) || 0;
+        const descontoExtra = Number(item?.descontoExtra) || 0;
+        return {
+          referencia,
+          descricao,
+          REF: referencia,
+          MODELO: descricao,
+          REFERENCIA: referencia,
+          DESCRIÇÃO: descricao,
+          tamanho: item?.tamanho || '',
+          cor: item?.cor || '',
+          quantidade,
+          preco,
+          descontoExtra
+        };
+      });
+    }
     const body = {
       empresa: pedido.empresa,
       descricao: pedido.descricao,
