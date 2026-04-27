@@ -1214,7 +1214,17 @@ window.duplicarPedido = async function(id) {
         alert(`✅ Pedido duplicado com sucesso! Novo pedido: #${novoId}`);
       }
 
-      await carregarPedidos();
+      // A duplicação já foi concluída. Se a atualização da lista falhar,
+      // não devemos tratar isso como erro de duplicação.
+      carregarPedidos().catch((reloadErr) => {
+        console.error('Pedido duplicado, mas falha ao recarregar lista:', reloadErr);
+        if (window.advancedNotifications) {
+          advancedNotifications.warning(
+            'Pedido duplicado com sucesso, mas não foi possível atualizar a lista agora. Recarregue a página.',
+            { title: 'Atualização pendente', duration: 7000 }
+          );
+        }
+      });
     } else {
       const errorData = await resp.json().catch(() => ({ message: 'Erro desconhecido' }));
 
