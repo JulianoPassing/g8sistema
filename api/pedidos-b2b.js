@@ -1,16 +1,31 @@
 const mysql = require('mysql2/promise');
 const emailNotification = require('./notifications/email');
 
+function withTimeout(promise, ms, label) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      const err = new Error(`${label} excedeu ${ms}ms`);
+      err.code = 'OP_TIMEOUT';
+      reject(err);
+    }, ms);
+  });
+  return Promise.race([
+    promise.finally(() => clearTimeout(timeoutId)),
+    timeoutPromise
+  ]);
+}
+
 module.exports = async (req, res) => {
   let connection;
   try {
-    connection = await mysql.createConnection({
+    connection = await withTimeout(mysql.createConnection({
       host: process.env.DB_HOST || 'localhost',
       user: process.env.DB_USER || 'julianopassing',
       password: process.env.DB_PASSWORD || 'Juliano@95',
       database: process.env.DB_NAME || 'sistemajuliano',
       connectTimeout: 20000
-    });
+    }), 25000, 'Conexão com banco B2B');
     if (req.method === 'POST') {
       const { clienteId, empresa, descricao, dados, observacoes } = req.body;
       
@@ -31,10 +46,10 @@ module.exports = async (req, res) => {
         enviado_producao: 0
       };
       
-      const [result] = await connection.execute(
+      const [result] = await withTimeout(connection.execute(
         `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
         [empresa, descricao, JSON.stringify(dadosCompletos)]
-      );
+      ), 30000, 'Inserção de pedido B2B');
 
       res.status(201).json({
         id: result.insertId,
@@ -62,10 +77,10 @@ module.exports = async (req, res) => {
         return;
       }
       
-      const [rows] = await connection.execute(
+      const [rows] = await withTimeout(connection.execute(
         'SELECT * FROM pedidos WHERE JSON_EXTRACT(dados, "$.clienteId") = ? ORDER BY data_pedido DESC',
         [clienteId]
-      );
+      ), 30000, 'Listagem de pedidos B2B');
       
       // Parse o campo dados para JSON
       const pedidos = rows.map(row => ({

@@ -25,26 +25,42 @@ function resolveEnviadoProducao(row, dadosParsed) {
 // Cache para prevenir operações duplicadas
 const operationCache = new Map();
 
-// Limpar cache antigas (mais de 5 minutos)
-setInterval(() => {
+function cleanupOperationCache() {
   const now = Date.now();
   for (const [key, timestamp] of operationCache.entries()) {
     if (now - timestamp > 5 * 60 * 1000) { // 5 minutos
       operationCache.delete(key);
     }
   }
-}, 60 * 1000); // Verificar a cada minuto
+}
+
+function withTimeout(promise, ms, label) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      const err = new Error(`${label} excedeu ${ms}ms`);
+      err.code = 'OP_TIMEOUT';
+      reject(err);
+    }, ms);
+  });
+  return Promise.race([
+    promise.finally(() => clearTimeout(timeoutId)),
+    timeoutPromise
+  ]);
+}
 
 module.exports = async (req, res) => {
   let connection;
   try {
-    connection = await mysql.createConnection({
+    cleanupOperationCache();
+
+    connection = await withTimeout(mysql.createConnection({
       host: process.env.DB_HOST || 'localhost',
       user: process.env.DB_USER || 'julianopassing',
       password: process.env.DB_PASSWORD || 'Juliano@95',
       database: process.env.DB_NAME || 'sistemajuliano',
       connectTimeout: 20000
-    });
+    }), 25000, 'Conexão com banco');
     // Extrair ID da URL se presente (para /api/pedidos/123)
     const urlParts = req.url.split('/');
     const idFromUrl = urlParts[urlParts.length - 1];
@@ -92,11 +108,11 @@ module.exports = async (req, res) => {
           const valorNumerico = parseFloat(valorTotal);
           
           if (cnpjNormalizado.length >= 14 && !isNaN(valorNumerico)) {
-            const [recentDuplicates] = await connection.execute(
+            const [recentDuplicates] = await withTimeout(connection.execute(
               `SELECT id, data_pedido, dados FROM pedidos 
                WHERE DATE(data_pedido) = CURDATE() AND empresa = ?`,
               [empresa || '']
-            );
+            ), 30000, 'Consulta de duplicidade');
             
             const duplicata = recentDuplicates.find(row => {
               let dadosRow = {};
@@ -149,10 +165,10 @@ module.exports = async (req, res) => {
 
       const dadosFinal = JSON.stringify(dadosObj);
 
-      const [result] = await connection.execute(
+      const [result] = await withTimeout(connection.execute(
         `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
         [empresaFinal, descricaoFinal, dadosFinal]
-      );
+      ), 30000, 'Inserção de pedido');
 
       // Responder logo após gravar no banco. Aguardar SMTP (Gmail) costuma estourar o limite de tempo
       // das funções serverless no Vercel e o cliente fica eternamente em "carregando".
@@ -192,10 +208,10 @@ module.exports = async (req, res) => {
       console.log(`📝 [${operationId}] Operação registrada no cache:`, cacheKey);
       
       // VERIFICAÇÃO CRÍTICA: Verificar se o pedido realmente existe antes de atualizar
-      const [existingCheck] = await connection.execute(
+      const [existingCheck] = await withTimeout(connection.execute(
         'SELECT id, empresa, descricao, dados FROM pedidos WHERE id = ?',
         [id]
-      );
+      ), 30000, 'Busca de pedido existente');
       
       if (existingCheck.length === 0) {
         console.error(`❌ [${operationId}] ERRO: Tentativa de atualizar pedido inexistente:`, id);
@@ -239,10 +255,10 @@ module.exports = async (req, res) => {
         id: id
       });
 
-      const [result] = await connection.execute(
+      const [result] = await withTimeout(connection.execute(
         `UPDATE pedidos SET empresa = ?, descricao = ?, dados = ?, data_pedido = NOW() WHERE id = ?`,
         [empresaFinal, descricaoFinal, dadosFinal, id]
-      );
+      ), 30000, 'Atualização de pedido');
       
       console.log(`✅ [${operationId}] Resultado do UPDATE:`, {
         affectedRows: result.affectedRows,
@@ -277,7 +293,7 @@ module.exports = async (req, res) => {
         res.status(400).json({ error: 'ID do pedido é obrigatório.' });
         return;
       }
-      await connection.execute('DELETE FROM pedidos WHERE id = ?', [id]);
+      await withTimeout(connection.execute('DELETE FROM pedidos WHERE id = ?', [id]), 30000, 'Exclusão de pedido');
       res.status(200).json({ message: 'Pedido cancelado/removido com sucesso!' });
       return;
     }
@@ -303,17 +319,17 @@ module.exports = async (req, res) => {
       const enviadoVal =
         body.enviado_producao === true || body.enviado_producao === 1 || body.enviado_producao === '1' ? 1 : 0;
 
-      const [patchRows] = await connection.execute('SELECT id, dados FROM pedidos WHERE id = ?', [id]);
+      const [patchRows] = await withTimeout(connection.execute('SELECT id, dados FROM pedidos WHERE id = ?', [id]), 30000, 'Busca para patch');
       if (patchRows.length === 0) {
         res.status(404).json({ error: 'Pedido não encontrado.' });
         return;
       }
       let dadosPatch = parseDadosJson(patchRows[0].dados) || {};
       dadosPatch.enviado_producao = enviadoVal;
-      const [patchResult] = await connection.execute('UPDATE pedidos SET dados = ? WHERE id = ?', [
+      const [patchResult] = await withTimeout(connection.execute('UPDATE pedidos SET dados = ? WHERE id = ?', [
         JSON.stringify(dadosPatch),
         id
-      ]);
+      ]), 30000, 'Patch de pedido');
       if (patchResult.affectedRows === 0) {
         res.status(404).json({ error: 'Pedido não encontrado.' });
         return;
@@ -323,7 +339,7 @@ module.exports = async (req, res) => {
     }
 
     // GET - listar todos os pedidos
-    const [rows] = await connection.execute('SELECT * FROM pedidos ORDER BY data_pedido DESC');
+    const [rows] = await withTimeout(connection.execute('SELECT * FROM pedidos ORDER BY data_pedido DESC'), 30000, 'Listagem de pedidos');
     const pedidos = rows.map(row => {
       const dadosParsed = parseDadosJson(row.dados);
       const enviado_producao = resolveEnviadoProducao(row, dadosParsed);
