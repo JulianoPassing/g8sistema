@@ -1187,29 +1187,45 @@ window.duplicarPedido = async function(id) {
       }
     }
     if (dadosParaEnviar && Array.isArray(dadosParaEnviar.itens)) {
-      // Alguns pedidos antigos carregam itens com chaves especiais (ex.: DESCRIÇÃO)
-      // que têm causado timeout no INSERT ao duplicar em produção. Normalizamos
-      // para um formato estável e mantemos chaves legadas por compatibilidade.
-      dadosParaEnviar.itens = dadosParaEnviar.itens.map((item) => {
+      // Normaliza itens e consolida linhas repetidas para evitar payload "explodido"
+      // na duplicação (caso observado em produção com timeout no INSERT).
+      const itensConsolidados = new Map();
+      dadosParaEnviar.itens.forEach((item) => {
         const referencia = (item?.REFERENCIA || item?.REF || item?.referencia || '').toString();
         const descricao = (item?.DESCRIÇÃO || item?.MODELO || item?.descricao || '').toString();
+        const tamanho = (item?.tamanho || '').toString();
+        const cor = (item?.cor || '').toString();
         const quantidade = Number(item?.quantidade) || 0;
         const preco = Number(item?.preco) || 0;
         const descontoExtra = Number(item?.descontoExtra) || 0;
-        return {
+
+        // Arredondar reduz ruído de ponto flutuante (ex.: 12.30000000004)
+        const precoKey = Math.round(preco * 10000) / 10000;
+        const descontoKey = Math.round(descontoExtra * 10000) / 10000;
+        const key = `${referencia}|${descricao}|${tamanho}|${cor}|${precoKey}|${descontoKey}`;
+
+        const existente = itensConsolidados.get(key);
+        if (existente) {
+          existente.quantidade += quantidade;
+          return;
+        }
+
+        itensConsolidados.set(key, {
           referencia,
           descricao,
           REF: referencia,
           MODELO: descricao,
           REFERENCIA: referencia,
           DESCRIÇÃO: descricao,
-          tamanho: item?.tamanho || '',
-          cor: item?.cor || '',
+          tamanho,
+          cor,
           quantidade,
           preco,
           descontoExtra
-        };
+        });
       });
+
+      dadosParaEnviar.itens = Array.from(itensConsolidados.values());
     }
     const body = {
       empresa: pedido.empresa,
