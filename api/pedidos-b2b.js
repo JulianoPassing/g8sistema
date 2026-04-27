@@ -2,15 +2,15 @@ const mysql = require('mysql2/promise');
 const emailNotification = require('./notifications/email');
 
 module.exports = async (req, res) => {
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'julianopassing',
-    password: process.env.DB_PASSWORD || 'Juliano@95',
-    database: process.env.DB_NAME || 'sistemajuliano',
-    connectTimeout: 20000
-  });
-
+  let connection;
   try {
+    connection = await mysql.createConnection({
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'julianopassing',
+      password: process.env.DB_PASSWORD || 'Juliano@95',
+      database: process.env.DB_NAME || 'sistemajuliano',
+      connectTimeout: 20000
+    });
     if (req.method === 'POST') {
       const { clienteId, empresa, descricao, dados, observacoes } = req.body;
       
@@ -80,14 +80,16 @@ module.exports = async (req, res) => {
     res.status(405).json({ error: 'Método não permitido' });
   } catch (err) {
     console.error('Erro na API de pedidos B2B:', err);
-    res.status(500).json({ error: err.message });
+    if (!res.headersSent) {
+      res.status(500).json({ error: err.message || 'Erro interno' });
+    }
   } finally {
-    try {
-      if (connection) {
-        await connection.end();
+    if (connection) {
+      try {
+        connection.destroy();
+      } catch (closeErr) {
+        console.error('Erro ao destruir conexão MySQL (B2B):', closeErr);
       }
-    } catch (closeErr) {
-      console.error('Erro ao fechar conexão:', closeErr);
     }
   }
 };

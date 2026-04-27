@@ -36,16 +36,15 @@ setInterval(() => {
 }, 60 * 1000); // Verificar a cada minuto
 
 module.exports = async (req, res) => {
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'julianopassing',
-    password: process.env.DB_PASSWORD || 'Juliano@95',
-    database: process.env.DB_NAME || 'sistemajuliano',
-    // Evita o handler preso no await createConnection (Vercel → MySQL remoto sem rota clara = TCP longo)
-    connectTimeout: 20000
-  });
-
+  let connection;
   try {
+    connection = await mysql.createConnection({
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'julianopassing',
+      password: process.env.DB_PASSWORD || 'Juliano@95',
+      database: process.env.DB_NAME || 'sistemajuliano',
+      connectTimeout: 20000
+    });
     // Extrair ID da URL se presente (para /api/pedidos/123)
     const urlParts = req.url.split('/');
     const idFromUrl = urlParts[urlParts.length - 1];
@@ -337,14 +336,19 @@ module.exports = async (req, res) => {
     res.status(200).json(pedidos);
   } catch (err) {
     console.error('Erro na API de pedidos:', err);
-    res.status(500).json({ error: err.message });
+    if (!res.headersSent) {
+      res.status(500).json({ error: err.message || 'Erro interno' });
+    }
   } finally {
-    try {
-      if (connection) {
-        await connection.end();
+    // Não use await connection.end() — o handshake de encerrar TCP com MySQL remoto pode levar
+    // minutos; a resposta HTTP já saiu (201/200) e a invocação serverless fica "rodando" até
+    // o fim, gerando 500 INTERNAL_FUNCTION_INVOCATION_FAILED e duração absurda no log da Vercel.
+    if (connection) {
+      try {
+        connection.destroy();
+      } catch (closeErr) {
+        console.error('Erro ao destruir conexão MySQL:', closeErr);
       }
-    } catch (closeErr) {
-      console.error('Erro ao fechar conexão:', closeErr);
     }
   }
 }; 
