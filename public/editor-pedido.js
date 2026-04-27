@@ -298,14 +298,21 @@
     
     // Usar offlineSystem para enviar edição (suporta modo offline no celular)
     const dadosParaEnviar = {...dadosAtualizados, operationId};
-    
     const enviarEdicao = window.offlineSystem && typeof window.offlineSystem.tryToSendEdit === 'function'
       ? () => window.offlineSystem.tryToSendEdit(dadosParaEnviar)
       : async () => {
+          var payload = dadosParaEnviar;
+          if (typeof window.compactarPayloadGrandeV1 === 'function') {
+            try {
+              payload = await window.compactarPayloadGrandeV1(dadosParaEnviar);
+            } catch (e) {
+              /* mantém original */
+            }
+          }
           const resp = await fetch(`/api/pedidos/${dadosAtualizados.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'X-Operation-ID': operationId },
-            body: JSON.stringify(dadosParaEnviar)
+            body: JSON.stringify(payload)
           });
           if (resp.ok) return { success: true, online: true };
           const err = await resp.json().catch(() => ({}));

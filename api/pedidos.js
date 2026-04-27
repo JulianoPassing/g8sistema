@@ -1,5 +1,14 @@
+const zlib = require('zlib');
 const mysql = require('mysql2/promise');
 const emailNotification = require('./notifications/email');
+
+function maybeDecompressBody(body) {
+  if (!body || typeof body !== 'object' || typeof body._v1GzipB64 !== 'string') {
+    return body;
+  }
+  const json = zlib.gunzipSync(Buffer.from(body._v1GzipB64, 'base64')).toString('utf8');
+  return JSON.parse(json);
+}
 
 function parseDadosJson(raw) {
   if (!raw) return null;
@@ -90,6 +99,16 @@ module.exports = async (req, res) => {
   let connection;
   try {
     cleanupOperationCache();
+
+    if (req.body && typeof req.body === 'object' && typeof req.body._v1GzipB64 === 'string') {
+      try {
+        req.body = maybeDecompressBody(req.body);
+      } catch (e) {
+        console.error('Corpo compactado inválido:', e && e.message);
+        res.status(400).json({ error: 'Corpo JSON compactado inválido.' });
+        return;
+      }
+    }
 
     const pool = getPool();
     connection = await withTimeout(pool.getConnection(), 5000, 'Obter conexão do pool');

@@ -2127,10 +2127,18 @@ async function salvarAlteracoes() {
   const descricao = `Cliente: ${pedidoEditando.dados.cliente.razao} Itens: ${pedidoEditando.dados.itens.map(item => (item.REFERENCIA || item.REF) + ' x' + item.quantidade).join(', ')} Total: R$ ${pedidoEditando.dados.total.toFixed(2)}`;
   
   try {
+    var putBody = { id, empresa: pedidoEditando.empresa, descricao, dados: pedidoEditando.dados };
+    if (typeof window.compactarPayloadGrandeV1 === 'function') {
+      try {
+        putBody = await window.compactarPayloadGrandeV1(putBody);
+      } catch (e) {
+        /* mantém original */
+      }
+    }
     const resp = await fetch('/api/pedidos', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, empresa: pedidoEditando.empresa, descricao, dados: pedidoEditando.dados })
+      body: JSON.stringify(putBody)
     });
     
     if (resp.ok) {
@@ -3893,19 +3901,27 @@ async function salvarEdicaoDistribuicao() {
     
     // Atualizar pedido na API
     const operationId = `edit_${pedidoEditandoDistribuicao.id}_${Date.now()}`;
+    var putBodyDistrib = {
+      id: pedidoEditandoDistribuicao.id,
+      empresa: 'distribuicao',
+      descricao: `Pedido Distribuição - ${produtosAtualizados.length} itens`,
+      dados: dadosAtualizados,
+      operationId: operationId
+    };
+    if (typeof window.compactarPayloadGrandeV1 === 'function') {
+      try {
+        putBodyDistrib = await window.compactarPayloadGrandeV1(putBodyDistrib);
+      } catch (e) {
+        /* mantém original */
+      }
+    }
     const response = await fetch(`/api/pedidos/${pedidoEditandoDistribuicao.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'x-operation-id': operationId
       },
-      body: JSON.stringify({
-        id: pedidoEditandoDistribuicao.id,
-        empresa: 'distribuicao',
-        descricao: `Pedido Distribuição - ${produtosAtualizados.length} itens`,
-        dados: dadosAtualizados,
-        operationId: operationId
-      })
+      body: JSON.stringify(putBodyDistrib)
     });
     
     if (!response.ok) {

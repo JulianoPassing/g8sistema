@@ -608,6 +608,17 @@ class OfflineSystem {
     this.updateStatusIndicator();
   }
 
+  async preparePutPayload(editData) {
+    if (typeof window.compactarPayloadGrandeV1 === 'function') {
+      try {
+        return await window.compactarPayloadGrandeV1(editData);
+      } catch (e) {
+        console.warn('preparePutPayload:', e);
+      }
+    }
+    return editData;
+  }
+
   async sendEdit(offlineEdit) {
     try {
       offlineEdit.attempts++;
@@ -615,13 +626,14 @@ class OfflineSystem {
       const id = editData.id;
       const url = `/api/pedidos/${id}`;
       const opId = editData && editData.operationId ? String(editData.operationId) : offlineEdit.id;
+      const payload = await this.preparePutPayload(editData);
       const response = await fetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'X-Operation-ID': opId
         },
-        body: JSON.stringify(editData)
+        body: JSON.stringify(payload)
       });
       if (response.ok) {
         this.pendingEdits = this.pendingEdits.filter(e => e.id !== offlineEdit.id);
@@ -647,13 +659,14 @@ class OfflineSystem {
       try {
         const id = editData.id;
         const opHeader = editData && editData.operationId ? String(editData.operationId) : 'sem-id';
+        const payload = await this.preparePutPayload(editData);
         const response = await fetch(`/api/pedidos/${id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'X-Operation-ID': opHeader
           },
-          body: JSON.stringify(editData)
+          body: JSON.stringify(payload)
         });
         if (response.ok) {
           this.isOnline = true;
