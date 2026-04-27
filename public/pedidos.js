@@ -1213,10 +1213,6 @@ window.duplicarPedido = async function(id) {
         itensConsolidados.set(key, {
           referencia,
           descricao,
-          REF: referencia,
-          MODELO: descricao,
-          REFERENCIA: referencia,
-          DESCRIÇÃO: descricao,
           tamanho,
           cor,
           quantidade,
@@ -1225,7 +1221,17 @@ window.duplicarPedido = async function(id) {
         });
       });
 
-      dadosParaEnviar.itens = Array.from(itensConsolidados.values());
+      // Só REF + MODELO (e campos de linha) — evita JSON gigante com REFERENCIA/DESCRIÇÃO duplicados,
+      // que em produção fazia o INSERT passar de 30s e retornar 504.
+      dadosParaEnviar.itens = Array.from(itensConsolidados.values()).map((row) => ({
+        REF: row.referencia,
+        MODELO: row.descricao,
+        tamanho: row.tamanho,
+        cor: row.cor,
+        quantidade: row.quantidade,
+        preco: row.preco,
+        descontoExtra: row.descontoExtra
+      }));
     }
     const body = {
       empresa: pedido.empresa,

@@ -168,7 +168,7 @@ module.exports = async (req, res) => {
       const [result] = await withTimeout(connection.execute(
         `INSERT INTO pedidos (empresa, descricao, dados, data_pedido) VALUES (?, ?, ?, NOW())`,
         [empresaFinal, descricaoFinal, dadosFinal]
-      ), 30000, 'Inserção de pedido');
+      ), 90000, 'Inserção de pedido');
 
       // Responder logo após gravar no banco. Aguardar SMTP (Gmail) costuma estourar o limite de tempo
       // das funções serverless no Vercel e o cliente fica eternamente em "carregando".
