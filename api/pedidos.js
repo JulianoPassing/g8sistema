@@ -310,6 +310,16 @@ module.exports = async (req, res) => {
         if (prevDados && dadosObj.enviado_producao === undefined && prevDados.enviado_producao !== undefined) {
           dadosObj.enviado_producao = prevDados.enviado_producao;
         }
+        // Observações: mesmo texto em cliente.obs e dados.observacoes (sistemas antigos divergiam)
+        if (!dadosObj.cliente) dadosObj.cliente = {};
+        const trimObs = (v) => {
+          if (v == null) return null;
+          const s = String(v).trim();
+          return s === '' ? null : s;
+        };
+        const obsUnico = trimObs(dadosObj.cliente.obs) ?? trimObs(dadosObj.observacoes);
+        dadosObj.cliente.obs = obsUnico;
+        dadosObj.observacoes = obsUnico;
         dadosFinal = JSON.stringify(dadosObj);
       } else {
         dadosFinal = JSON.stringify({});

@@ -114,7 +114,11 @@
 
   function carregarDadosCliente(pedido) {
     const dadosCliente = pedido.dados?.cliente || {};
-    
+    // Observações: histórico misto — alguns pedidos têm só cliente.obs, outros só dados.observacoes
+    const obs = dadosCliente.obs != null && dadosCliente.obs !== ''
+      ? dadosCliente.obs
+      : (pedido.dados?.observacoes != null && pedido.dados.observacoes !== '' ? pedido.dados.observacoes : '');
+
     // Mapear campos do cliente
     const campos = {
       'razao': dadosCliente.razao,
@@ -129,14 +133,14 @@
       'telefone': dadosCliente.telefone,
       'transporte': pedido.dados?.transporte || dadosCliente.transporte,
       'prazo': pedido.dados?.prazo || dadosCliente.prazo,
-      'obs': dadosCliente.obs
+      'obs': obs
     };
-    
+
     // Preencher campos
     Object.entries(campos).forEach(([campo, valor]) => {
       const input = document.getElementById(campo);
-      if (input && valor) {
-        input.value = valor;
+      if (input) {
+        input.value = valor != null && valor !== '' ? String(valor) : '';
       }
     });
     
@@ -356,6 +360,13 @@
         dados.dados.cliente[campo] = null;
       }
     });
+    // Raiz `observacoes` (busca/lista) = mesmo texto que cliente.obs (Pantaneiro / formulários)
+    const obsTexto = dados.dados.cliente.obs;
+    if (obsTexto) {
+      dados.dados.observacoes = obsTexto;
+    } else {
+      dados.dados.observacoes = null;
+    }
     
     // Coletar transporte e prazo
     const transporte = document.getElementById('transporte');

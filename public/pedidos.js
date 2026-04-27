@@ -2116,8 +2116,12 @@ async function salvarAlteracoes() {
   // Total
   pedidoEditando.dados.total = parseFloat(document.getElementById('edit-total').value) || 0;
   
-  // Observações
-  if (pedidoEditando.dados.cliente) pedidoEditando.dados.cliente.obs = document.getElementById('edit-obs').value;
+  // Observações (raiz + cliente — busca e telas usam as duas chaves)
+  if (pedidoEditando.dados.cliente) {
+    const o = document.getElementById('edit-obs') ? document.getElementById('edit-obs').value.trim() : '';
+    pedidoEditando.dados.cliente.obs = o || null;
+    pedidoEditando.dados.observacoes = o || null;
+  }
   
   // Atualizar descricao no formato padrão (inline)
   const descricao = `Cliente: ${pedidoEditando.dados.cliente.razao} Itens: ${pedidoEditando.dados.itens.map(item => (item.REFERENCIA || item.REF) + ' x' + item.quantidade).join(', ')} Total: R$ ${pedidoEditando.dados.total.toFixed(2)}`;
