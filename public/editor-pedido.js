@@ -37,6 +37,24 @@
       }
 
       const pedido = JSON.parse(pedidoData);
+      // API não lê mais `dados` antigo no PUT (evita timeout) — precisamos reenviar enviado_producao no corpo
+      let pd = pedido.dados;
+      if (typeof pd === 'string') {
+        try {
+          pd = JSON.parse(pd);
+        } catch (e) {
+          pd = {};
+        }
+      }
+      pd = pd || {};
+      const ev = pd.enviado_producao;
+      if (ev === true || ev === 1 || ev === '1') {
+        window._g8EdicaoEnviadoProducao = 1;
+      } else if (ev === false || ev === 0 || ev === '0') {
+        window._g8EdicaoEnviadoProducao = 0;
+      } else {
+        window._g8EdicaoEnviadoProducao = 1;
+      }
       
       // Mostrar indicador de modo edição
       mostrarIndicadorEdicao(pedido);
@@ -256,8 +274,7 @@
     dadosAtualizados.id = parseInt(pedidoOriginal.id); // Garantir que é número
     dadosAtualizados.empresa = pedidoOriginal.empresa || null;
     
-    console.log('🔄 Atualizando pedido ID:', dadosAtualizados.id); // Debug
-    console.log('📋 Dados coletados:', dadosAtualizados); // Debug completo
+    console.log('🔄 Atualizando pedido ID:', dadosAtualizados.id, 'itens:', dadosAtualizados.dados?.itens?.length);
     
     // Verificar se ID está definido
     if (!dadosAtualizados.id) {
@@ -275,20 +292,6 @@
     
     dadosAtualizados.descricao = `Cliente: ${clienteNome} Itens: ${itensDescricao} Total: R$ ${total.toFixed(2)}`;
     
-    console.log('📤 Enviando para API:', {
-      method: 'PUT',
-      url: '/api/pedidos',
-      data: dadosAtualizados
-    });
-
-    // VERIFICAR SE HÁ MÚLTIPLAS ABAS OU PROCESSOS
-    console.log('🔍 Verificando estado da aplicação:', {
-      currentUrl: window.location.href,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent.substring(0, 50),
-      salvandoFlag: salvandoPedido
-    });
-    
     // FORÇAR verificação de que é uma atualização
     if (!dadosAtualizados.id || dadosAtualizados.id <= 0) {
       console.error('❌ ERRO CRÍTICO: ID inválido para atualização!', dadosAtualizados.id);
@@ -296,48 +299,46 @@
       return;
     }
     
-    // Usar offlineSystem para enviar edição (suporta modo offline no celular)
     const dadosParaEnviar = {...dadosAtualizados, operationId};
-    const enviarEdicao = window.offlineSystem && typeof window.offlineSystem.tryToSendEdit === 'function'
-      ? () => window.offlineSystem.tryToSendEdit(dadosParaEnviar)
-      : async () => {
-          var payload = dadosParaEnviar;
-          if (typeof window.compactarPayloadGrandeV1 === 'function') {
-            try {
-              payload = await window.compactarPayloadGrandeV1(dadosParaEnviar);
-            } catch (e) {
-              /* mantém original */
-            }
-          }
-          const resp = await fetch(`/api/pedidos/${dadosAtualizados.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'X-Operation-ID': operationId },
-            body: JSON.stringify(payload)
-          });
-          if (resp.ok) return { success: true, online: true };
-          const err = await resp.json().catch(() => ({}));
-          throw new Error(err.error || 'Erro ao salvar');
-        };
+    const enviarEdicao = async function () {
+      var payload = dadosParaEnviar;
+      if (typeof window.compactarPayloadGrandeV1 === 'function') {
+        try {
+          payload = await window.compactarPayloadGrandeV1(dadosParaEnviar);
+        } catch (e) {
+          /* mantém original */
+        }
+      }
+      const resp = await fetch(`/api/pedidos/${dadosAtualizados.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Operation-ID': operationId },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) {
+        return { success: true };
+      }
+      var err = {};
+      try {
+        err = await resp.json();
+      } catch (e) {
+        err = {};
+      }
+      throw new Error(err.error || ('HTTP ' + resp.status));
+    };
     
-    Promise.resolve(enviarEdicao()).then(result => {
-      console.log(`✅ [${operationId}] Resultado:`, result);
+    Promise.resolve(enviarEdicao()).then(function (result) {
       if (result && result.success) {
         localStorage.removeItem('pedidoParaEdicao');
         salvandoPedido = false;
-        if (result.online) {
-          window.location.href = 'pedidos.html';
-        } else {
-          alert('📱 Edição salva! Será enviada automaticamente quando a conexão retornar.');
-          window.location.href = 'pedidos.html';
-        }
+        window.location.href = 'pedidos.html';
       } else {
         salvandoPedido = false;
         alert('❌ Erro ao salvar pedido.');
       }
-    }).catch(error => {
+    }).catch(function (error) {
       console.error('Erro ao salvar pedido:', error);
       salvandoPedido = false;
-      alert('❌ Erro ao salvar pedido: ' + error.message);
+      alert('❌ Erro ao salvar pedido: ' + (error && error.message ? error.message : error));
     });
   };
 
@@ -452,6 +453,7 @@
     });
     
     dados.dados.total = total;
+    dados.dados.enviado_producao = window._g8EdicaoEnviadoProducao !== undefined ? window._g8EdicaoEnviadoProducao : 1;
     
     return dados;
   }

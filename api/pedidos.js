@@ -77,28 +77,6 @@ function resumoBodyPedido(body) {
   return `keys=[${keys.join(',')}]${nItens}`;
 }
 
-/** Nunca logar a linha inteira: `dados` em pedidos grandes vira centenas de MB e estoura o tempo da função (504). */
-function resumoRowPedidoMySQL(row) {
-  if (!row || typeof row !== 'object') return String(row);
-  const d = row.dados;
-  return {
-    id: row.id,
-    empresa: row.empresa,
-    descricaoLen: row.descricao != null ? String(row.descricao).length : 0,
-    dadosColChars: d != null ? String(d).length : 0,
-    prevEnviadoRaw: row._prevEnv
-  };
-}
-
-function normalizarEnviadoProducaoDb(val) {
-  if (val == null) return undefined;
-  const s = String(val).toLowerCase();
-  if (s === 'null' || s === '') return undefined;
-  if (val === 1 || val === true || s === '1' || s === 'true') return 1;
-  if (val === 0 || val === false || s === '0' || s === 'false') return 0;
-  return undefined;
-}
-
 // Pool reutilizável: cada createConnection no cold start costuma 1–5s+ e no Hobby (limite ~10s)
 // a requisição vira 504 antes de concluir. O pool quente nas próximas invocações pula isso.
 function getPool() {
@@ -110,10 +88,11 @@ function getPool() {
       password: process.env.DB_PASSWORD || 'Juliano@95',
       database: process.env.DB_NAME || 'sistemajuliano',
       waitForConnections: true,
-      connectionLimit: 3,
+      connectionLimit: 5,
       queueLimit: 0,
       connectTimeout: 8000,
-      enableKeepAlive: true
+      enableKeepAlive: true,
+      compress: true
     });
   }
   return g.__g8PedidosMysqlPool;
@@ -349,29 +328,13 @@ module.exports = async (req, res) => {
       operationCache.set(cacheKey, Date.now());
       console.log(`📝 [${operationId}] Operação registrada no cache:`, cacheKey);
       
-      // Evitar SELECT de `dados` inteiro (pode ser enorme) — só puxamos o campo usado no merge
-      let existingCheck;
-      try {
-        [existingCheck] = await withTimeout(
-          connection.execute(
-            `SELECT id, empresa, descricao, JSON_UNQUOTE(JSON_EXTRACT(dados, '$.enviado_producao')) AS _prevEnv
-             FROM pedidos WHERE id = ?`,
-            [id]
-          ),
-          30000,
-          'Busca de pedido existente (leve)'
-        );
-      } catch (sqlErr) {
-        console.warn(
-          `⚠️ [${operationId}] SELECT leve falhou, usando SELECT completo (JSON inválido no banco?)`,
-          sqlErr && sqlErr.message
-        );
-        [existingCheck] = await withTimeout(
-          connection.execute('SELECT id, empresa, descricao, dados FROM pedidos WHERE id = ?', [id]),
-          30000,
-          'Busca de pedido existente (fallback)'
-        );
-      }
+      // Só existência — NUNCA ler a coluna `dados` aqui: JSON_EXTRACT / SELECT dados forçam o MySQL a
+      // carregar BLOBs gigantes e a requisição estoura o maxDuration (ex.: 60s) antes do UPDATE.
+      const [existingCheck] = await withTimeout(
+        connection.execute('SELECT 1 AS ok FROM pedidos WHERE id = ? LIMIT 1', [id]),
+        15000,
+        'Verificação de existência do pedido'
+      );
       
       if (existingCheck.length === 0) {
         console.error(`❌ [${operationId}] ERRO: Tentativa de atualizar pedido inexistente:`, id);
@@ -379,7 +342,7 @@ module.exports = async (req, res) => {
         return;
       }
       
-      console.log(`✅ [${operationId}] Pedido OK (resumo, sem coluna dados):`, resumoRowPedidoMySQL(existingCheck[0]));
+      console.log(`✅ [${operationId}] Pedido existe (SELECT 1 apenas, sem ler JSON)`);
       
       // Validar parâmetros obrigatórios
       if (!id) {
@@ -396,21 +359,17 @@ module.exports = async (req, res) => {
       if (dados !== undefined) {
         let dadosObj = {};
         try {
-          dadosObj = typeof dados === 'string' ? JSON.parse(dados) : { ...dados };
+          if (typeof dados === 'string') {
+            dadosObj = JSON.parse(dados);
+          } else if (dados && typeof dados === 'object') {
+            dadosObj = dados;
+          }
         } catch (e) {
           dadosObj = {};
         }
+        // enviado_producao deve vir no corpo (cliente de edição envia). Evita SELECT de `dados` no MySQL.
         if (dadosObj.enviado_producao === undefined) {
-          const ex0 = existingCheck[0];
-          const fromJsonPath = normalizarEnviadoProducaoDb(ex0._prevEnv);
-          if (fromJsonPath !== undefined) {
-            dadosObj.enviado_producao = fromJsonPath;
-          } else if (ex0.dados != null) {
-            const prevDados = parseDadosJson(ex0.dados);
-            if (prevDados && prevDados.enviado_producao !== undefined) {
-              dadosObj.enviado_producao = prevDados.enviado_producao;
-            }
-          }
+          dadosObj.enviado_producao = 1;
         }
         // Observações: mesmo texto em cliente.obs e dados.observacoes (sistemas antigos divergiam)
         if (!dadosObj.cliente) dadosObj.cliente = {};
