@@ -1,6 +1,6 @@
 /**
- * Resumo de quantidades no PDF: por referência, agregando por tamanho (ex.: 209 10g 10gg 10ex).
- * Total geral de peças no final.
+ * Quantidades no PDF: apenas total de peças (ex.: Total: 95 unidades).
+ * montarResumoQuantidadesPorReferencia permanece disponível se precisar do detalhe em outro lugar.
  */
 (function (global) {
   var SIZE_ORDER = [
@@ -79,53 +79,34 @@
     return { linhasTexto: linhasTexto, totalUnidades: totalUnidades };
   }
 
+  function totalUnidadesSomente(itens) {
+    if (!itens || !itens.length) return 0;
+    var t = 0;
+    for (var i = 0; i < itens.length; i++) {
+      t += parseInt(itens[i].quantidade, 10) || 0;
+    }
+    return t;
+  }
+
   /**
-   * Desenha bloco no PDF após a tabela de itens. Retorna nova coordenada Y inferior (mm).
+   * Uma linha no PDF: Total: N unidades. Retorna nova coordenada Y inferior (mm).
    */
   function pdfDesenharResumoQuantidades(doc, margin, pageWidth, startY, itens) {
-    var res = montarResumoQuantidadesPorReferencia(itens);
-    if (!res.totalUnidades) return startY;
+    var total = totalUnidadesSomente(itens);
+    if (!total) return startY;
 
-    var pageH = doc.internal.pageSize.getHeight();
     var y = startY;
-
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(33, 37, 41);
-    doc.text('Quantidades por referência / tamanho', margin, y);
-    y += 5;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-
-    for (var i = 0; i < res.linhasTexto.length; i++) {
-      if (y > pageH - 28) {
-        doc.addPage();
-        y = 20;
-      }
-      var line = res.linhasTexto[i];
-      var wrapped = doc.splitTextToSize(line, pageWidth - margin * 2);
-      for (var w = 0; w < wrapped.length; w++) {
-        doc.text(wrapped[w], margin, y);
-        y += 4;
-      }
-      y += 0.5;
-    }
-
-    if (y > pageH - 22) {
-      doc.addPage();
-      y = 20;
-    }
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text('Total: ' + res.totalUnidades + ' unidades', margin, y + 1);
+    doc.text('Total: ' + total + ' unidades', margin, y);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
 
-    return y + 10;
+    return y + 8;
   }
 
   global.g8MontarResumoQuantidadesPorReferencia = montarResumoQuantidadesPorReferencia;
+  global.g8TotalUnidadesPedidoItens = totalUnidadesSomente;
   global.g8PdfDesenharResumoQuantidades = pdfDesenharResumoQuantidades;
 })(typeof window !== 'undefined' ? window : globalThis);
