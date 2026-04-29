@@ -99,7 +99,7 @@
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(33, 37, 41);
-    doc.text('Total: ' + total + ' unidades', margin, y);
+    doc.text('Total: ' + total + ' unidades', pageWidth - margin, y, { align: 'right' });
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
 
