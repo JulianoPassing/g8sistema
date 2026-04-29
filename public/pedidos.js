@@ -2406,6 +2406,9 @@ function gerarPDFPedidoEditado(pedido) {
     margin: { top: 30, bottom: 15 },
   });
   finalY = doc.autoTable.previous.finalY;
+  if (typeof g8PdfDesenharResumoQuantidades === 'function') {
+    finalY = g8PdfDesenharResumoQuantidades(doc, margin, pageWidth, finalY + 6, itens || []);
+  }
 
   // Observações e totais (seguindo formato original)
   const obsText = `Transporte: ${transporte || 'A combinar'}\nPrazo Pagamento: ${prazo || 'A combinar'}\n\nObservações:\n${cliente?.obs || 'Nenhuma.'}`;
