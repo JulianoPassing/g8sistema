@@ -39,6 +39,57 @@ function formatarNomeEmpresaFiltro(empresa) {
   return empresaLower.toUpperCase();
 }
 
+/** Resposta GET /api/pedidos pode ser array ou { pedidos, total, … } */
+function normalizarListaPedidosApi(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (raw && Array.isArray(raw.pedidos)) return raw.pedidos;
+  return [];
+}
+
+/**
+ * Slug da empresa para abrir o editor quando a coluna `empresa` veio vazia (legado / B2B só em dados.origem).
+ */
+function resolverEmpresaParaEdicao(pedido) {
+  let e = pedido.empresa != null ? String(pedido.empresa).trim().toLowerCase() : '';
+  if (e) return e;
+
+  let dados = pedido.dados;
+  if (typeof dados === 'string') {
+    try {
+      dados = JSON.parse(dados);
+    } catch {
+      dados = {};
+    }
+  }
+  dados = dados || {};
+
+  const nested = dados.empresa != null ? String(dados.empresa).trim().toLowerCase() : '';
+  if (nested) return nested;
+
+  const origem = String(dados.origem || '').toLowerCase();
+  const desc = String(pedido.descricao || '').toLowerCase();
+  const blob = `${origem} ${desc}`;
+
+  if (/steitz/.test(blob)) {
+    return /b2b/.test(blob) ? 'b2b-steitz' : 'steitz';
+  }
+  if (/cesari/.test(blob)) {
+    return /b2b/.test(blob) ? 'b2b-cesari' : 'cesari';
+  }
+  if (/bkb/.test(blob)) return 'bkb';
+  if (/pantaneiro\s*7|pantaneiro7/.test(blob)) {
+    return /b2b/.test(blob) ? 'b2b-pantaneiro7' : 'pantaneiro7';
+  }
+  if (/pantaneiro\s*5|pantaneiro5/.test(blob)) {
+    return /b2b/.test(blob) ? 'b2b-pantaneiro5' : 'pantaneiro5';
+  }
+  if (/pantaneiro/.test(blob)) {
+    return /b2b/.test(blob) ? 'b2b-pantaneiro7' : 'pantaneiro7';
+  }
+
+  return '';
+}
+
 /** Pedidos antigos sem coluna no banco são tratados como já enviados para produção. */
 function normalizarEnvioProducao(pedidos) {
   if (!Array.isArray(pedidos)) return;
@@ -756,14 +807,15 @@ async function carregarPedidos() {
   const lista = document.getElementById('pedidos-lista');
   lista.innerHTML = '<p>Carregando pedidos...</p>';
   try {
-    let pedidos;
+    let pedidosRaw;
     if (window.G8OfflineData) {
-      pedidos = await G8OfflineData.getPedidos();
+      pedidosRaw = await G8OfflineData.getPedidos();
     } else {
       const resp = await fetch('/api/pedidos');
-      pedidos = await resp.json();
+      pedidosRaw = await resp.json();
     }
-    if (!Array.isArray(pedidos) || pedidos.length === 0) {
+    const pedidos = normalizarListaPedidosApi(pedidosRaw);
+    if (!pedidos.length) {
       lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       todosPedidos = [];
       atualizarContadorResultados(0);
@@ -3456,14 +3508,18 @@ window.editarPedido = function(id) {
       });
 
   Promise.resolve(pedidosPromise)
-    .then((pedidos) => {
+    .then((raw) => {
+      const pedidos = normalizarListaPedidosApi(raw);
       const pedido = pedidos.find((p) => p.id == id);
       if (!pedido) {
         alert('Pedido não encontrado.');
         return;
       }
 
-      const empresa = pedido.empresa != null ? String(pedido.empresa).trim() : '';
+      let empresa = resolverEmpresaParaEdicao(pedido);
+      if (!pedido.empresa && empresa) {
+        pedido.empresa = empresa;
+      }
 
       // Se for pedido da distribuição, usar modal específico
       if (empresa === 'distribuicao') {
@@ -3513,7 +3569,12 @@ window.editarPedido = function(id) {
           return;
       }
 
-      window.location.href = paginaEmpresa + '?modo=edicao&id=' + encodeURIComponent(id);
+      const destino =
+        '/' +
+        paginaEmpresa.replace(/^\/+/, '') +
+        '?modo=edicao&id=' +
+        encodeURIComponent(id);
+      window.location.assign(destino);
     })
     .catch((err) => {
       console.error('editarPedido:', err);
