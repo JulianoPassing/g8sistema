@@ -3039,9 +3039,9 @@ window.produtosData = [
           totalDiv.className = "pedido-total";
           
           // Frete CIF a partir de R$ 2.500; abaixo disso FOB (consultar valor do frete)
-          const FRETE_MINIMO_CIF = 2500.0;
-          const faltaParaCif = Math.max(0, FRETE_MINIMO_CIF - subtotalPedido);
-          const freteEhCif = subtotalPedido >= FRETE_MINIMO_CIF;
+          const PEDIDO_MINIMO_PANTANEIRO = 2500.0;
+          const faltaParaCif = Math.max(0, PEDIDO_MINIMO_PANTANEIRO - subtotalPedido);
+          const freteEhCif = subtotalPedido >= PEDIDO_MINIMO_PANTANEIRO;
 
           let avisoMinimoHTML = '';
           if (freteEhCif) {
@@ -3049,7 +3049,7 @@ window.produtosData = [
               <div style="background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%); border: 1px solid #9ae6b4; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #22543d; font-size: 0.95rem; line-height: 1.5; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(34, 84, 61, 0.1);">
                 <span style="font-size: 1.2em;">✅</span>
                 <div>
-                  <strong>Frete CIF:</strong> total do pedido a partir de <strong>R$ ${FRETE_MINIMO_CIF.toFixed(2)}</strong> — segue condição CIF conforme política Pantaneiro.
+                  <strong>Frete CIF:</strong> total do pedido a partir de <strong>R$ ${PEDIDO_MINIMO_PANTANEIRO.toFixed(2)}</strong> — segue condição CIF conforme política Pantaneiro.
                 </div>
               </div>
             `;
@@ -3058,7 +3058,7 @@ window.produtosData = [
               <div style="background: linear-gradient(135deg, #fffaf0 0%, #feebc8 100%); border: 1px solid #ed8936; border-radius: 12px; padding: 16px; margin-bottom: 16px; color: #7b341e; font-size: 0.95rem; line-height: 1.5; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(237, 137, 54, 0.12);">
                 <span style="font-size: 1.2em;">🚚</span>
                 <div>
-                  <strong>Frete FOB:</strong> abaixo de <strong>R$ ${FRETE_MINIMO_CIF.toFixed(2)}</strong> o envio não segue CIF — <strong>consulte o valor do frete</strong> com o representante.
+                  <strong>Frete FOB:</strong> abaixo de <strong>R$ ${PEDIDO_MINIMO_PANTANEIRO.toFixed(2)}</strong> o envio não segue CIF — <strong>consulte o valor do frete</strong> com o representante.
                   ${faltaParaCif > 0 ? `<br>Faltam <strong>R$ ${faltaParaCif.toFixed(2)}</strong> para atingir o piso de frete CIF.` : ''}
                 </div>
               </div>
@@ -3094,8 +3094,8 @@ window.produtosData = [
           return;
         }
 
-        const FRETE_MINIMO_CIF = 2500.0;
-        const freteEhCif = subtotalPedido >= FRETE_MINIMO_CIF;
+        const PEDIDO_MINIMO_PANTANEIRO = 2500.0;
+        const freteEhCif = subtotalPedido >= PEDIDO_MINIMO_PANTANEIRO;
         let observacoes = document.getElementById('obs') ? document.getElementById('obs').value : '';
         const linhaFreteFob = 'Frete FOB — valor do frete a consultar com o representante.';
         if (!freteEhCif && observacoes.indexOf(linhaFreteFob) === -1) {
@@ -3117,7 +3117,7 @@ window.produtosData = [
               prazo: document.getElementById('prazo') ? document.getElementById('prazo').value : '',
               observacoes,
               freteModalidade: freteEhCif ? 'CIF' : 'FOB',
-              freteMinimoCif: FRETE_MINIMO_CIF
+              freteMinimoCif: PEDIDO_MINIMO_PANTANEIRO
             }
           };
 

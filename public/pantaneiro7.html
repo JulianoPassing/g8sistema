@@ -2701,6 +2701,8 @@ window.produtosData = [
       let descontoPrazoPercentual = 0;
       let descontoVolumePercentual = 0;
       let totalPedidoComDesconto = 0;
+      /** Pedido mínimo Pantaneiro (piso frete CIF) — R$ 2.500 em todas as telas Pantaneiro */
+      const PEDIDO_MINIMO_PANTANEIRO = 2500;
       const selectCliente = document.getElementById("cliente-selecionado");
       const inputsCliente = {
         razao: document.getElementById("razao"),
@@ -2984,6 +2986,41 @@ window.produtosData = [
         }
         aplicarDescontosGerais();
       }
+      function atualizarBannerPedidoMinimoPantaneiro() {
+        const MIN = PEDIDO_MINIMO_PANTANEIRO;
+        let wrap = document.getElementById("pantaneiro-pedido-minimo-info");
+        const totalEl = document.querySelector(".total-container");
+        if (!totalEl) return;
+        if (!wrap) {
+          wrap = document.createElement("div");
+          wrap.id = "pantaneiro-pedido-minimo-info";
+          wrap.style.marginTop = "12px";
+          totalEl.parentNode.insertBefore(wrap, totalEl.nextSibling);
+        }
+        if (!window.pedidoItens || window.pedidoItens.length === 0) {
+          wrap.innerHTML = "";
+          return;
+        }
+        const total = Number(totalPedidoComDesconto) || 0;
+        const ok = total >= MIN;
+        const falta = Math.max(0, MIN - total);
+        if (ok) {
+          wrap.innerHTML =
+            `<div style="background:linear-gradient(135deg,#f0fff4 0%,#e6fffa 100%);border:1px solid #9ae6b4;border-radius:12px;padding:14px;color:#22543d;font-size:0.92rem;line-height:1.45;"><strong>Frete CIF:</strong> pedido a partir de <strong>R$ ${MIN.toFixed(
+              2
+            )}</strong>.</div>`;
+        } else {
+          wrap.innerHTML =
+            `<div style="background:linear-gradient(135deg,#fffaf0 0%,#feebc8 100%);border:1px solid #ed8936;border-radius:12px;padding:14px;color:#7b341e;font-size:0.92rem;line-height:1.45;"><strong>Frete FOB:</strong> abaixo de <strong>R$ ${MIN.toFixed(
+              2
+            )}</strong> consulte o valor do frete com o representante.${
+              falta > 0
+                ? `<br>Faltam <strong>R$ ${falta.toFixed(2)}</strong> para o piso de frete CIF.`
+                : ""
+            }</div>`;
+        }
+      }
+
       function aplicarDescontosGerais() {
         let totalComDescontoPrazo =
           subtotalPedido * (1 - descontoPrazoPercentual / 100);
@@ -2991,6 +3028,7 @@ window.produtosData = [
           totalComDescontoPrazo * (1 - descontoVolumePercentual / 100);
         document.getElementById("total-pedido").textContent =
           totalPedidoComDesconto.toFixed(2);
+        atualizarBannerPedidoMinimoPantaneiro();
       }
       function aplicarDescontoPrazo(percentual) {
         descontoPrazoPercentual = isNaN(percentual) ? 0 : percentual;
@@ -3260,15 +3298,31 @@ window.produtosData = [
         }
         
         const descricaoPedido = `Cliente: ${inputsCliente.razao.value} Itens: ${window.pedidoItens.map(item => item.REFERENCIA + ' x' + item.quantidade + (item.cor ? ' - C:' + item.cor : '')).join(', ')} Total: R$ ${totalPedidoComDesconto.toFixed(2)}`;
+        const linhaFreteFob =
+          "Frete FOB — valor do frete a consultar com o representante.";
+        const freteEhCif = totalPedidoComDesconto >= PEDIDO_MINIMO_PANTANEIRO;
+        let observacoesPedido = inputsCliente.obs.value.trim();
+        if (!freteEhCif && observacoesPedido.indexOf(linhaFreteFob) === -1) {
+          observacoesPedido = observacoesPedido
+            ? observacoesPedido + "\n\n" + linhaFreteFob
+            : linhaFreteFob;
+        }
+        const clienteFlat = Object.fromEntries(
+          Object.entries(inputsCliente).map(([k, v]) => [k, v.value])
+        );
+        clienteFlat.obs = observacoesPedido;
         const dadosPedido = {
-          cliente: Object.fromEntries(Object.entries(inputsCliente).map(([k, v]) => [k, v.value])),
+          cliente: clienteFlat,
           itens: window.pedidoItens,
           descontos: {
             prazo: parseFloat(document.getElementById('desconto-prazo').value) || 0,
             volume: parseFloat(document.getElementById('desconto-volume').value) || 0
           },
           total: totalPedidoComDesconto,
-          data: new Date().toISOString()
+          data: new Date().toISOString(),
+          observacoes: observacoesPedido,
+          freteModalidade: freteEhCif ? "CIF" : "FOB",
+          freteMinimoCif: PEDIDO_MINIMO_PANTANEIRO
         };
         
         console.log('📤 Fazendo POST para criar novo pedido (modo normal)');
