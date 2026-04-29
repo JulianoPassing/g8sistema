@@ -413,43 +413,28 @@ class OfflineSystem {
     }
   }
 
-  // Verificar se pedido já foi enviado (evitar duplicatas)
-  // Usa CNPJ + valor no mesmo dia - alinhado com verificação da API
+  // Verificar se pedido já foi enviado (evitar duplicatas) — endpoint leve no servidor
   async checkForDuplicate(offlineOrder) {
     try {
-      const response = await fetch('/api/pedidos');
-      if (!response.ok) return false;
-      
-      const existingOrders = await response.json();
       const orderData = offlineOrder.data;
       const dados = orderData?.dados || orderData;
-      
       const cnpjNovo = String(dados?.cliente?.cnpj || '').replace(/\D/g, '');
       const valorNovo = parseFloat(dados?.total);
       const empresaNovo = orderData?.empresa;
-      
       if (!cnpjNovo || cnpjNovo.length < 14 || isNaN(valorNovo)) return false;
-      
-      const hoje = new Date().toISOString().slice(0, 10);
-      
-      return existingOrders.some(order => {
-        let dadosExistente = {};
-        try {
-          dadosExistente = order.dados ? (typeof order.dados === 'string' ? JSON.parse(order.dados) : order.dados) : {};
-        } catch (e) { return false; }
-        const dataPedido = order.data_pedido || '';
-        const dataOrder = dataPedido.toString().slice(0, 10);
-        if (dataOrder !== hoje) return false;
-        if ((order.empresa || dadosExistente.empresa) !== empresaNovo) return false;
-        
-        const cnpjExistente = String(dadosExistente?.cliente?.cnpj || '').replace(/\D/g, '');
-        const valorExistente = parseFloat(dadosExistente?.total);
-        return cnpjExistente === cnpjNovo && 
-               !isNaN(valorExistente) && 
-               Math.abs(valorExistente - valorNovo) < 0.01;
+
+      const params = new URLSearchParams({
+        checkDuplicate: '1',
+        empresa: empresaNovo || '',
+        cnpj: cnpjNovo,
+        total: String(valorNovo)
       });
+      const response = await fetch(`/api/pedidos?${params.toString()}`);
+      if (!response.ok) return false;
+      const j = await response.json();
+      return !!(j && j.exists);
     } catch (error) {
-      console.error('Erro ao verificar duplicatas:', error);
+      console.error('checkForDuplicate:', error);
       return false;
     }
   }

@@ -1,4 +1,4 @@
-const mysql = require('mysql2/promise');
+const { getPool } = require('./mysql-pool');
 const fs = require('fs');
 const path = require('path');
 
@@ -281,12 +281,8 @@ module.exports = async (req, res) => {
   let useJSON = false;
 
   try {
-    connection = await mysql.createConnection({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'julianopassing',
-      password: process.env.DB_PASSWORD || 'Juliano@95',
-      database: process.env.DB_NAME || 'sistemajuliano'
-    });
+    const pool = getPool();
+    connection = await pool.getConnection();
   } catch (dbError) {
     console.log('Erro ao conectar com MySQL, usando arquivo JSON:', dbError.message);
     useJSON = true;
@@ -597,7 +593,11 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: err.message });
   } finally {
     if (connection) {
-      await connection.end();
+      try {
+        connection.release();
+      } catch (e) {
+        console.error('Erro ao liberar conexão clientes:', e);
+      }
     }
   }
 }; 

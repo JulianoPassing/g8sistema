@@ -1,8 +1,63 @@
 const zlib = require('zlib');
 const { promisify } = require('util');
 const gunzipAsync = promisify(zlib.gunzip);
-const mysql = require('mysql2/promise');
+const { getPool } = require('./mysql-pool');
 const emailNotification = require('./notifications/email');
+
+const verbosePedidos =
+  process.env.DEBUG_PEDIDOS === '1' ||
+  (process.env.NODE_ENV !== 'production' && process.env.DEBUG_PEDIDOS !== '0');
+
+/** Parse query string em ambientes sem req.query populado */
+function getPedidosQuery(req) {
+  try {
+    const raw = req.url || '';
+    const qIdx = raw.indexOf('?');
+    const search = qIdx >= 0 ? raw.slice(qIdx) : '';
+    const u = new URL(search || '', 'http://pedidos.local');
+    const out = {};
+    u.searchParams.forEach((v, k) => {
+      out[k] = v;
+    });
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** Duplicidade CNPJ + mesmo valor total no mesmo dia (mesma empresa) — usado no POST e em GET checkDuplicate */
+async function findDuplicatePedidoHoje(connection, empresa, cnpjCliente, valorTotal, withTimeoutFn) {
+  const cnpjNormalizado = String(cnpjCliente || '').replace(/\D/g, '');
+  const valorNumerico = parseFloat(valorTotal);
+  if (cnpjNormalizado.length < 14 || isNaN(valorNumerico)) return null;
+
+  const [recentDuplicates] = await withTimeoutFn(
+    connection.execute(
+      `SELECT id, dados FROM pedidos 
+       WHERE DATE(data_pedido) = CURDATE() AND empresa = ?`,
+      [empresa || '']
+    ),
+    30000,
+    'Consulta de duplicidade'
+  );
+
+  const duplicata = recentDuplicates.find((row) => {
+    let dadosRow = {};
+    try {
+      dadosRow = typeof row.dados === 'string' ? JSON.parse(row.dados) : row.dados || {};
+    } catch (e) {
+      return false;
+    }
+    const cnpjExistente = String(dadosRow?.cliente?.cnpj || '').replace(/\D/g, '');
+    const valorExistente = parseFloat(dadosRow?.total);
+    return (
+      cnpjExistente === cnpjNormalizado &&
+      !isNaN(valorExistente) &&
+      Math.abs(valorExistente - valorNumerico) < 0.01
+    );
+  });
+  return duplicata || null;
+}
 
 async function maybeDecompressBodyAsync(body) {
   if (!body || typeof body !== 'object' || typeof body._v1GzipB64 !== 'string') {
@@ -77,27 +132,6 @@ function resumoBodyPedido(body) {
   return `keys=[${keys.join(',')}]${nItens}`;
 }
 
-// Pool reutilizável: cada createConnection no cold start costuma 1–5s+ e no Hobby (limite ~10s)
-// a requisição vira 504 antes de concluir. O pool quente nas próximas invocações pula isso.
-function getPool() {
-  const g = global;
-  if (!g.__g8PedidosMysqlPool) {
-    g.__g8PedidosMysqlPool = mysql.createPool({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'julianopassing',
-      password: process.env.DB_PASSWORD || 'Juliano@95',
-      database: process.env.DB_NAME || 'sistemajuliano',
-      waitForConnections: true,
-      connectionLimit: 5,
-      queueLimit: 0,
-      connectTimeout: 8000,
-      enableKeepAlive: true,
-      compress: true
-    });
-  }
-  return g.__g8PedidosMysqlPool;
-}
-
 module.exports = async (req, res) => {
   let connection;
   try {
@@ -120,10 +154,12 @@ module.exports = async (req, res) => {
     const idFromUrl = urlParts[urlParts.length - 1];
     const isNumericId = /^\d+$/.test(idFromUrl);
     
-    console.log('📍 Requisição:', req.method, req.url);
-    console.log('📍 ID da URL:', idFromUrl, 'É numérico:', isNumericId);
-    console.log('📍 Headers:', req.headers['x-operation-id'] || 'sem-id');
-    console.log('📍 Body:', resumoBodyPedido(req.body));
+    if (verbosePedidos) {
+      console.log('📍 Requisição:', req.method, req.url);
+      console.log('📍 ID da URL:', idFromUrl, 'É numérico:', isNumericId);
+      console.log('📍 Headers:', req.headers['x-operation-id'] || 'sem-id');
+      console.log('📍 Body:', resumoBodyPedido(req.body));
+    }
     if (req.method === 'POST') {
       const isDuplicacaoIntentional = (req.headers['x-duplicate-pedido'] || '').toLowerCase() === 'true';
       const duplicateFromHeader = req.headers['x-duplicate-from-id'];
@@ -223,44 +259,25 @@ module.exports = async (req, res) => {
         }
         const cnpjCliente = dadosParsed?.cliente?.cnpj;
         const valorTotal = dadosParsed?.total;
-        
-        if (cnpjCliente && (valorTotal !== undefined && valorTotal !== null)) {
-          const cnpjNormalizado = String(cnpjCliente).replace(/\D/g, '');
-          const valorNumerico = parseFloat(valorTotal);
-          
-          if (cnpjNormalizado.length >= 14 && !isNaN(valorNumerico)) {
-            const [recentDuplicates] = await withTimeout(connection.execute(
-              `SELECT id, data_pedido, dados FROM pedidos 
-               WHERE DATE(data_pedido) = CURDATE() AND empresa = ?`,
-              [empresa || '']
-            ), 30000, 'Consulta de duplicidade');
-            
-            const duplicata = recentDuplicates.find(row => {
-              let dadosRow = {};
-              try {
-                dadosRow = typeof row.dados === 'string' ? JSON.parse(row.dados) : (row.dados || {});
-              } catch (e) { return false; }
-              const cnpjExistente = String(dadosRow?.cliente?.cnpj || '').replace(/\D/g, '');
-              const valorExistente = parseFloat(dadosRow?.total);
-              return cnpjExistente === cnpjNormalizado && 
-                     !isNaN(valorExistente) && 
-                     Math.abs(valorExistente - valorNumerico) < 0.01;
+
+        if (cnpjCliente && valorTotal !== undefined && valorTotal !== null) {
+          const duplicata = await findDuplicatePedidoHoje(
+            connection,
+            empresa || '',
+            cnpjCliente,
+            valorTotal,
+            withTimeout
+          );
+          if (duplicata) {
+            console.error('❌ ERRO: Pedido duplicado detectado (CNPJ + valor no mesmo dia)!', {
+              pedidoExistente: duplicata.id
             });
-            
-            if (duplicata) {
-              console.error('❌ ERRO: Pedido duplicado detectado (CNPJ + valor no mesmo dia)!', {
-                cnpj: cnpjNormalizado,
-                valor: valorNumerico,
-                pedidoExistente: duplicata.id,
-                dataExistente: duplicata.data_pedido
-              });
-              res.status(409).json({ 
-                error: 'Pedido duplicado detectado. Já existe um pedido com este cliente e valor hoje.',
-                existingId: duplicata.id,
-                suggestion: 'Use PUT para atualizar o pedido existente.'
-              });
-              return;
-            }
+            res.status(409).json({
+              error: 'Pedido duplicado detectado. Já existe um pedido com este cliente e valor hoje.',
+              existingId: duplicata.id,
+              suggestion: 'Use PUT para atualizar o pedido existente.'
+            });
+            return;
           }
         }
       }
@@ -487,7 +504,84 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // GET - listar todos os pedidos
+    // GET — verificação leve de duplicidade (offline / cliente sem baixar todos os pedidos)
+    if (req.method === 'GET') {
+      const q = getPedidosQuery(req);
+
+      if (q.checkDuplicate === '1') {
+        try {
+          const empresa = q.empresa != null ? String(q.empresa) : '';
+          const cnpjRaw = q.cnpj != null ? String(q.cnpj) : '';
+          const totalRaw = q.total;
+          const dup = await findDuplicatePedidoHoje(connection, empresa, cnpjRaw, totalRaw, withTimeout);
+          res.status(200).json({ exists: !!dup, existingId: dup ? dup.id : undefined });
+        } catch (err) {
+          console.error('checkDuplicate:', err);
+          if (!res.headersSent) {
+            res.status(500).json({ error: err.message || 'Erro ao verificar duplicidade' });
+          }
+        }
+        return;
+      }
+
+      const clienteIdFilter = q.clienteId != null ? String(q.clienteId).trim() : '';
+      if (clienteIdFilter !== '') {
+        try {
+          const limitNum = Math.min(Math.max(parseInt(q.limit, 10) || 500, 1), 2000);
+          const offsetNum = Math.max(parseInt(q.offset, 10) || 0, 0);
+          const whereCliente =
+            `(JSON_UNQUOTE(JSON_EXTRACT(dados, '$.cliente.id')) = ? OR CAST(JSON_UNQUOTE(JSON_EXTRACT(dados, '$.clienteId')) AS CHAR) = ?)`;
+
+          const [[countRows], [rows]] = await Promise.all([
+            withTimeout(
+              connection.execute(`SELECT COUNT(*) AS c FROM pedidos WHERE ${whereCliente}`, [
+                clienteIdFilter,
+                clienteIdFilter
+              ]),
+              30000,
+              'COUNT pedidos por cliente'
+            ),
+            withTimeout(
+              connection.execute(
+                `SELECT * FROM pedidos WHERE ${whereCliente} ORDER BY data_pedido DESC LIMIT ? OFFSET ?`,
+                [clienteIdFilter, clienteIdFilter, limitNum, offsetNum]
+              ),
+              30000,
+              'Listagem pedidos por cliente'
+            )
+          ]);
+
+          const totalCount = countRows[0].c;
+          const pedidos = rows.map((row) => {
+            const dadosParsed = parseDadosJson(row.dados);
+            const enviado_producao = resolveEnviadoProducao(row, dadosParsed);
+            return {
+              ...row,
+              dados: dadosParsed,
+              enviado_producao
+            };
+          });
+          res.status(200).json({
+            pedidos,
+            total: totalCount,
+            limit: limitNum,
+            offset: offsetNum
+          });
+        } catch (err) {
+          console.error('GET pedidos por cliente:', err);
+          if (!res.headersSent) {
+            const isTimeout = err && err.code === 'OP_TIMEOUT';
+            res.status(isTimeout ? 504 : 500).json({
+              error: err.message || 'Erro ao listar pedidos',
+              code: err.code || 'INTERNAL_ERROR'
+            });
+          }
+        }
+        return;
+      }
+    }
+
+    // GET - listar todos os pedidos (legado — sem clienteId; evite uso em telas novas)
     const [rows] = await withTimeout(connection.execute('SELECT * FROM pedidos ORDER BY data_pedido DESC'), 30000, 'Listagem de pedidos');
     const pedidos = rows.map(row => {
       const dadosParsed = parseDadosJson(row.dados);

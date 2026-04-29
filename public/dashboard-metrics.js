@@ -242,8 +242,9 @@ class DashboardMetrics {
       console.log('🔍 Carregando pedidos da API...');
       const apiResponse = await fetch('/api/pedidos');
       if (apiResponse.ok) {
-        const apiPedidos = await apiResponse.json();
-        if (apiPedidos && Array.isArray(apiPedidos) && apiPedidos.length > 0) {
+        const raw = await apiResponse.json();
+        const apiPedidos = Array.isArray(raw) ? raw : raw && raw.pedidos ? raw.pedidos : [];
+        if (apiPedidos && apiPedidos.length > 0) {
           console.log('✅ Pedidos carregados da API:', apiPedidos.length);
           return apiPedidos;
         }

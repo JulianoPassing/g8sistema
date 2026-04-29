@@ -68,14 +68,20 @@
     });
   }
 
+  function normalizeListaPedidosApi(data) {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.pedidos)) return data.pedidos;
+    throw new Error('bad');
+  }
+
   function fetchPedidosNet() {
     return fetch('/api/pedidos').then(function (r) {
       if (!r.ok) throw new Error('api');
       return r.json();
     }).then(function (data) {
-      if (!Array.isArray(data)) throw new Error('bad');
-      return idbPut('pedidos', data).then(function () {
-        return data;
+      var lista = normalizeListaPedidosApi(data);
+      return idbPut('pedidos', lista).then(function () {
+        return lista;
       });
     });
   }

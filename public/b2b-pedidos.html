@@ -1018,11 +1018,16 @@
         if (window.G8OfflineData) {
           todosPedidos = await G8OfflineData.getPedidos();
         } else {
-          const response = await fetch('/api/pedidos');
-          todosPedidos = await response.json();
+          const cid = clienteData.id != null ? String(clienteData.id).trim() : '';
+          const url = cid
+            ? `/api/pedidos?clienteId=${encodeURIComponent(cid)}&limit=500`
+            : '/api/pedidos';
+          const response = await fetch(url);
+          const payload = await response.json();
+          todosPedidos = Array.isArray(payload) ? payload : (payload.pedidos || []);
         }
 
-        // Filtrar apenas os pedidos do cliente logado
+        // Filtrar apenas os pedidos do cliente logado (fallback para dados offline ou réplicas sem filtro no servidor)
         const pedidosCliente = todosPedidos.filter(pedido => {
           
           // Verificar se tem dados e se é do cliente logado

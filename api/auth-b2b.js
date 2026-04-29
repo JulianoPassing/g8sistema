@@ -1,7 +1,7 @@
 // API de autenticação B2B para clientes
 const fs = require('fs');
 const path = require('path');
-const mysql = require('mysql2/promise');
+const { getPool } = require('./mysql-pool');
 
 // CONFIGURAÇÃO DE SENHAS PERSONALIZADAS
 // CNPJs com senhas específicas (sobrescreve a senha padrão 123456)
@@ -102,24 +102,17 @@ module.exports = async (req, res) => {
     let connection = null;
     
     try {
-      // Tentar conectar com MySQL
-      connection = await mysql.createConnection({
-        host: process.env.DB_HOST || 'localhost',
-        user: process.env.DB_USER || 'julianopassing',
-        password: process.env.DB_PASSWORD || 'Juliano@95',
-        database: process.env.DB_NAME || 'sistemajuliano'
-      });
-      
-      // Buscar cliente no banco MySQL por CNPJ normalizado
+      const pool = getPool();
+      connection = await pool.getConnection();
+
       const [rows] = await connection.execute(
         'SELECT * FROM clientes WHERE cnpj = ? OR REPLACE(REPLACE(REPLACE(REPLACE(cnpj, ".", ""), "/", ""), "-", ""), " ", "") = ?',
         [cnpj, cnpjNormalizado]
       );
-      
+
       if (rows.length > 0) {
         cliente = rows[0];
       }
-      
     } catch (dbError) {
       
       // Fallback: carregar do arquivo JSON
@@ -187,9 +180,12 @@ module.exports = async (req, res) => {
         // Erro silencioso
       }
     } finally {
-      // Fechar conexão se foi aberta
       if (connection) {
-        await connection.end();
+        try {
+          connection.release();
+        } catch (e) {
+          /* ignore */
+        }
       }
     }
     
