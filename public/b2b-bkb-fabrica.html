@@ -1139,25 +1139,54 @@
         return typeof p === "number" ? p : 0;
       }
 
+      function categoriasOrdenadasBkbFabrica() {
+        return window.BKB_FABRICA_CATEGORIA_ORDEM || [];
+      }
+
+      function ordenarChavesCategoria(grupos) {
+        const ordem = categoriasOrdenadasBkbFabrica();
+        return Object.keys(grupos).sort((a, b) => {
+          const ia = ordem.indexOf(a);
+          const ib = ordem.indexOf(b);
+          if (ia === -1 && ib === -1) return a.localeCompare(b, "pt-BR");
+          if (ia === -1) return 1;
+          if (ib === -1) return -1;
+          return ia - ib;
+        });
+      }
+
+      function agruparProdutosPorCategoria(list) {
+        const grupos = {};
+        (list || []).forEach((p) => {
+          const cat = p.CATEGORIA || "Demais peças";
+          if (!grupos[cat]) grupos[cat] = [];
+          grupos[cat].push(p);
+        });
+        return grupos;
+      }
+
       function renderizarProdutos(produtos = window.produtosData) {
         const mobileContainer = document.getElementById("produtos-mobile-container");
         if (mobileContainer) mobileContainer.innerHTML = "";
         const list = Array.isArray(produtos) ? produtos : [];
         const isMobile = isMobileView();
-        if (isMobile) {
-          list.forEach((produto) => {
-            const preco = precoNaTabela(produto);
-            if (!mobileContainer || preco <= 0) return;
-            const mobileCard = document.createElement("div");
-            mobileCard.className = "produto-card-mobile";
-            mobileCard.innerHTML = `
+        const grupos = agruparProdutosPorCategoria(list);
+        const cats = ordenarChavesCategoria(grupos);
+        const tabTitulo = labelTabelaPreco();
+
+        const renderUmCardMobile = (produto, mobileRoot) => {
+          const preco = precoNaTabela(produto);
+          if (preco <= 0) return;
+          const mobileCard = document.createElement("div");
+          mobileCard.className = "produto-card-mobile";
+          mobileCard.innerHTML = `
               <div class="produto-header-mobile">
                 <div class="produto-ref-mobile">${produto.REF}</div>
                 <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
               </div>
               <div class="produto-descricao-mobile">
                 <h4>${produto.MODELO || ""}</h4>
-                <small>Tabela: ${labelTabelaPreco()}</small>
+                <small>Tabela: ${tabTitulo}</small>
               </div>
               <div class="produto-tamanhos-mobile">
                 <label>Desc. extra (%):</label>
@@ -1171,27 +1200,45 @@
                 <button type="button" class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
               </div>
             `;
-            mobileCard.querySelector(".btn-adicionar-mobile").addEventListener("click", () => adicionarAoPedidoMobile(produto.REF));
-            mobileContainer.appendChild(mobileCard);
+          mobileCard.querySelector(".btn-adicionar-mobile").addEventListener("click", () => adicionarAoPedidoMobile(produto.REF));
+          mobileRoot.appendChild(mobileCard);
+        };
+
+        if (isMobile) {
+          if (!mobileContainer) return;
+          cats.forEach((categoria) => {
+            const prodsCat = grupos[categoria] || [];
+            const algumPreco = prodsCat.some((pr) => precoNaTabela(pr) > 0);
+            if (!algumPreco) return;
+            const tit = document.createElement("div");
+            tit.className = "categoria-header-mobile";
+            tit.textContent = categoria;
+            mobileContainer.appendChild(tit);
+            prodsCat.forEach((produto) => renderUmCardMobile(produto, mobileContainer));
           });
           produtosContainer.innerHTML = "";
           return;
         }
 
         produtosContainer.innerHTML = "";
-        const section = document.createElement("section");
-        section.className = "card";
-        let tabelaHTML = `<div class="card-header"><h2>Peças BKB — ${labelTabelaPreco()}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. extra %</th><th>QTD</th><th>Ação</th></tr></thead><tbody>`;
-        list.forEach((produto) => {
-          const preco = precoNaTabela(produto);
-          if (preco <= 0) return;
-          tabelaHTML += `<tr><td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td class="table-discount-cell"><input type="number" min="0" value="0" class="desconto-input input-mini" id="desconto-${produto.REF}"></td><td class="table-qty-cell"><input type="number" min="0" value="" placeholder="0" class="input-qty-mini" id="qty-${produto.REF}"></td><td class="table-action-cell"><button type="button" data-ref="${produto.REF}" class="btn btn-success btn-sm table-action-btn">Adicionar</button></td></tr>`;
-        });
-        tabelaHTML += `</tbody></table></div>`;
-        section.innerHTML = tabelaHTML;
-        produtosContainer.appendChild(section);
-        section.querySelectorAll("button[data-ref]").forEach((btn) => {
-          btn.addEventListener("click", () => adicionarAoPedido(btn.getAttribute("data-ref")));
+        cats.forEach((categoria) => {
+          const prodsCat = grupos[categoria] || [];
+          const comPreco = prodsCat.filter((pr) => precoNaTabela(pr) > 0);
+          if (comPreco.length === 0) return;
+
+          const section = document.createElement("section");
+          section.className = "card";
+          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><p class="catalogo-tabela-aviso">Preços na tabela <strong>${tabTitulo}</strong></p><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. extra %</th><th>QTD</th><th>Ação</th></tr></thead><tbody>`;
+          comPreco.forEach((produto) => {
+            const preco = precoNaTabela(produto);
+            tabelaHTML += `<tr><td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td class="table-discount-cell"><input type="number" min="0" value="0" class="desconto-input input-mini" id="desconto-${produto.REF}"></td><td class="table-qty-cell"><input type="number" min="0" value="" placeholder="0" class="input-qty-mini" id="qty-${produto.REF}"></td><td class="table-action-cell"><button type="button" data-ref="${produto.REF}" class="btn btn-success btn-sm table-action-btn">Adicionar</button></td></tr>`;
+          });
+          tabelaHTML += `</tbody></table></div>`;
+          section.innerHTML = tabelaHTML;
+          produtosContainer.appendChild(section);
+          section.querySelectorAll("button[data-ref]").forEach((btn) => {
+            btn.addEventListener("click", () => adicionarAoPedido(btn.getAttribute("data-ref")));
+          });
         });
       }
 

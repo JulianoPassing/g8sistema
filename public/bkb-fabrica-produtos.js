@@ -765,3 +765,81 @@ window.produtosData = [
     }
   }
 ];
+
+(function bkbFabricaEnriquecerCategorias() {
+  var rules = [
+    ["GRNT", "Kit guarnição tampa de válvula"],
+    ["GCB", "Guarnição carburador"],
+    ["GPB", "Guarda pó bengala"],
+    ["CXM", "Coxim de coroa"],
+    ["RBG", "Kit retentor de bengala + guarda pó"],
+    ["RBE", "Retentor de bengala"],
+    ["PTR", "Pedaleira"],
+    ["PTD", "Pedaleira"],
+    ["PDI", "Pedaleira"],
+    ["PDL", "Borracha de estribo"],
+    ["RVV", "Retentor haste de válvula"],
+    ["RTT", "Retentor tampa de válvula"],
+    ["RPF", "Vedação pinça de freio"],
+    ["PRB", "Presilha de rabeta"],
+    ["MGC", "Mangueira de combustível"],
+    ["GTL", "Guarnição tampa lateral"],
+    ["GRN", "Guarnição tampa de válvula"],
+    ["VMP", "Vedação motor de partida"],
+    ["VIE", "Vedação injeção eletrônica"],
+    ["BUJ", "Bujão / parafuso cárter"],
+    ["BUC", "Bujão / parafuso cárter"],
+    ["BQE", "Bucha quadro elástico"],
+    ["BAM", "Kit borracha amortecedor"],
+    ["ARR", "Arruelas de alumínio"],
+    ["ANE", "Anel do escape"]
+  ];
+  rules.sort(function (a, b) {
+    return b[0].length - a[0].length;
+  });
+
+  function categoriaPorRef(ref) {
+    var r = String(ref || "").toUpperCase();
+    for (var i = 0; i < rules.length; i++) {
+      if (r.indexOf(rules[i][0]) === 0) return rules[i][1];
+    }
+    return "Demais peças";
+  }
+
+  window.BKB_FABRICA_CATEGORIA_ORDEM = [
+    "Anel do escape",
+    "Arruelas de alumínio",
+    "Kit borracha amortecedor",
+    "Bucha quadro elástico",
+    "Bujão / parafuso cárter",
+    "Coxim de coroa",
+    "Guarnição carburador",
+    "Guarda pó bengala",
+    "Guarnição tampa de válvula",
+    "Kit guarnição tampa de válvula",
+    "Guarnição tampa lateral",
+    "Mangueira de combustível",
+    "Borracha de estribo",
+    "Pedaleira",
+    "Presilha de rabeta",
+    "Retentor de bengala",
+    "Kit retentor de bengala + guarda pó",
+    "Vedação pinça de freio",
+    "Retentor tampa de válvula",
+    "Retentor haste de válvula",
+    "Vedação injeção eletrônica",
+    "Vedação motor de partida",
+    "Demais peças"
+  ];
+
+  if (!window.produtosData || !Array.isArray(window.produtosData)) return;
+  window.produtosData = window.produtosData.map(function (p) {
+    var c = p.CATEGORIA || categoriaPorRef(p.REF);
+    var copy = {};
+    for (var k in p) {
+      if (Object.prototype.hasOwnProperty.call(p, k)) copy[k] = p[k];
+    }
+    copy.CATEGORIA = c;
+    return copy;
+  });
+})();

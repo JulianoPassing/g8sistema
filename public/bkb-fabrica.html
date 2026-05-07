@@ -7,10 +7,11 @@
     <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
     <link rel="apple-touch-icon" href="https://i.imgur.com/WveVVY5.png" />
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link
@@ -18,9 +19,8 @@
       rel="stylesheet"
     />
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
       <link rel="stylesheet" href="modern-design.css">
       <link rel="stylesheet" href="mobile.css">
       <link rel="stylesheet" href="professional-ui.css">
@@ -37,13 +37,11 @@
 
     <style>
       :root {
-        /* === CORES G8 === */
         --g8-red: #ff0000;
         --g8-black: #000000;
         --g8-white: #ffffff;
-        
-        --primary-color: #ff0000;
-        --primary-hover: #cc0000;
+        --primary-color: #2563eb;
+        --primary-hover: #1d4ed8;
         --secondary-color: #000000;
         --success-color: #059669;
         --success-hover: #047857;
@@ -62,12 +60,10 @@
         --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        --shadow-red: 0 10px 40px rgba(255, 0, 0, 0.25);
         --border-radius: 8px;
         --border-radius-lg: 12px;
         --border-radius-xl: 16px;
-        --gradient-primary: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
-        --gradient-secondary: linear-gradient(135deg, #000000 0%, #333333 100%);
+        --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         --gradient-success: linear-gradient(135deg, #059669 0%, #047857 100%);
         --gradient-danger: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
         --gradient-dark: linear-gradient(135deg, #1e293b 0%, #000000 100%);
@@ -111,16 +107,15 @@
           radial-gradient(circle at 20% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 50%),
           radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.08) 0%, transparent 50%),
           radial-gradient(circle at 40% 40%, rgba(255, 0, 0, 0.03) 0%, transparent 50%);
-        animation: backgroundFloat 25s ease-in-out infinite;
+        animation: backgroundFloat 20s ease-in-out infinite;
         z-index: -1;
       }
 
       @keyframes backgroundFloat {
         0%, 100% { transform: translateX(0) translateY(0); }
-        50% { transform: translateX(-15px) translateY(15px); }
+        50% { transform: translateX(5px) translateY(-10px); }
       }
 
-      /* --- NOVO: HEADER DE USUÁRIO E LOGOUT (Importado do Painel) --- */
       .header-top {
         width: 100%;
         position: absolute;
@@ -129,37 +124,37 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 15px 25px;
+        padding: 10px 25px;
         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
         box-shadow: var(--shadow);
+        box-sizing: border-box;
         z-index: 1000;
         border-bottom: 1px solid var(--border-color);
-        height: 70px;
-        box-sizing: border-box;
+        height: 55px;
       }
 
       .header-left {
-        flex: 0 0 auto;
+        flex: 1;
         display: flex;
         align-items: center;
         gap: 15px;
       }
 
       .header-center {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
+        flex: 1;
+        display: flex;
+        justify-content: center;
       }
 
       .header-center img {
-        height: 50px;
+        height: 40px;
         width: auto;
       }
 
       .header-right {
-        flex: 0 0 auto;
+        flex: 1;
         display: flex;
+        justify-content: flex-end;
         align-items: center;
         gap: 12px;
       }
@@ -168,37 +163,52 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 0.9rem;
         color: var(--text-color);
-        font-weight: 500;
+        font-weight: 600;
+        text-transform: capitalize;
+        padding: 6px 12px;
+        background: var(--light-color);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
       }
 
-      #logout-button, .btn {
-        background: var(--gradient-primary);
+      #logout-button {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--gradient-danger);
         color: white;
         border: none;
         padding: 8px 16px;
         border-radius: var(--border-radius);
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
         transition: all 0.3s ease;
         box-shadow: var(--shadow-sm);
       }
 
-      #logout-button:hover, .btn:hover {
-        background: var(--primary-hover);
+      #logout-button:hover {
+        background: var(--gradient-danger);
         transform: translateY(-1px);
         box-shadow: var(--shadow);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: var(--border-radius);
+        border: none;
+        font-weight: 500;
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
       }
 
       .container {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 20px;
-        flex: 1;
       }
 
       /* Caixa de rolagem para produtos */
@@ -253,24 +263,19 @@
         vertical-align: middle;
       }
 
-      /* CSS para botões */
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 16px;
-        font-size: 14px;
-        font-family: "Poppins", sans-serif;
-        font-weight: 500;
-        line-height: 1.4;
-        text-align: center;
-        white-space: nowrap;
-        cursor: pointer;
-        border: 1px solid transparent;
-        border-radius: 4px;
-        text-decoration: none;
-        transition: all 0.3s ease;
+      .catalogo-tabela-aviso {
+        margin: -8px 0 14px 0;
+        font-size: 0.88rem;
+        color: var(--text-muted);
+        padding: 0 2px 0 0;
+      }
+
+      .catalogo-tabela-aviso strong {
+        color: var(--dark-color);
+      }
+
+      #cliente-selecionado {
+        display: none !important;
       }
 
       .btn-sm {
@@ -311,30 +316,43 @@
       .card {
         background: var(--card-bg);
         border-radius: var(--border-radius-lg);
-        padding: 20px;
-        margin-bottom: 30px;
         box-shadow: var(--shadow);
+        padding: 25px 20px;
+        margin-bottom: 25px;
         border: 1px solid var(--border-color);
         transition: all 0.3s ease;
+        animation: fadeIn 0.6s ease-out;
       }
 
       .card:hover {
         box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       .card-header {
         display: flex;
         align-items: center;
-        gap: 15px;
-        margin-bottom: 25px;
+        gap: 12px;
+        margin-bottom: 20px;
         padding-bottom: 15px;
         border-bottom: 2px solid var(--border-color);
       }
 
       .card-header h2 {
-        color: var(--text-color);
-        font-size: 1.5rem;
-        font-weight: 600;
+        font-size: 1.3rem;
+        color: var(--dark-color);
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .card-header span[role="img"] {
+        font-size: 1.4rem;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
       }
 
       .form-grid {
@@ -359,9 +377,14 @@
 
       .form-group label {
         display: block;
-        margin-bottom: 5px;
-        font-weight: 600;
-        color: var(--text-color);
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: var(--dark-color);
+        font-size: 0.9rem;
+      }
+
+      .form-group label span {
+        margin-right: 6px;
       }
 
       .form-group input, .form-group select, .form-group textarea {
@@ -377,52 +400,49 @@
       .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
         outline: none;
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
       }
 
       .btn-primary {
-        background: var(--gradient-primary);
+        background-color: var(--primary-color);
         color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: var(--border-radius);
-        cursor: pointer;
+        width: 100%;
+        padding: 12px 20px;
         font-size: 1rem;
         font-weight: 600;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+        margin-top: 12px;
       }
 
-      .btn-primary:hover {
-        background: linear-gradient(135deg, #cc0000 0%, #990000 100%);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
+      .total-container {
+        text-align: center;
+        margin: 20px 0;
+        padding: 15px;
+        background: var(--light-color);
+        border-radius: var(--border-radius);
+        border: 2px solid var(--border-color);
       }
 
-      /* Rodapé G8 */
+      .total-container h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--dark-color);
+        font-weight: 700;
+      }
+
       footer {
         width: 100%;
         text-align: center;
         padding: 15px 20px;
-        background: var(--gradient-secondary);
-        color: white;
         margin-top: 40px;
         position: relative;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #000000;
       }
 
       footer a {
-        color: #ff6666;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-      }
-
-      footer a:hover {
-        color: #ff9999;
+        color: #000000;
         text-decoration: underline;
-        text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
       }
 
       /* CSS para sugestões de produtos */
@@ -578,7 +598,7 @@
 
       .pedido-item-info input[type="number"]:focus {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         outline: none;
       }
 
@@ -601,7 +621,7 @@
         border-radius: 16px;
         padding: 24px;
         margin-top: 24px;
-        box-shadow: 0 4px 20px rgba(255, 0, 0, 0.1);
+        box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12);
         position: relative;
         overflow: hidden;
       }
@@ -634,7 +654,7 @@
         font-size: 2rem;
         font-weight: 700;
         color: var(--primary-color);
-        text-shadow: 0 2px 4px rgba(255, 0, 0, 0.1);
+        text-shadow: 0 2px 4px rgba(37, 99, 235, 0.12);
       }
 
       .pedido-info-message {
@@ -806,38 +826,18 @@
       }
 
     @media (max-width: 768px) {
+      body {
+        padding: 100px 10px 10px 10px;
+      }
+
       .header-top {
         padding: 15px;
-        height: 85px;
-        flex-direction: column;
         gap: 10px;
+        height: 80px;
         align-items: center;
-        justify-content: center;
+        flex-wrap: nowrap;
       }
-      
-      .header-left {
-        display: flex;
-      }
-      
-      .header-center {
-        position: static;
-        transform: none;
-        order: 1;
-      }
-      
-      .header-center img {
-        width: 200px;
-        height: auto;
-        max-width: 80%;
-      }
-      
-      .header-right {
-        order: 2;
-        width: 100%;
-        justify-content: space-between;
-        gap: 8px;
-      }
-      
+
       #user-info {
         font-size: 0.75rem;
         flex: 1;
@@ -846,16 +846,13 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      
-      #logout-button, .btn {
+
+      #logout-button,
+      .btn {
         padding: 6px 10px;
         font-size: 0.75rem;
         min-width: auto;
         flex-shrink: 0;
-      }
-
-      body {
-        padding-top: 80px;
       }
 
       /* Ocultar tabelas em mobile */
@@ -866,6 +863,9 @@
       /* Mostrar container mobile */
       .produtos-mobile-container {
         display: flex;
+        flex-direction: column;
+        max-height: 600px;
+        overflow-y: auto;
       }
 
       /* Ajustar container de produtos */
@@ -909,9 +909,15 @@
         />
       </div>
       <div class="header-right">
-        <div id="user-info">Carregando...</div>
-        <button id="logout-button" onclick="logout()">Sair</button>
-        <a href="painel.html" class="btn">⬅️ Voltar</a>
+        <div id="user-info"></div>
+        <button id="logout-button" type="button">Sair</button>
+        <a
+          href="painel.html"
+          class="btn"
+          style="height: 35px; background-color: black; color: white"
+        >
+          ⬅️ Voltar ao Painel
+        </a>
       </div>
     </header>
 
@@ -922,33 +928,42 @@
         <span>BKB Fábrica</span>
       </div>
       <div class="page-header">
-        <div class="page-header-icon" aria-hidden="true">
-          <span class="page-header-emoji" title="BKB Fábrica">🔧</span>
+        <div class="page-header-icon">
+          <i class="fas fa-industry"></i>
         </div>
         <div class="page-header-text">
           <h1 class="dashboard-title">BKB Fábrica</h1>
-          <p class="dashboard-subtitle">Pedido interno — tabelas Atacado, Distribuidor e Especial. Apenas desconto extra por linha e no total (sem desconto automático de prazo ou volume).</p>
+          <p class="dashboard-subtitle">Tabelas Atacado, Distribuidor e Especial — desconto extra por linha e no total (sem desconto automático de prazo ou volume).</p>
         </div>
       </div>
       <section class="card">
         <div class="card-header">
-          <span role="img" aria-label="Gerenciar Cliente" style="font-size: 1.8em">👤</span>
-          <h2>Gerenciar Cliente - BKB Fábrica</h2>
+          <span
+            role="img"
+            aria-label="Gerenciar Cliente"
+            style="font-size: 1.8em"
+            >👤</span
+          >
+          <h2>Gerenciar Cliente</h2>
         </div>
         <div class="form-group">
           <input type="text" id="busca-cliente" placeholder="Buscar cliente..." style="margin-bottom: 10px;" />
           <div id="sugestoes-clientes" style="position: relative; z-index: 10;"></div>
-          <select id="cliente-selecionado" style="display: none;">
+          <select id="cliente-selecionado">
             <option value="">- Selecione um cliente -</option>
             <option value="novo">- Inserir manualmente -</option>
           </select>
         </div>
       </section>
-
       <section class="card">
         <div class="card-header">
-          <span role="img" aria-label="Informações do Cliente" style="font-size: 1.8em">📋</span>
-          <h2>Informações do Cliente - BKB Fábrica</h2>
+          <span
+            role="img"
+            aria-label="Informações do Cliente"
+            style="font-size: 1.8em"
+            >📋</span
+          >
+          <h2>Informações do Cliente</h2>
         </div>
         <div class="form-grid">
           <div class="form-group">
@@ -992,27 +1007,23 @@
             <input type="text" id="telefone" placeholder="Telefone" />
           </div>
           <div class="form-group">
-            <label for="transporte"><span>🚚</span>Transporte:</label>
-            <input type="text" id="transporte" placeholder="Transporte" />
+            <label for="transporte"><span>🚚</span>Transporte: <span style="color: red">*</span></label>
+            <input type="text" id="transporte" placeholder="Transporte" required />
           </div>
           <div class="form-group">
-            <label for="prazo"><span>💰</span>Prazo Pagamento:</label>
-            <input type="text" id="prazo" placeholder="Prazo de Pagamento" />
+            <label for="prazo"><span>💰</span>Prazo Pagamento: <span style="color: red">*</span></label>
+            <input type="text" id="prazo" placeholder="Ex: 30/60/90" required />
           </div>
           <div class="form-group full-width">
-            <label for="obs"><span>💬</span>Observações:</label>
-            <textarea id="obs" rows="3" placeholder="Observações adicionais"></textarea>
+            <label for="obs"><span>💬</span>Observações: <span style="color: red">*</span></label>
+            <textarea id="obs" rows="3" placeholder="Observações adicionais" required></textarea>
           </div>
         </div>
       </section>
 
-      <section class="card">
-        <div class="card-header">
-          <span role="img" aria-label="Produtos" style="font-size: 1.8em">📋</span>
-          <h2>Catálogo de Produtos</h2>
-        </div>
+      <div class="card">
         <div class="form-group">
-          <label for="tabela-precos-select">Tabela de preços:</label>
+          <label for="tabela-precos-select">Tabela de preços</label>
           <select id="tabela-precos-select">
             <option value="atacado">Atacado</option>
             <option value="distribuidor">Distribuidor</option>
@@ -1020,12 +1031,12 @@
           </select>
         </div>
         <div class="form-group">
-          <input type="text" id="busca-produto" class="catalog-search-input" placeholder="Buscar produto por referência ou descrição..." />
+          <input type="text" id="busca-produto" placeholder="Buscar produto por referência ou descrição..." style="margin-bottom: 10px;" />
           <div id="sugestoes-produtos" style="position: relative; z-index: 10;"></div>
         </div>
-        <div id="produtos-container" class="table-responsive"></div>
-        <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
-      </section>
+      </div>
+      <div id="produtos-container"></div>
+      <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
       
       <section class="card">
         <div class="card-header">
@@ -1036,12 +1047,12 @@
         <div id="pedido-itens-lista" class="produtos-container">
           <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
         </div>
-        <div class="total-container" style="text-align: center; margin: 16px 0; padding: 1rem; background: var(--light-color, #fafafa); border-radius: 8px; border: 1px solid var(--border-color, #e5e5e5);">
+        <div class="total-container">
           <div class="form-group" style="max-width: 280px; margin: 0 auto 12px;">
             <label for="desconto-extra-total-b2b"><strong>Desconto extra no total (%):</strong></label>
             <input type="number" id="desconto-extra-total-b2b" min="0" max="100" value="0" style="text-align: center; width: 100%; max-width: 120px; padding: 8px; display: block; margin: 8px auto 0;">
           </div>
-          <h3 style="margin: 0;">Total do Pedido: R$ <span id="total-pedido-b2b">0.00</span></h3>
+          <h3>💰 Total do Pedido: R$ <span id="total-pedido-b2b">0.00</span></h3>
         </div>
         <div id="pedido-footer-b2b"></div>
 
@@ -1056,8 +1067,8 @@
       </section>
     </main>
     
-    <footer style="width: 100%; text-align: center; padding: 15px 20px; background: transparent; color: #000000; margin-top: 40px; position: relative; font-size: 0.85rem; font-weight: 500;">
-      © 2025 J.P Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank" style="color: #000000; text-decoration: underline;">jp-sistemas.com</a>
+    <footer>
+      © 2025 J.P. Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
     </footer>
 
     <script>
@@ -1244,25 +1255,54 @@
         return typeof p === "number" ? p : 0;
       }
 
+      function categoriasOrdenadasBkbFabrica() {
+        return window.BKB_FABRICA_CATEGORIA_ORDEM || [];
+      }
+
+      function ordenarChavesCategoria(grupos) {
+        const ordem = categoriasOrdenadasBkbFabrica();
+        return Object.keys(grupos).sort((a, b) => {
+          const ia = ordem.indexOf(a);
+          const ib = ordem.indexOf(b);
+          if (ia === -1 && ib === -1) return a.localeCompare(b, "pt-BR");
+          if (ia === -1) return 1;
+          if (ib === -1) return -1;
+          return ia - ib;
+        });
+      }
+
+      function agruparProdutosPorCategoria(list) {
+        const grupos = {};
+        (list || []).forEach((p) => {
+          const cat = p.CATEGORIA || "Demais peças";
+          if (!grupos[cat]) grupos[cat] = [];
+          grupos[cat].push(p);
+        });
+        return grupos;
+      }
+
       function renderizarProdutos(produtos = window.produtosData) {
         const mobileContainer = document.getElementById("produtos-mobile-container");
         if (mobileContainer) mobileContainer.innerHTML = "";
         const list = Array.isArray(produtos) ? produtos : [];
         const isMobile = isMobileView();
-        if (isMobile) {
-          list.forEach((produto) => {
-            const preco = precoNaTabela(produto);
-            if (!mobileContainer || preco <= 0) return;
-            const mobileCard = document.createElement("div");
-            mobileCard.className = "produto-card-mobile";
-            mobileCard.innerHTML = `
+        const grupos = agruparProdutosPorCategoria(list);
+        const cats = ordenarChavesCategoria(grupos);
+        const tabTitulo = labelTabelaPreco();
+
+        const renderUmCardMobile = (produto, mobileRoot) => {
+          const preco = precoNaTabela(produto);
+          if (preco <= 0) return;
+          const mobileCard = document.createElement("div");
+          mobileCard.className = "produto-card-mobile";
+          mobileCard.innerHTML = `
               <div class="produto-header-mobile">
                 <div class="produto-ref-mobile">${produto.REF}</div>
                 <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
               </div>
               <div class="produto-descricao-mobile">
                 <h4>${produto.MODELO || ""}</h4>
-                <small>Tabela: ${labelTabelaPreco()}</small>
+                <small>Tabela: ${tabTitulo}</small>
               </div>
               <div class="produto-tamanhos-mobile">
                 <label>Desc. extra (%):</label>
@@ -1276,27 +1316,45 @@
                 <button type="button" class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
               </div>
             `;
-            mobileCard.querySelector(".btn-adicionar-mobile").addEventListener("click", () => adicionarAoPedidoMobile(produto.REF));
-            mobileContainer.appendChild(mobileCard);
+          mobileCard.querySelector(".btn-adicionar-mobile").addEventListener("click", () => adicionarAoPedidoMobile(produto.REF));
+          mobileRoot.appendChild(mobileCard);
+        };
+
+        if (isMobile) {
+          if (!mobileContainer) return;
+          cats.forEach((categoria) => {
+            const prodsCat = grupos[categoria] || [];
+            const algumPreco = prodsCat.some((pr) => precoNaTabela(pr) > 0);
+            if (!algumPreco) return;
+            const tit = document.createElement("div");
+            tit.className = "categoria-header-mobile";
+            tit.textContent = categoria;
+            mobileContainer.appendChild(tit);
+            prodsCat.forEach((produto) => renderUmCardMobile(produto, mobileContainer));
           });
           produtosContainer.innerHTML = "";
           return;
         }
 
         produtosContainer.innerHTML = "";
-        const section = document.createElement("section");
-        section.className = "card";
-        let tabelaHTML = `<div class="card-header"><h2>Peças BKB — ${labelTabelaPreco()}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. extra %</th><th>QTD</th><th>Ação</th></tr></thead><tbody>`;
-        list.forEach((produto) => {
-          const preco = precoNaTabela(produto);
-          if (preco <= 0) return;
-          tabelaHTML += `<tr><td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td class="table-discount-cell"><input type="number" min="0" value="0" class="desconto-input input-mini" id="desconto-${produto.REF}"></td><td class="table-qty-cell"><input type="number" min="0" value="" placeholder="0" class="input-qty-mini" id="qty-${produto.REF}"></td><td class="table-action-cell"><button type="button" data-ref="${produto.REF}" class="btn btn-success btn-sm table-action-btn">Adicionar</button></td></tr>`;
-        });
-        tabelaHTML += `</tbody></table></div>`;
-        section.innerHTML = tabelaHTML;
-        produtosContainer.appendChild(section);
-        section.querySelectorAll("button[data-ref]").forEach((btn) => {
-          btn.addEventListener("click", () => adicionarAoPedido(btn.getAttribute("data-ref")));
+        cats.forEach((categoria) => {
+          const prodsCat = grupos[categoria] || [];
+          const comPreco = prodsCat.filter((pr) => precoNaTabela(pr) > 0);
+          if (comPreco.length === 0) return;
+
+          const section = document.createElement("section");
+          section.className = "card";
+          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><p class="catalogo-tabela-aviso">Preços na tabela <strong>${tabTitulo}</strong></p><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. extra %</th><th>QTD</th><th>Ação</th></tr></thead><tbody>`;
+          comPreco.forEach((produto) => {
+            const preco = precoNaTabela(produto);
+            tabelaHTML += `<tr><td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td class="table-discount-cell"><input type="number" min="0" value="0" class="desconto-input input-mini" id="desconto-${produto.REF}"></td><td class="table-qty-cell"><input type="number" min="0" value="" placeholder="0" class="input-qty-mini" id="qty-${produto.REF}"></td><td class="table-action-cell"><button type="button" data-ref="${produto.REF}" class="btn btn-success btn-sm table-action-btn">Adicionar</button></td></tr>`;
+          });
+          tabelaHTML += `</tbody></table></div>`;
+          section.innerHTML = tabelaHTML;
+          produtosContainer.appendChild(section);
+          section.querySelectorAll("button[data-ref]").forEach((btn) => {
+            btn.addEventListener("click", () => adicionarAoPedido(btn.getAttribute("data-ref")));
+          });
         });
       }
 
@@ -1713,6 +1771,9 @@
 
       // Inicializar página
       if (checkAuth()) {
+        const logoutBtn = document.getElementById("logout-button");
+        if (logoutBtn) logoutBtn.addEventListener("click", logout);
+
         popularClientes().then(() => {
           selectCliente.addEventListener("change", (e) => preencherFormularioCliente(e.target.value));
           const buscaClienteInput = document.getElementById("busca-cliente");
