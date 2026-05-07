@@ -76,6 +76,9 @@ function resolverEmpresaParaEdicao(pedido) {
   if (/cesari/.test(blob)) {
     return /b2b/.test(blob) ? 'b2b-cesari' : 'cesari';
   }
+  if (/b2b-bkb-fabrica/i.test(blob) || (/b2b/.test(blob) && /bkb\s*f[aá]brica/i.test(blob)))
+    return 'b2b-bkb-fabrica';
+  if (/bkb\s*f[aá]brica/i.test(blob)) return 'bkb-fabrica';
   if (/bkb/.test(blob)) return 'bkb';
   if (/pantaneiro\s*7|pantaneiro7/.test(blob)) {
     return /b2b/.test(blob) ? 'b2b-pantaneiro7' : 'pantaneiro7';
@@ -2248,6 +2251,8 @@ function gerarPDFPedidoEditado(pedido) {
     tituloEmpresa = 'Pedido de Venda - Steitz';
   } else if (pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
     tituloEmpresa = 'Pedido de Venda - Cesari';
+  } else if (pedido.empresa === 'b2b-bkb-fabrica' || pedido.empresa === 'bkb-fabrica') {
+    tituloEmpresa = 'Pedido de Venda - BKB Fábrica';
   } else if (pedido.empresa === 'distribuicao') {
     tituloEmpresa = 'Pedido de Venda - Distribuição';
   }
@@ -2316,8 +2321,21 @@ function gerarPDFPedidoEditado(pedido) {
         `R$ ${(precoUnitario * (item.quantidade || 0) * (1 - (item.descontoExtra || 0) / 100)).toFixed(2)}`
       ];
     });
+  } else if (pedido.empresa === 'b2b-bkb-fabrica' || pedido.empresa === 'bkb-fabrica') {
+    head = [['Ref.', 'Modelo', 'Tabela', 'Qtd.', 'Vlr. Unit.', 'Desc.%', 'Subtotal']];
+    body = (itens || []).map((item) => {
+      const precoUnitario = item.preco || 0;
+      return [
+        item.REFERENCIA || item.REF || '',
+        item.DESCRIÇÃO || item.MODELO || '',
+        item.tabelaPreco || '—',
+        item.quantidade || '',
+        `R$ ${precoUnitario.toFixed(2)}`,
+        `${item.descontoExtra || 0}%`,
+        `R$ ${(precoUnitario * (item.quantidade || 0)).toFixed(2)}`
+      ];
+    });
   } else if (pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
-    head = [['Ref.', 'Modelo', 'Tamanho', 'Qtd.', 'Vlr. Unit.', 'Desc.%', 'Subtotal']];
     body = (itens || []).map((item) => {
       let precoUnitario = item.preco || 0;
       let descontoGeral = 1;
@@ -2372,7 +2390,7 @@ function gerarPDFPedidoEditado(pedido) {
       6: { cellWidth: 15, halign: 'center' },
       7: { cellWidth: 22, halign: 'right' }
     };
-  } else if (pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
+  } else if (pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari' || pedido.empresa === 'b2b-bkb-fabrica' || pedido.empresa === 'bkb-fabrica') {
     columnStyles = {
       0: { cellWidth: 15 },
       1: { cellWidth: 'auto' },
@@ -2423,7 +2441,7 @@ function gerarPDFPedidoEditado(pedido) {
   summaryData.push(['Subtotal sem Desconto:', `R$ ${subtotalSemDesconto.toFixed(2)}`]);
   
   // Aplicar descontos conforme empresa
-  if (pedido.empresa === 'steitz' || pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
+  if (pedido.empresa === 'steitz' || pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari' || pedido.empresa === 'b2b-bkb-fabrica' || pedido.empresa === 'bkb-fabrica') {
     // Para Steitz e Cesari, usa desconto "extra"
     if (descontos && descontos.extra > 0) {
       const valorDescontoExtra = subtotalSemDesconto * (descontos.extra / 100);
@@ -2471,6 +2489,8 @@ function gerarPDFPedidoEditado(pedido) {
     nomeArquivo = `G8 Pedido Steitz - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else if (pedido.empresa === 'cesari' || pedido.empresa === 'b2b-cesari') {
     nomeArquivo = `G8 Pedido Cesari - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  } else if (pedido.empresa === 'b2b-bkb-fabrica' || pedido.empresa === 'bkb-fabrica') {
+    nomeArquivo = `G8 Pedido BKB Fabrica - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else if (pedido.empresa === 'distribuicao') {
     nomeArquivo = `G8 Pedido Distribuição - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else {
@@ -3562,6 +3582,12 @@ window.editarPedido = function(id) {
           break;
         case 'bkb':
           paginaEmpresa = 'bkb.html';
+          break;
+        case 'b2b-bkb-fabrica':
+          paginaEmpresa = 'b2b-bkb-fabrica.html';
+          break;
+        case 'bkb-fabrica':
+          paginaEmpresa = 'bkb-fabrica.html';
           break;
         default:
           alert(

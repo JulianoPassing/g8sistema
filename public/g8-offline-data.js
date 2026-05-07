@@ -154,6 +154,7 @@
     '/steitz.html',
     '/cesari.html',
     '/bkb.html',
+    '/bkb-fabrica.html',
     '/distribuicao.html',
     '/distribuicao-carrinho.html',
     '/b2b-login.html',
@@ -162,6 +163,7 @@
     '/b2b-pantaneiro7.html',
     '/b2b-steitz.html',
     '/b2b-cesari.html',
+    '/b2b-bkb-fabrica.html',
     '/index.html'
   ];
 

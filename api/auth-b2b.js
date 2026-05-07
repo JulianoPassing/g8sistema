@@ -39,7 +39,8 @@ function getAcessosCliente(cnpj) {
     pantaneiro5: temAcessoPantaneiro5,
     pantaneiro7: true,
     steitz: true,
-    cesari: true
+    cesari: true,
+    bkbFabrica: true
   };
 }
 

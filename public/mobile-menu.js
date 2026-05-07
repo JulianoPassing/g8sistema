@@ -198,6 +198,10 @@ function createMobileMenuElements() {
                 <span class="icon">${iconBox}</span>
                 <span>Cesari</span>
             </a>
+            <a href="b2b-bkb-fabrica.html" class="mobile-menu-item">
+                <span class="icon">${iconBox}</span>
+                <span>BKB Fábrica</span>
+            </a>
         `;
     }
 
@@ -229,8 +233,11 @@ function createMobileMenuElements() {
         if (!currentPage.includes('cesari')) {
             menuItems += `<a href="cesari.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>Cesari</span></a>`;
         }
-        if (!currentPage.includes('bkb')) {
+        if (!currentPage.includes('bkb.html') && !currentPage.match(/\/bkb\.html(\?|$)/i)) {
             menuItems += `<a href="bkb.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>BKB</span></a>`;
+        }
+        if (!currentPage.includes('bkb-fabrica.html')) {
+            menuItems += `<a href="bkb-fabrica.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>BKB Fábrica</span></a>`;
         }
     }
 
@@ -247,7 +254,7 @@ function createMobileMenuElements() {
         `;
     }
 
-    if ((currentPage.includes('b2b-pantaneiro') || currentPage.includes('b2b-steitz') || currentPage.includes('b2b-cesari'))) {
+    if ((currentPage.includes('b2b-pantaneiro') || currentPage.includes('b2b-steitz') || currentPage.includes('b2b-cesari') || currentPage.includes('b2b-bkb-fabrica'))) {
         menuItems += `
             <a href="b2b-pedidos.html" class="mobile-menu-item voltar">
                 <span class="icon">${iconArrowLeft}</span>

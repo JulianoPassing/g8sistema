@@ -1,6 +1,6 @@
 // ========== SERVICE WORKER G8SISTEMA ==========
 
-const CACHE_NAME = 'g8sistema-v1.2.3';
+const CACHE_NAME = 'g8sistema-v1.2.4';
 const STATIC_CACHE = 'g8sistema-static-v6';
 const DYNAMIC_CACHE = 'g8sistema-dynamic-v6';
 
@@ -15,6 +15,7 @@ const STATIC_FILES = [
   '/steitz.html',
   '/cesari.html',
   '/bkb.html',
+  '/bkb-fabrica.html',
   '/distribuicao.html',
   '/distribuicao-carrinho.html',
   '/b2b-login.html',
@@ -22,6 +23,8 @@ const STATIC_FILES = [
   '/b2b-pantaneiro7.html',
   '/b2b-steitz.html',
   '/b2b-cesari.html',
+  '/b2b-bkb-fabrica.html',
+  '/bkb-fabrica-produtos.js',
   '/b2b-pedidos.html',
   '/pedidos.html',
   '/clientes.json',

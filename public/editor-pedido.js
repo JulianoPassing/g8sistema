@@ -189,6 +189,7 @@
         DESCRIÇÃO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
         tamanho: item.tamanho || '',
         cor: item.cor || '',
+        tabelaPreco: item.tabelaPreco || '',
         preco: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0,
         quantidade: item.quantidade || 1,
         descontoExtra: item.descontoExtra || 0
@@ -206,6 +207,7 @@
       if (pedido.dados?.descontos) {
         Object.entries(pedido.dados.descontos).forEach(([tipo, valor]) => {
           const input = document.getElementById(`desconto-${tipo}`);
+          const inputBkbFab = tipo === 'extra' ? document.getElementById('desconto-extra-total-b2b') : null;
           if (input) {
             input.value = valor;
             // Aplicar desconto imediatamente
@@ -223,6 +225,20 @@
               }
             }
             input.dispatchEvent(new Event('input'));
+          } else if (tipo === 'extra' && inputBkbFab) {
+            inputBkbFab.value = valor;
+            if (typeof descontoExtraTotalPercentual !== 'undefined') {
+              descontoExtraTotalPercentual = parseFloat(valor) || 0;
+              if (typeof atualizarVisualizacaoPedido === 'function') {
+                atualizarVisualizacaoPedido();
+              }
+            }
+            inputBkbFab.dispatchEvent(new Event('input'));
+          } else if (tipo === 'extra' && typeof descontoExtraTotalPercentual !== 'undefined') {
+            descontoExtraTotalPercentual = parseFloat(valor) || 0;
+            if (typeof atualizarVisualizacaoPedido === 'function') {
+              atualizarVisualizacaoPedido();
+            }
           }
         });
       }
@@ -408,6 +424,7 @@
           MODELO: modelo,
           tamanho: item.tamanho || '',
           cor: item.cor || '',
+          tabelaPreco: item.tabelaPreco || '',
           quantidade: item.quantidade || 1,
           preco: item.preco || 0,
           descontoExtra: item.descontoExtra || 0
@@ -436,6 +453,13 @@
         dados.dados.descontos.extra = valorExtra;
       }
     }
+    const descontoExtraBkbFab = document.getElementById('desconto-extra-total-b2b');
+    if (descontoExtraBkbFab) {
+      const ve = parseFloat(descontoExtraBkbFab.value) || 0;
+      if (ve > 0) {
+        dados.dados.descontos.extra = ve;
+      }
+    }
     
     // Calcular total
     let total = 0;
@@ -452,7 +476,13 @@
       total *= (1 - desconto / 100);
     });
     
-    dados.dados.total = total;
+    if (typeof totaisPedidoB2B === 'function') {
+      const t = totaisPedidoB2B();
+      dados.dados.subtotal = t.subtotal;
+      dados.dados.total = t.total;
+    } else {
+      dados.dados.total = total;
+    }
     dados.dados.enviado_producao = window._g8EdicaoEnviadoProducao !== undefined ? window._g8EdicaoEnviadoProducao : 1;
     
     return dados;

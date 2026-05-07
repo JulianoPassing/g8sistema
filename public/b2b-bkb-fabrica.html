@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>G8 Representações - B2B BKB Fábrica</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+    <link rel="apple-touch-icon" href="https://i.imgur.com/WveVVY5.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+      <link rel="stylesheet" href="modern-design.css">
+      <link rel="stylesheet" href="mobile.css">
+      <link rel="stylesheet" href="professional-ui.css">
+      <link rel="stylesheet" href="connection-status.css">
+      <script src="sw-register.js"></script>
+      <script src="mobile-menu.js" defer></script>
+      <script src="advanced-notifications.js"></script>
+      <script src="animations.js"></script>
+      <script src="draft-system.js"></script>
+      <script src="offline-system.js"></script>
+      <script src="connection-monitor.js"></script>
+      <script src="bkb-fabrica-produtos.js"></script>
+
+    <style>
+      :root {
+        /* === CORES G8 === */
+        --g8-red: #ff0000;
+        --g8-black: #000000;
+        --g8-white: #ffffff;
+        
+        --primary-color: #ff0000;
+        --primary-hover: #cc0000;
+        --secondary-color: #000000;
+        --success-color: #059669;
+        --success-hover: #047857;
+        --danger-color: #dc2626;
+        --danger-hover: #b91c1c;
+        --warning-color: #d97706;
+        --warning-hover: #b45309;
+        --light-color: #ffffff;
+        --dark-color: #000000;
+        --text-color: #000000;
+        --text-muted: #666666;
+        --bg-color: #ffffff;
+        --card-bg: #fafafa;
+        --border-color: #e0e0e0;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --shadow-red: 0 10px 40px rgba(255, 0, 0, 0.25);
+        --border-radius: 8px;
+        --border-radius-lg: 12px;
+        --border-radius-xl: 16px;
+        --gradient-primary: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+        --gradient-secondary: linear-gradient(135deg, #000000 0%, #333333 100%);
+        --gradient-success: linear-gradient(135deg, #059669 0%, #047857 100%);
+        --gradient-danger: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        --gradient-dark: linear-gradient(135deg, #1e293b 0%, #000000 100%);
+        --gradient-bg: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background: var(--bg-color);
+        margin: 0;
+        padding: 80px 20px 0 20px;
+        font-size: 14px;
+        min-height: 100vh;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Fundo animado sutil */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+          radial-gradient(circle at 20% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.08) 0%, transparent 50%),
+          radial-gradient(circle at 40% 40%, rgba(255, 0, 0, 0.03) 0%, transparent 50%);
+        animation: backgroundFloat 25s ease-in-out infinite;
+        z-index: -1;
+      }
+
+      @keyframes backgroundFloat {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        50% { transform: translateX(-15px) translateY(15px); }
+      }
+
+      /* --- NOVO: HEADER DE USUÁRIO E LOGOUT (Importado do Painel) --- */
+      .header-top {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 25px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: var(--shadow);
+        z-index: 1000;
+        border-bottom: 1px solid var(--border-color);
+        height: 70px;
+        box-sizing: border-box;
+      }
+
+      .header-left {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .header-center {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .header-center img {
+        height: 50px;
+        width: auto;
+      }
+
+      .header-right {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      #user-info {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 0.9rem;
+        color: var(--text-color);
+        font-weight: 500;
+      }
+
+      #logout-button, .btn {
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+      }
+
+      #logout-button:hover, .btn:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        flex: 1;
+      }
+
+      /* Caixa de rolagem para produtos */
+      #produtos-container {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 25px;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 12px 0;
+        transition: all 0.3s ease;
+      }
+
+      #produtos-container:hover {
+        box-shadow: var(--shadow-lg);
+      }
+
+      /* Estilização da barra de rolagem */
+      #produtos-container::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #produtos-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+
+      #produtos-container::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+      }
+
+      #produtos-container::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-hover);
+      }
+
+      /* CSS para hover nas linhas da tabela */
+      tbody tr:hover {
+        background-color: #f5f5f5;
+      }
+
+      /* Espaçamento entre produtos na tabela */
+      tbody tr {
+        border-bottom: 1px solid #e9ecef;
+        height: 50px;
+      }
+
+      tbody tr td {
+        padding: 12px 8px;
+        vertical-align: middle;
+      }
+
+      /* CSS para botões */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 500;
+        line-height: 1.4;
+        text-align: center;
+        white-space: nowrap;
+        cursor: pointer;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      .btn-sm {
+        padding: 5px 10px;
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 3px;
+      }
+
+      .btn-success {
+        background-color: var(--success-color);
+        color: white;
+        border-color: var(--success-color);
+      }
+
+      .btn-success:hover {
+        background-color: var(--success-hover);
+        border-color: var(--success-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-danger {
+        background-color: var(--danger-color);
+        color: white;
+        border-color: var(--danger-color);
+        padding: 5px 10px;
+        font-size: 0.85em;
+      }
+
+      .btn-danger:hover {
+        background-color: var(--danger-hover);
+        border-color: var(--danger-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius-lg);
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        box-shadow: var(--shadow-lg);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+      }
+
+      .card-header h2 {
+        color: var(--text-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 12px;
+      }
+
+      .form-grid .form-group {
+        margin-bottom: 0;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 8px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: white;
+      }
+
+      .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+      }
+
+      .btn-primary {
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      /* Rodapé G8 */
+      footer {
+        width: 100%;
+        text-align: center;
+        padding: 15px 20px;
+        background: var(--gradient-secondary);
+        color: white;
+        margin-top: 40px;
+        position: relative;
+      }
+
+      footer a {
+        color: #ff6666;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      footer a:hover {
+        color: #ff9999;
+        text-decoration: underline;
+        text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+      }
+
+      /* CSS para sugestões de produtos */
+      #sugestoes-produtos {
+        position: absolute;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-height: 300px;
+        overflow-y: auto;
+        width: 100%;
+        z-index: 1001;
+        margin-top: 2px;
+        padding: 0;
+        display: none;
+      }
+      .sugestao-cliente-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 1em;
+        background: #fff;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.18s;
+        color: #222;
+        line-height: 1.3;
+        display: block;
+      }
+      .sugestao-cliente-item:last-child {
+        border-bottom: none;
+      }
+      .sugestao-cliente-item:hover {
+        background: #f3f7fa;
+        color: #007bff;
+      }
+
+      /* CSS para layout de tamanhos igual ao original */
+      .tamanho-input-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .tamanho-input-container > div {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .tamanho-input-container label {
+        font-size: 0.75em;
+        font-weight: 500;
+      }
+
+      .tamanho-input-container input[type="number"] {
+        width: 45px;
+        padding: 4px;
+        text-align: center;
+      }
+
+      .manual-tamanho-input {
+        width: 140px;
+      }
+
+      /* Estilos específicos para inputs em tabelas - igual ao original */
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        color: var(--text-color);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        transform: translateY(-1px);
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+
+      .page-header-icon .page-header-emoji {
+        font-size: 1.65rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Seu Pedido — mesmo padrão visual do Pantaneiro (lista + Remover) */
+      .pedido-item {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background-color: var(--light-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        margin-bottom: 10px;
+        gap: 15px;
+        position: relative;
+        overflow: visible;
+      }
+
+      .pedido-item:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-1px);
+      }
+
+      .pedido-item-info {
+        flex-grow: 1;
+        min-width: 0;
+      }
+
+      .pedido-item-info strong {
+        color: var(--dark-color);
+        font-weight: 600;
+      }
+
+      .pedido-item-info small {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      .pedido-item-info input[type="number"] {
+        width: 50px;
+        padding: 4px 6px;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: 500;
+        background: white;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+      }
+
+      .pedido-item-info input[type="number"]:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        outline: none;
+      }
+
+      .pedido-item-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        align-items: center;
+        margin-left: auto;
+      }
+
+      .pedido-item-actions .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+      }
+
+      .pedido-total {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px solid var(--primary-color);
+        border-radius: 16px;
+        padding: 24px;
+        margin-top: 24px;
+        box-shadow: 0 4px 20px rgba(255, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .pedido-total::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+      }
+
+      .pedido-total-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .pedido-total h3 {
+        margin: 0;
+        color: var(--text-color);
+        font-size: 1.3rem;
+        font-weight: 600;
+      }
+
+      .pedido-total-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-shadow: 0 2px 4px rgba(255, 0, 0, 0.1);
+      }
+
+      .pedido-info-message {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffeaa7;
+        border-radius: 12px;
+        padding: 16px;
+        color: #856404;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
+      }
+
+      .pedido-info-message strong {
+        color: #856404;
+        font-weight: 600;
+      }
+
+      #pedido-vazio {
+        text-align: center;
+        color: var(--text-muted);
+        font-style: italic;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px dashed #e9ecef;
+        border-radius: 12px;
+        margin: 0;
+      }
+
+      /* Estilos para cards de produtos mobile - oculto no desktop */
+      .produtos-mobile-container {
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+      }
+
+      .produto-card-mobile {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 15px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .produto-card-mobile:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-2px);
+      }
+
+      .produto-header-mobile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .produto-ref-mobile {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+      }
+
+      .produto-preco-mobile {
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: var(--success-color);
+      }
+
+      .produto-descricao-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-descricao-mobile h4 {
+        margin: 0 0 5px 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        line-height: 1.3;
+      }
+
+      .produto-descricao-mobile small {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .produto-tamanhos-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-tamanhos-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile {
+        margin-bottom: 15px;
+      }
+
+      .produto-cor-mobile label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.9rem;
+      }
+
+      .produto-cor-mobile input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+      }
+
+      .btn-adicionar-mobile {
+        width: 100%;
+        background: var(--gradient-success);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-adicionar-mobile:hover {
+        background: var(--success-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
+      /* Ocultar tabelas em mobile */
+      .table-responsive {
+        display: block;
+      }
+
+      /* Cabeçalho de categoria */
+      .categoria-header td {
+        background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 12px 15px;
+        font-size: 1rem;
+      }
+      .categoria-header-mobile {
+        background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 10px 15px;
+        margin: 15px 0 8px 0;
+        border-radius: 8px;
+        font-size: 1rem;
+      }
+
+    @media (max-width: 768px) {
+      .header-top {
+        padding: 15px;
+        height: 85px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .header-left {
+        display: flex;
+      }
+      
+      .header-center {
+        position: static;
+        transform: none;
+        order: 1;
+      }
+      
+      .header-center img {
+        width: 200px;
+        height: auto;
+        max-width: 80%;
+      }
+      
+      .header-right {
+        order: 2;
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      
+      #user-info {
+        font-size: 0.75rem;
+        flex: 1;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      #logout-button, .btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        min-width: auto;
+        flex-shrink: 0;
+      }
+
+      body {
+        padding-top: 80px;
+      }
+
+      /* Ocultar tabelas em mobile */
+      .table-responsive {
+        display: none;
+      }
+
+      /* Mostrar container mobile */
+      .produtos-mobile-container {
+        display: flex;
+      }
+
+      /* Ajustar container de produtos */
+      #produtos-container {
+        max-height: 600px;
+        overflow-y: auto;
+      }
+
+      /* Ajustar cards */
+      .card {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .card-header h2 {
+        font-size: 1.3rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-center img {
+        width: 150px;
+        max-width: 75%;
+      }
+    }
+    </style>
+  </head>
+  <body class="g8-theme-g8-default app-layout">
+    <header class="header-top">
+      <div class="header-left">
+        <div class="status-indicator" id="connection-status">
+          <div class="status-dot"></div>
+          <span>Online</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <img
+          id="logo"
+          src="https://i.imgur.com/vjq26ym.png"
+          alt="Logo G8 BKB Fábrica"
+        />
+      </div>
+      <div class="header-right">
+        <div id="user-info">Carregando...</div>
+        <button id="logout-button" onclick="logout()">Sair</button>
+        <a href="b2b-pedidos.html" class="btn">⬅️ Voltar</a>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="breadcrumb">
+        <a href="b2b-pedidos.html">Portal B2B</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>BKB Fábrica</span>
+      </div>
+      <div class="page-header">
+        <div class="page-header-icon" aria-hidden="true">
+          <span class="page-header-emoji" title="BKB Fábrica">🔧</span>
+        </div>
+        <div class="page-header-text">
+          <h1 class="dashboard-title">BKB Fábrica</h1>
+          <p class="dashboard-subtitle">Tabelas Atacado, Distribuidor e Especial — condição com desconto extra (sem desconto automático de prazo ou volume)</p>
+        </div>
+      </div>
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Cliente" style="font-size: 1.8em">👤</span>
+          <h2>Informações do Cliente - BKB Fábrica</h2>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="razao"><span>🏢</span>Razão Social:</label>
+            <input type="text" id="razao" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cnpj"><span>🏭</span>CNPJ:</label>
+            <input type="text" id="cnpj" readonly />
+          </div>
+          <div class="form-group">
+            <label for="ie"><span>📝</span>I.E:</label>
+            <input type="text" id="ie" readonly />
+          </div>
+          <div class="form-group">
+            <label for="endereco"><span>🗺️</span>Endereço:</label>
+            <input type="text" id="endereco" readonly />
+          </div>
+          <div class="form-group">
+            <label for="bairro"><span>🏘️</span>Bairro:</label>
+            <input type="text" id="bairro" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cidade"><span>🏙️</span>Cidade:</label>
+            <input type="text" id="cidade" readonly />
+          </div>
+          <div class="form-group">
+            <label for="estado"><span>🌎</span>Estado:</label>
+            <input type="text" id="estado" readonly />
+          </div>
+          <div class="form-group">
+            <label for="cep"><span>📫</span>CEP:</label>
+            <input type="text" id="cep" readonly />
+          </div>
+          <div class="form-group">
+            <label for="email"><span>📧</span>E-mail:</label>
+            <input type="email" id="email" readonly />
+          </div>
+          <div class="form-group">
+            <label for="telefone"><span>📞</span>Telefone:</label>
+            <input type="text" id="telefone" readonly />
+          </div>
+          <div class="form-group">
+            <label for="transporte"><span>🚚</span>Transporte:</label>
+            <input type="text" id="transporte" readonly />
+          </div>
+          <div class="form-group">
+            <label for="prazo"><span>💰</span>Prazo Pagamento:</label>
+            <input type="text" id="prazo" readonly />
+          </div>
+          <div class="form-group full-width">
+            <label for="obs"><span>💬</span>Observações:</label>
+            <textarea id="obs" rows="3" readonly></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Produtos" style="font-size: 1.8em">📋</span>
+          <h2>Catálogo de Produtos</h2>
+        </div>
+        <div class="form-group">
+          <label for="tabela-precos-select">Tabela de preços:</label>
+          <select id="tabela-precos-select">
+            <option value="atacado">Atacado</option>
+            <option value="distribuidor">Distribuidor</option>
+            <option value="especial">Especial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <input type="text" id="busca-produto" class="catalog-search-input" placeholder="Buscar produto por referência ou descrição..." />
+          <div id="sugestoes-produtos" style="position: relative; z-index: 10;"></div>
+        </div>
+        <div id="produtos-container" class="table-responsive"></div>
+        <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
+      </section>
+      
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Seu Pedido" style="font-size: 1.8em">🛒</span>
+          <h2>Seu Pedido</h2>
+        </div>
+        
+        <div id="pedido-itens-lista" class="produtos-container">
+          <p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>
+        </div>
+        <div class="total-container" style="text-align: center; margin: 16px 0; padding: 1rem; background: var(--light-color, #fafafa); border-radius: 8px; border: 1px solid var(--border-color, #e5e5e5);">
+          <div class="form-group" style="max-width: 280px; margin: 0 auto 12px;">
+            <label for="desconto-extra-total-b2b"><strong>Desconto extra no total (%):</strong></label>
+            <input type="number" id="desconto-extra-total-b2b" min="0" max="100" value="0" style="text-align: center; width: 100%; max-width: 120px; padding: 8px; display: block; margin: 8px auto 0;">
+          </div>
+          <h3 style="margin: 0;">Total do Pedido: R$ <span id="total-pedido-b2b">0.00</span></h3>
+        </div>
+        <div id="pedido-footer-b2b"></div>
+
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span role="img" aria-label="Status" style="font-size: 1.8em">📊</span>
+          <h2>Status do Pedido</h2>
+        </div>
+        <div id="status-mensagem">Pronto para adicionar produtos...</div>
+      </section>
+    </main>
+    
+    <footer style="width: 100%; text-align: center; padding: 15px 20px; background: transparent; color: #000000; margin-top: 40px; position: relative; font-size: 0.85rem; font-weight: 500;">
+      © 2025 J.P Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank" style="color: #000000; text-decoration: underline;">jp-sistemas.com</a>
+    </footer>
+
+    <script>
+      let clienteData = null;
+      let produtosSelecionados = [];
+      let produtosData = []; // Será carregado do arquivo original
+      const produtosContainer = document.getElementById("produtos-container");
+      
+      // Variáveis para controle do pedido
+      window.pedidoItens = [];
+      let subtotalPedido = 0;
+      let descontoExtraTotalPercentual = 0;
+
+      // Verificar autenticação B2B
+      function checkAuthB2B() {
+        const clienteStr = localStorage.getItem('clienteB2B');
+        if (!clienteStr) {
+          window.location.href = 'b2b-login.html';
+          return false;
+        }
+        
+        clienteData = JSON.parse(clienteStr);
+        
+        if (!clienteData.acessos || !clienteData.acessos.bkbFabrica) {
+          alert('Você não tem acesso a esta tabela.');
+          window.location.href = 'b2b-pedidos.html';
+          return false;
+        }
+        
+        return true;
+      }
+
+      // Função de logout
+      function logout() {
+        localStorage.removeItem('clienteB2B');
+        localStorage.removeItem('savedCnpjB2B');
+        localStorage.removeItem('savedPasswordB2B');
+        window.location.href = 'b2b-login.html';
+      }
+
+      // Preencher informações do cliente
+      function preencherInformacoesCliente() {
+        if (!clienteData) return;
+
+        document.getElementById('user-info').textContent = clienteData.razao;
+        document.getElementById('razao').value = clienteData.razao || '';
+        document.getElementById('cnpj').value = clienteData.cnpj || '';
+        document.getElementById('ie').value = clienteData.ie || '';
+        document.getElementById('endereco').value = clienteData.endereco || '';
+        document.getElementById('bairro').value = clienteData.bairro || '';
+        document.getElementById('cidade').value = clienteData.cidade || '';
+        document.getElementById('estado').value = clienteData.estado || '';
+        document.getElementById('cep').value = clienteData.cep || '';
+        document.getElementById('email').value = clienteData.email || '';
+        document.getElementById('telefone').value = clienteData.telefone || '';
+        document.getElementById('transporte').value = clienteData.transporte || '';
+        document.getElementById('prazo').value = clienteData.prazo || '';
+        // Preencher observações automaticamente com a empresa
+        document.getElementById('obs').value = 'Pedido via B2B - BKB Fábrica';
+      }
+
+      // Catálogo carregado de bkb-fabrica-produtos.js (window.produtosData)
+
+      // Carregar produtos
+      function carregarProdutos() {
+        if (!window.produtosData || !Array.isArray(window.produtosData)) {
+          console.error("bkb-fabrica-produtos.js não carregou.");
+          return;
+        }
+        produtosData = window.produtosData;
+        renderizarProdutos();
+        if (typeof atualizarVisualizacaoPedido === "function") atualizarVisualizacaoPedido();
+      }
+
+      function isMobileView() {
+        return window.innerWidth <= 768;
+      }
+
+      function tabelaPrecosAtual() {
+        const sel = document.getElementById("tabela-precos-select");
+        return sel ? sel.value : "atacado";
+      }
+
+      function labelTabelaPreco() {
+        const t = tabelaPrecosAtual();
+        if (t === "distribuidor") return "Distribuidor";
+        if (t === "especial") return "Especial";
+        return "Atacado";
+      }
+
+      function precoNaTabela(produto) {
+        const t = tabelaPrecosAtual();
+        const p = produto.PRECOS && produto.PRECOS[t];
+        return typeof p === "number" ? p : 0;
+      }
+
+      function renderizarProdutos(produtos = window.produtosData) {
+        const mobileContainer = document.getElementById("produtos-mobile-container");
+        if (mobileContainer) mobileContainer.innerHTML = "";
+        const list = Array.isArray(produtos) ? produtos : [];
+        const isMobile = isMobileView();
+        if (isMobile) {
+          list.forEach((produto) => {
+            const preco = precoNaTabela(produto);
+            if (!mobileContainer || preco <= 0) return;
+            const mobileCard = document.createElement("div");
+            mobileCard.className = "produto-card-mobile";
+            mobileCard.innerHTML = `
+              <div class="produto-header-mobile">
+                <div class="produto-ref-mobile">${produto.REF}</div>
+                <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
+              </div>
+              <div class="produto-descricao-mobile">
+                <h4>${produto.MODELO || ""}</h4>
+                <small>Tabela: ${labelTabelaPreco()}</small>
+              </div>
+              <div class="produto-tamanhos-mobile">
+                <label>Desc. extra (%):</label>
+                <input type="number" min="0" value="0" class="desconto-input input-mobile-mini" id="desconto-mobile-${produto.REF}">
+              </div>
+              <div class="produto-cor-mobile">
+                <label>Quantidade:</label>
+                <input type="number" min="0" value="" placeholder="0" class="input-mobile-mini" id="qty-mobile-${produto.REF}">
+              </div>
+              <div class="produto-actions-mobile">
+                <button type="button" class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
+              </div>
+            `;
+            mobileCard.querySelector(".btn-adicionar-mobile").addEventListener("click", () => adicionarAoPedidoMobile(produto.REF));
+            mobileContainer.appendChild(mobileCard);
+          });
+          produtosContainer.innerHTML = "";
+          return;
+        }
+
+        produtosContainer.innerHTML = "";
+        const section = document.createElement("section");
+        section.className = "card";
+        let tabelaHTML = `<div class="card-header"><h2>Peças BKB — ${labelTabelaPreco()}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. extra %</th><th>QTD</th><th>Ação</th></tr></thead><tbody>`;
+        list.forEach((produto) => {
+          const preco = precoNaTabela(produto);
+          if (preco <= 0) return;
+          tabelaHTML += `<tr><td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td class="table-discount-cell"><input type="number" min="0" value="0" class="desconto-input input-mini" id="desconto-${produto.REF}"></td><td class="table-qty-cell"><input type="number" min="0" value="" placeholder="0" class="input-qty-mini" id="qty-${produto.REF}"></td><td class="table-action-cell"><button type="button" data-ref="${produto.REF}" class="btn btn-success btn-sm table-action-btn">Adicionar</button></td></tr>`;
+        });
+        tabelaHTML += `</tbody></table></div>`;
+        section.innerHTML = tabelaHTML;
+        produtosContainer.appendChild(section);
+        section.querySelectorAll("button[data-ref]").forEach((btn) => {
+          btn.addEventListener("click", () => adicionarAoPedido(btn.getAttribute("data-ref")));
+        });
+      }
+
+      function adicionarAoPedidoMobile(ref) {
+        const produto = window.produtosData.find((p) => p.REF === ref);
+        if (!produto) return;
+        const precoUnitarioBase = precoNaTabela(produto);
+        const descontoExtra = parseFloat(document.getElementById(`desconto-mobile-${ref}`)?.value) || 0;
+        const quantidade = parseInt(document.getElementById(`qty-mobile-${ref}`)?.value, 10) || 0;
+        const tabLabel = labelTabelaPreco();
+        if (quantidade <= 0) {
+          alert("Informe a quantidade.");
+          return;
+        }
+        if (!precoUnitarioBase || precoUnitarioBase <= 0) {
+          alert("Preço inválido para esta tabela.");
+          return;
+        }
+        const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+        const itemExistente = window.pedidoItens.find(
+          (item) => item.REF === ref && item.preco === precoFinal && item.descontoExtra === descontoExtra && item.tabelaPreco === tabLabel
+        );
+        if (itemExistente) {
+          itemExistente.quantidade += quantidade;
+        } else {
+          window.pedidoItens.push({
+            REF: produto.REF,
+            MODELO: produto.MODELO,
+            medida: "—",
+            tabelaPreco: tabLabel,
+            quantidade,
+            preco: precoFinal,
+            descontoExtra,
+          });
+        }
+        document.getElementById(`qty-mobile-${ref}`).value = "";
+        document.getElementById(`desconto-mobile-${ref}`).value = 0;
+        atualizarVisualizacaoPedido();
+      }
+
+      function adicionarAoPedido(ref) {
+        const produto = window.produtosData.find((p) => p.REF === ref);
+        if (!produto || !produto.REF || !produto.MODELO) {
+          alert("Erro: Produto não encontrado.");
+          return;
+        }
+        const precoUnitarioBase = precoNaTabela(produto);
+        const descontoExtra = parseFloat(document.getElementById(`desconto-${ref}`).value) || 0;
+        const quantidade = parseInt(document.getElementById(`qty-${ref}`).value, 10) || 0;
+        const tabLabel = labelTabelaPreco();
+        if (quantidade <= 0) {
+          alert("Informe a quantidade.");
+          return;
+        }
+        if (!precoUnitarioBase || precoUnitarioBase <= 0) {
+          alert("Preço inválido para esta tabela.");
+          return;
+        }
+        const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+        const itemExistente = window.pedidoItens.find(
+          (item) => item.REF === ref && item.preco === precoFinal && item.descontoExtra === descontoExtra && item.tabelaPreco === tabLabel
+        );
+        if (itemExistente) {
+          itemExistente.quantidade += quantidade;
+        } else {
+          window.pedidoItens.push({
+            REF: produto.REF,
+            MODELO: produto.MODELO,
+            medida: "—",
+            tabelaPreco: tabLabel,
+            quantidade,
+            preco: precoFinal,
+            descontoExtra,
+          });
+        }
+        document.getElementById(`qty-${ref}`).value = "";
+        document.getElementById(`desconto-${ref}`).value = 0;
+        atualizarVisualizacaoPedido();
+      }
+
+      window.alterarQuantidadeItem = function (index, novaQuantidade) {
+        const quantidade = parseInt(novaQuantidade, 10);
+        if (quantidade < 1) {
+          alert("A quantidade deve ser pelo menos 1.");
+          return;
+        }
+        if (window.pedidoItens[index]) {
+          window.pedidoItens[index].quantidade = quantidade;
+          atualizarVisualizacaoPedido();
+        }
+      };
+
+      function removerDoPedido(index) {
+        window.pedidoItens.splice(index, 1);
+        atualizarVisualizacaoPedido();
+      }
+      window.removerDoPedido = removerDoPedido;
+
+      function alterarPrecoItem(index, novoPreco) {
+        const preco = parseFloat(String(novoPreco).replace(",", "."));
+        if (isNaN(preco) || preco < 0) {
+          alert("Informe um valor válido para o preço.");
+          return;
+        }
+        if (window.pedidoItens[index]) {
+          window.pedidoItens[index].preco = preco;
+          atualizarVisualizacaoPedido();
+        }
+      }
+      window.alterarPrecoItem = alterarPrecoItem;
+
+      function totaisPedidoB2B() {
+        let sub = 0;
+        (window.pedidoItens || []).forEach((i) => {
+          sub += (i.preco || 0) * (i.quantidade || 0);
+        });
+        const vd = sub * (descontoExtraTotalPercentual / 100);
+        return { subtotal: sub, total: sub - vd };
+      }
+
+      function atualizarVisualizacaoPedido() {
+        const pedidoItensLista = document.getElementById("pedido-itens-lista");
+        const pedidoFooter = document.getElementById("pedido-footer-b2b");
+        if (!pedidoItensLista) return;
+        pedidoItensLista.innerHTML = "";
+        subtotalPedido = 0;
+
+        if (!Array.isArray(window.pedidoItens)) {
+          window.pedidoItens = [];
+        }
+
+        if (window.pedidoItens.length > 0) {
+          window.pedidoItens.forEach((item, index) => {
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "pedido-item";
+            const precoTotalItem = item.preco * item.quantidade;
+            subtotalPedido += precoTotalItem;
+            const medidaTxt = item.tabelaPreco || item.medida || item.tamanho || "—";
+            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${item.MODELO || "Produto"} (Ref: ${item.REF || "N/A"})</strong><br><small>Tabela: ${medidaTxt} | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidadeItem(${index}, this.value)" class="input-qty-mini"> | Unit: R$ <input type="number" step="0.01" min="0" value="${(item.preco || 0).toFixed(2)}" onchange="alterarPrecoItem(${index}, this.value)" class="input-mini input-price-mini">${item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""} | Total: R$ ${precoTotalItem.toFixed(2)}</small></div><button type="button" class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            pedidoItensLista.appendChild(itemDiv);
+          });
+        } else {
+          pedidoItensLista.innerHTML = '<p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>';
+        }
+
+        const { subtotal, total } = totaisPedidoB2B();
+        subtotalPedido = subtotal;
+        const totalEl = document.getElementById("total-pedido-b2b");
+        if (totalEl) totalEl.textContent = total.toFixed(2);
+
+        if (pedidoFooter) {
+          if (window.pedidoItens.length > 0) {
+            pedidoFooter.innerHTML = `
+              <div class="pedido-info-message" style="margin-bottom: 16px;"><span style="font-size: 1.2em;">ℹ️</span> Preços conforme a tabela escolhida (Atacado, Distribuidor ou Especial). Apenas desconto extra por linha e no total — sem desconto automático de prazo ou volume.</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center;">
+                <button type="button" class="btn btn-secondary" onclick="gerarPedidoPDFB2B()" style="padding: 12px 20px;">🖨️ Baixar PDF</button>
+                <button type="button" class="btn-primary" onclick="enviarPedido()" style="padding: 12px 24px;">📤 Enviar Pedido</button>
+              </div>
+            `;
+          } else {
+            pedidoFooter.innerHTML = "";
+          }
+        }
+      }
+
+      function gerarPedidoPDFB2B() {
+        if (!window.pedidoItens || window.pedidoItens.length === 0) {
+          alert("Adicione itens ao pedido antes de gerar o PDF.");
+          return;
+        }
+        if (!clienteData || !clienteData.razao) {
+          alert("Dados do cliente não encontrados.");
+          return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF("p", "mm", "a4");
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+
+        const drawHeaderAndFooter = (data) => {
+          const logoImg = new Image();
+          logoImg.src = "https://i.imgur.com/vjq26ym.png";
+          doc.addImage(logoImg, "PNG", margin, 10, 90, 15);
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.text("Pedido B2B - BKB Fábrica", pageWidth - margin, 18, { align: "right" });
+          const hoje = new Date();
+          const dataAtual = `${String(hoje.getDate()).padStart(2, "0")}/${String(hoje.getMonth() + 1).padStart(2, "0")}/${hoje.getFullYear()}`;
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Data: ${dataAtual}`, pageWidth - margin, 24, { align: "right" });
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          doc.text(`Página ${data.pageNumber} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+        };
+
+        drawHeaderAndFooter({ pageNumber: 1 });
+
+        doc.autoTable({
+          startY: 30,
+          theme: "grid",
+          head: [[{ content: "DADOS DO CLIENTE (B2B)", colSpan: 4, styles: { halign: "center", fontStyle: "bold", fillColor: [230, 230, 230], textColor: 30 } }]],
+          body: [
+            ["Cliente:", { content: clienteData.razao || "N/A", colSpan: 3 }],
+            ["CNPJ:", clienteData.cnpj || "N/A", "I.E.:", clienteData.ie || "N/A"],
+            ["Telefone:", clienteData.telefone || "N/A", "E-mail:", clienteData.email || "N/A"],
+            ["Endereço:", { content: `${clienteData.endereco || ""}, ${clienteData.bairro || ""}`, colSpan: 3 }],
+            ["Cidade/UF:", `${clienteData.cidade || ""}/${clienteData.estado || ""}`, "CEP:", clienteData.cep || ""],
+          ],
+          styles: { fontSize: 8, cellPadding: 1.5, lineColor: [200, 200, 200], lineWidth: 0.1 },
+          headStyles: { lineWidth: 0 },
+          columnStyles: { 0: { fontStyle: "bold", cellWidth: 22 }, 2: { fontStyle: "bold", cellWidth: 20 } },
+          margin: { left: margin, right: margin },
+        });
+
+        let startY = doc.autoTable.previous.finalY + 7;
+        const descontoGeral = 1;
+        const head = [["REF.", "DESCRIÇÃO", "TABELA", "QTD.", "VLR. UNIT.", "DESC.%", "SUBTOTAL"]];
+        const body = window.pedidoItens.map((item) => {
+          const pu = item.preco * descontoGeral;
+          return [
+            item.REF,
+            item.MODELO,
+            item.tabelaPreco || "—",
+            item.quantidade,
+            `R$ ${pu.toFixed(2)}`,
+            `${item.descontoExtra || 0}%`,
+            `R$ ${(pu * item.quantidade).toFixed(2)}`,
+          ];
+        });
+
+        doc.autoTable({
+          head,
+          body,
+          startY,
+          theme: "grid",
+          styles: { fontSize: 8, cellPadding: 2, overflow: "linebreak", valign: "middle" },
+          headStyles: { fillColor: [44, 62, 80], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+          columnStyles: {
+            0: { cellWidth: 15 },
+            1: { cellWidth: "auto" },
+            2: { halign: "center", cellWidth: 22 },
+            3: { halign: "center", cellWidth: 15 },
+            4: { halign: "right", cellWidth: 22 },
+            5: { halign: "right", cellWidth: 18 },
+            6: { halign: "right", cellWidth: 22 },
+          },
+          didDrawPage: (data) => {
+            if (data.pageNumber > 1) drawHeaderAndFooter(data);
+          },
+          margin: { top: 30, bottom: 15 },
+        });
+
+        let finalY = doc.autoTable.previous.finalY;
+        const obsText = `Transporte: ${clienteData.transporte || "—"}\nPrazo: ${clienteData.prazo || "—"}\n\nObs.:\n${document.getElementById("obs")?.value || "—"}`;
+        const { subtotal: subG, total: totF } = totaisPedidoB2B();
+        const valorDesconto = subG * (descontoExtraTotalPercentual / 100);
+        const summaryData = [];
+        summaryData.push(["Subtotal:", `R$ ${subG.toFixed(2)}`]);
+        if (descontoExtraTotalPercentual > 0) {
+          summaryData.push([`Desconto extra (${descontoExtraTotalPercentual}%):`, `- R$ ${valorDesconto.toFixed(2)}`]);
+        }
+        summaryData.push(["", ""]);
+        summaryData.push([{ content: "Total:", styles: { fontStyle: "bold", fontSize: 10 } }, { content: `R$ ${totF.toFixed(2)}`, styles: { fontStyle: "bold", fontSize: 10 } }]);
+
+        const finalTableBody = [];
+        const leftColumn = { content: obsText, rowSpan: summaryData.length, styles: { valign: "top", fontSize: 9 } };
+        for (let i = 0; i < summaryData.length; i++) {
+          const row = [];
+          if (i === 0) row.push(leftColumn);
+          row.push(summaryData[i][0], summaryData[i][1]);
+          finalTableBody.push(row);
+        }
+        doc.autoTable({
+          startY: finalY + 8,
+          theme: "plain",
+          body: finalTableBody,
+          margin: { left: margin, right: margin },
+          columnStyles: {
+            0: { cellWidth: pageWidth / 2 - margin },
+            1: { halign: "right", fontStyle: "bold" },
+            2: { halign: "right" },
+          },
+        });
+
+        const nomeArquivo = `G8 Pedido B2B BKB Fabrica - ${String(clienteData.razao).replace(/[\s\/]/g, "_")} - ${new Date().toLocaleDateString("pt-BR").replace(/\//g, "-")}.pdf`;
+        doc.save(nomeArquivo);
+      }
+
+      // Enviar pedido para o sistema principal
+      async function enviarPedido() {
+        if (window.pedidoItens.length === 0) {
+          alert('Adicione pelo menos um produto ao pedido para enviar.');
+          return;
+        }
+
+        const { subtotal: subPed, total: totalPed } = totaisPedidoB2B();
+
+        try{
+          const pedidoData = {
+            empresa: 'b2b-bkb-fabrica',
+            descricao: `Pedido B2B - BKB Fábrica - ${window.pedidoItens.length} itens — Total R$ ${totalPed.toFixed(2)}`,
+            dados: {
+              cliente: clienteData,
+              itens: window.pedidoItens,
+              subtotal: subPed,
+              descontos: { extra: descontoExtraTotalPercentual || 0 },
+              total: totalPed,
+              data: new Date().toISOString(),
+              origem: 'B2B - BKB Fábrica',
+              transporte: document.getElementById('transporte') ? document.getElementById('transporte').value : '',
+              prazo: document.getElementById('prazo') ? document.getElementById('prazo').value : '',
+              observacoes: document.getElementById('obs') ? document.getElementById('obs').value : ''
+            }
+          };
+
+          // Usar sistema offline
+          const result = await window.offlineSystem.tryToSendOrder(pedidoData);
+          
+          if (result.success) {
+            if (window.G8Draft) G8Draft.clear();
+            if (result.online) {
+              alert('✅ Pedido enviado com sucesso! Você será redirecionado para seus pedidos.');
+            } else {
+              alert('📱 Sem conexão! Pedido salvo localmente e será enviado automaticamente quando a conexão retornar. Você será redirecionado para seus pedidos.');
+            }
+            
+            // Limpar pedido local
+            window.pedidoItens = [];
+            atualizarVisualizacaoPedido();
+            // Redirecionar para a página de pedidos B2B
+            window.location.href = 'b2b-pedidos.html';
+          } else {
+            throw new Error('Erro ao processar pedido');
+          }
+        } catch (error) {
+          console.error('Erro ao enviar pedido:', error);
+          alert('Erro ao enviar pedido. Tente novamente.');
+        }
+      }
+
+
+      // Função para mostrar sugestões de produtos
+      function mostrarSugestoesProdutos(filtro) {
+        const sugestoesDiv = document.getElementById("sugestoes-produtos");
+        sugestoesDiv.innerHTML = "";
+        if (!filtro || filtro.length < 2) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        const filtroLower = filtro.toLowerCase();
+        const produtosFiltrados = window.produtosData.filter((produto) => {
+          return (
+            (produto.REF && String(produto.REF).toLowerCase().includes(filtroLower)) ||
+            (produto.MODELO && String(produto.MODELO).toLowerCase().includes(filtroLower))
+          );
+        });
+        if (produtosFiltrados.length === 0) {
+          sugestoesDiv.style.display = "none";
+          return;
+        }
+        sugestoesDiv.style.display = "block";
+        produtosFiltrados.slice(0, 8).forEach((produto) => {
+          const item = document.createElement("div");
+          item.className = "sugestao-cliente-item";
+          item.innerHTML = `<strong>${produto.REF}</strong> - ${produto.MODELO}`;
+          item.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            document.getElementById("busca-produto").value = `${produto.REF} - ${produto.MODELO}`;
+            sugestoesDiv.style.display = "none";
+            renderizarProdutosFiltrados([produto]);
+          });
+          sugestoesDiv.appendChild(item);
+        });
+      }
+
+      // Função para renderizar produtos filtrados (ou todos)
+      function renderizarProdutosFiltrados(produtos) {
+        produtosContainer.innerHTML = "";
+        const mob = document.getElementById("produtos-mobile-container");
+        if (mob) mob.innerHTML = "";
+        renderizarProdutos(produtos);
+      }
+
+      // Inicializar página
+      if (checkAuthB2B()) {
+        preencherInformacoesCliente();
+        carregarProdutos();
+
+        const dxt = document.getElementById("desconto-extra-total-b2b");
+        if (dxt) {
+          dxt.addEventListener("input", () => {
+            descontoExtraTotalPercentual = parseFloat(dxt.value) || 0;
+            atualizarVisualizacaoPedido();
+          });
+        }
+        
+        // Busca de produtos
+        const buscaProdutoInput = document.getElementById("busca-produto");
+        buscaProdutoInput.addEventListener("input", (e) => {
+          mostrarSugestoesProdutos(e.target.value);
+          if (!e.target.value) {
+            renderizarProdutos(window.produtosData);
+          }
+        });
+        
+        // Fechar sugestões ao clicar fora (com suporte mobile)
+        const fecharSugestoesProdutos = (event) => {
+          const sugestoesDiv = document.getElementById("sugestoes-produtos");
+          const buscaProdutoInput = document.getElementById("busca-produto");
+          
+          // Não fechar se clicar no input ou em elementos de input
+          if (event.target === buscaProdutoInput || 
+              event.target.tagName === 'INPUT' || 
+              event.target.tagName === 'TEXTAREA' || 
+              event.target.tagName === 'SELECT' ||
+              buscaProdutoInput === document.activeElement) {
+            return;
+          }
+          
+          // Não fechar se clicar dentro das sugestões
+          if (sugestoesDiv && sugestoesDiv.contains(event.target)) {
+            return;
+          }
+          
+          // Fechar sugestões
+          if (sugestoesDiv) {
+            sugestoesDiv.style.display = "none";
+          }
+        };
+        
+        // Usar click em vez de mousedown para melhor compatibilidade mobile
+        document.addEventListener("click", fecharSugestoesProdutos, true);
+
+        if (window.G8Draft) {
+          G8Draft.init({
+            getData: () => {
+              if (!window.pedidoItens || window.pedidoItens.length === 0) return null;
+              const t = document.getElementById("transporte"), p = document.getElementById("prazo"), o = document.getElementById("obs");
+              const dx = document.getElementById("desconto-extra-total-b2b");
+              const tps = document.getElementById("tabela-precos-select");
+              return {
+                items: JSON.parse(JSON.stringify(window.pedidoItens)),
+                transporte: t ? t.value : "",
+                prazo: p ? p.value : "",
+                obs: o ? o.value : "",
+                descontoExtra: dx ? parseFloat(dx.value) || 0 : descontoExtraTotalPercentual,
+                tabelaPrecos: tps ? tps.value : "atacado"
+              };
+            },
+            setData: (d) => {
+              if (d?.items?.length) { window.pedidoItens.length = 0; window.pedidoItens.push(...d.items); }
+              const t = document.getElementById("transporte"), p = document.getElementById("prazo"), o = document.getElementById("obs");
+              if (t && d?.transporte != null) t.value = d.transporte; if (p && d?.prazo != null) p.value = d.prazo; if (o && d?.obs != null) o.value = d.obs;
+              const dx = document.getElementById("desconto-extra-total-b2b");
+              if (dx && d?.descontoExtra != null) {
+                dx.value = d.descontoExtra;
+                descontoExtraTotalPercentual = parseFloat(dx.value) || 0;
+              }
+              const tps = document.getElementById("tabela-precos-select");
+              if (tps && d?.tabelaPrecos != null) tps.value = d.tabelaPrecos;
+              if (typeof atualizarVisualizacaoPedido === "function") atualizarVisualizacaoPedido();
+              if (typeof renderizarProdutos === "function") renderizarProdutos();
+            }
+          });
+        }
+
+        const tabelaPrecosSelect = document.getElementById("tabela-precos-select");
+        if (tabelaPrecosSelect) {
+          tabelaPrecosSelect.addEventListener("change", () => {
+            renderizarProdutos();
+          });
+        }
+
+        // Event listener para redimensionamento da janela
+        window.addEventListener('resize', () => {
+          // Re-renderiza os produtos quando a tela é redimensionada
+          renderizarProdutos();
+        });
+      }
+    </script>
+  </body>
+</html>
