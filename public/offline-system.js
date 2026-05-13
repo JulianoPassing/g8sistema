@@ -4,12 +4,21 @@
  * Reenvia automaticamente quando a conexão retorna
  */
 
+/** Fila de pedidos/edições offline desativada: sem pendentes no armazenamento nem indicadores de envio em fila. */
+const G8_OFFLINE_QUEUE_ENABLED = false;
+
 class OfflineSystem {
   constructor() {
     // No celular, navigator.onLine é pouco confiável - assumir online até provar o contrário
     this.isOnline = true;
-    this.pendingOrders = this.loadPendingOrders();
-    this.pendingEdits = this.loadPendingEdits();
+    this.pendingOrders = G8_OFFLINE_QUEUE_ENABLED ? this.loadPendingOrders() : [];
+    this.pendingEdits = G8_OFFLINE_QUEUE_ENABLED ? this.loadPendingEdits() : [];
+    if (!G8_OFFLINE_QUEUE_ENABLED) {
+      try {
+        localStorage.removeItem('g8_pending_orders');
+        localStorage.removeItem('g8_pending_edits');
+      } catch (e) {}
+    }
     this.retryInterval = null;
     this.statusIndicator = null;
     this.failuresInRow = 0;
@@ -326,6 +335,7 @@ class OfflineSystem {
 
   // Salvar pedido para envio posterior
   async saveOrderOffline(orderData) {
+    if (!G8_OFFLINE_QUEUE_ENABLED) return null;
     const offlineOrder = {
       id: this.generateOfflineId(),
       timestamp: Date.now(),
@@ -505,12 +515,20 @@ class OfflineSystem {
         }
         // Só salvar offline se realmente não foi criado
         const offlineId = await this.saveOrderOffline(orderData);
-        return { success: true, online: false, offlineId };
+        if (offlineId) {
+          return { success: true, online: false, offlineId };
+        }
+        this.showNotification('Não foi possível enviar o pedido. Verifique a conexão.', 'error');
+        return { success: false, online: false };
       }
     } else {
       // Sem conexão detectada - salvar offline
       const offlineId = await this.saveOrderOffline(orderData);
-      return { success: true, online: false, offlineId };
+      if (offlineId) {
+        return { success: true, online: false, offlineId };
+      }
+      this.showNotification('Sem conexão. Não foi possível enviar o pedido.', 'error');
+      return { success: false, online: false };
     }
   }
 
@@ -562,6 +580,7 @@ class OfflineSystem {
   }
 
   async saveEditOffline(editData) {
+    if (!G8_OFFLINE_QUEUE_ENABLED) return null;
     const offlineEdit = {
       id: `edit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: Date.now(),
@@ -672,7 +691,11 @@ class OfflineSystem {
           return { success: true, online: true };
         }
         const offlineId = await this.saveEditOffline(editData);
-        return { success: true, online: false, offlineId };
+        if (offlineId) {
+          return { success: true, online: false, offlineId };
+        }
+        this.showNotification('Não foi possível salvar a edição. Verifique a conexão.', 'error');
+        return { success: false, online: false };
       }
     } else {
       const alreadyApplied = await this.checkEditAlreadyApplied(editData);
@@ -681,7 +704,11 @@ class OfflineSystem {
         return { success: false, online: false };
       }
       const offlineId = await this.saveEditOffline(editData);
-      return { success: true, online: false, offlineId };
+      if (offlineId) {
+        return { success: true, online: false, offlineId };
+      }
+      this.showNotification('Sem conexão. Não foi possível salvar a edição.', 'error');
+      return { success: false, online: false };
     }
   }
 

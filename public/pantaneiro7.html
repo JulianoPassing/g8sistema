@@ -2769,11 +2769,25 @@ window.produtosData = [
           }
         }
       }
+      function obterPrecoBaseDigitadoPantaneiro(produto) {
+        const ref = produto.REFERENCIA || '';
+        const el =
+          document.getElementById('preco-base-' + ref) ||
+          document.getElementById('preco-base-mobile-' + ref);
+        const fallback =
+          typeof produto.PRECO === 'number' ? produto.PRECO : Number(produto.PRECO) || 0;
+        if (!el) return fallback;
+        const v = parseFloat(String(el.value).replace(',', '.'));
+        if (isNaN(v) || v < 0) return fallback;
+        return v;
+      }
+
       function adicionarAoPedidoMobile(produto) {
         // Protege campos que podem ser undefined
         produto.REFERENCIA = produto.REFERENCIA || '';
         produto.DESCRIÇÃO = produto.DESCRIÇÃO || '';
         produto.PRECO = typeof produto.PRECO === 'number' ? produto.PRECO : Number(produto.PRECO) || 0;
+        const precoBaseRef = obterPrecoBaseDigitadoPantaneiro(produto);
         const corInput = document.getElementById(`cor-mobile-${produto.REFERENCIA}`);
         const corSelecionada = corInput ? corInput.value.trim() : '';
         let itemAdicionado = false;
@@ -2781,13 +2795,13 @@ window.produtosData = [
           if (quantidade <= 0) return;
           itemAdicionado = true;
           const tamanhoNormalizado = tamanho.split("-")[0].trim().toUpperCase();
-          let precoFinal = produto.PRECO;
-          
+          let precoFinal = precoBaseRef;
+
           // Aplicar ajuste de preço por tamanho
           if (["EXG", "2G", "3G"].includes(tamanhoNormalizado))
             precoFinal *= 1.15;
           else if (["4G", "5G"].includes(tamanhoNormalizado)) precoFinal *= 1.4;
-          
+
           const item = {
             REFERENCIA: produto.REFERENCIA,
             DESCRIÇÃO: produto.DESCRIÇÃO,
@@ -2854,6 +2868,9 @@ window.produtosData = [
       }
 
       function adicionarAoPedido(produto) {
+        produto.REFERENCIA = produto.REFERENCIA || '';
+        produto.DESCRIÇÃO = produto.DESCRIÇÃO || '';
+        produto.PRECO = typeof produto.PRECO === 'number' ? produto.PRECO : Number(produto.PRECO) || 0;
         const corSelecionada = document
           .getElementById(`cor-${produto.REFERENCIA}`)
           .value.trim();
@@ -2861,11 +2878,12 @@ window.produtosData = [
           parseFloat(
             document.getElementById(`desconto-${produto.REFERENCIA}`).value
           ) || 0;
+        const precoBaseRef = obterPrecoBaseDigitadoPantaneiro(produto);
         let itemAdicionado = false;
         const handleItem = (tamanho, quantidade) => {
           if (quantidade <= 0) return;
           itemAdicionado = true;
-          let precoFinal = produto.PRECO;
+          let precoFinal = precoBaseRef;
           if (descontoExtra > 0) {
             precoFinal *= 1 - descontoExtra / 100;
           }
@@ -2954,6 +2972,19 @@ window.produtosData = [
           atualizarVisualizacaoPedido();
         }
       }
+
+      function alterarPrecoUnitarioItem(index, valor) {
+        const p = parseFloat(String(valor).replace(',', '.'));
+        if (isNaN(p) || p < 0) {
+          alert('Preço unitário inválido.');
+          atualizarVisualizacaoPedido();
+          return;
+        }
+        if (window.pedidoItens[index]) {
+          window.pedidoItens[index].preco = p;
+          atualizarVisualizacaoPedido();
+        }
+      }
       function atualizarVisualizacaoPedido() {
         pedidoContainer.innerHTML = "";
         subtotalPedido = 0;
@@ -2975,7 +3006,7 @@ window.produtosData = [
             } | Qtd: <input type="number" min="1" value="${item.quantidade}" 
             onchange="alterarQuantidadeItem(${index}, this.value)" 
             style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> 
-            | Unit: R$ ${item.preco.toFixed(2)}${
+            | Unit: R$ <input type="number" step="0.01" min="0" value="${Number(item.preco).toFixed(2)}" onchange="alterarPrecoUnitarioItem(${index}, this.value)" style="width: 88px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;">${
               item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
             } | Total: R$ ${precoTotalItem.toFixed(
               2
@@ -3565,6 +3596,10 @@ window.produtosData = [
                   <h4>${produto.DESCRIÇÃO}</h4>
                   <small>${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small>
                 </div>
+                <div class="produto-preco-edit-mobile" style="margin: 8px 0;">
+                  <label style="display:block;font-size:0.9rem;margin-bottom:4px;">Preço unit. (R$)</label>
+                  <input type="number" step="0.01" min="0" id="preco-base-mobile-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2)}" style="width:100%;max-width:160px;padding:8px;" title="Valor unitário neste pedido">
+                </div>
                 <div class="produto-tamanhos-mobile">
                   <label>Tamanhos & Quantidades:</label>
                   ${tamanhosMobileHTML}
@@ -3592,7 +3627,7 @@ window.produtosData = [
             // Desktop - Tabela
             const categoriaDiv = document.createElement("section");
             categoriaDiv.className = "card";
-            let tabelaHTML = `<div class="card-header"><h2>${produto.CATEGORIA}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
+            let tabelaHTML = `<div class="card-header"><h2>${produto.CATEGORIA}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>Preço un. (R$)</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
             let tamanhosInputHTML = '<div class="tamanho-input-container">';
             
             if (produto.REFERENCIA === "201") {
@@ -3613,7 +3648,7 @@ window.produtosData = [
               });
             }
             tamanhosInputHTML += "</div>";
-            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td><small style="color: #6c757d;">Tabela: R$ ${produto.PRECO.toFixed(2)}</small><br><input type="number" step="0.01" min="0" class="preco-base-input" id="preco-base-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2)}" title="Valor unitário neste pedido (antes do ajuste por tamanho)" style="width: 96px;"></td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
             tabelaHTML += `</tbody></table></div>`;
             categoriaDiv.innerHTML = tabelaHTML;
             produtosContainer.appendChild(categoriaDiv);
@@ -3679,6 +3714,10 @@ window.produtosData = [
                     <h4>${produto.DESCRIÇÃO}</h4>
                     <small>${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small>
                   </div>
+                  <div class="produto-preco-edit-mobile" style="margin: 8px 0;">
+                    <label style="display:block;font-size:0.9rem;margin-bottom:4px;">Preço unit. (R$)</label>
+                    <input type="number" step="0.01" min="0" id="preco-base-mobile-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2)}" style="width:100%;max-width:160px;padding:8px;" title="Valor unitário neste pedido">
+                  </div>
                   <div class="produto-tamanhos-mobile">
                     <label>Tamanhos & Quantidades:</label>
                     ${tamanhosMobileHTML}
@@ -3707,7 +3746,7 @@ window.produtosData = [
             // Desktop - Tabela
             const categoriaDiv = document.createElement("section");
             categoriaDiv.className = "card";
-            let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
+            let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>Preço un. (R$)</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
             
             categoriaProdutos.forEach((produto) => {
               let tamanhosInputHTML = '<div class="tamanho-input-container">';
@@ -3732,7 +3771,7 @@ window.produtosData = [
               tamanhosInputHTML += "</div>";
               
               // Desktop tabela
-              tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td>R$ ${produto.PRECO.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+              tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td><small style="color: #6c757d;">Tabela: R$ ${produto.PRECO.toFixed(2)}</small><br><input type="number" step="0.01" min="0" class="preco-base-input" id="preco-base-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2)}" title="Valor unitário neste pedido (antes do ajuste por tamanho)" style="width: 96px;"></td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
             });
             
             tabelaHTML += `</tbody></table></div>`;

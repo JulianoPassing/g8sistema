@@ -205,7 +205,9 @@
     // Aplica descontos se existirem
     setTimeout(() => {
       if (pedido.dados?.descontos) {
+        const descontosGlobais = new Set(['prazo', 'volume', 'extra']);
         Object.entries(pedido.dados.descontos).forEach(([tipo, valor]) => {
+          if (!descontosGlobais.has(tipo)) return;
           const input = document.getElementById(`desconto-${tipo}`);
           const inputBkbFab = tipo === 'extra' ? document.getElementById('desconto-extra-total-b2b') : null;
           if (input) {
@@ -432,34 +434,22 @@
       });
     }
     
-    // Coletar descontos
-    const inputsDesconto = document.querySelectorAll('[id^="desconto-"], [id*="desconto"]');
-    inputsDesconto.forEach(input => {
-      let tipo = input.id.replace('desconto-', '').replace('-desconto', '');
-      if (tipo.includes('extra')) {
-        tipo = 'extra';
-      }
+    // Apenas descontos globais: prazo/volume (Pantaneiro) e extra (Steitz/B2B).
+    // Inputs desconto-REF / desconto-mobile-REF já estão refletidos em item.descontoExtra — não repetir aqui.
+    const entradasDescontoGlobal = [
+      ['desconto-prazo', 'prazo'],
+      ['desconto-volume', 'volume'],
+      ['desconto-extra-total', 'extra'],
+      ['desconto-extra-total-b2b', 'extra']
+    ];
+    entradasDescontoGlobal.forEach(([elId, tipo]) => {
+      const input = document.getElementById(elId);
+      if (!input) return;
       const valor = parseFloat(input.value) || 0;
       if (valor > 0) {
         dados.dados.descontos[tipo] = valor;
       }
     });
-    
-    // Coletar desconto extra total (Steitz)
-    const descontoExtraTotal = document.getElementById('desconto-extra-total');
-    if (descontoExtraTotal) {
-      const valorExtra = parseFloat(descontoExtraTotal.value) || 0;
-      if (valorExtra > 0) {
-        dados.dados.descontos.extra = valorExtra;
-      }
-    }
-    const descontoExtraBkbFab = document.getElementById('desconto-extra-total-b2b');
-    if (descontoExtraBkbFab) {
-      const ve = parseFloat(descontoExtraBkbFab.value) || 0;
-      if (ve > 0) {
-        dados.dados.descontos.extra = ve;
-      }
-    }
     
     // Calcular total
     let total = 0;

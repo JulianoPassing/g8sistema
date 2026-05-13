@@ -52,17 +52,11 @@
     init(config) {
       if (!config || !config.getData || !config.setData) return;
       currentConfig = config;
-      const pageKey = getPageKey();
 
       const draft = this.load();
       if (draft) {
-        const msg = 'Você tem um pedido não finalizado. Deseja continuar?';
-        if (confirm(msg)) {
-          config.setData(draft);
-          this.clear();
-        } else {
-          this.clear();
-        }
+        // Sem prompt: rascunhos antigos são descartados (evita aviso a cada abertura da página).
+        this.clear();
       }
 
       const doSave = () => this.save(config);
