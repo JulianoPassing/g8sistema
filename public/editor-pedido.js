@@ -298,6 +298,7 @@
     if (!dadosAtualizados.id) {
       console.error('❌ ERRO: ID do pedido não está definido!');
       alert('❌ Erro: ID do pedido não encontrado. Operação cancelada.');
+      salvandoPedido = false;
       return;
     }
     
@@ -314,11 +315,15 @@
     if (!dadosAtualizados.id || dadosAtualizados.id <= 0) {
       console.error('❌ ERRO CRÍTICO: ID inválido para atualização!', dadosAtualizados.id);
       alert('❌ Erro crítico: ID do pedido inválido. Operação cancelada.');
+      salvandoPedido = false;
       return;
     }
     
     const dadosParaEnviar = {...dadosAtualizados, operationId};
     const enviarEdicao = async function () {
+      if (window.offlineSystem && typeof window.offlineSystem.tryToSendEdit === 'function') {
+        return window.offlineSystem.tryToSendEdit(dadosParaEnviar);
+      }
       var payload = dadosParaEnviar;
       if (typeof window.compactarPayloadGrandeV1 === 'function') {
         try {
@@ -327,27 +332,53 @@
           /* mantém original */
         }
       }
-      const resp = await fetch(`/api/pedidos/${dadosAtualizados.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Operation-ID': operationId },
-        body: JSON.stringify(payload)
-      });
-      if (resp.ok) {
-        return { success: true };
+      const maxAttempts = 3;
+      var lastErr;
+      for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const resp = await fetch('/api/pedidos/' + dadosAtualizados.id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Operation-ID': operationId },
+            body: JSON.stringify(payload),
+            cache: 'no-store'
+          });
+          if (resp.ok) {
+            return { success: true, online: true };
+          }
+          if (resp.status === 404) {
+            return { success: false, online: true };
+          }
+          if (attempt < maxAttempts && (resp.status === 503 || resp.status === 502 || resp.status === 504 || resp.status === 429)) {
+            await new Promise(function (r) { setTimeout(r, 500 * attempt); });
+            continue;
+          }
+          var err = {};
+          try {
+            err = await resp.json();
+          } catch (e) {
+            err = {};
+          }
+          lastErr = new Error(err.error || ('HTTP ' + resp.status));
+          break;
+        } catch (e) {
+          lastErr = e;
+          if (attempt < maxAttempts) {
+            await new Promise(function (r) { setTimeout(r, 550 * attempt); });
+            continue;
+          }
+          break;
+        }
       }
-      var err = {};
-      try {
-        err = await resp.json();
-      } catch (e) {
-        err = {};
-      }
-      throw new Error(err.error || ('HTTP ' + resp.status));
+      throw lastErr || new Error('Falha ao salvar');
     };
-    
+
     Promise.resolve(enviarEdicao()).then(function (result) {
       if (result && result.success) {
         localStorage.removeItem('pedidoParaEdicao');
         salvandoPedido = false;
+        if (result.online === false) {
+          alert('Conexão instável. A edição foi guardada e será enviada automaticamente em seguida. No outro aparelho, aguarde alguns segundos e atualize a lista de pedidos.');
+        }
         window.location.href = 'pedidos.html';
       } else {
         salvandoPedido = false;
