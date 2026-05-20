@@ -1,7 +1,8 @@
 /**
  * Exporta tabela Cesari para Excel e PDF com logo G8 (banner),
  * usando window.CESARI_PRODUTOS_DATA (mesmo arquivo que cesari.html / b2b-cesari.html).
- * No Excel: dois campos no cabeçalho (listas) e coluna Preço como na tabela Pantaneiro (fórmula sobre col. base oculta).
+ * Excel: preço unitário, coluna Qtd. (preenchimento manual), Total = unit. × qtd., e linha TOTAL DO PEDIDO (soma dos totais).
+ * PDF: mesmas colunas com Qtd./Total em branco para preenchimento; linha para total geral.
  */
 (function () {
   'use strict';
@@ -125,47 +126,6 @@
     };
   }
 
-  /** Opções de lista no Excel (0 = sem desconto). */
-  const DESCONTOS_PRAZO_PADRAO = [1.2, 2.5, 5.0];
-  const DESCONTOS_VOLUME_PADRAO = [2, 4, 6, 8, 10];
-
-  function listaComZero(opcoes) {
-    const out = [0];
-    for (let i = 0; i < opcoes.length; i++) {
-      if (opcoes[i] !== 0) out.push(opcoes[i]);
-    }
-    return out;
-  }
-
-  /**
-   * Converte célula de % (B ou D) para número: aceita número da lista ou texto 1,2 / 1.2.
-   */
-  function excelExprPctDesconto(colLetter, selRow) {
-    const ref = '$' + colLetter + '$' + selRow;
-    const nvBR = 'NUMBERVALUE(' + ref + ',",",".")';
-    const nvUS = 'NUMBERVALUE(' + ref + ',".",",")';
-    return 'IF(ISNUMBER(' + ref + '),' + ref + ',IFERROR(' + nvBR + ',' + nvUS + '))';
-  }
-
-  /**
-   * Preço final: base × (1 − prazo%) × (1 − volume%).
-   * IFERROR devolve o preço tabela se a fórmula falhar.
-   */
-  function formulaPrecoComPrazoEVolumeExcel(dataRow, baseColLetter, selRow) {
-    const br = baseColLetter + dataRow;
-    const pB = excelExprPctDesconto('B', selRow);
-    const pD = excelExprPctDesconto('D', selRow);
-    return 'IFERROR(' + br + '*(1-' + pB + '/100)*(1-' + pD + '/100),' + br + ')';
-  }
-
-  /**
-   * Referência de intervalo para validação tipo lista (uma célula = um valor).
-   * Listas inline ("0;1.2;...") viram texto único no Excel — não usar.
-   */
-  function refListaValidacaoAbs(colLetter, rowIni, rowFim) {
-    return '$' + colLetter + '$' + rowIni + ':$' + colLetter + '$' + rowFim;
-  }
-
   /** Letra da coluna Excel 0-based (0=A). */
   function colLetterFromIndex(i0) {
     let n = i0 + 1;
@@ -178,8 +138,8 @@
     return s;
   }
 
-  /** Col. E = preço tabela (oculta); A um pouco maior para rótulo em 2 linhas. */
-  const LARGURAS_COM_COL_BASE = [12.5, 76.5, 35.875, 8.75, 12];
+  /** Ref., Descrição, Tamanhos, Preço unit., Qtd., Total */
+  const LARGURAS_COM_COL_CESARI = [11, 44, 16, 13, 9, 14];
 
   function aplicarLargurasColunas(ws, larguras) {
     const arr = larguras || LARGURAS_COLS_ATUAL;
@@ -189,7 +149,7 @@
   }
 
   /** Atualizado em gerarExcelCesari conforme quantidade de colunas. */
-  let LARGURAS_COLS_ATUAL = [10.25, 78.25, 35.875, 8.75];
+  let LARGURAS_COLS_ATUAL = LARGURAS_COM_COL_CESARI.slice();
 
   /**
    * Posição horizontal da logo (coluna decimal 0=A) centralizada em todas as colunas da tabela.
@@ -232,7 +192,6 @@
   const POLITICA_COMERCIAL_ITENS = [
     'PREÇOS CONFORME TABELA CESARI NO SISTEMA G8;',
     'CONDIÇÕES COMERCIAIS E PEDIDO MÍNIMO: CONSULTE O REPRESENTANTE;',
-    'DESCONTOS POR PRAZO E VOLUME NO EXCEL SÃO SIMULAÇÕES — CONFIRMAR COM A G8.',
   ];
 
   function novaBordaPreta() {
@@ -253,19 +212,10 @@
     }
 
     opts = opts || {};
-    const descontosPrazo =
-      Array.isArray(opts.descontosPrazo) && opts.descontosPrazo.length
-        ? opts.descontosPrazo
-        : DESCONTOS_PRAZO_PADRAO.slice();
-    const descontosVolume =
-      Array.isArray(opts.descontosVolume) && opts.descontosVolume.length
-        ? opts.descontosVolume
-        : DESCONTOS_VOLUME_PADRAO.slice();
-    const listaPrazoValid = listaComZero(descontosPrazo);
-    const listaVolValid = listaComZero(descontosVolume);
-    LARGURAS_COLS_ATUAL = LARGURAS_COM_COL_BASE.slice();
+    LARGURAS_COLS_ATUAL = LARGURAS_COM_COL_CESARI.slice();
     const lastColLetter = colLetterFromIndex(LARGURAS_COLS_ATUAL.length - 1);
-    const colBaseLetter = colLetterFromIndex(4);
+    let firstItemRow = null;
+    let lastItemRow = null;
 
     let b64Banner;
     try {
@@ -283,26 +233,6 @@
     });
 
     aplicarLargurasColunas(ws);
-
-    /* Uma célula por opção (col. F e G, depois ocultas) — listas inline viram texto e não aplicam %. */
-    const LIST_ROW0 = 1;
-    let li;
-    for (li = 0; li < listaPrazoValid.length; li++) {
-      ws.getCell(LIST_ROW0 + li, 6).value = Number(listaPrazoValid[li]);
-    }
-    for (li = 0; li < listaVolValid.length; li++) {
-      ws.getCell(LIST_ROW0 + li, 7).value = Number(listaVolValid[li]);
-    }
-    const refPrazoLista = refListaValidacaoAbs(
-      'F',
-      LIST_ROW0,
-      LIST_ROW0 + listaPrazoValid.length - 1
-    );
-    const refVolLista = refListaValidacaoAbs(
-      'G',
-      LIST_ROW0,
-      LIST_ROW0 + listaVolValid.length - 1
-    );
 
     function mergeColsRow(row) {
       ws.mergeCells('A' + row + ':' + lastColLetter + row);
@@ -371,67 +301,12 @@
     mergeColsRow(r);
     const cInstr = ws.getCell(r, 1);
     cInstr.value =
-      'Dois descontos independentes: prazo (col. B) e volume (col. D). Listas separadas. Padrão 0%. Col. E oculta = preço tabela; col. D = preço final.';
+      'Preencha a coluna Qtd. O Total por linha é calculado automaticamente (preço unitário × quantidade). No rodapé: soma de todos os itens (apenas linhas com quantidade informada).';
     cInstr.font = { size: 10, italic: true, color: { argb: 'FF334155' } };
     aplicarFillSolid(cInstr, FILL_ITEM_PAR);
     cInstr.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     cInstr.border = novaBordaItem();
-    ws.getRow(r).height = 28.05;
-    r++;
-
-    const selDescontoRow = r;
-    const cLabPrazo = ws.getCell(r, 1);
-    cLabPrazo.value = 'Desconto prazo\n(%)';
-    cLabPrazo.font = { bold: true, size: 10 };
-    aplicarFillSolid(cLabPrazo, 'FFF1F5F9');
-    cLabPrazo.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-    cLabPrazo.border = novaBordaItem();
-
-    const cValPrazo = ws.getCell(r, 2);
-    cValPrazo.value = 0;
-    cValPrazo.numFmt = '0.00';
-    aplicarFillSolid(cValPrazo, 'FFFEF3C7');
-    cValPrazo.font = { bold: true, size: 11 };
-    cValPrazo.alignment = { horizontal: 'center', vertical: 'middle' };
-    cValPrazo.border = novaBordaItem();
-    cValPrazo.dataValidation = {
-      type: 'list',
-      allowBlank: true,
-      formulae: ['=' + refPrazoLista],
-      showErrorMessage: true,
-      errorStyle: 'warning',
-      errorTitle: 'Lista',
-      error: 'Escolha um valor da lista ou digite o percentual.',
-    };
-
-    const cLabVol = ws.getCell(r, 3);
-    cLabVol.value = 'Desconto volume\n(%)';
-    cLabVol.font = { bold: true, size: 10 };
-    aplicarFillSolid(cLabVol, 'FFF1F5F9');
-    cLabVol.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-    cLabVol.border = novaBordaItem();
-
-    const cValVol = ws.getCell(r, 4);
-    cValVol.value = 0;
-    cValVol.numFmt = '0.00';
-    aplicarFillSolid(cValVol, 'FFDBEAFE');
-    cValVol.font = { bold: true, size: 11 };
-    cValVol.alignment = { horizontal: 'center', vertical: 'middle' };
-    cValVol.border = novaBordaItem();
-    cValVol.dataValidation = {
-      type: 'list',
-      allowBlank: true,
-      formulae: ['=' + refVolLista],
-      showErrorMessage: true,
-      errorStyle: 'warning',
-      errorTitle: 'Lista',
-      error: 'Escolha um valor da lista ou digite o percentual.',
-    };
-
-    const cEResto = ws.getCell(r, 5);
-    aplicarFillSolid(cEResto, FILL_ITEM_PAR);
-    cEResto.border = novaBordaItem();
-    ws.getRow(r).height = 27.25;
+    ws.getRow(r).height = 32;
     r++;
 
     mergeColsRow(r);
@@ -458,7 +333,7 @@
       ws.getRow(r).height = 23.95;
       r++;
 
-      const hdr = ['Ref.', 'Descrição', 'Tamanhos', 'Preço (R$)', ''];
+      const hdr = ['Ref.', 'Descrição', 'Tamanhos', 'Preço unit. (R$)', 'Qtd.', 'Total (R$)'];
       for (let h = 0; h < hdr.length; h++) {
         const cell = ws.getCell(r, h + 1);
         cell.value = hdr[h];
@@ -481,6 +356,9 @@
         const fgArgb = zebra ? FILL_ITEM_IMPAR : FILL_ITEM_PAR;
         indiceItemGlobal++;
 
+        if (firstItemRow === null) firstItemRow = r;
+        lastItemRow = r;
+
         const c1 = ws.getCell(r, 1);
         c1.value = refProduto(p);
         aplicarFillSolid(c1, fgArgb);
@@ -499,25 +377,50 @@
         c3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         c3.border = novaBordaItem();
 
-        const cBase = ws.getCell(r, 5);
-        cBase.value = Number(preco);
-        aplicarFillSolid(cBase, fgArgb);
-        cBase.border = novaBordaItem();
-        cBase.alignment = { horizontal: 'center', vertical: 'middle' };
-        cBase.numFmt = '#,##0.00';
+        const cPrecoUnit = ws.getCell(r, 4);
+        cPrecoUnit.value = Number(preco);
+        aplicarFillSolid(cPrecoUnit, fgArgb);
+        cPrecoUnit.border = novaBordaItem();
+        cPrecoUnit.alignment = { horizontal: 'center', vertical: 'middle' };
+        cPrecoUnit.numFmt = '#,##0.00';
 
-        const cPreco = ws.getCell(r, 4);
-        cPreco.value = {
-          formula: formulaPrecoComPrazoEVolumeExcel(r, colBaseLetter, selDescontoRow),
-        };
-        aplicarFillSolid(cPreco, fgArgb);
-        cPreco.border = novaBordaItem();
-        cPreco.alignment = { horizontal: 'center', vertical: 'middle' };
-        cPreco.numFmt = '#,##0.00';
+        const cQtd = ws.getCell(r, 5);
+        cQtd.value = null;
+        aplicarFillSolid(cQtd, 'FFFEF9C7');
+        cQtd.border = novaBordaItem();
+        cQtd.alignment = { horizontal: 'center', vertical: 'middle' };
+        cQtd.numFmt = '0';
+
+        const cTotalLinha = ws.getCell(r, 6);
+        cTotalLinha.value = { formula: 'D' + r + '*N(E' + r + ')' };
+        aplicarFillSolid(cTotalLinha, fgArgb);
+        cTotalLinha.border = novaBordaItem();
+        cTotalLinha.alignment = { horizontal: 'center', vertical: 'middle' };
+        cTotalLinha.numFmt = '#,##0.00';
 
         ws.getRow(r).height = 14.3;
         r++;
       }
+    }
+
+    if (firstItemRow !== null && lastItemRow !== null) {
+      ws.mergeCells('A' + r + ':E' + r);
+      const cTotLab = ws.getCell(r, 1);
+      cTotLab.value = 'TOTAL DO PEDIDO (R$)';
+      cTotLab.font = { bold: true, size: 12 };
+      aplicarFillSolid(cTotLab, 'FFE2E8F0');
+      cTotLab.alignment = { horizontal: 'right', vertical: 'middle' };
+      cTotLab.border = novaBordaItem();
+
+      const cTotVal = ws.getCell(r, 6);
+      cTotVal.value = { formula: 'SUM(F' + firstItemRow + ':F' + lastItemRow + ')' };
+      cTotVal.font = { bold: true, size: 12 };
+      aplicarFillSolid(cTotVal, 'FFE2E8F0');
+      cTotVal.alignment = { horizontal: 'center', vertical: 'middle' };
+      cTotVal.border = novaBordaItem();
+      cTotVal.numFmt = '#,##0.00';
+      ws.getRow(r).height = 22;
+      r++;
     }
 
     mergeColsRow(r);
@@ -535,7 +438,7 @@
     ws.getRow(r).height = 20;
     r++;
 
-    const alturasPolitica = [18, 18, 18, 18, 22, 36, 22];
+    const alturasPolitica = [18, 18, 22];
     for (let pi = 0; pi < POLITICA_COMERCIAL_ITENS.length; pi++) {
       mergeColsRow(r);
       const cPol = ws.getCell(r, 1);
@@ -547,10 +450,6 @@
       ws.getRow(r).height = alturasPolitica[pi] || 20;
       r++;
     }
-
-    ws.getColumn(5).hidden = true;
-    ws.getColumn(6).hidden = true;
-    ws.getColumn(7).hidden = true;
 
     const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], {
@@ -617,10 +516,12 @@
     const bottomSafe = 18;
     const tableMargins = { left: m, right: m, bottom: 14 };
     const colStyles = {
-      0: { cellWidth: 18, halign: 'center' },
+      0: { cellWidth: 14, halign: 'center' },
       1: { cellWidth: 'auto', halign: 'center' },
-      2: { cellWidth: 38, halign: 'center' },
-      3: { cellWidth: 22, halign: 'center' },
+      2: { cellWidth: 18, halign: 'center' },
+      3: { cellWidth: 18, halign: 'center' },
+      4: { cellWidth: 12, halign: 'center' },
+      5: { cellWidth: 20, halign: 'center' },
     };
 
     let indiceItemGlobalPdf = 0;
@@ -636,6 +537,8 @@
           descricaoProduto(p),
           formatarTamanhos(p),
           precoNum(p).toFixed(2).replace('.', ','),
+          '',
+          '',
         ];
       });
 
@@ -664,7 +567,7 @@
 
       doc.autoTable({
         startY: y,
-        head: [['Ref.', 'Descrição', 'Tamanhos', 'Preço (R$)']],
+        head: [['Ref.', 'Descrição', 'Tamanhos', 'Preço unit.', 'Qtd.', 'Total (R$)']],
         body: bodyRows,
         theme: 'grid',
         headStyles: {
@@ -701,6 +604,9 @@
             data.cell.styles.halign = 'center';
             data.cell.styles.valign = 'middle';
             data.cell.styles.textColor = [15, 23, 42];
+            if (data.column.index === 4) {
+              data.cell.styles.fillColor = zebra ? [254, 243, 199] : [255, 251, 235];
+            }
           }
         },
       });
@@ -708,6 +614,26 @@
       indiceItemGlobalPdf += bodyRows.length;
       y = doc.autoTable.previous.finalY + 8;
     }
+
+    if (y + 16 > pageH - bottomSafe) {
+      doc.addPage();
+      y = m;
+    } else {
+      y += 2;
+    }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text('TOTAL DO PEDIDO (R$):', m, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text('No Excel o total é calculado; no PDF preencha Qtd., totais por linha e some aqui.', m, y + 4.5);
+    doc.setFontSize(10);
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineWidth(0.3);
+    doc.line(m + 58, y + 1.2, pageW - m, y + 1.2);
+    y += 12;
 
     const alturaPoliticaEstimada = 14 + POLITICA_COMERCIAL_ITENS.length * 11;
     if (y + alturaPoliticaEstimada > pageH - bottomSafe) {
@@ -805,8 +731,8 @@
       if (window.notifications && typeof window.notifications.success === 'function') {
         window.notifications.success(
           isPdf
-            ? 'PDF Cesari gerado com logos e preços atuais.'
-            : 'Excel Cesari gerado (4 colunas visíveis), com 2 campos de desconto no cabeçalho e logos G8.',
+            ? 'PDF Cesari gerado (colunas Qtd. e Total para preenchimento).'
+            : 'Excel Cesari gerado com preço unitário, Qtd., total por linha e total do pedido.',
           { title: 'Download', duration: 3200 }
         );
       }
