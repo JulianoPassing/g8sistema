@@ -289,6 +289,7 @@
 
     const { titulo, nomeArquivo, corTituloCategoria } = opts;
     const wb = new ExcelJS.Workbook();
+    wb.calcProperties = { fullCalcOnLoad: true };
     const ws = wb.addWorksheet('Tabela', {
       properties: { defaultRowHeight: 14.3, defaultColWidth: 9 },
       views: [{ showGridLines: true }],
@@ -518,9 +519,19 @@
         c3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         c3.border = novaBordaItem();
 
+        const precoBase = Number(preco);
+
+        const cBase = ws.getCell(r, 7);
+        cBase.value = precoBase;
+        aplicarFillSolid(cBase, fgArgb);
+        cBase.border = novaBordaItem();
+        cBase.alignment = { horizontal: 'center', vertical: 'middle' };
+        cBase.numFmt = '#,##0.00';
+
         const cPreco = ws.getCell(r, 4);
         cPreco.value = {
           formula: formulaPrecoComPrazoEVolumeExcel(r, colBaseLetter, selDescontoRow),
+          result: precoBase,
         };
         aplicarFillSolid(cPreco, fgArgb);
         cPreco.border = novaBordaItem();
@@ -535,18 +546,11 @@
         cQtd.numFmt = '0';
 
         const cTotalLinha = ws.getCell(r, 6);
-        cTotalLinha.value = { formula: 'D' + r + '*N(E' + r + ')' };
+        cTotalLinha.value = { formula: 'D' + r + '*N(E' + r + ')', result: 0 };
         aplicarFillSolid(cTotalLinha, fgArgb);
         cTotalLinha.border = novaBordaItem();
         cTotalLinha.alignment = { horizontal: 'center', vertical: 'middle' };
         cTotalLinha.numFmt = '#,##0.00';
-
-        const cBase = ws.getCell(r, 7);
-        cBase.value = Number(preco);
-        aplicarFillSolid(cBase, fgArgb);
-        cBase.border = novaBordaItem();
-        cBase.alignment = { horizontal: 'center', vertical: 'middle' };
-        cBase.numFmt = '#,##0.00';
 
         for (let hx = 8; hx <= 9; hx++) {
           const cx = ws.getCell(r, hx);
@@ -569,7 +573,10 @@
       cTotLab.border = novaBordaItem();
 
       const cTotVal = ws.getCell(r, 6);
-      cTotVal.value = { formula: 'SUM(F' + firstItemRow + ':F' + lastItemRow + ')' };
+      cTotVal.value = {
+        formula: 'SUM(F' + firstItemRow + ':F' + lastItemRow + ')',
+        result: 0,
+      };
       cTotVal.font = { bold: true, size: 12 };
       aplicarFillSolid(cTotVal, 'FFE2E8F0');
       cTotVal.alignment = { horizontal: 'center', vertical: 'middle' };
