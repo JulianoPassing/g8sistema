@@ -1,6 +1,6 @@
 // ========== SERVICE WORKER G8SISTEMA ==========
 
-const CACHE_NAME = 'g8sistema-v1.2.4';
+const CACHE_NAME = 'g8sistema-v1.2.5';
 const STATIC_CACHE = 'g8sistema-static-v6';
 const DYNAMIC_CACHE = 'g8sistema-dynamic-v6';
 
@@ -55,6 +55,8 @@ const STATIC_FILES = [
   '/pedidos.js',
   '/g8-resumo-unidades-pdf.js',
   '/pantaneiro-tabelas-export.js',
+  '/cesari-produtos-data.js',
+  '/cesari-tabelas-export.js',
   '/manifest.json',
   '/sw-register.js'
 ];
