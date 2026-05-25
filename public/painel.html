@@ -933,6 +933,19 @@
               </div>
             </div>
           </div>
+          <div class="option-card steitz-card card-modern animate-on-scroll" data-animation-delay="835">
+            <div class="tabela-export-card-inner">
+              <span class="option-icon">📥</span>
+              <div class="option-title">Tabela Steitz</div>
+              <div class="option-description">
+                Como steitz.html — logos G8. Excel: lista de prazo (À Vista / 30-45-60 / 30-60-90), preço unitário muda ao selecionar; Qtd.; subtotal por linha; total do pedido. PDF: três colunas de preço + Qtd./Total.
+              </div>
+              <div class="tabela-export-actions">
+                <a href="#" class="tabela-export-excel" onclick="event.preventDefault(); baixarTabelaSteitzExcel(); return false;">📊 Excel</a>
+                <a href="#" class="tabela-export-pdf" onclick="event.preventDefault(); baixarTabelaSteitzPdf(); return false;">📄 PDF</a>
+              </div>
+            </div>
+          </div>
           <div class="option-card pantaneiro-card card-modern animate-on-scroll" data-animation-delay="840">
             <div class="tabela-export-card-inner">
               <span class="option-icon">📥</span>
@@ -960,6 +973,7 @@
     <script src="cesari-produtos-data.js"></script>
     <script src="pantaneiro-tabelas-export.js"></script>
     <script src="cesari-tabelas-export.js"></script>
+    <script src="steitz-tabelas-export.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // Sistema de autenticação melhorado
