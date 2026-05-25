@@ -814,7 +814,7 @@
     try {
       const produtos = await carregarProdutosSteitz();
       const ano = new Date().getFullYear();
-      const baseNome = 'Tabela Steitz - ' + ano;
+      const baseNome = 'Tabela Steitz - ' + ano + ' - G8 Representações';
       const titulo = 'Tabela Steitz — ' + ano;
 
       if (isPdf) {

@@ -899,7 +899,7 @@
       const arquivo = n === 5 ? 'pantaneiro5.html' : 'pantaneiro7.html';
       const produtos = await carregarProdutosDaPagina(arquivo);
       const ano = new Date().getFullYear();
-      const baseNome = 'Tabela Pantaneiro ' + n + ' - ' + ano;
+      const baseNome = 'Tabela Pantaneiro ' + n + ' - ' + ano + ' - G8 Representações';
       const titulo = 'Tabela Pantaneiro ' + n + ' — ' + ano;
       const corTituloCategoria = n === 5 ? 'FFB91C1C' : 'FF1D4ED8';
       const corRgb = n === 5 ? [185, 28, 28] : [29, 78, 216];

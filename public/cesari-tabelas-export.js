@@ -709,7 +709,7 @@
     try {
       const produtos = obterProdutosCesari();
       const ano = new Date().getFullYear();
-      const baseNome = 'Tabela Cesari - ' + ano;
+      const baseNome = 'Tabela Cesari - ' + ano + ' - G8 Representações';
       const titulo = 'Tabela Cesari — ' + ano;
       const corTituloCategoria = 'FFB91C1C';
       const corRgb = [185, 28, 28];
