@@ -24,7 +24,7 @@
   const POLITICA_COMERCIAL_ITENS = [
     'PREÇOS CONFORME TABELA STEITZ NO SISTEMA G8 (À VISTA / 30-45-60 / 30-60-90 DIAS);',
     'FRETE CIF: PEDIDO MÍNIMO R$ 3.000,00 — ABAIXO DISSO CONSULTAR FRETE (FOB);',
-    'GRADE POR NUMERAÇÃO CONFORME COLUNA “GRADE” — PREENCHER QTD. POR LINHA DE PRODUTO.',
+    'PREENCHER QTD. EM CADA NUMERAÇÃO (TAMANHO) DO MODELO — UMA LINHA POR NÚMERO DA GRADE.',
   ];
 
   const FILL_ITEM_PAR = 'FFFFFFFF';
@@ -95,6 +95,51 @@
 
   function formatarGrade(p) {
     return p.TAM != null ? String(p.TAM) : '';
+  }
+
+  /** Ex.: "37 a 45" → ["37","38",…,"45"] (igual steitz.html). */
+  function parseTamanhoRange(tamStr) {
+    if (tamStr == null || tamStr === '') return null;
+    const match = String(tamStr)
+      .trim()
+      .match(/^(\d+)\s*a\s*(\d+)$/i);
+    if (!match) return null;
+    const start = parseInt(match[1], 10);
+    const end = parseInt(match[2], 10);
+    if (isNaN(start) || isNaN(end) || start > end) return null;
+    const range = [];
+    for (let i = start; i <= end; i++) range.push(String(i));
+    return range;
+  }
+
+  /** Uma linha de exportação por numeração (tamanho) de cada modelo. */
+  function linhasPorNumeracao(produtos) {
+    const linhas = [];
+    for (let j = 0; j < produtos.length; j++) {
+      const p = produtos[j];
+      const nums = parseTamanhoRange(p.TAM);
+      const gradeLabel = formatarGrade(p);
+      if (nums && nums.length > 0) {
+        for (let n = 0; n < nums.length; n++) {
+          linhas.push({
+            produto: p,
+            produtoIdx: j,
+            numeracao: nums[n],
+            gradeLabel: gradeLabel,
+            manual: false,
+          });
+        }
+      } else {
+        linhas.push({
+          produto: p,
+          produtoIdx: j,
+          numeracao: 'MANUAL',
+          gradeLabel: gradeLabel || '—',
+          manual: true,
+        });
+      }
+    }
+    return linhas;
   }
 
   function refProduto(p) {
@@ -332,7 +377,7 @@
     mergeColsRow(r);
     const cInstr = ws.getCell(r, 1);
     cInstr.value =
-      'Selecione o prazo na célula abaixo (lista). A coluna Preço (R$) atualiza conforme À Vista, 30/45/60 ou 30/60/90 dias. Preencha Qtd.; Total = Preço × Qtd. Rodapé: total do pedido.';
+      'Selecione o prazo na célula abaixo (lista). Cada modelo aparece com uma linha por numeração (tamanho) da grade — preencha a Qtd. de cada número. Preço unit. conforme prazo; Total da linha = Preço × Qtd.; rodapé = total do pedido.';
     cInstr.font = { size: 10, italic: true, color: { argb: 'FF334155' } };
     aplicarFillSolid(cInstr, FILL_ITEM_PAR);
     cInstr.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
@@ -388,7 +433,7 @@
     ws.getRow(r).height = 24;
     r++;
 
-    const hdr = ['Ref.', 'Modelo', 'Grade', 'Preço (R$)', 'Qtd.', 'Total (R$)'];
+    const hdr = ['Ref.', 'Modelo', 'Numeração', 'Preço (R$)', 'Qtd.', 'Total (R$)'];
     for (let h = 0; h < hdr.length; h++) {
       const cell = ws.getCell(r, h + 1);
       cell.value = hdr[h];
@@ -400,34 +445,59 @@
     ws.getRow(r).height = 14.3;
     r++;
 
-    let indiceItemGlobal = 0;
-    for (let j = 0; j < produtos.length; j++) {
-      const p = produtos[j];
+    const linhasNum = linhasPorNumeracao(produtos);
+    const blocosMerge = [];
+    let blocoIni = null;
+    let refBlocoAtual = null;
+
+    for (let li = 0; li < linhasNum.length; li++) {
+      const ln = linhasNum[li];
+      const p = ln.produto;
+      const refAtual = refProduto(p);
+      const novoBloco = li === 0 || refAtual !== refBlocoAtual;
+
+      if (novoBloco) {
+        if (blocoIni !== null) {
+          blocosMerge.push({ start: blocoIni, end: r - 1 });
+        }
+        blocoIni = r;
+        refBlocoAtual = refAtual;
+      }
+
       const precoPadrao = precoDefault(p);
-      const zebra = indiceItemGlobal % 2 === 1;
+      const zebra = ln.produtoIdx % 2 === 1;
       const fgArgb = zebra ? FILL_ITEM_IMPAR : FILL_ITEM_PAR;
-      indiceItemGlobal++;
 
       if (firstItemRow === null) firstItemRow = r;
       lastItemRow = r;
 
       const c1 = ws.getCell(r, 1);
-      c1.value = refProduto(p);
+      if (novoBloco) c1.value = refAtual;
       aplicarFillSolid(c1, fgArgb);
       c1.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
       c1.border = novaBordaItem();
 
       const c2 = ws.getCell(r, 2);
-      c2.value = modeloProduto(p);
+      if (novoBloco) {
+        let textoModelo = modeloProduto(p);
+        if (ln.gradeLabel) {
+          textoModelo += '\n(Grade ' + ln.gradeLabel + ')';
+        }
+        if (ln.manual) {
+          textoModelo += '\nPreencha Qtd. na linha MANUAL';
+        }
+        c2.value = textoModelo;
+      }
       aplicarFillSolid(c2, fgArgb);
       c2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
       c2.border = novaBordaItem();
 
       const c3 = ws.getCell(r, 3);
-      c3.value = formatarGrade(p);
-      aplicarFillSolid(c3, fgArgb);
-      c3.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      c3.value = ln.manual ? ln.gradeLabel || 'MANUAL' : ln.numeracao;
+      aplicarFillSolid(c3, ln.manual ? 'FFFFE4E6' : fgArgb);
+      c3.alignment = { horizontal: 'center', vertical: 'middle' };
       c3.border = novaBordaItem();
+      if (!ln.manual) c3.font = { bold: true, size: 10 };
 
       const cG = ws.getCell(r, COL_PRECO_306090);
       cG.value = precoChave(p, 'p_30_60_90');
@@ -471,8 +541,24 @@
       cTotal.alignment = { horizontal: 'center', vertical: 'middle' };
       cTotal.numFmt = '#,##0.00';
 
-      ws.getRow(r).height = 14.3;
+      ws.getRow(r).height = ln.manual ? 16 : 14.3;
       r++;
+    }
+
+    if (blocoIni !== null) {
+      blocosMerge.push({ start: blocoIni, end: r - 1 });
+    }
+
+    for (let b = 0; b < blocosMerge.length; b++) {
+      const bl = blocosMerge[b];
+      if (bl.end > bl.start) {
+        ws.mergeCells('A' + bl.start + ':A' + bl.end);
+        ws.mergeCells('B' + bl.start + ':B' + bl.end);
+        const cRef = ws.getCell(bl.start, 1);
+        const cMod = ws.getCell(bl.start, 2);
+        cRef.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cMod.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      }
     }
 
     if (firstItemRow !== null && lastItemRow !== null) {
@@ -581,17 +667,19 @@
     doc.text(
       'G8 Representações — Steitz — ' +
         new Date().toLocaleDateString('pt-BR') +
-        ' — No Excel: escolha o prazo e o preço unitário atualiza automaticamente.',
+        ' — Uma linha por numeração; preencha Qtd. em cada tamanho (no Excel: prazo altera o preço).',
       pageW / 2,
       27,
       { align: 'center' }
     );
 
-    const bodyRows = produtos.map(function (p) {
+    const linhasPdf = linhasPorNumeracao(produtos);
+    const bodyRows = linhasPdf.map(function (ln) {
+      const p = ln.produto;
       return [
         refProduto(p),
         modeloProduto(p),
-        formatarGrade(p),
+        ln.manual ? ln.gradeLabel || 'MANUAL' : ln.numeracao,
         precoChave(p, 'a_vista').toFixed(2).replace('.', ','),
         precoChave(p, 'p_30_45_60').toFixed(2).replace('.', ','),
         precoChave(p, 'p_30_60_90').toFixed(2).replace('.', ','),
@@ -609,7 +697,7 @@
         [
           'Ref.',
           'Modelo',
-          'Grade',
+          'Nº',
           'À Vista',
           '30/45/60',
           '30/60/90',
@@ -638,21 +726,24 @@
         lineColor: PDF_BORDA,
         lineWidth: 0.15,
       },
-      columnStyles: {
-        0: { cellWidth: 12 },
+        columnStyles: {
+        0: { cellWidth: 11 },
         1: { cellWidth: 'auto' },
-        2: { cellWidth: 16 },
-        3: { cellWidth: 16 },
-        4: { cellWidth: 16 },
-        5: { cellWidth: 16 },
-        6: { cellWidth: 10 },
-        7: { cellWidth: 18 },
+        2: { cellWidth: 10 },
+        3: { cellWidth: 15 },
+        4: { cellWidth: 15 },
+        5: { cellWidth: 15 },
+        6: { cellWidth: 9 },
+        7: { cellWidth: 16 },
       },
       margin: { left: m, right: m, bottom: 12 },
       didParseCell: function (data) {
         if (data.section === 'body') {
           const zebra = data.row.index % 2 === 1;
           data.cell.styles.fillColor = zebra ? PDF_FILL_ZEBRA_IMPAR : PDF_FILL_ZEBRA_PAR;
+          if (data.column.index === 2) {
+            data.cell.styles.fontStyle = 'bold';
+          }
           if (data.column.index === 6) {
             data.cell.styles.fillColor = zebra ? [254, 243, 199] : [255, 251, 235];
           }
@@ -741,8 +832,8 @@
       if (window.notifications && typeof window.notifications.success === 'function') {
         window.notifications.success(
           isPdf
-            ? 'PDF Steitz gerado (três colunas de preço + Qtd./Total).'
-            : 'Excel Steitz gerado: selecione o prazo, preencha Qtd. e veja totais automáticos.',
+            ? 'PDF Steitz gerado (uma linha por numeração + Qtd./Total).'
+            : 'Excel Steitz gerado: prazo na lista, Qtd. por numeração/tamanho, totais automáticos.',
           { title: 'Download', duration: 3200 }
         );
       }

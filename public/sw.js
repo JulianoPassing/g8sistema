@@ -1,6 +1,6 @@
 // ========== SERVICE WORKER G8SISTEMA ==========
 
-const CACHE_NAME = 'g8sistema-v1.3.0';
+const CACHE_NAME = 'g8sistema-v1.3.1';
 const STATIC_CACHE = 'g8sistema-static-v6';
 const DYNAMIC_CACHE = 'g8sistema-dynamic-v6';
 
