@@ -312,6 +312,58 @@
       .table-responsive {
         width: 100%;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Caixa de rolagem para produtos — estilo Pantaneiro */
+      #produtos-container {
+        max-height: 400px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        margin-bottom: 25px;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 12px 8px;
+        transition: all 0.3s ease;
+      }
+
+      #produtos-container:hover {
+        box-shadow: var(--shadow-lg);
+      }
+
+      #produtos-container::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #produtos-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+
+      #produtos-container::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+      }
+
+      #produtos-container::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-hover);
+      }
+
+      #produtos-container > .card {
+        margin-bottom: 12px;
+        padding: 12px 16px;
+        box-shadow: none;
+      }
+
+      #produtos-container > .card:hover {
+        transform: none;
+        box-shadow: var(--shadow-sm);
+      }
+
+      #produtos-container > .card:last-child {
+        margin-bottom: 0;
       }
 
       table {
@@ -520,9 +572,9 @@
         color: var(--success-color);
       }
 
-      /* Cards Mobile - Padrão B2B */
+      /* Cards Mobile — oculto no desktop */
       .produtos-mobile-container {
-        display: flex;
+        display: none;
         flex-direction: column;
         gap: 15px;
         padding: 10px;
@@ -640,15 +692,24 @@
           padding: 100px 10px 10px 10px; /* Ajuste para mobile com header maior */
         }
         
+        #produtos-container {
+          display: none;
+        }
+
         /* Mostrar container mobile */
         .produtos-mobile-container {
           display: flex;
           max-height: 600px;
           overflow-y: auto;
+          margin-bottom: 25px;
+          border-radius: var(--border-radius-lg);
+          box-shadow: var(--shadow);
+          background: var(--card-bg);
+          border: 1px solid var(--border-color);
         }
 
         /* Ocultar tabelas em mobile */
-        .table-responsive {
+        #produtos-container .table-responsive {
           display: none;
         }
 
@@ -915,7 +976,7 @@
           <input type="text" id="busca-produto" class="catalog-search-input" placeholder="Buscar produto por referência ou descrição..." />
           <div id="sugestoes-produtos" style="position: relative; z-index: 10;"></div>
         </div>
-        <div id="produtos-container" class="table-responsive"></div>
+        <div id="produtos-container"></div>
         <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
       </section>
 
