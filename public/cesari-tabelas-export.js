@@ -9,19 +9,24 @@
 
   const LOGO_BANNER = 'https://i.imgur.com/vjq26ym.png';
 
-  /** Mesma ordem de categorias de cesari.html */
-  const CATEGORIAS_ORDEM = [
-    'PNEUS DE MOTO NOVOS',
-    'LINHA FLASH TYRE',
-    'PNEU QUADRICICULO',
-    'LINHA PNEUS REMOLDADOS',
-    'CAMARA DE AR',
-    'ITENS PARA CONSERTO',
-    'ÓLEO',
-    'PATINS DE FREIO',
-    'ACESSÓRIOS PARA MOTOS',
-    'CAPAS DE CHUVA',
-  ];
+  /** Mesma ordem de cesari-produtos-data.js (CESARI_CATEGORIAS_ORDEM) */
+  const CATEGORIAS_ORDEM = (window.CESARI_CATEGORIAS_ORDEM && window.CESARI_CATEGORIAS_ORDEM.length)
+    ? window.CESARI_CATEGORIAS_ORDEM.slice()
+    : [
+        'PNEUS DE MOTO NOVOS',
+        'LINHA FLASH TYRE',
+        'PNEU QUADRICICULO',
+        'LINHA PNEUS REMOLDADOS',
+        'PNEUS DE CARRO NOVOS',
+        'PNEU CARRO REMOLDADO AM PLUS',
+        'CAMARA DE AR',
+        'ITENS PARA CONSERTO',
+        'ÓLEO',
+        'PATINS DE FREIO',
+        'ACESSÓRIOS PARA MOTOS',
+        'CAPAS DE CHUVA',
+        'KIT GSW',
+      ];
 
   function ordemCategorias(produtos) {
     const present = new Set();
@@ -188,10 +193,22 @@
   const PDF_POLITICA_HEADER_BG = [255, 213, 0];
   const PDF_POLITICA_BORDA = [0, 0, 0];
 
-  const POLITICA_COMERCIAL_TITULO = 'POLITICA COMERCIAL';
+  const POLITICA_COMERCIAL_TITULO = 'REGRAS DE VENDAS PARA REPRESENTANTES';
   const POLITICA_COMERCIAL_ITENS = [
-    'PREÇOS CONFORME TABELA CESARI NO SISTEMA G8;',
-    'CONDIÇÕES COMERCIAIS E PEDIDO MÍNIMO: CONSULTE O REPRESENTANTE;',
+    'FRETE LITORAL SC — PEDIDOS ABAIXO DE R$ 1.500,00: R$ 75,00;',
+    'FRETE LITORAL SC — PEDIDOS ACIMA DE R$ 1.500,00: R$ 50,00;',
+    'FRETE LITORAL SC — PEDIDOS ACIMA DE R$ 2.000,00: R$ 40,00;',
+    'FRETE LITORAL SC — PEDIDOS ACIMA DE R$ 3.000,00: FRETE GRÁTIS;',
+    'FRETE OESTE E PLANALTO SERRANO — ATÉ R$ 1.500,00: R$ 95,00;',
+    'FRETE OESTE E PLANALTO SERRANO — ACIMA DE R$ 1.500,00: R$ 75,00;',
+    'FRETE OESTE E PLANALTO SERRANO — ACIMA DE R$ 2.500,00: R$ 50,00;',
+    'FRETE OESTE E PLANALTO SERRANO — ACIMA DE R$ 3.000,00: R$ 40,00;',
+    'FRETE OESTE E PLANALTO SERRANO — ACIMA DE R$ 4.000,00: FRETE GRÁTIS;',
+    'PEDIDOS GSW — PEDIDO MÍNIMO R$ 1.000,00 PARA ENCOMENDAS (EXCETO KITS JÁ NA TABELA PADRÃO);',
+    'À VISTA: 2% DE DESCONTO;',
+    'COMPRAS ACIMA DE R$ 5.000,00: 2% DE DESCONTO;',
+    'ACIMA DE R$ 5.000,00 + À VISTA: 4% DE DESCONTO;',
+    'DÚVIDAS: ENTRE EM CONTATO COM O SETOR COMERCIAL.',
   ];
 
   function novaBordaPreta() {
@@ -438,7 +455,7 @@
     ws.getRow(r).height = 20;
     r++;
 
-    const alturasPolitica = [18, 18, 22];
+    const alturasPolitica = [20, 20, 20, 20, 20, 20, 20, 20, 20, 24, 20, 20, 20, 22];
     for (let pi = 0; pi < POLITICA_COMERCIAL_ITENS.length; pi++) {
       mergeColsRow(r);
       const cPol = ws.getCell(r, 1);

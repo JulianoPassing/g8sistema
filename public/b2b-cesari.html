@@ -1173,8 +1173,8 @@
           return acc;
         }, {});
 
-        const ordemReferencia = (typeof CATEGORIAS_ORDEM !== "undefined" && Array.isArray(CATEGORIAS_ORDEM))
-          ? CATEGORIAS_ORDEM
+        const ordemReferencia = (window.CESARI_CATEGORIAS_ORDEM && Array.isArray(window.CESARI_CATEGORIAS_ORDEM))
+          ? window.CESARI_CATEGORIAS_ORDEM
           : Object.keys(categoriasAgrupadas);
         const ordemCategorias = Array.isArray(ordemReferencia)
           ? [...ordemReferencia, ...Object.keys(categoriasAgrupadas).filter((c) => !ordemReferencia.includes(c))]

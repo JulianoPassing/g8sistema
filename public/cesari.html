@@ -979,7 +979,7 @@
         }
       }
 
-      const CATEGORIAS_ORDEM = ["PNEUS DE MOTO NOVOS", "LINHA FLASH TYRE", "PNEU QUADRICICULO", "LINHA PNEUS REMOLDADOS", "CAMARA DE AR", "ITENS PARA CONSERTO", "ÓLEO", "PATINS DE FREIO", "ACESSÓRIOS PARA MOTOS", "CAPAS DE CHUVA"];
+      const CATEGORIAS_ORDEM = window.CESARI_CATEGORIAS_ORDEM || [];
 
       const produtosData = (window.CESARI_PRODUTOS_DATA || []).slice();
       produtosData.forEach(p => { if (p.PRECOS && p.PRECO === undefined) p.PRECO = p.PRECOS.p_30_60_90; });

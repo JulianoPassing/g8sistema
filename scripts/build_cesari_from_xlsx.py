@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Lê TABELA CESARI PNEUS JUNHO-26.xlsx e gera trecho JS para cesari.html / b2b-cesari.html."""
+"""Lê TABELA CESARI PNEUS JUNHO-26.xlsx (abas 2–4) e gera public/cesari-produtos-data.js."""
 import json
+import os
 import re
 import sys
 import zipfile
@@ -13,17 +14,24 @@ CATEGORIAS_ORDEM = [
     "LINHA FLASH TYRE",
     "PNEU QUADRICICULO",
     "LINHA PNEUS REMOLDADOS",
+    "PNEUS DE CARRO NOVOS",
+    "PNEU CARRO REMOLDADO AM PLUS",
     "CAMARA DE AR",
     "ITENS PARA CONSERTO",
     "ÓLEO",
     "PATINS DE FREIO",
     "ACESSÓRIOS PARA MOTOS",
     "CAPAS DE CHUVA",
+    "KIT GSW",
 ]
 
 DEFAULT_XLSX = (
-    r"g:\Outros computadores\Meu laptop\G8 Representações\CESARI\TABELA CESARI PNEUS JUNHO-26.xlsx"
+    r"g:\Outros computadores\Meu laptop\G8 Representações\CESARI"
+    + r"\TABELA CESARI PNEUS JUNHO-26.xlsx"
 )
+
+SHEETS_PADRAO = (2, 3)
+SHEET_GSW = 4
 
 
 def col_letters(cell_ref):
@@ -31,14 +39,16 @@ def col_letters(cell_ref):
     return m.group(1) if m else ""
 
 
-def load_rows(path):
-    z = zipfile.ZipFile(path)
+def load_shared_strings(z):
     root = ET.fromstring(z.read("xl/sharedStrings.xml"))
     shared = []
     for si in root.findall("m:si", NS):
-        t = "".join("".join(n.itertext()) for n in si)
-        shared.append(t)
-    sheet = ET.fromstring(z.read("xl/worksheets/sheet1.xml"))
+        shared.append("".join("".join(n.itertext()) for n in si))
+    return shared
+
+
+def load_sheet_rows(z, shared, sheet_num):
+    sheet = ET.fromstring(z.read(f"xl/worksheets/sheet{sheet_num}.xml"))
     rows = []
     for row in sheet.findall("m:sheetData/m:row", NS):
         r = {}
@@ -57,60 +67,114 @@ def load_rows(path):
 
 
 def normalize_tam(t):
-    t = (t or "").strip().replace(",", ".")
-    return t
+    return (t or "").strip().replace(",", ".")
 
 
 def normalize_category_name(cat):
     cat = " ".join((cat or "").split())
+    up = cat.upper()
     if re.match(r"^LINHA\s+PNEUS\s+REMOLD", cat, re.I):
         return "LINHA PNEUS REMOLDADOS"
-    up = cat.upper()
-    if up == "ÓLEO" or up == "OLEO" or cat.startswith("LEO") and "OLEO" not in cat:
+    if up in ("ÓLEO", "OLEO") or (up.startswith("LEO") and "OLEO" not in up):
         return "ÓLEO"
     if "ACESS" in up and "MOTO" in up:
         return "ACESSÓRIOS PARA MOTOS"
+    if "KIT" in up and "GSW" in up:
+        return "KIT GSW"
+    if "KIT" in up and "RETENTOR" in up:
+        return "KIT GSW"
     return cat
 
 
-def parse_items(rows):
+def parse_price(d):
+    if d is None or str(d).strip() == "":
+        return None
+    try:
+        return float(str(d).replace(",", "."))
+    except ValueError:
+        return None
+
+
+def is_header_row(r):
+    a = (r.get("A") or "").upper()
+    return "REF" in a
+
+
+def parse_items_ab(ref_col, desc_col, tam_col, price_col, rows, skip_header=None):
+    """Abas 2 e 3: categoria em A ou B; produto com preço em price_col."""
+    if skip_header is None:
+        skip_header = bool(rows) and is_header_row(rows[0])
     cat = None
     items = []
-    for r in rows[1:]:
-        a = (r.get("A") or "").strip()
-        b = (r.get("B") or "").strip()
-        d = r.get("D")
-        if d is not None and str(d).strip() != "":
-            try:
-                price = float(str(d).replace(",", "."))
-            except ValueError:
-                continue
-            ref = a
-            modelo = b
-            tam = normalize_tam(r.get("C"))
-            if not tam:
-                tam = "UN"
-            if not ref or not modelo:
-                continue
+    for r in rows[1 if skip_header else 0 :]:
+        ref = (r.get(ref_col) or "").strip()
+        desc = (r.get(desc_col) or "").strip()
+        tam = normalize_tam(r.get(tam_col))
+        price = parse_price(r.get(price_col))
+
+        if price is not None and desc and ref:
             if not cat:
                 continue
-            categoria = normalize_category_name(cat)
+            if not tam:
+                tam = "UN"
             items.append(
                 {
-                    "CATEGORIA": categoria,
+                    "CATEGORIA": normalize_category_name(cat),
                     "REF": str(ref),
-                    "MODELO": modelo,
+                    "MODELO": desc,
                     "TAM": tam,
                     "preco": price,
                 }
             )
             continue
-        if a and (not b):
-            if "REF" not in a.upper() and a.upper() != "REF.":
-                cat = a
-        elif b and (not a):
-            if "DESCRI" not in b.upper():
-                cat = b
+
+        if ref and not desc and not price:
+            if "REF" not in ref.upper():
+                cat = ref
+        elif desc and not ref and not price:
+            if "DESCRI" not in desc.upper():
+                cat = desc
+    return items
+
+
+def parse_items_gsw(rows):
+    """Aba 4: código em B, aplicação em C, preço em D."""
+    cat = "KIT GSW"
+    items = []
+    for r in rows:
+        ref = (r.get("B") or "").strip()
+        desc = (r.get("C") or "").strip()
+        price = parse_price(r.get("D"))
+
+        if desc and not ref and price is None:
+            up = desc.upper()
+            if "TABELA" in up or "PEDIDO" in up or up == "TOTAL":
+                continue
+            if "KIT" in up or "GSW" in up:
+                cat = normalize_category_name(desc)
+            continue
+
+        if ref and desc and price is not None:
+            items.append(
+                {
+                    "CATEGORIA": cat,
+                    "REF": str(ref),
+                    "MODELO": desc,
+                    "TAM": "UN",
+                    "preco": price,
+                }
+            )
+    return items
+
+
+def load_all_items(path):
+    z = zipfile.ZipFile(path)
+    shared = load_shared_strings(z)
+    items = []
+    for sn in SHEETS_PADRAO:
+        rows = load_sheet_rows(z, shared, sn)
+        items.extend(parse_items_ab("A", "B", "C", "D", rows))
+    items.extend(parse_items_gsw(load_sheet_rows(z, shared, SHEET_GSW)))
     return items
 
 
@@ -150,15 +214,13 @@ def to_js_lines(items):
 
 def main():
     xlsx = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_XLSX
-    rows = load_rows(xlsx)
-    items = sort_by_order(parse_items(rows))
-    import os
-
+    items = sort_by_order(load_all_items(xlsx))
+    seen = {i["CATEGORIA"] for i in items}
     base = os.path.join(os.path.dirname(__file__), "..", "public")
     out_js = os.path.join(base, "cesari-produtos-data.js")
     body = to_js_lines(items)
     banner = (
-        "/** Cesari Pneus — preços/categorias (Junho/2026). "
+        "/** Cesari — preços/categorias (Junho/2026). "
         "Regenerar: python scripts/build_cesari_from_xlsx.py [caminho.xlsx] */\n"
     )
     with open(out_js, "w", encoding="utf-8") as f:
@@ -166,10 +228,18 @@ def main():
         f.write("window.CESARI_PRODUTOS_DATA = [\n")
         f.write(body)
         f.write("\n];\n")
+        cats_out = [c for c in CATEGORIAS_ORDEM if c in seen]
+        extra_c = sorted({i["CATEGORIA"] for i in items} - set(cats_out))
+        cats_js = json.dumps(cats_out + extra_c, ensure_ascii=False)
+        f.write("window.CESARI_CATEGORIAS_ORDEM = ")
+        f.write(cats_js)
+        f.write(";\n")
     print("Wrote", out_js)
+    cats = [c for c in CATEGORIAS_ORDEM if c in seen]
+    extra = sorted(seen - set(cats))
     meta = {
         "total": len(items),
-        "categorias": list({i["CATEGORIA"] for i in items}),
+        "categorias": cats + extra,
         "fonte": xlsx,
     }
     print(json.dumps(meta, ensure_ascii=False, indent=2))
