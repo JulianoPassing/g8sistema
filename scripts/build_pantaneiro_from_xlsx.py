@@ -110,6 +110,13 @@ def parse_tamanhos(raw):
     text = str(raw).strip()
     upper = text.upper()
 
+    # Botas por par de numeração: 35/36-37/38-39/40...
+    size_pairs = re.findall(r"\d+/\d+", text)
+    if len(size_pairs) >= 2:
+        return size_pairs
+    if len(size_pairs) == 1 and "-" in text:
+        return size_pairs
+
     if "BOTAS" in upper and (
         "/" in text or "UNICO" in upper or "ÚNICO" in upper or "P - EX" in text
     ):
