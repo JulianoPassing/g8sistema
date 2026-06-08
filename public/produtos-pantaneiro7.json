@@ -4,9 +4,9 @@
     "REFERENCIA": "201",
     "DESCRIÇÃO": "JARDINEIRA PVC COM BOTA",
     "TAMANHOS": [
-      "ÚNICO / BOTAS 35 - 46"
+      "P - EX / BOTAS 35 - 46"
     ],
-    "PRECO": 140.63
+    "PRECO": 150.39
   },
   {
     "CATEGORIA": "Aventura",
@@ -15,7 +15,7 @@
     "TAMANHOS": [
       "ÚNICO / BOTAS 35 - 46"
     ],
-    "PRECO": 108.84
+    "PRECO": 116.27
   },
   {
     "CATEGORIA": "Aventura",
@@ -24,7 +24,7 @@
     "TAMANHOS": [
       "ÚNICO / BOTAS 35 - 46"
     ],
-    "PRECO": 95.96
+    "PRECO": 103.17
   },
   {
     "CATEGORIA": "Aventura",
@@ -43,7 +43,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 44.32
+    "PRECO": 47.19
   },
   {
     "CATEGORIA": "Aventura",
@@ -62,7 +62,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 30.87
+    "PRECO": 32.52
   },
   {
     "CATEGORIA": "Aventura",
@@ -81,7 +81,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 74.18
+    "PRECO": 75.57
   },
   {
     "CATEGORIA": "Aventura",
@@ -100,7 +100,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 50.02
+    "PRECO": 50.03
   },
   {
     "CATEGORIA": "Aventura",
@@ -119,7 +119,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 67.77
+    "PRECO": 71.98
   },
   {
     "CATEGORIA": "Aventura",
@@ -138,7 +138,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 124.75
+    "PRECO": 126.77
   },
   {
     "CATEGORIA": "PRO",
@@ -157,7 +157,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 51.69
+    "PRECO": 54.72
   },
   {
     "CATEGORIA": "PRO",
@@ -176,7 +176,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 49.93
+    "PRECO": 52.97
+  },
+  {
+    "CATEGORIA": "PRO",
+    "REFERENCIA": "223",
+    "DESCRIÇÃO": "CAPA LONGA PVC PADRÃO TRANSPARENTE COM CAPUZ LAPA SIMPLES COM VELCRO",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 67.13
   },
   {
     "CATEGORIA": "PRO",
@@ -195,7 +214,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 107.41
+    "PRECO": 108.46
   },
   {
     "CATEGORIA": "PRO",
@@ -214,7 +233,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 103.17
+    "PRECO": 104.21
   },
   {
     "CATEGORIA": "PRO",
@@ -233,7 +252,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 137.04
+    "PRECO": 142.84
   },
   {
     "CATEGORIA": "PRO",
@@ -252,7 +271,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 137.04
+    "PRECO": 142.71
   },
   {
     "CATEGORIA": "PRO",
@@ -265,7 +284,7 @@
       "GG",
       "EX"
     ],
-    "PRECO": 149.25
+    "PRECO": 181.92
   },
   {
     "CATEGORIA": "PRO",
@@ -278,7 +297,7 @@
       "GG",
       "EX"
     ],
-    "PRECO": 144.39
+    "PRECO": 179.68
   },
   {
     "CATEGORIA": "PRO",
@@ -291,7 +310,7 @@
       "GG",
       "EX"
     ],
-    "PRECO": 162.75
+    "PRECO": 194.51
   },
   {
     "CATEGORIA": "PRO",
@@ -304,7 +323,7 @@
       "GG",
       "EX"
     ],
-    "PRECO": 175.56
+    "PRECO": 175.46
   },
   {
     "CATEGORIA": "PRO",
@@ -317,7 +336,7 @@
       "GG",
       "EX"
     ],
-    "PRECO": 121.63
+    "PRECO": 157.14
   },
   {
     "CATEGORIA": "PRO",
@@ -330,7 +349,7 @@
       "GG",
       "EX"
     ],
-    "PRECO": 135.09
+    "PRECO": 170.65
   },
   {
     "CATEGORIA": "PRO",
@@ -349,7 +368,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 157.03
+    "PRECO": 152.64
   },
   {
     "CATEGORIA": "PRO",
@@ -368,7 +387,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 161.49
+    "PRECO": 172.08
   },
   {
     "CATEGORIA": "PRO",
@@ -387,7 +406,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 99.56
+    "PRECO": 97.59
   },
   {
     "CATEGORIA": "PRO",
@@ -406,7 +425,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 60.07
+    "PRECO": 57.6
   },
   {
     "CATEGORIA": "Urbano",
@@ -425,7 +444,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 117.57
+    "PRECO": 119.96
   },
   {
     "CATEGORIA": "Urbano",
@@ -444,7 +463,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 118.44
+    "PRECO": 120.73
   },
   {
     "CATEGORIA": "Urbano",
@@ -463,7 +482,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 181.15
+    "PRECO": 183.33
   },
   {
     "CATEGORIA": "Urbano",
@@ -482,7 +501,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 182.17
+    "PRECO": 184.31
   },
   {
     "CATEGORIA": "Urbano",
@@ -501,7 +520,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 127.47
+    "PRECO": 129.61
   },
   {
     "CATEGORIA": "Urbano",
@@ -520,7 +539,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 129.2
+    "PRECO": 131.31
   },
   {
     "CATEGORIA": "Urbano",
@@ -539,7 +558,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 76.17
+    "PRECO": 77.19
   },
   {
     "CATEGORIA": "Urbano",
@@ -558,7 +577,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 78.58
+    "PRECO": 79.62
   },
   {
     "CATEGORIA": "Urbano",
@@ -577,7 +596,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 54.74
+    "PRECO": 55.48
   },
   {
     "CATEGORIA": "Urbano",
@@ -596,7 +615,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 127.59
+    "PRECO": 129.74
   },
   {
     "CATEGORIA": "Urbano",
@@ -615,7 +634,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 127.59
+    "PRECO": 129.74
   },
   {
     "CATEGORIA": "Urbano",
@@ -634,7 +653,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 134.18
+    "PRECO": 136.38
   },
   {
     "CATEGORIA": "Urbano",
@@ -653,7 +672,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 134.53
+    "PRECO": 136.73
   },
   {
     "CATEGORIA": "Urbano",
@@ -672,7 +691,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 134.53
+    "PRECO": 136.73
   },
   {
     "CATEGORIA": "Urbano",
@@ -691,7 +710,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 144.09
+    "PRECO": 146.36
   },
   {
     "CATEGORIA": "Urbano",
@@ -710,7 +729,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 75.79
+    "PRECO": 76.81
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "1102PC",
+    "DESCRIÇÃO": "JAQUETA NYLON FEMININA COM GOLA - PRETO COM CORES",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 83.45
   },
   {
     "CATEGORIA": "Urbano",
@@ -729,7 +767,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 81.2
+    "PRECO": 82.25
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "1103PC",
+    "DESCRIÇÃO": "JAQUETA NYLON FEMININA COM CAPUZ - PRETO COM CORES",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 92.66
   },
   {
     "CATEGORIA": "Urbano",
@@ -748,7 +805,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 51.5
+    "PRECO": 52.17
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "1104PC",
+    "DESCRIÇÃO": "CALÇA NYLON FEMININA - PRETO COM CORES",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 53.02
   },
   {
     "CATEGORIA": "Urbano",
@@ -767,7 +843,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 149.97
+    "PRECO": 151.8
   },
   {
     "CATEGORIA": "Urbano",
@@ -786,7 +862,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 153.91
+    "PRECO": 155.77
   },
   {
     "CATEGORIA": "Urbano",
@@ -805,7 +881,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 97.44
+    "PRECO": 98.26
   },
   {
     "CATEGORIA": "Urbano",
@@ -824,7 +900,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 102.49
+    "PRECO": 103.33
   },
   {
     "CATEGORIA": "Urbano",
@@ -843,7 +919,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 56.17
+    "PRECO": 56.93
   },
   {
     "CATEGORIA": "Urbano",
@@ -862,7 +938,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 146.38
+    "PRECO": 148.11
   },
   {
     "CATEGORIA": "Urbano",
@@ -881,7 +957,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 152.22
+    "PRECO": 154.28
   },
   {
     "CATEGORIA": "Urbano",
@@ -900,7 +976,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 154.98
+    "PRECO": 157.05
   },
   {
     "CATEGORIA": "Urbano",
@@ -919,7 +995,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 174.42
+    "PRECO": 175.27
   },
   {
     "CATEGORIA": "Urbano",
@@ -938,7 +1014,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 155.29
+    "PRECO": 157.16
   },
   {
     "CATEGORIA": "Urbano",
@@ -957,7 +1033,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 155.29
+    "PRECO": 157.16
   },
   {
     "CATEGORIA": "Urbano",
@@ -976,7 +1052,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 161.88
+    "PRECO": 163.8
   },
   {
     "CATEGORIA": "Urbano",
@@ -995,7 +1071,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 164.24
+    "PRECO": 166.15
   },
   {
     "CATEGORIA": "Urbano",
@@ -1014,7 +1090,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 164.24
+    "PRECO": 166.15
   },
   {
     "CATEGORIA": "Urbano",
@@ -1033,7 +1109,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 173.9
+    "PRECO": 175.89
   },
   {
     "CATEGORIA": "Urbano",
@@ -1052,7 +1128,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 95.75
+    "PRECO": 101.25
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "2000PK",
+    "DESCRIÇÃO": "CONJUNTO PVC PREMIUM COM GOLA, BOLSO E REFLETIVO PARKA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 101.25
   },
   {
     "CATEGORIA": "Urbano",
@@ -1071,7 +1166,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 98.03
+    "PRECO": 102.75
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "2001PK",
+    "DESCRIÇÃO": "CONJUNTO PVC PREMIUM COM CAPUZ, BOLSO E REFLETIVO PARKA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 102.75
   },
   {
     "CATEGORIA": "Urbano",
@@ -1090,7 +1204,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 55.32
+    "PRECO": 57.9
   },
   {
     "CATEGORIA": "Urbano",
@@ -1109,7 +1223,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 56.89
+    "PRECO": 59.58
   },
   {
     "CATEGORIA": "Urbano",
@@ -1128,7 +1242,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 40.53
+    "PRECO": 42.83
   },
   {
     "CATEGORIA": "Urbano",
@@ -1147,7 +1261,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 61.75
+    "PRECO": 65.64
   },
   {
     "CATEGORIA": "Urbano",
@@ -1166,7 +1280,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 64.22
+    "PRECO": 68.3
   },
   {
     "CATEGORIA": "Urbano",
@@ -1185,7 +1299,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 63.35
+    "PRECO": 67.23
   },
   {
     "CATEGORIA": "Urbano",
@@ -1204,7 +1318,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 65.82
+    "PRECO": 69.89
   },
   {
     "CATEGORIA": "Urbano",
@@ -1213,7 +1327,7 @@
     "TAMANHOS": [
       "ÚNICO"
     ],
-    "PRECO": 52.64
+    "PRECO": 55.08
   },
   {
     "CATEGORIA": "Urbano",
@@ -1222,7 +1336,7 @@
     "TAMANHOS": [
       "ÚNICO"
     ],
-    "PRECO": 54.05
+    "PRECO": 56.6
   },
   {
     "CATEGORIA": "Urbano",
@@ -1241,7 +1355,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 66.64
+    "PRECO": 70.48
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "2700PK",
+    "DESCRIÇÃO": "CONJUNTO PVC TORNADO COM GOLA PARKA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 70.48
   },
   {
     "CATEGORIA": "Urbano",
@@ -1260,7 +1393,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 70.94
+    "PRECO": 75.14
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "2701PK",
+    "DESCRIÇÃO": "CONJUNTO PVC TORNADO COM CAPUZ PARKA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 75.14
   },
   {
     "CATEGORIA": "Urbano",
@@ -1279,7 +1431,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 38.12
+    "PRECO": 39.89
   },
   {
     "CATEGORIA": "Urbano",
@@ -1298,7 +1450,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 40.9
+    "PRECO": 42.83
   },
   {
     "CATEGORIA": "Urbano",
@@ -1317,7 +1469,45 @@
       "4G",
       "5G"
     ],
-    "PRECO": 31.24
+    "PRECO": 32.92
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "2800",
+    "DESCRIÇÃO": "CONJUNTO PVC PADRÃO TRANSPARENTE COM GOLA PARKA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 79.42
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "2801",
+    "DESCRIÇÃO": "CONJUNTO PVC PADRÃO TRANSPARENTE COM CAPUZ PARKA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 82.42
   },
   {
     "CATEGORIA": "Urbano",
@@ -1336,7 +1526,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 68.23
+    "PRECO": 72.06
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "2900PK",
+    "DESCRIÇÃO": "CONJUNTO PVC TORNADO COM GOLA E BOLSO - PARKA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 72.06
   },
   {
     "CATEGORIA": "Urbano",
@@ -1355,7 +1564,26 @@
       "4G",
       "5G"
     ],
-    "PRECO": 72.53
+    "PRECO": 76.72
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "2901PK",
+    "DESCRIÇÃO": "CONJUNTO PVC TORNADO COM CAPUZ E BOLSO - PARKA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 76.72
   },
   {
     "CATEGORIA": "Urbano",
@@ -1374,7 +1602,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 39.69
+    "PRECO": 41.47
   },
   {
     "CATEGORIA": "Urbano",
@@ -1393,7 +1621,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 42.41
+    "PRECO": 44.41
   },
   {
     "CATEGORIA": "Urbano",
@@ -1412,7 +1640,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 31.24
+    "PRECO": 32.92
   },
   {
     "CATEGORIA": "Urbano",
@@ -1431,7 +1659,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 70.38
+    "PRECO": 72.89
   },
   {
     "CATEGORIA": "Urbano",
@@ -1450,7 +1678,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 73.46
+    "PRECO": 76.19
   },
   {
     "CATEGORIA": "Urbano",
@@ -1469,7 +1697,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 74.63
+    "PRECO": 77.69
   },
   {
     "CATEGORIA": "Urbano",
@@ -1488,98 +1716,53 @@
       "4G",
       "5G"
     ],
-    "PRECO": 78.63
+    "PRECO": 184.13
+  },
+  {
+    "CATEGORIA": "Urbano",
+    "REFERENCIA": "4000",
+    "DESCRIÇÃO": "CONJUNTO PVC INVERNO COM GOLA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG",
+      "2G",
+      "3G",
+      "4G",
+      "5G"
+    ],
+    "PRECO": 137.62
   },
   {
     "CATEGORIA": "Acessórios",
     "REFERENCIA": "360",
     "DESCRIÇÃO": "BOTA DE PVC IMPERMEÁVEL - PRETA",
     "TAMANHOS": [
-      "35/36",
-      "37/38",
-      "39/40",
-      "41/42",
-      "43/44"
+      "35/36-37/38-39/40-41/42-43/44"
     ],
-    "PRECO": 65.42
+    "PRECO": 69.5
   },
   {
     "CATEGORIA": "Acessórios",
     "REFERENCIA": "360C",
     "DESCRIÇÃO": "BOTA DE PVC IMPERMEÁVEL - CORES",
     "TAMANHOS": [
-      "35/36",
-      "37/38",
-      "39/40",
-      "41/42",
-      "43/44"
+      "35/36-37/38-39/40-41/42-43/44"
     ],
-    "PRECO": 75.89
+    "PRECO": 79.85
   },
   {
     "CATEGORIA": "Acessórios",
     "REFERENCIA": "370",
     "DESCRIÇÃO": "BOTA DE PVC IMPERMEÁVEL CANO MÉDIO",
     "TAMANHOS": [
-      "35/36",
-      "37/38",
-      "39/40",
-      "41/42",
-      "43/44",
-      "45/46"
+      "35/36-37/38-39/40-41/42-43/44-45/46"
     ],
-    "PRECO": 74.64
-  },
-  {
-    "CATEGORIA": "Acessórios",
-    "REFERENCIA": "380",
-    "DESCRIÇÃO": "BOTA DE COURO CANO CURTO COM ZÍPER - CITY",
-    "TAMANHOS": [
-      "37",
-      "38",
-      "39",
-      "40",
-      "41",
-      "42",
-      "43",
-      "44",
-      "45"
-    ],
-    "PRECO": 427.59
-  },
-  {
-    "CATEGORIA": "Acessórios",
-    "REFERENCIA": "390",
-    "DESCRIÇÃO": "BOTA DE COURO CANO CURTO COM VELCRO E ELÁSTICO - SPEED",
-    "TAMANHOS": [
-      "37",
-      "38",
-      "39",
-      "40",
-      "41",
-      "42",
-      "43",
-      "44",
-      "45"
-    ],
-    "PRECO": 474.32
-  },
-  {
-    "CATEGORIA": "Acessórios",
-    "REFERENCIA": "400",
-    "DESCRIÇÃO": "BOTA DE COURO CANO ALTO COM ZÍPER E IMPERMEÁVEL - DRY",
-    "TAMANHOS": [
-      "37",
-      "38",
-      "39",
-      "40",
-      "41",
-      "42",
-      "43",
-      "44",
-      "45"
-    ],
-    "PRECO": 686.12
+    "PRECO": 79.58
   },
   {
     "CATEGORIA": "Acessórios",
@@ -1588,7 +1771,7 @@
     "TAMANHOS": [
       "ATÉ 125 CILINDRADAS"
     ],
-    "PRECO": 96.81
+    "PRECO": 102.8
   },
   {
     "CATEGORIA": "Acessórios",
@@ -1597,16 +1780,16 @@
     "TAMANHOS": [
       "125 - 150 CILINDRADAS"
     ],
-    "PRECO": 100.03
+    "PRECO": 106.17
   },
   {
     "CATEGORIA": "Acessórios",
     "REFERENCIA": "2412",
     "DESCRIÇÃO": "CAPA DE MOTO PVC FORRADA COM FELTRO - GRANDE",
     "TAMANHOS": [
-      "250 - 450 CILINDRADAS"
+      "250 - 450  CILINDRADAS"
     ],
-    "PRECO": 103.16
+    "PRECO": 109.53
   },
   {
     "CATEGORIA": "Acessórios",
@@ -1615,7 +1798,7 @@
     "TAMANHOS": [
       "450 - 500 - 750 CILINDRADAS"
     ],
-    "PRECO": 108.78
+    "PRECO": 114.58
   },
   {
     "CATEGORIA": "Acessórios",
@@ -1624,7 +1807,7 @@
     "TAMANHOS": [
       "750 - 1200 CILINDRADAS"
     ],
-    "PRECO": 115.15
+    "PRECO": 121.31
   },
   {
     "CATEGORIA": "Acessórios",
@@ -1633,7 +1816,29 @@
     "TAMANHOS": [
       "ACIMA DE 1.200 CILINDRADAS"
     ],
-    "PRECO": 140.08
+    "PRECO": 147.31
+  },
+  {
+    "CATEGORIA": "Acessórios",
+    "REFERENCIA": "2421.1",
+    "DESCRIÇÃO": "POLAINA PVC PREMIUM COM MEIA SOLA VELCRO",
+    "TAMANHOS": [
+      "P",
+      "M",
+      "G"
+    ],
+    "PRECO": 18.33
+  },
+  {
+    "CATEGORIA": "Acessórios",
+    "REFERENCIA": "2422.1",
+    "DESCRIÇÃO": "POLAINA PVC PREMIUM COM SOLA, ZÍPER E VELCRO",
+    "TAMANHOS": [
+      "P",
+      "M",
+      "G"
+    ],
+    "PRECO": 20.28
   },
   {
     "CATEGORIA": "Acessórios",
@@ -1642,7 +1847,7 @@
     "TAMANHOS": [
       "ÚNICO"
     ],
-    "PRECO": 9.84
+    "PRECO": 9.89
   },
   {
     "CATEGORIA": "Acessórios",
@@ -1651,7 +1856,7 @@
     "TAMANHOS": [
       "ÚNICO"
     ],
-    "PRECO": 27.46
+    "PRECO": 27.65
   },
   {
     "CATEGORIA": "Estilo",
@@ -1665,7 +1870,7 @@
       "EX",
       "EXG"
     ],
-    "PRECO": 208.5
+    "PRECO": 209.98
   },
   {
     "CATEGORIA": "Estilo",
@@ -1679,7 +1884,7 @@
       "EX",
       "EXG"
     ],
-    "PRECO": 223.4
+    "PRECO": 224.99
   },
   {
     "CATEGORIA": "Estilo",
@@ -1698,7 +1903,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 180.22
+    "PRECO": 181.85
   },
   {
     "CATEGORIA": "Estilo",
@@ -1717,7 +1922,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 183.09
+    "PRECO": 184.72
   },
   {
     "CATEGORIA": "Estilo",
@@ -1736,7 +1941,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 162.84
+    "PRECO": 160.35
   },
   {
     "CATEGORIA": "Estilo",
@@ -1755,7 +1960,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 164.66
+    "PRECO": 162.2
   },
   {
     "CATEGORIA": "Estilo",
@@ -1774,7 +1979,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 186.58
+    "PRECO": 188.03
   },
   {
     "CATEGORIA": "Estilo",
@@ -1793,7 +1998,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 183.98
+    "PRECO": 185.43
   },
   {
     "CATEGORIA": "Estilo",
@@ -1812,7 +2017,7 @@
       "4G",
       "5G"
     ],
-    "PRECO": 183.46
+    "PRECO": 184.86
   },
   {
     "CATEGORIA": "Estilo",
@@ -1831,6 +2036,159 @@
       "4G",
       "5G"
     ],
-    "PRECO": 179.87
+    "PRECO": 181.27
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "100FT01.02.01",
+    "DESCRIÇÃO": "JAQUETA POLIESTER CORTA VENTO MASCULINA - PRETO COM VERDE",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG"
+    ],
+    "PRECO": 81.33
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "100FT01.02.02",
+    "DESCRIÇÃO": "JAQUETA POLIESTER CORTA VENTO MASCULINA - ESTAMPA CAMUFLADA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG"
+    ],
+    "PRECO": 81.33
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "110FT01.02.03",
+    "DESCRIÇÃO": "JAQUETA POLIESTER CORTA VENTO FEMININA - ROXA E VERDE",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG"
+    ],
+    "PRECO": 78.57
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "110FT01.02.04",
+    "DESCRIÇÃO": "JAQUETA POLIESTER CORTA VENTO FEMININA - ESTAMPA LISTRAS E FLORES",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG"
+    ],
+    "PRECO": 78.53
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "110FT02.03.05",
+    "DESCRIÇÃO": "JAQUETA POLIESTER CORTA VENTO FEMININA - ONÇINHA",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG"
+    ],
+    "PRECO": 88.19
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "120FT03.03.01",
+    "DESCRIÇÃO": "JAQUETA POLIESTER CORTA VENTO INFANTIL - ONCINHA",
+    "TAMANHOS": [
+      "1",
+      "2",
+      "4",
+      "6",
+      "8",
+      "10",
+      "12",
+      "14"
+    ],
+    "PRECO": 63.55
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "120FT03.03.02",
+    "DESCRIÇÃO": "JAQUETA POLIESTER CORTA VENTO INFANTIL - CAMUFLADA",
+    "TAMANHOS": [
+      "1",
+      "2",
+      "4",
+      "6",
+      "8",
+      "10",
+      "12",
+      "14"
+    ],
+    "PRECO": 63.55
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "130",
+    "DESCRIÇÃO": "JAQUETA POLIÉSTER CORTA VENTO MASCULINA - PRETO",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG"
+    ],
+    "PRECO": 57.57
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "140",
+    "DESCRIÇÃO": "JAQUETA POLIÉSTER CORTA VENTO FEMININA - PRETO",
+    "TAMANHOS": [
+      "PP",
+      "P",
+      "M",
+      "G",
+      "GG",
+      "EX",
+      "EXG"
+    ],
+    "PRECO": 56.48
+  },
+  {
+    "CATEGORIA": "Corta Vento",
+    "REFERENCIA": "150",
+    "DESCRIÇÃO": "JAQUETA POLIÉSTER CORTA VENTO INFANTIL - PRETO",
+    "TAMANHOS": [
+      "1",
+      "2",
+      "4",
+      "6",
+      "8",
+      "10",
+      "12",
+      "14"
+    ],
+    "PRECO": 50.79
   }
 ]
