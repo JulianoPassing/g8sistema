@@ -168,9 +168,15 @@ module.exports = async (req, res) => {
           ? parseInt(String(duplicateFromHeader).trim(), 10)
           : NaN;
 
-      // Duplicação pelo botão: copia a linha no MySQL (INSERT…SELECT) — não reenvia JSON enorme
-      // pelo corpo; isso evita timeout de minutos em pedidos grandes (Vercel → banco remoto).
-      if (isDuplicacaoIntentional && Number.isFinite(duplicateFromId) && duplicateFromId > 0) {
+      // Duplicação rápida (INSERT…SELECT) — pula quando o cliente envia dados com preços atualizados.
+      const refreshPricesOnDup =
+        (req.headers['x-duplicate-refresh-prices'] || '').toLowerCase() === 'true';
+      if (
+        isDuplicacaoIntentional &&
+        Number.isFinite(duplicateFromId) &&
+        duplicateFromId > 0 &&
+        !refreshPricesOnDup
+      ) {
         const [srcRows] = await withTimeout(
           connection.execute('SELECT id, empresa, descricao, dados FROM pedidos WHERE id = ? LIMIT 1', [
             duplicateFromId

@@ -1213,7 +1213,176 @@ function atualizarContadorResultados(total) {
 
 let pedidoEditando = null;
 
-// Função para duplicar pedido (cria cópia com novo ID)
+function obterRefItemPedido(item) {
+  return String(item.REFERENCIA || item.REF || item.ref || '').trim();
+}
+
+function mapaProdutosPorRef(produtos) {
+  const mapa = new Map();
+  for (const produto of produtos || []) {
+    const ref = String(produto.REFERENCIA || produto.REF || '').trim();
+    if (!ref) continue;
+    mapa.set(ref, produto);
+    mapa.set(ref.toUpperCase(), produto);
+  }
+  return mapa;
+}
+
+function extrairTokenTamanhoPantaneiro(tamanho) {
+  if (!tamanho) return '';
+  return String(tamanho).split(',')[0].split('-')[0].trim().toUpperCase();
+}
+
+function calcularPrecoPantaneiroDuplicata(precoBase, item) {
+  let preco = Number(precoBase) || 0;
+  const descontoExtra = Number(item.descontoExtra) || 0;
+  if (descontoExtra > 0) preco *= 1 - descontoExtra / 100;
+  const token = extrairTokenTamanhoPantaneiro(item.tamanho);
+  if (['EXG', '2G', '3G'].includes(token)) preco *= 1.15;
+  else if (['4G', '5G'].includes(token)) preco *= 1.4;
+  return Math.round(preco * 100) / 100;
+}
+
+function inferirChavePrecosMultiTabela(produto, precoAntigo) {
+  const precos = produto.PRECOS;
+  if (!precos || typeof precos !== 'object') return null;
+  const alvo = Number(precoAntigo) || 0;
+  let melhorChave = null;
+  let menorDiff = Infinity;
+  for (const [chave, valor] of Object.entries(precos)) {
+    const diff = Math.abs(Number(valor) - alvo);
+    if (diff < menorDiff) {
+      menorDiff = diff;
+      melhorChave = chave;
+    }
+  }
+  if (melhorChave && menorDiff < 0.05) return melhorChave;
+  if (precos.a_vista != null) return 'a_vista';
+  if (precos.p_30_60_90 != null) return 'p_30_60_90';
+  return melhorChave;
+}
+
+function labelBkbParaChavePreco(label) {
+  const texto = String(label || '').toLowerCase();
+  if (texto.includes('distrib')) return 'distribuidor';
+  if (texto.includes('especial')) return 'especial';
+  return 'atacado';
+}
+
+function obterPrecoBaseCatalogo(produto, empresa, item, dadosPedido) {
+  const emp = String(empresa || '').toLowerCase();
+  if (emp.includes('pantaneiro')) {
+    return Number(produto.PRECO) || 0;
+  }
+  if (emp.includes('bkb-fabrica')) {
+    const chave = dadosPedido.tabelaPrecos || labelBkbParaChavePreco(item.tabelaPreco);
+    return Number(produto.PRECOS?.[chave]) || 0;
+  }
+  if (produto.PRECOS) {
+    const chave = inferirChavePrecosMultiTabela(produto, item.preco);
+    return Number(produto.PRECOS[chave]) || 0;
+  }
+  return Number(produto.PRECO) || 0;
+}
+
+function recalcularTotalDadosPedido(dados, empresa) {
+  const itens = dados.itens || [];
+  const descontos = dados.descontos || {};
+  const emp = String(empresa || '').toLowerCase();
+  let subtotal = 0;
+
+  for (const item of itens) {
+    const quantidade = Number(item.quantidade) || 0;
+    const preco = Number(item.preco) || 0;
+    let linha = quantidade * preco;
+    if (emp.includes('steitz') || emp.includes('cesari') || emp.includes('bkb')) {
+      const descontoExtra = Number(item.descontoExtra) || 0;
+      if (descontoExtra > 0) linha *= 1 - descontoExtra / 100;
+    }
+    subtotal += linha;
+  }
+
+  let total = subtotal;
+  if (emp.includes('pantaneiro')) {
+    if (descontos.prazo) total *= 1 - Number(descontos.prazo) / 100;
+    if (descontos.volume) total *= 1 - Number(descontos.volume) / 100;
+  } else if (descontos.extra) {
+    total *= 1 - Number(descontos.extra) / 100;
+  }
+
+  dados.total = Math.round(total * 100) / 100;
+  return dados;
+}
+
+function montarDescricaoPedidoDuplicado(dados, descricaoAntiga) {
+  const cliente =
+    dados.cliente?.razao || dados.cliente?.nome || descricaoAntiga?.match(/Cliente:\s*([^I]+?)(?:\s+Itens:|$)/i)?.[1]?.trim() || 'Cliente';
+  const itensTxt = (dados.itens || [])
+    .map((item) => `${obterRefItemPedido(item)} x${item.quantidade || 0}`)
+    .join(', ');
+  const total = Number(dados.total || 0).toFixed(2);
+  return `Cliente: ${cliente} Itens: ${itensTxt} Total: R$ ${total}`;
+}
+
+async function prepararDadosDuplicacaoComPrecosAtuais(pedido) {
+  const empresa = resolverEmpresaParaEdicao(pedido) || pedido.empresa;
+  let dados = pedido.dados;
+  if (typeof dados === 'string') {
+    try {
+      dados = JSON.parse(dados);
+    } catch {
+      dados = {};
+    }
+  }
+  dados = JSON.parse(JSON.stringify(dados || {}));
+  dados.enviado_producao = 0;
+
+  const produtos = await getProdutosByEmpresa(empresa, true);
+  const mapa = mapaProdutosPorRef(produtos);
+  const emp = String(empresa || '').toLowerCase();
+  let atualizados = 0;
+
+  if (Array.isArray(dados.itens)) {
+    dados.itens = dados.itens.map((item) => {
+      const ref = obterRefItemPedido(item);
+      const produto = mapa.get(ref) || mapa.get(ref.toUpperCase());
+      if (!produto) return item;
+
+      const precoBase = obterPrecoBaseCatalogo(produto, empresa, item, dados);
+      if (!precoBase) return item;
+
+      let novoPreco;
+      if (emp.includes('pantaneiro')) {
+        novoPreco = calcularPrecoPantaneiroDuplicata(precoBase, item);
+      } else if (emp.includes('bkb')) {
+        novoPreco = precoBase;
+        const descontoExtra = Number(item.descontoExtra) || 0;
+        if (descontoExtra > 0) novoPreco *= 1 - descontoExtra / 100;
+        novoPreco = Math.round(novoPreco * 100) / 100;
+      } else {
+        novoPreco = Math.round(precoBase * 100) / 100;
+      }
+
+      if (Math.abs(novoPreco - (Number(item.preco) || 0)) > 0.009) atualizados++;
+      const novoItem = { ...item, preco: novoPreco };
+      if (novoItem.subtotal != null) {
+        novoItem.subtotal = novoPreco * (Number(item.quantidade) || 0);
+      }
+      return novoItem;
+    });
+  }
+
+  recalcularTotalDadosPedido(dados, empresa);
+
+  return {
+    empresa,
+    dados,
+    descricao: montarDescricaoPedidoDuplicado(dados, pedido.descricao),
+    atualizados,
+  };
+}
+
+// Função para duplicar pedido (cria cópia com novo ID e preços da tabela atual)
 window.duplicarPedido = async function(id) {
   try {
     const pedido = todosPedidos.find(p => p.id == id);
@@ -1233,29 +1402,39 @@ window.duplicarPedido = async function(id) {
       botaoDuplicar.innerHTML = '⏳ Duplicando...';
     }
 
-    // A duplicação é feita no servidor (INSERT…SELECT) — corpo mínimo, sem reenviar o JSON
-    // inteiro do pedido (isso ainda dava timeout com pedidos grandes).
+    const prep = await prepararDadosDuplicacaoComPrecosAtuais(pedido);
+
     const resp = await fetch('/api/pedidos', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Duplicate-Pedido': 'true',
-        'X-Duplicate-From-Id': String(id)
+        'X-Duplicate-From-Id': String(id),
+        'X-Duplicate-Refresh-Prices': 'true',
       },
-      body: '{}'
+      body: JSON.stringify({
+        empresa: prep.empresa,
+        descricao: prep.descricao,
+        dados: prep.dados,
+        enviado_producao: 0,
+      }),
     });
 
     if (resp.ok) {
       const resultado = await resp.json();
       const novoId = resultado.id;
+      const detalhePrecos =
+        prep.atualizados > 0
+          ? ` ${prep.atualizados} item(ns) com preço da tabela atual.`
+          : ' Preços já estavam alinhados à tabela.';
 
       if (window.advancedNotifications) {
         advancedNotifications.success(
-          `Pedido #${id} duplicado com sucesso! Novo pedido: #${novoId}`,
-          { title: 'Pedido Duplicado', duration: 4000 }
+          `Pedido #${id} duplicado! Novo pedido: #${novoId}.${detalhePrecos}`,
+          { title: 'Pedido Duplicado', duration: 5000 }
         );
       } else {
-        alert(`✅ Pedido duplicado com sucesso! Novo pedido: #${novoId}`);
+        alert(`✅ Pedido duplicado com sucesso! Novo pedido: #${novoId}.${detalhePrecos}`);
       }
 
       // A duplicação já foi concluída. Se a atualização da lista falhar,
@@ -1421,33 +1600,40 @@ window.excluirPedido = async function(id) {
 // Função para carregar produtos via AJAX
 async function carregarProdutosDaEmpresa(empresa) {
   try {
-    let produtosUrl;
-    if (empresa === 'pantaneiro5' || empresa === 'b2b-pantaneiro5') {
-      produtosUrl = '/prodpantaneiro5.html';
-    } else if (empresa === 'pantaneiro7' || empresa === 'b2b-pantaneiro7') {
-      produtosUrl = '/prodpantaneiro7.html';
-    } else if (empresa === 'steitz' || empresa === 'b2b-steitz') {
-      return produtosSteitzCompletos; // Steitz está definido diretamente
-    } else if (empresa === 'cesari' || empresa === 'b2b-cesari') {
-      return produtosCesariCompletos; // Cesari está definido diretamente
+    const emp = String(empresa || '').toLowerCase();
+
+    if (emp.includes('pantaneiro5')) {
+      const response = await fetch('/produtos-pantaneiro5.json');
+      if (response.ok) return await response.json();
     }
-    
-    if (produtosUrl) {
-      const response = await fetch(produtosUrl);
-      const text = await response.text();
-      
-      // Extrair window.produtosData do arquivo
-      const match = text.match(/window\.produtosData\s*=\s*(\[[\s\S]*?\]);/);
-      if (match) {
-        const produtosData = eval(match[1]);
-        return produtosData;
+    if (emp.includes('pantaneiro7')) {
+      const response = await fetch('/produtos-pantaneiro7.json');
+      if (response.ok) return await response.json();
+    }
+    if (emp.includes('steitz')) {
+      return produtosSteitzCompletos;
+    }
+    if (emp.includes('cesari')) {
+      const response = await fetch('/cesari-produtos-data.js');
+      if (response.ok) {
+        const text = await response.text();
+        const match = text.match(/window\.CESARI_PRODUTOS_DATA\s*=\s*(\[[\s\S]*?\]);/);
+        if (match) return eval(match[1]);
+      }
+      return produtosCesariCompletos;
+    }
+    if (emp.includes('bkb-fabrica')) {
+      const response = await fetch('/bkb-fabrica-produtos.js');
+      if (response.ok) {
+        const text = await response.text();
+        const match = text.match(/window\.produtosData\s*=\s*(\[[\s\S]*?\]);/);
+        if (match) return eval(match[1]);
       }
     }
   } catch (error) {
     console.error('Erro ao carregar produtos:', error);
   }
-  
-  // Fallback para produtos básicos se não conseguir carregar
+
   return getProdutosFallback(empresa);
 }
 
@@ -1639,18 +1825,13 @@ let cachesProdutos = {};
 // Variável global para tabela de preços selecionada (Steitz)
 let tabelaPrecosSelecionada = 'a_vista';
 
-async function getProdutosByEmpresa(empresa) {
-  // Verificar se já está no cache
-  if (cachesProdutos[empresa]) {
+async function getProdutosByEmpresa(empresa, forceRefresh) {
+  if (!forceRefresh && cachesProdutos[empresa]) {
     return cachesProdutos[empresa];
   }
-  
-  // Carregar produtos da empresa
+
   const produtos = await carregarProdutosDaEmpresa(empresa);
-  
-  // Salvar no cache
   cachesProdutos[empresa] = produtos;
-  
   return produtos;
 }
 
