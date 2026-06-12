@@ -169,6 +169,23 @@
     }
   }
 
+  function enrichirMedidaDoCatalogo(ref) {
+    const refStr = String(ref || '').trim();
+    if (!refStr) return '';
+    const listas = [
+      window.CESARI_PRODUTOS_DATA,
+      window.produtosData,
+      window.steitzProdutosData,
+    ].filter(Array.isArray);
+    for (let i = 0; i < listas.length; i++) {
+      const p = listas[i].find(
+        (x) => String(x.REF || x.REFERENCIA || '') === refStr
+      );
+      if (p) return p.TAM || p.medida || p.tamanho || '';
+    }
+    return '';
+  }
+
   function carregarItensPedido(pedido) {
     const itens = pedido.dados?.itens || [];
     // Limpar itens atuais do pedido
@@ -180,16 +197,29 @@
     // Adiciona todos os itens diretamente ao array, sem depender do DOM
     itens.forEach((item) => {
       // Manter compatibilidade com ambos os formatos (steitz.html usa REF/MODELO, outros usam REFERENCIA/DESCRIÇÃO)
+      const refItem = (item.REF || item.REFERENCIA || '').toString();
+      let medidaItem = item.medida || item.TAM || item.tamanho || '';
+      if (!medidaItem) {
+        medidaItem = enrichirMedidaDoCatalogo(refItem);
+      }
       const novoItem = {
         // Campos para steitz.html e b2b-steitz.html
-        REF: (item.REF || item.REFERENCIA || '').toString(),
+        REF: refItem,
         MODELO: (item.MODELO || item.DESCRIÇÃO || '').toString(),
         // Campos para outros sistemas
-        REFERENCIA: (item.REFERENCIA || item.REF || '').toString(),
+        REFERENCIA: (item.REFERENCIA || item.REF || refItem).toString(),
         DESCRIÇÃO: (item.DESCRIÇÃO || item.MODELO || '').toString(),
-        tamanho: item.tamanho || '',
+        medida: medidaItem,
+        TAM: item.TAM || medidaItem,
+        tamanho: item.tamanho || medidaItem,
         cor: item.cor || '',
         tabelaPreco: item.tabelaPreco || '',
+        precoBase:
+          item.precoBase != null && Number(item.precoBase) > 0
+            ? Number(item.precoBase)
+            : (typeof window.g8InferirPrecoBaseItem === 'function'
+                ? window.g8InferirPrecoBaseItem(item)
+                : Number(item.preco) || 0),
         preco: typeof item.preco === 'number' ? item.preco : Number(item.preco) || 0,
         quantidade: item.quantidade || 1,
         descontoExtra: item.descontoExtra || 0
@@ -445,20 +475,26 @@
           return {
             REF: ref,
             MODELO: modelo,
-            tamanho: item.tamanho || '',
-            cor: item.cor || '',
-            quantidade: item.quantidade || 1,
-            preco: item.preco || item.produto.preco || item.produto.PRECO || 0,
-            descontoExtra: item.descontoExtra || 0
+          tamanho: item.tamanho || item.medida || item.TAM || '',
+          medida: item.medida || item.TAM || item.tamanho || '',
+          TAM: item.TAM || item.medida || item.tamanho || '',
+          cor: item.cor || '',
+          quantidade: item.quantidade || 1,
+          precoBase: item.precoBase || item.preco || 0,
+          preco: item.preco || item.produto.preco || item.produto.PRECO || 0,
+          descontoExtra: item.descontoExtra || 0
           };
         }
         return {
           REF: ref,
           MODELO: modelo,
-          tamanho: item.tamanho || '',
+          tamanho: item.tamanho || item.medida || item.TAM || '',
+          medida: item.medida || item.TAM || item.tamanho || '',
+          TAM: item.TAM || item.medida || item.tamanho || '',
           cor: item.cor || '',
           tabelaPreco: item.tabelaPreco || '',
           quantidade: item.quantidade || 1,
+          precoBase: item.precoBase || item.preco || 0,
           preco: item.preco || 0,
           descontoExtra: item.descontoExtra || 0
         };

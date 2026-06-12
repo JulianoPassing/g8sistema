@@ -1099,6 +1099,7 @@
       © 2025 J.P. Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
     </footer>
 
+    <script src="g8-pedido-linha-ui.js"></script>
     <script>
       let clientesCadastrados = [];
       let produtosSelecionados = [];
@@ -1332,9 +1333,13 @@
                 <h4>${produto.MODELO || ""}</h4>
                 <small>Tabela: ${tabTitulo}</small>
               </div>
+              <div class="produto-preco-edit-mobile" style="margin: 8px 0;">
+                <label>Preço un. (R$):</label>
+                <input type="text" inputmode="decimal" class="input-price-pedido input-mobile-mini" id="preco-base-mobile-${produto.REF}" value="${preco.toFixed(2).replace(".", ",")}">
+              </div>
               <div class="produto-tamanhos-mobile">
                 <label>Desc. extra (%):</label>
-                <input type="number" min="0" value="0" class="desconto-input input-mobile-mini" id="desconto-mobile-${produto.REF}">
+                <input type="text" inputmode="decimal" class="desconto-input input-discount-pedido input-mobile-mini" id="desconto-mobile-${produto.REF}" value="0">
               </div>
               <div class="produto-cor-mobile">
                 <label>Quantidade:</label>
@@ -1372,10 +1377,10 @@
 
           const section = document.createElement("section");
           section.className = "card";
-          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><p class="catalogo-tabela-aviso">Preços na tabela <strong>${tabTitulo}</strong></p><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>PREÇO</th><th>Desc. extra %</th><th>QTD</th><th>Ação</th></tr></thead><tbody>`;
+          let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><p class="catalogo-tabela-aviso">Preços na tabela <strong>${tabTitulo}</strong></p><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>Preço un. (R$)</th><th>Desc. extra %</th><th>QTD</th><th>Ação</th></tr></thead><tbody>`;
           comPreco.forEach((produto) => {
             const preco = precoNaTabela(produto);
-            tabelaHTML += `<tr><td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td>R$ ${preco.toFixed(2)}</td><td class="table-discount-cell"><input type="number" min="0" value="0" class="desconto-input input-mini" id="desconto-${produto.REF}"></td><td class="table-qty-cell"><input type="number" min="0" value="" placeholder="0" class="input-qty-mini" id="qty-${produto.REF}"></td><td class="table-action-cell"><button type="button" data-ref="${produto.REF}" class="btn btn-success btn-sm table-action-btn">Adicionar</button></td></tr>`;
+            tabelaHTML += `<tr><td>${produto.REF}</td><td>${produto.MODELO || ""}</td><td><input type="text" inputmode="decimal" class="input-price-pedido preco-base-input" id="preco-base-${produto.REF}" value="${preco.toFixed(2).replace(".", ",")}"></td><td class="table-discount-cell"><input type="text" inputmode="decimal" class="desconto-input input-discount-pedido" id="desconto-${produto.REF}" value="0"></td><td class="table-qty-cell"><input type="number" min="0" value="" placeholder="0" class="input-qty-mini" id="qty-${produto.REF}"></td><td class="table-action-cell"><button type="button" data-ref="${produto.REF}" class="btn btn-success btn-sm table-action-btn">Adicionar</button></td></tr>`;
           });
           tabelaHTML += `</tbody></table></div>`;
           section.innerHTML = tabelaHTML;
@@ -1389,8 +1394,13 @@
       function adicionarAoPedidoMobile(ref) {
         const produto = window.produtosData.find((p) => p.REF === ref);
         if (!produto) return;
-        const precoUnitarioBase = precoNaTabela(produto);
-        const descontoExtra = parseFloat(document.getElementById(`desconto-mobile-${ref}`)?.value) || 0;
+        const precoUnitarioBase =
+          (typeof g8LerPrecoBaseInput === "function" && g8LerPrecoBaseInput(`preco-base-mobile-${ref}`)) ||
+          precoNaTabela(produto);
+        const descontoExtra =
+          typeof g8LerDescontoInput === "function"
+            ? g8LerDescontoInput(`desconto-mobile-${ref}`)
+            : parseFloat(document.getElementById(`desconto-mobile-${ref}`)?.value) || 0;
         const quantidade = parseInt(document.getElementById(`qty-mobile-${ref}`)?.value, 10) || 0;
         const tabLabel = labelTabelaPreco();
         if (quantidade <= 0) {
@@ -1401,7 +1411,7 @@
           alert("Preço inválido para esta tabela.");
           return;
         }
-        const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+        const precoFinal = Math.round(precoUnitarioBase * (1 - descontoExtra / 100) * 100) / 100;
         const itemExistente = window.pedidoItens.find(
           (item) => item.REF === ref && item.preco === precoFinal && item.descontoExtra === descontoExtra && item.tabelaPreco === tabLabel
         );
@@ -1414,6 +1424,7 @@
             medida: "—",
             tabelaPreco: tabLabel,
             quantidade,
+            precoBase: precoUnitarioBase,
             preco: precoFinal,
             descontoExtra,
           });
@@ -1429,8 +1440,13 @@
           alert("Erro: Produto não encontrado.");
           return;
         }
-        const precoUnitarioBase = precoNaTabela(produto);
-        const descontoExtra = parseFloat(document.getElementById(`desconto-${ref}`).value) || 0;
+        const precoUnitarioBase =
+          (typeof g8LerPrecoBaseInput === "function" && g8LerPrecoBaseInput(`preco-base-${ref}`)) ||
+          precoNaTabela(produto);
+        const descontoExtra =
+          typeof g8LerDescontoInput === "function"
+            ? g8LerDescontoInput(`desconto-${ref}`)
+            : parseFloat(document.getElementById(`desconto-${ref}`).value) || 0;
         const quantidade = parseInt(document.getElementById(`qty-${ref}`).value, 10) || 0;
         const tabLabel = labelTabelaPreco();
         if (quantidade <= 0) {
@@ -1441,7 +1457,7 @@
           alert("Preço inválido para esta tabela.");
           return;
         }
-        const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+        const precoFinal = Math.round(precoUnitarioBase * (1 - descontoExtra / 100) * 100) / 100;
         const itemExistente = window.pedidoItens.find(
           (item) => item.REF === ref && item.preco === precoFinal && item.descontoExtra === descontoExtra && item.tabelaPreco === tabLabel
         );
@@ -1454,6 +1470,7 @@
             medida: "—",
             tabelaPreco: tabLabel,
             quantidade,
+            precoBase: precoUnitarioBase,
             preco: precoFinal,
             descontoExtra,
           });
@@ -1463,36 +1480,11 @@
         atualizarVisualizacaoPedido();
       }
 
-      window.alterarQuantidadeItem = function (index, novaQuantidade) {
-        const quantidade = parseInt(novaQuantidade, 10);
-        if (quantidade < 1) {
-          alert("A quantidade deve ser pelo menos 1.");
-          return;
-        }
-        if (window.pedidoItens[index]) {
-          window.pedidoItens[index].quantidade = quantidade;
-          atualizarVisualizacaoPedido();
-        }
-      };
-
       function removerDoPedido(index) {
         window.pedidoItens.splice(index, 1);
         atualizarVisualizacaoPedido();
       }
       window.removerDoPedido = removerDoPedido;
-
-      function alterarPrecoItem(index, novoPreco) {
-        const preco = parseFloat(String(novoPreco).replace(",", "."));
-        if (isNaN(preco) || preco < 0) {
-          alert("Informe um valor válido para o preço.");
-          return;
-        }
-        if (window.pedidoItens[index]) {
-          window.pedidoItens[index].preco = preco;
-          atualizarVisualizacaoPedido();
-        }
-      }
-      window.alterarPrecoItem = alterarPrecoItem;
 
       function totaisPedidoB2B() {
         let sub = 0;
@@ -1518,10 +1510,14 @@
           window.pedidoItens.forEach((item, index) => {
             const itemDiv = document.createElement("div");
             itemDiv.className = "pedido-item";
-            const precoTotalItem = item.preco * item.quantidade;
-            subtotalPedido += precoTotalItem;
+            subtotalPedido += typeof g8TotalLinhaItem === "function" ? g8TotalLinhaItem(item) : item.preco * item.quantidade;
             const medidaTxt = item.tabelaPreco || item.medida || item.tamanho || "—";
-            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${item.MODELO || "Produto"} (Ref: ${item.REF || "N/A"})</strong><br><small>Tabela: ${medidaTxt} | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" onchange="alterarQuantidadeItem(${index}, this.value)" class="input-qty-mini"> | Unit: R$ <input type="number" step="0.01" min="0" value="${(item.preco || 0).toFixed(2)}" onchange="alterarPrecoItem(${index}, this.value)" class="input-mini input-price-mini">${item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""} | Total: R$ ${precoTotalItem.toFixed(2)}</small></div><button type="button" class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            itemDiv.innerHTML = g8HtmlLinhaPedidoItem({
+              index,
+              item,
+              titulo: `${item.MODELO || "Produto"} (Ref: ${item.REF || "N/A"})`,
+              detalhe: `Tabela: ${medidaTxt}`,
+            });
             pedidoItensLista.appendChild(itemDiv);
           });
         } else {

@@ -358,6 +358,75 @@ main.container {
   text-align: right !important;
 }
 
+.input-price-pedido {
+  width: 120px !important;
+  min-width: 120px;
+  height: 30px;
+  padding: 4px 8px;
+  text-align: right;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  font-size: 0.85rem;
+}
+
+.input-discount-pedido {
+  width: 72px !important;
+  min-width: 72px;
+  height: 30px;
+  padding: 4px 6px;
+  text-align: center;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  font-size: 0.85rem;
+}
+
+.pedido-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 8px;
+  font-size: 0.88rem;
+  color: #475569;
+}
+
+.pedido-item-campo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.pedido-item-detalhe {
+  font-weight: 600;
+  color: #334155;
+  margin-right: 4px;
+}
+
+.pedido-item-total {
+  font-weight: 700;
+  color: #0f766e;
+  white-space: nowrap;
+}
+
+.pedido-item .pedido-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .pedido-item-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .input-price-pedido {
+    width: 100% !important;
+    max-width: 140px;
+  }
+}
+
 .input-mobile-mini {
   width: 100%;
   max-width: 120px;

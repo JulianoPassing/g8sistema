@@ -925,6 +925,7 @@
       © 2025 J.P. Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
     </footer>
 
+    <script src="g8-pedido-linha-ui.js"></script>
     <script>
       // Script para carregar dados dos clientes da API
       let clientesCadastrados = [];
@@ -1154,11 +1155,18 @@
               mobileCard.innerHTML = `
                 <div class="produto-header-mobile">
                   <div class="produto-ref-mobile">${produto.REF}</div>
-                  <div class="produto-preco-mobile">R$ ${preco.toFixed(2)}</div>
                 </div>
                 <div class="produto-descricao-mobile">
                   <h4>${produto.MODELO}</h4>
                   <small>${produto.TAM}</small>
+                </div>
+                <div class="produto-tamanhos-mobile">
+                  <label>Preço un. (R$):</label>
+                  <input type="text" inputmode="decimal" class="input-price-pedido input-mobile-mini" id="preco-base-mobile-${produto.REF}" value="${preco.toFixed(2).replace(".", ",")}">
+                </div>
+                <div class="produto-tamanhos-mobile">
+                  <label>Desc. extra (%):</label>
+                  <input type="text" inputmode="decimal" class="desconto-input input-discount-pedido input-mobile-mini" id="desconto-mobile-${produto.REF}" value="0">
                 </div>
                 <div class="produto-tamanhos-mobile">
                   <label>Tamanhos & Quantidades:</label>
@@ -1194,9 +1202,11 @@
             // Desktop row
             row.innerHTML = `<td>${produto.REF}</td><td>${
               produto.MODELO
-            }</td><td>R$ ${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${
+            }</td><td><input type="text" inputmode="decimal" class="input-price-pedido preco-base-input" id="preco-base-${
               produto.REF
-            }" style="width: 70px;"></td><td style="width: 30%;">${tamanhosHtml}</td><td style="width: 15%;"><input type="text" class="manual-input" id="cor-${
+            }" value="${preco.toFixed(2).replace(".", ",")}"></td><td><input type="text" inputmode="decimal" class="desconto-input input-discount-pedido" id="desconto-${
+              produto.REF
+            }" value="0"></td><td style="width: 30%;">${tamanhosHtml}</td><td style="width: 15%;"><input type="text" class="manual-input" id="cor-${
               produto.REF
             }" placeholder="Opcional"></td><td><button data-ref="${
               produto.REF
@@ -1218,7 +1228,13 @@
         const corInput = document.getElementById(`cor-mobile-${ref}`);
         const cor = corInput ? corInput.value.trim() : '';
         const tabelaSelecionada = tabelaPrecosSelect.value;
-        const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
+        const precoUnitarioBase =
+          (typeof g8LerPrecoBaseInput === "function" && g8LerPrecoBaseInput(`preco-base-mobile-${ref}`)) ||
+          produto.PRECOS[tabelaSelecionada];
+        const descontoExtra =
+          typeof g8LerDescontoInput === "function"
+            ? g8LerDescontoInput(`desconto-mobile-${ref}`)
+            : parseFloat(document.getElementById(`desconto-mobile-${ref}`)?.value) || 0;
         let itensAdicionados = 0;
         const tamanhosRange = parseTamanhoRange(produto.TAM);
         
@@ -1227,38 +1243,41 @@
             const quantidade = parseInt(document.getElementById(`qty-mobile-${ref}-${tamanho}`).value) || 0;
             if (quantidade > 0) {
               itensAdicionados++;
-              const item = {
+              const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+              window.pedidoItens.push({
                 REF: produto.REF,
                 MODELO: produto.MODELO,
-                preco: precoUnitarioBase,
+                precoBase: precoUnitarioBase,
+                preco: precoFinal,
                 tamanho: tamanho,
                 quantidade: quantidade,
-                cor: cor,
-                subtotal: precoUnitarioBase * quantidade,
-                descontoExtra: 0
-              };
-              window.pedidoItens.push(item);
+                cor: cor || "-",
+                descontoExtra: descontoExtra,
+              });
             }
           });
         } else {
           const tamanhosManual = document.getElementById(`tamanhos-manual-mobile-${ref}`).value.trim();
           if (tamanhosManual) {
             itensAdicionados++;
-            const item = {
+            const precoFinal = precoUnitarioBase * (1 - descontoExtra / 100);
+            window.pedidoItens.push({
               REF: produto.REF,
               MODELO: produto.MODELO,
-              preco: precoUnitarioBase,
+              precoBase: precoUnitarioBase,
+              preco: precoFinal,
               tamanho: tamanhosManual,
               quantidade: 1,
-              cor: cor,
-              subtotal: precoUnitarioBase,
-              descontoExtra: 0
-            };
-            window.pedidoItens.push(item);
+              cor: cor || "-",
+              descontoExtra: descontoExtra,
+            });
           }
         }
         
         if (itensAdicionados > 0) {
+          if (document.getElementById(`desconto-mobile-${ref}`)) {
+            document.getElementById(`desconto-mobile-${ref}`).value = 0;
+          }
           atualizarVisualizacaoPedido();
           // Produto adicionado com sucesso
           // Limpar campos mobile
@@ -1281,8 +1300,13 @@
         if (!produto) return;
         const cor = document.getElementById(`cor-${ref}`).value.trim();
         const tabelaSelecionada = tabelaPrecosSelect.value;
-        const precoUnitarioBase = produto.PRECOS[tabelaSelecionada];
-        const descontoExtra = parseFloat(document.getElementById(`desconto-${ref}`).value) || 0;
+        const precoUnitarioBase =
+          (typeof g8LerPrecoBaseInput === "function" && g8LerPrecoBaseInput(`preco-base-${ref}`)) ||
+          produto.PRECOS[tabelaSelecionada];
+        const descontoExtra =
+          typeof g8LerDescontoInput === "function"
+            ? g8LerDescontoInput(`desconto-${ref}`)
+            : parseFloat(document.getElementById(`desconto-${ref}`).value) || 0;
         let itensAdicionados = 0;
         const tamanhosRange = parseTamanhoRange(produto.TAM);
         if (tamanhosRange) {
@@ -1310,6 +1334,7 @@
                   tamanho: tamanho,
                   quantidade: quantidade,
                   cor: cor || "-",
+                  precoBase: precoUnitarioBase,
                   preco: precoFinal,
                   descontoExtra: descontoExtra,
                 });
@@ -1341,6 +1366,7 @@
                   tamanho: itemGrade.tamanho,
                   quantidade: itemGrade.quantidade,
                   cor: cor || "-",
+                  precoBase: precoUnitarioBase,
                   preco: precoFinal,
                   descontoExtra: descontoExtra,
                 });
@@ -1386,7 +1412,6 @@
       function atualizarVisualizacaoPedido() {
         pedidoContainer.innerHTML = "";
         let subtotalPedido = 0;
-        // Garante que window.pedidoItens sempre seja um array
         if (!Array.isArray(window.pedidoItens)) {
           window.pedidoItens = [];
         }
@@ -1395,23 +1420,14 @@
           window.pedidoItens.forEach((item, index) => {
             const itemDiv = document.createElement("div");
             itemDiv.classList.add("pedido-item");
-            const precoTotalItem = item.preco * item.quantidade;
-            subtotalPedido += precoTotalItem;
-            // Log para debug
-            console.log('Renderizando item do pedido Steitz:', index, item);
-            
-            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${
-              item.MODELO || item.DESCRIÇÃO || 'Produto'
-            }</strong> (Ref: ${item.REF || item.REFERENCIA || 'N/A'})<br><small>Tam: <strong>${
-              item.tamanho || 'N/A'
-            }</strong> | Cor: <strong>${item.cor || '-'}</strong> | Qtd: <input type="number" min="1" value="${item.quantidade || 0}" 
-            onchange="alterarQuantidadeItem(${index}, this.value)" 
-            style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> 
-            | Unit: R$ ${(item.preco || 0).toFixed(2)}${
-              item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
-            } | Total: <strong>R$ ${precoTotalItem.toFixed(
-              2
-            )}</strong></small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            subtotalPedido += typeof g8TotalLinhaItem === "function" ? g8TotalLinhaItem(item) : item.preco * item.quantidade;
+            const detalhe = `Tam: ${item.tamanho || "N/A"} | Cor: ${item.cor || "-"}`;
+            itemDiv.innerHTML = g8HtmlLinhaPedidoItem({
+              index,
+              item,
+              titulo: `${item.MODELO || item.DESCRIÇÃO || "Produto"} (Ref: ${item.REF || item.REFERENCIA || "N/A"})`,
+              detalhe,
+            });
             pedidoContainer.appendChild(itemDiv);
           });
         } else {

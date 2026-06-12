@@ -950,6 +950,7 @@
     <footer>
       © 2025 J.P. Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
     </footer>
+    <script src="g8-pedido-linha-ui.js"></script>
     <script>
 // ========== INÍCIO DA LISTA DE PRODUTOS ATUALIZADA ==========
 window.produtosData = [
@@ -3240,9 +3241,24 @@ window.produtosData = [
         const fallback =
           typeof produto.PRECO === 'number' ? produto.PRECO : Number(produto.PRECO) || 0;
         if (!el) return fallback;
-        const v = parseFloat(String(el.value).replace(',', '.'));
+        const parseFn =
+          typeof g8ParseNumeroEntrada === 'function'
+            ? g8ParseNumeroEntrada
+            : (v) => parseFloat(String(v).replace(',', '.'));
+        const v = parseFn(el.value);
         if (isNaN(v) || v < 0) return fallback;
         return v;
+      }
+
+      function obterDescontoDigitadoPantaneiro(produto) {
+        const ref = produto.REFERENCIA || '';
+        const el =
+          document.getElementById('desconto-' + ref) ||
+          document.getElementById('desconto-mobile-' + ref);
+        if (!el) return 0;
+        return typeof g8ParseDescontoPercent === 'function'
+          ? g8ParseDescontoPercent(el.value)
+          : parseFloat(String(el.value).replace(',', '.')) || 0;
       }
 
       function adicionarAoPedidoMobile(produto) {
@@ -3251,6 +3267,7 @@ window.produtosData = [
         produto.DESCRIÇÃO = produto.DESCRIÇÃO || '';
         produto.PRECO = typeof produto.PRECO === 'number' ? produto.PRECO : Number(produto.PRECO) || 0;
         const precoBaseRef = obterPrecoBaseDigitadoPantaneiro(produto);
+        const descontoExtra = obterDescontoDigitadoPantaneiro(produto);
         const corInput = document.getElementById(`cor-mobile-${produto.REFERENCIA}`);
         const corSelecionada = corInput ? corInput.value.trim() : '';
         let itemAdicionado = false;
@@ -3259,6 +3276,9 @@ window.produtosData = [
           itemAdicionado = true;
           const tamanhoNormalizado = tamanho.split("-")[0].trim().toUpperCase();
           let precoFinal = precoBaseRef;
+          if (descontoExtra > 0) {
+            precoFinal *= 1 - descontoExtra / 100;
+          }
 
           // Aplicar ajuste de preço por tamanho
           if (["EXG", "2G", "3G"].includes(tamanhoNormalizado))
@@ -3273,7 +3293,8 @@ window.produtosData = [
             quantidade: quantidade,
             cor: corSelecionada,
             subtotal: precoFinal * quantidade,
-            descontoExtra: 0
+            descontoExtra: descontoExtra,
+            precoBase: precoBaseRef,
           };
           window.pedidoItens.push(item);
         };
@@ -3339,9 +3360,13 @@ window.produtosData = [
           .getElementById(`cor-${produto.REFERENCIA}`)
           .value.trim();
         const descontoExtra =
-          parseFloat(
-            document.getElementById(`desconto-${produto.REFERENCIA}`).value
-          ) || 0;
+          typeof g8ParseDescontoPercent === "function"
+            ? g8ParseDescontoPercent(
+                document.getElementById(`desconto-${produto.REFERENCIA}`).value
+              )
+            : parseFloat(
+                document.getElementById(`desconto-${produto.REFERENCIA}`).value
+              ) || 0;
         const precoBaseRef = obterPrecoBaseDigitadoPantaneiro(produto);
         let itemAdicionado = false;
         const handleItem = (tamanho, quantidade) => {
@@ -3370,6 +3395,7 @@ window.produtosData = [
               REFERENCIA: produto.REFERENCIA,
               DESCRIÇÃO: produto.DESCRIÇÃO,
               tamanho: itemDesc,
+              precoBase: precoFinal,
               preco: precoFinal,
               quantidade: quantidade,
               descontoExtra: descontoExtra,
@@ -3421,34 +3447,9 @@ window.produtosData = [
         atualizarVisualizacaoPedido();
       }
       
-      function alterarQuantidadeItem(index, novaQuantidade) {
-        const quantidade = parseInt(novaQuantidade);
-        if (quantidade < 1) {
-          alert('A quantidade deve ser pelo menos 1.');
-          return;
-        }
-        if (window.pedidoItens[index]) {
-          window.pedidoItens[index].quantidade = quantidade;
-          atualizarVisualizacaoPedido();
-        }
-      }
-
-      function alterarPrecoUnitarioItem(index, valor) {
-        const p = parseFloat(String(valor).replace(',', '.'));
-        if (isNaN(p) || p < 0) {
-          alert('Preço unitário inválido.');
-          atualizarVisualizacaoPedido();
-          return;
-        }
-        if (window.pedidoItens[index]) {
-          window.pedidoItens[index].preco = p;
-          atualizarVisualizacaoPedido();
-        }
-      }
       function atualizarVisualizacaoPedido() {
         pedidoContainer.innerHTML = "";
         subtotalPedido = 0;
-        // Garante que window.pedidoItens sempre seja um array
         if (!Array.isArray(window.pedidoItens)) {
           window.pedidoItens = [];
         }
@@ -3457,20 +3458,15 @@ window.produtosData = [
           window.pedidoItens.forEach((item, index) => {
             const itemDiv = document.createElement("div");
             itemDiv.className = "pedido-item";
-            const precoTotalItem = item.preco * item.quantidade;
-            subtotalPedido += precoTotalItem;
-            itemDiv.innerHTML = `<div class="pedido-item-info"><strong>${
-              item.DESCRIÇÃO
-            } (Ref: ${item.REFERENCIA})</strong><br><small>Tamanho/Cor: ${
-              item.tamanho + (item.cor ? `, Cor: ${item.cor}` : '')
-            } | Qtd: <input type="number" min="1" value="${item.quantidade}" 
-            onchange="alterarQuantidadeItem(${index}, this.value)" 
-            style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;"> 
-            | Unit: R$ <input type="number" step="0.01" min="0" value="${Number(item.preco).toFixed(2)}" onchange="alterarPrecoUnitarioItem(${index}, this.value)" style="width: 88px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.9rem;">${
-              item.descontoExtra > 0 ? ` (Desc: ${item.descontoExtra}%)` : ""
-            } | Total: R$ ${precoTotalItem.toFixed(
-              2
-            )}</small></div><button class="btn btn-danger" onclick="removerDoPedido(${index})">Remover</button>`;
+            subtotalPedido += typeof g8TotalLinhaItem === "function" ? g8TotalLinhaItem(item) : item.preco * item.quantidade;
+            const detalhe =
+              (item.tamanho || "") + (item.cor ? `, Cor: ${item.cor}` : "");
+            itemDiv.innerHTML = g8HtmlLinhaPedidoItem({
+              index,
+              item,
+              titulo: `${item.DESCRIÇÃO} (Ref: ${item.REFERENCIA})`,
+              detalhe: detalhe ? `Tamanho/Cor: ${detalhe}` : "",
+            });
             pedidoContainer.appendChild(itemDiv);
           });
         } else {
@@ -4059,9 +4055,11 @@ window.produtosData = [
                 </div>
                 <div class="produto-preco-edit-mobile" style="margin: 8px 0;">
                   <label style="display:block;font-size:0.9rem;margin-bottom:4px;">Preço unit. (R$)</label>
-                  <input type="number" step="0.01" min="0" id="preco-base-mobile-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2)}" style="width:100%;max-width:160px;padding:8px;" title="Valor unitário neste pedido">
+                  <input type="text" inputmode="decimal" class="input-price-pedido preco-base-input" id="preco-base-mobile-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2).replace(".", ",")}" style="width:100%;max-width:160px;padding:8px;" title="Valor unitário neste pedido">
                 </div>
-                <div class="produto-tamanhos-mobile">
+                <div class="produto-tamanhos-mobile" style="margin: 8px 0;">
+                  <label style="display:block;font-size:0.9rem;margin-bottom:4px;">Desc. extra (%)</label>
+                  <input type="text" inputmode="decimal" class="desconto-input input-discount-pedido" id="desconto-mobile-${produto.REFERENCIA}" value="0">
                   <label>Tamanhos & Quantidades:</label>
                   ${tamanhosMobileHTML}
                 </div>
@@ -4109,7 +4107,7 @@ window.produtosData = [
               });
             }
             tamanhosInputHTML += "</div>";
-            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td><small style="color: #6c757d;">Tabela: R$ ${produto.PRECO.toFixed(2)}</small><br><input type="number" step="0.01" min="0" class="preco-base-input" id="preco-base-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2)}" title="Valor unitário neste pedido (antes do ajuste por tamanho)" style="width: 96px;"></td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+            tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td><small style="color: #6c757d;">Tabela: R$ ${produto.PRECO.toFixed(2)}</small><br><input type="text" inputmode="decimal" class="preco-base-input input-price-pedido" id="preco-base-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2).replace(".", ",")}" title="Valor unitário neste pedido (antes do ajuste por tamanho)"></td><td><input type="text" inputmode="decimal" class="desconto-input input-discount-pedido" id="desconto-${produto.REFERENCIA}" value="0"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
             tabelaHTML += `</tbody></table></div>`;
             categoriaDiv.innerHTML = tabelaHTML;
             produtosContainer.appendChild(categoriaDiv);
@@ -4177,7 +4175,11 @@ window.produtosData = [
                   </div>
                   <div class="produto-preco-edit-mobile" style="margin: 8px 0;">
                     <label style="display:block;font-size:0.9rem;margin-bottom:4px;">Preço unit. (R$)</label>
-                    <input type="number" step="0.01" min="0" id="preco-base-mobile-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2)}" style="width:100%;max-width:160px;padding:8px;" title="Valor unitário neste pedido">
+                    <input type="text" inputmode="decimal" class="input-price-pedido preco-base-input" id="preco-base-mobile-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2).replace(".", ",")}" style="width:100%;max-width:160px;padding:8px;" title="Valor unitário neste pedido">
+                  </div>
+                  <div class="produto-tamanhos-mobile" style="margin: 8px 0;">
+                    <label style="display:block;font-size:0.9rem;margin-bottom:4px;">Desc. extra (%)</label>
+                    <input type="text" inputmode="decimal" class="desconto-input input-discount-pedido" id="desconto-mobile-${produto.REFERENCIA}" value="0">
                   </div>
                   <div class="produto-tamanhos-mobile">
                     <label>Tamanhos & Quantidades:</label>
@@ -4232,7 +4234,7 @@ window.produtosData = [
               tamanhosInputHTML += "</div>";
               
               // Desktop tabela
-              tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td><small style="color: #6c757d;">Tabela: R$ ${produto.PRECO.toFixed(2)}</small><br><input type="number" step="0.01" min="0" class="preco-base-input" id="preco-base-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2)}" title="Valor unitário neste pedido (antes do ajuste por tamanho)" style="width: 96px;"></td><td><input type="number" min="0" value="0" class="desconto-input" id="desconto-${produto.REFERENCIA}" style="width: 70px;"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
+              tabelaHTML += `<tr><td>${produto.REFERENCIA}</td><td>${produto.DESCRIÇÃO}<br><small style="color: #6c757d;">${Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS.join(" / ") : produto.TAMANHOS}</small></td><td><small style="color: #6c757d;">Tabela: R$ ${produto.PRECO.toFixed(2)}</small><br><input type="text" inputmode="decimal" class="preco-base-input input-price-pedido" id="preco-base-${produto.REFERENCIA}" value="${(Number(produto.PRECO) || 0).toFixed(2).replace(".", ",")}" title="Valor unitário neste pedido (antes do ajuste por tamanho)"></td><td><input type="text" inputmode="decimal" class="desconto-input input-discount-pedido" id="desconto-${produto.REFERENCIA}" value="0"></td><td>${tamanhosInputHTML}</td><td><input type="text" placeholder="Opcional" id="cor-${produto.REFERENCIA}" style="width: 100px;"></td><td><button class="btn btn-success btn-sm" onclick='adicionarAoPedido(${JSON.stringify(produto)})'>Adicionar</button></td></tr>`;
             });
             
             tabelaHTML += `</tbody></table></div>`;
