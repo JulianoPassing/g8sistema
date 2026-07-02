@@ -3514,8 +3514,8 @@ window.produtosData = [
           const totalDiv = document.createElement("div");
           totalDiv.className = "pedido-total";
           
-          // Frete CIF a partir de R$ 2.000; abaixo disso FOB (consultar valor do frete)
-          const PEDIDO_MINIMO_PANTANEIRO = 2000.0;
+          // Frete CIF a partir de R$ 3.000; abaixo disso FOB (consultar valor do frete)
+          const PEDIDO_MINIMO_PANTANEIRO = 3000.0;
           const faltaParaCif = Math.max(0, PEDIDO_MINIMO_PANTANEIRO - subtotalPedido);
           const freteEhCif = subtotalPedido >= PEDIDO_MINIMO_PANTANEIRO;
 
@@ -3570,7 +3570,7 @@ window.produtosData = [
           return;
         }
 
-        const PEDIDO_MINIMO_PANTANEIRO = 2000.0;
+        const PEDIDO_MINIMO_PANTANEIRO = 3000.0;
         const freteEhCif = subtotalPedido >= PEDIDO_MINIMO_PANTANEIRO;
         let observacoes = document.getElementById('obs') ? document.getElementById('obs').value : '';
         const linhaFreteFob = 'Frete FOB — valor do frete a consultar com o representante.';
