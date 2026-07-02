@@ -1,6 +1,6 @@
 /**
  * Pool MySQL único para todas as APIs — evita novo handshake TCP a cada request (cold start).
- * Ajustado para Vercel/serverless: poucas conexões por instância, retry e reset em falha.
+ * Ajustado para Vercel/serverless: poucas conexões por instância, retry seguro sem fechar pool concorrente.
  * Em produção, defina DB_PASSWORD nas variáveis de ambiente (obrigatório para segurança).
  */
 const mysql = require('mysql2/promise');
@@ -20,9 +20,21 @@ function resolveDbPassword() {
   return 'Juliano@95';
 }
 
+function poolConfigSummary() {
+  return {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT, 10) || 3306,
+    user: process.env.DB_USER || 'julianopassing',
+    database: process.env.DB_NAME || 'sistemajuliano',
+    hasPassword: !!(process.env.DB_PASSWORD && process.env.DB_PASSWORD !== '')
+  };
+}
+
 function createPoolInstance() {
+  const port = parseInt(process.env.DB_PORT, 10) || 3306;
   return mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
+    port,
     user: process.env.DB_USER || 'julianopassing',
     password: resolveDbPassword(),
     database: process.env.DB_NAME || 'sistemajuliano',
@@ -38,23 +50,45 @@ function createPoolInstance() {
   });
 }
 
+function isPoolClosed(pool) {
+  if (!pool) return true;
+  const inner = pool.pool || pool;
+  return !!(inner._closed || inner._closing);
+}
+
 function getPool() {
   const g = global;
-  if (!g.__g8MysqlPoolShared) {
-    g.__g8MysqlPoolShared = createPoolInstance();
+  if (g.__g8MysqlPoolShared && !isPoolClosed(g.__g8MysqlPoolShared)) {
+    return g.__g8MysqlPoolShared;
   }
+  g.__g8MysqlPoolShared = createPoolInstance();
   return g.__g8MysqlPoolShared;
 }
 
-async function resetPool() {
+/** Troca o pool antes de encerrar o antigo — evita "Pool is closed" em requisições concorrentes. */
+async function safeResetPool() {
   const g = global;
-  if (g.__g8MysqlPoolShared) {
-    try {
-      await g.__g8MysqlPoolShared.end();
-    } catch (e) {
-      console.warn('[mysql-pool] Erro ao encerrar pool:', e && e.message);
+  if (g.__g8MysqlPoolResetInFlight) {
+    await g.__g8MysqlPoolResetInFlight;
+    return;
+  }
+
+  g.__g8MysqlPoolResetInFlight = (async () => {
+    const old = g.__g8MysqlPoolShared;
+    g.__g8MysqlPoolShared = createPoolInstance();
+    if (old && !isPoolClosed(old)) {
+      try {
+        await old.end();
+      } catch (e) {
+        console.warn('[mysql-pool] Erro ao encerrar pool antigo:', e && e.message);
+      }
     }
-    g.__g8MysqlPoolShared = null;
+  })();
+
+  try {
+    await g.__g8MysqlPoolResetInFlight;
+  } finally {
+    g.__g8MysqlPoolResetInFlight = null;
   }
 }
 
@@ -77,22 +111,62 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isRetryableConnectionError(err) {
+/** Conexão morta no serverless — vale recriar o pool. */
+function shouldResetPool(err) {
   if (!err) return false;
-  if (err.code === 'OP_TIMEOUT') return true;
-  const retryable = new Set([
-    'ECONNRESET',
-    'ECONNREFUSED',
-    'ETIMEDOUT',
-    'PROTOCOL_CONNECTION_LOST',
-    'ER_CON_COUNT_ERROR',
-    'POOL_NO_CONNECTION',
-    'ENOTFOUND'
-  ]);
-  return retryable.has(err.code) || /gone away|lost connection|too many connections/i.test(String(err.message || ''));
+  if (/pool is closed/i.test(String(err.message || ''))) return true;
+  const resetCodes = new Set(['PROTOCOL_CONNECTION_LOST', 'ECONNRESET']);
+  return resetCodes.has(err.code) || /gone away|lost connection/i.test(String(err.message || ''));
 }
 
-/** Obtém conexão com timeout e retry (recria o pool se conexões estiverem mortas no serverless). */
+/** Falha de rede ao conectar — retry sem derrubar o pool (evita cascata de erros). */
+function shouldRetryWithoutReset(err) {
+  if (!err) return false;
+  if (err.code === 'OP_TIMEOUT') return true;
+  const networkCodes = new Set(['ETIMEDOUT', 'ECONNREFUSED', 'ENOTFOUND', 'EHOSTUNREACH']);
+  return networkCodes.has(err.code);
+}
+
+function shouldRetry(err) {
+  return shouldResetPool(err) || shouldRetryWithoutReset(err);
+}
+
+/** Teste rápido de conectividade (usado em /api/health?db=1). */
+async function pingDatabase() {
+  const started = Date.now();
+  let connection;
+  try {
+    connection = await getConnectionWithRetry({
+      maxAttempts: 1,
+      timeoutMs: CONNECT_TIMEOUT_MS,
+      label: 'Ping do banco'
+    });
+    await withTimeout(connection.query('SELECT 1 AS ok'), 5000, 'SELECT 1');
+    return {
+      ok: true,
+      latencyMs: Date.now() - started,
+      config: poolConfigSummary()
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - started,
+      code: err && err.code,
+      error: err && err.message,
+      config: poolConfigSummary()
+    };
+  } finally {
+    if (connection) {
+      try {
+        connection.release();
+      } catch (e) {
+        console.warn('[mysql-pool] Erro ao liberar conexão do ping:', e && e.message);
+      }
+    }
+  }
+}
+
+/** Obtém conexão com timeout e retry. */
 async function getConnectionWithRetry(opts = {}) {
   const maxAttempts = opts.maxAttempts ?? 3;
   const timeoutMs = opts.timeoutMs ?? ACQUIRE_TIMEOUT_MS;
@@ -106,15 +180,25 @@ async function getConnectionWithRetry(opts = {}) {
     } catch (err) {
       lastErr = err;
       console.warn(`[mysql-pool] ${label} falhou (tentativa ${attempt}/${maxAttempts}):`, err && err.message);
-      if (attempt < maxAttempts && isRetryableConnectionError(err)) {
-        await resetPool();
-        await sleep(400 * attempt);
-        continue;
+
+      if (attempt >= maxAttempts || !shouldRetry(err)) {
+        break;
       }
-      break;
+
+      if (shouldResetPool(err)) {
+        await safeResetPool();
+      }
+      await sleep(500 * attempt);
     }
   }
   throw lastErr;
 }
 
-module.exports = { getPool, getConnectionWithRetry, resetPool, withTimeout };
+module.exports = {
+  getPool,
+  getConnectionWithRetry,
+  safeResetPool,
+  withTimeout,
+  pingDatabase,
+  poolConfigSummary
+};
