@@ -75,11 +75,37 @@
   }
 
   function fetchPedidosNet() {
-    return fetch('/api/pedidos').then(function (r) {
-      if (!r.ok) throw new Error('api');
-      return r.json();
-    }).then(function (data) {
-      var lista = normalizeListaPedidosApi(data);
+    var limit = 400;
+    var offset = 0;
+    var total = Infinity;
+    var todos = [];
+
+    function fetchPage() {
+      if (offset >= total) {
+        return Promise.resolve(todos);
+      }
+      return fetch('/api/pedidos?limit=' + limit + '&offset=' + offset)
+        .then(function (r) {
+          if (!r.ok) throw new Error('api');
+          return r.json();
+        })
+        .then(function (data) {
+          var lote = normalizeListaPedidosApi(data);
+          todos = todos.concat(lote);
+          if (typeof data.total === 'number') {
+            total = data.total;
+          } else if (lote.length < limit) {
+            return todos;
+          } else {
+            total = offset + lote.length + 1;
+          }
+          if (!lote.length) return todos;
+          offset += limit;
+          return fetchPage();
+        });
+    }
+
+    return fetchPage().then(function (lista) {
       return idbPut('pedidos', lista).then(function () {
         return lista;
       });

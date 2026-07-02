@@ -46,6 +46,48 @@ function normalizarListaPedidosApi(raw) {
   return [];
 }
 
+/** Carrega pedidos em lotes paginados (evita timeout no GET sem LIMIT). */
+async function fetchPedidosApiCompleto() {
+  const limit = 400;
+  let offset = 0;
+  let total = Infinity;
+  const todos = [];
+
+  while (offset < total) {
+    const resp = await fetch(`/api/pedidos?limit=${limit}&offset=${offset}`);
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      const msg =
+        errBody.error ||
+        `Falha ao carregar pedidos (HTTP ${resp.status}${resp.status === 504 ? ' — servidor demorou demais' : ''})`;
+      throw new Error(msg);
+    }
+    const data = await resp.json();
+    const lote = normalizarListaPedidosApi(data);
+    todos.push(...lote);
+    if (typeof data.total === 'number') {
+      total = data.total;
+    } else if (lote.length < limit) {
+      break;
+    } else {
+      total = offset + lote.length + 1;
+    }
+    if (!lote.length) break;
+    offset += limit;
+  }
+
+  return todos;
+}
+
+async function fetchPedidoPorId(id) {
+  const resp = await fetch(`/api/pedidos/${encodeURIComponent(id)}`);
+  if (!resp.ok) {
+    const errBody = await resp.json().catch(() => ({}));
+    throw new Error(errBody.error || `Pedido #${id} não encontrado (HTTP ${resp.status})`);
+  }
+  return resp.json();
+}
+
 /**
  * Slug da empresa para abrir o editor quando a coluna `empresa` veio vazia (legado / B2B só em dados.origem).
  */
@@ -810,14 +852,12 @@ async function carregarPedidos() {
   const lista = document.getElementById('pedidos-lista');
   lista.innerHTML = '<p>Carregando pedidos...</p>';
   try {
-    let pedidosRaw;
+    let pedidos;
     if (window.G8OfflineData) {
-      pedidosRaw = await G8OfflineData.getPedidos();
+      pedidos = normalizarListaPedidosApi(await G8OfflineData.getPedidos());
     } else {
-      const resp = await fetch('/api/pedidos');
-      pedidosRaw = await resp.json();
+      pedidos = await fetchPedidosApiCompleto();
     }
-    const pedidos = normalizarListaPedidosApi(pedidosRaw);
     if (!pedidos.length) {
       lista.innerHTML = '<p>Nenhum pedido encontrado.</p>';
       todosPedidos = [];
@@ -831,7 +871,8 @@ async function carregarPedidos() {
     normalizarEnvioProducao(todosPedidos);
     filtrarPedidos();
   } catch (err) {
-    lista.innerHTML = '<p>Erro ao carregar pedidos.</p>';
+    console.error('Erro ao carregar pedidos:', err);
+    lista.innerHTML = `<p>Erro ao carregar pedidos.${err && err.message ? `<br><small>${err.message}</small>` : ''}</p>`;
     todosPedidos = [];
     atualizarContadorResultados(0);
     atualizarAlertaPedidosPendentes();
@@ -1452,7 +1493,9 @@ window.duplicarPedido = async function(id) {
       const errorData = await resp.json().catch(() => ({
         message: `Falha HTTP ${resp.status}${resp.statusText ? ` (${resp.statusText})` : ''}`
       }));
-      const msgErro = errorData.error || errorData.message || `Falha HTTP ${resp.status}`;
+      const msgErro = errorData.error || errorData.message || `Falha HTTP ${resp.status}${
+        resp.status === 504 ? ' — servidor demorou demais. Tente novamente em instantes.' : ''
+      }`;
 
       if (window.advancedNotifications) {
         advancedNotifications.error(
@@ -1491,15 +1534,7 @@ window.duplicarPedido = async function(id) {
 window.excluirPedido = async function(id) {
   // Buscar informações do pedido para confirmação
   try {
-    const resp = await fetch('/api/pedidos');
-    const pedidos = await resp.json();
-    const pedido = pedidos.find(p => p.id == id);
-    
-    if (!pedido) {
-      alert('Pedido não encontrado.');
-      return;
-    }
-
+    const pedido = await fetchPedidoPorId(id);
     // Confirmar exclusão com detalhes do pedido
     const confirmacao = confirm(
       `🚨 ATENÇÃO: Deseja realmente excluir este pedido?\n\n` +
@@ -2689,15 +2724,8 @@ function gerarPDFPedidoEditado(pedido) {
 }
 
 window.verPedidoPDF = async function(id) {
-  // Busca o pedido pelo ID
   try {
-    const resp = await fetch('/api/pedidos');
-    const pedidos = await resp.json();
-    const pedido = pedidos.find(p => p.id == id);
-    if (!pedido) {
-      alert('Pedido não encontrado.');
-      return;
-    }
+    const pedido = await fetchPedidoPorId(id);
     // Gera PDF simples
     const doc = new window.jspdf.jsPDF();
     doc.setFontSize(16);
@@ -2878,16 +2906,7 @@ function formatarDataBrasilia(data) {
 // Função para gerar PDF de um pedido específico
 window.gerarPDFPedido = async function(pedidoId) {
   try {
-    // Buscar dados do pedido
-    const resp = await fetch('/api/pedidos');
-    const pedidos = await resp.json();
-    const pedido = pedidos.find(p => p.id == pedidoId);
-    
-    if (!pedido) {
-      alert('❌ Pedido não encontrado.');
-      return;
-    }
-
+    const pedido = await fetchPedidoPorId(pedidoId);
     // Extrair informações do pedido
     function extrairInfoPedido(descricao) {
       const info = {
@@ -3052,16 +3071,7 @@ window.gerarPDFPedido = async function(pedidoId) {
 // Função para visualizar PDF do pedido (100% igual ao PDF gerado nas empresas)
 window.visualizarPDFPedido = async function(pedidoId) {
   try {
-    // Buscar dados do pedido
-    const resp = await fetch('/api/pedidos');
-    const pedidos = await resp.json();
-    const pedido = pedidos.find(p => p.id == pedidoId);
-    
-    if (!pedido) {
-      alert('❌ Pedido não encontrado.');
-      return;
-    }
-
+    const pedido = await fetchPedidoPorId(pedidoId);
     // Abrir em nova janela em vez de baixar
     pedido._abrirEmNovaJanela = true;
     gerarPDFPedidoEditado(pedido);
@@ -3088,15 +3098,7 @@ window.visualizarPDFPedido = async function(pedidoId) {
 /** Baixa o PDF do pedido com o mesmo nome de arquivo usado na geração (G8 Pedido … / empresa). */
 window.baixarPDFPedido = async function(pedidoId) {
   try {
-    const resp = await fetch('/api/pedidos');
-    const pedidos = await resp.json();
-    const pedido = pedidos.find(p => p.id == pedidoId);
-
-    if (!pedido) {
-      alert('❌ Pedido não encontrado.');
-      return;
-    }
-
+    const pedido = await fetchPedidoPorId(pedidoId);
     gerarPDFPedidoEditado(pedido);
   } catch (error) {
     console.error('Erro ao baixar PDF:', error);
@@ -3705,21 +3707,16 @@ async function carregarProdutosDistribuicao() {
 // Função para editar pedido (modificada para suportar distribuição)
 window.editarPedido = function(id) {
   const pedidosPromise = window.G8OfflineData
-    ? G8OfflineData.getPedidos()
-    : fetch('/api/pedidos').then((resp) => {
-        if (!resp.ok) throw new Error('Não foi possível carregar os pedidos.');
-        return resp.json();
-      });
+    ? G8OfflineData.getPedidos().then((raw) => {
+        const pedidos = normalizarListaPedidosApi(raw);
+        const pedido = pedidos.find((p) => p.id == id);
+        if (!pedido) throw new Error('Pedido não encontrado.');
+        return pedido;
+      })
+    : fetchPedidoPorId(id);
 
   Promise.resolve(pedidosPromise)
-    .then((raw) => {
-      const pedidos = normalizarListaPedidosApi(raw);
-      const pedido = pedidos.find((p) => p.id == id);
-      if (!pedido) {
-        alert('Pedido não encontrado.');
-        return;
-      }
-
+    .then((pedido) => {
       let empresa = resolverEmpresaParaEdicao(pedido);
       if (!pedido.empresa && empresa) {
         pedido.empresa = empresa;

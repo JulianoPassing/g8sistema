@@ -1,7 +1,7 @@
 // API de autenticação B2B para clientes
 const fs = require('fs');
 const path = require('path');
-const { getPool } = require('./mysql-pool');
+const { getConnectionWithRetry } = require('./mysql-pool');
 
 // CONFIGURAÇÃO DE SENHAS PERSONALIZADAS
 // CNPJs com senhas específicas (sobrescreve a senha padrão 123456)
@@ -103,8 +103,7 @@ module.exports = async (req, res) => {
     let connection = null;
     
     try {
-      const pool = getPool();
-      connection = await pool.getConnection();
+      connection = await getConnectionWithRetry({ label: 'Obter conexão do pool (auth-b2b)' });
 
       const [rows] = await connection.execute(
         'SELECT * FROM clientes WHERE cnpj = ? OR REPLACE(REPLACE(REPLACE(REPLACE(cnpj, ".", ""), "/", ""), "-", ""), " ", "") = ?',

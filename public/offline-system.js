@@ -464,10 +464,11 @@ class OfflineSystem {
   // Atualizar numeração do pedido se necessário (usa maior ID, não quantidade)
   async updateOrderNumber(offlineOrder) {
     try {
-      const response = await fetch('/api/pedidos');
+      const response = await fetch('/api/pedidos?limit=400&offset=0');
       if (!response.ok) return;
-      
-      const existingOrders = await response.json();
+
+      const raw = await response.json();
+      const existingOrders = Array.isArray(raw) ? raw : (raw.pedidos || []);
       const companyOrders = existingOrders.filter(order => 
         (order.data?.empresa || order.empresa) === offlineOrder.data.empresa
       );
@@ -754,11 +755,8 @@ class OfflineSystem {
 
   async checkEditAlreadyApplied(editData) {
     try {
-      const resp = await fetch('/api/pedidos');
-      if (!resp.ok) return false;
-      const pedidos = await resp.json();
-      const existe = pedidos.some(p => p.id == editData.id);
-      return !existe;
+      const resp = await fetch(`/api/pedidos/${encodeURIComponent(editData.id)}`);
+      return resp.status === 404;
     } catch (e) {
       return false;
     }

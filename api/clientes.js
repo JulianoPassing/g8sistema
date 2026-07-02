@@ -1,4 +1,4 @@
-const { getPool } = require('./mysql-pool');
+const { getConnectionWithRetry } = require('./mysql-pool');
 const fs = require('fs');
 const path = require('path');
 
@@ -281,8 +281,7 @@ module.exports = async (req, res) => {
   let useJSON = false;
 
   try {
-    const pool = getPool();
-    connection = await pool.getConnection();
+    connection = await getConnectionWithRetry({ label: 'Obter conexão do pool (clientes)' });
   } catch (dbError) {
     console.log('Erro ao conectar com MySQL, usando arquivo JSON:', dbError.message);
     useJSON = true;

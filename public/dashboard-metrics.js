@@ -240,14 +240,25 @@ class DashboardMetrics {
     try {
       // 1. Tentar carregar da API primeiro (dados mais atualizados)
       console.log('🔍 Carregando pedidos da API...');
-      const apiResponse = await fetch('/api/pedidos');
-      if (apiResponse.ok) {
+      let apiPedidos = [];
+      let offset = 0;
+      const limit = 400;
+      let total = Infinity;
+      while (offset < total) {
+        const apiResponse = await fetch(`/api/pedidos?limit=${limit}&offset=${offset}`);
+        if (!apiResponse.ok) break;
         const raw = await apiResponse.json();
-        const apiPedidos = Array.isArray(raw) ? raw : raw && raw.pedidos ? raw.pedidos : [];
-        if (apiPedidos && apiPedidos.length > 0) {
-          console.log('✅ Pedidos carregados da API:', apiPedidos.length);
-          return apiPedidos;
-        }
+        const lote = Array.isArray(raw) ? raw : raw && raw.pedidos ? raw.pedidos : [];
+        apiPedidos = apiPedidos.concat(lote);
+        if (typeof raw.total === 'number') total = raw.total;
+        else if (lote.length < limit) break;
+        else total = offset + lote.length + 1;
+        if (!lote.length) break;
+        offset += limit;
+      }
+      if (apiPedidos.length > 0) {
+        console.log('✅ Pedidos carregados da API:', apiPedidos.length);
+        return apiPedidos;
       }
 
       // 2. Fallback para localStorage apenas (sem pedidos.json que não existe)

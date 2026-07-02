@@ -1,7 +1,7 @@
 const zlib = require('zlib');
 const { promisify } = require('util');
 const gunzipAsync = promisify(zlib.gunzip);
-const { getPool } = require('./mysql-pool');
+const { getConnectionWithRetry } = require('./mysql-pool');
 const emailNotification = require('./notifications/email');
 
 const verbosePedidos =
@@ -31,32 +31,25 @@ async function findDuplicatePedidoHoje(connection, empresa, cnpjCliente, valorTo
   const valorNumerico = parseFloat(valorTotal);
   if (cnpjNormalizado.length < 14 || isNaN(valorNumerico)) return null;
 
-  const [recentDuplicates] = await withTimeoutFn(
+  const [rows] = await withTimeoutFn(
     connection.execute(
-      `SELECT id, dados FROM pedidos 
-       WHERE DATE(data_pedido) = CURDATE() AND empresa = ?`,
-      [empresa || '']
+      `SELECT id FROM pedidos
+       WHERE DATE(data_pedido) = CURDATE()
+         AND empresa = ?
+         AND REPLACE(REPLACE(REPLACE(REPLACE(
+           JSON_UNQUOTE(JSON_EXTRACT(dados, '$.cliente.cnpj')),
+           '.', ''), '/', ''), '-', ''), ' ', '') = ?
+         AND ABS(
+           CAST(JSON_UNQUOTE(JSON_EXTRACT(dados, '$.total')) AS DECIMAL(12,2)) - ?
+         ) < 0.01
+       LIMIT 1`,
+      [empresa || '', cnpjNormalizado, valorNumerico]
     ),
-    30000,
+    15000,
     'Consulta de duplicidade'
   );
 
-  const duplicata = recentDuplicates.find((row) => {
-    let dadosRow = {};
-    try {
-      dadosRow = typeof row.dados === 'string' ? JSON.parse(row.dados) : row.dados || {};
-    } catch (e) {
-      return false;
-    }
-    const cnpjExistente = String(dadosRow?.cliente?.cnpj || '').replace(/\D/g, '');
-    const valorExistente = parseFloat(dadosRow?.total);
-    return (
-      cnpjExistente === cnpjNormalizado &&
-      !isNaN(valorExistente) &&
-      Math.abs(valorExistente - valorNumerico) < 0.01
-    );
-  });
-  return duplicata || null;
+  return rows.length ? rows[0] : null;
 }
 
 async function maybeDecompressBodyAsync(body) {
@@ -147,12 +140,11 @@ module.exports = async (req, res) => {
       }
     }
 
-    const pool = getPool();
-    connection = await withTimeout(pool.getConnection(), 5000, 'Obter conexão do pool');
-    // Extrair ID da URL se presente (para /api/pedidos/123)
-    const urlParts = req.url.split('/');
-    const idFromUrl = urlParts[urlParts.length - 1];
-    const isNumericId = /^\d+$/.test(idFromUrl);
+    connection = await getConnectionWithRetry();
+    const urlPath = String(req.url || '').split('?')[0];
+    const urlParts = urlPath.split('/').filter(Boolean);
+    const idFromUrl = urlParts[urlParts.length - 1] || '';
+    const isNumericId = /^\d+$/.test(idFromUrl) && urlParts[urlParts.length - 2] === 'pedidos';
     
     if (verbosePedidos) {
       console.log('📍 Requisição:', req.method, req.url);
@@ -514,6 +506,27 @@ module.exports = async (req, res) => {
     if (req.method === 'GET') {
       const q = getPedidosQuery(req);
 
+      if (isNumericId) {
+        const pedidoId = parseInt(idFromUrl, 10);
+        const [rows] = await withTimeout(
+          connection.execute('SELECT * FROM pedidos WHERE id = ? LIMIT 1', [pedidoId]),
+          20000,
+          'Busca pedido por ID'
+        );
+        if (!rows.length) {
+          res.status(404).json({ error: 'Pedido não encontrado.' });
+          return;
+        }
+        const row = rows[0];
+        const dadosParsed = parseDadosJson(row.dados);
+        res.status(200).json({
+          ...row,
+          dados: dadosParsed,
+          enviado_producao: resolveEnviadoProducao(row, dadosParsed)
+        });
+        return;
+      }
+
       if (q.checkDuplicate === '1') {
         try {
           const empresa = q.empresa != null ? String(q.empresa) : '';
@@ -587,18 +600,44 @@ module.exports = async (req, res) => {
       }
     }
 
-    // GET - listar todos os pedidos (legado — sem clienteId; evite uso em telas novas)
-    const [rows] = await withTimeout(connection.execute('SELECT * FROM pedidos ORDER BY data_pedido DESC'), 30000, 'Listagem de pedidos');
-    const pedidos = rows.map(row => {
-      const dadosParsed = parseDadosJson(row.dados);
-      const enviado_producao = resolveEnviadoProducao(row, dadosParsed);
-      return {
-        ...row,
-        dados: dadosParsed,
-        enviado_producao
-      };
-    });
-    res.status(200).json(pedidos);
+    // GET - listar pedidos (paginado — evita SELECT * sem LIMIT que estoura timeout no Vercel)
+    if (req.method === 'GET') {
+      const q = getPedidosQuery(req);
+      const limitNum = Math.min(Math.max(parseInt(q.limit, 10) || 400, 1), 2000);
+      const offsetNum = Math.max(parseInt(q.offset, 10) || 0, 0);
+
+      const [[countRows], [rows]] = await Promise.all([
+        withTimeout(connection.execute('SELECT COUNT(*) AS c FROM pedidos'), 20000, 'COUNT pedidos'),
+        withTimeout(
+          connection.execute(
+            'SELECT * FROM pedidos ORDER BY data_pedido DESC LIMIT ? OFFSET ?',
+            [limitNum, offsetNum]
+          ),
+          45000,
+          'Listagem de pedidos'
+        )
+      ]);
+
+      const totalCount = countRows[0].c;
+      const pedidos = rows.map((row) => {
+        const dadosParsed = parseDadosJson(row.dados);
+        const enviado_producao = resolveEnviadoProducao(row, dadosParsed);
+        return {
+          ...row,
+          dados: dadosParsed,
+          enviado_producao
+        };
+      });
+      res.status(200).json({
+        pedidos,
+        total: totalCount,
+        limit: limitNum,
+        offset: offsetNum
+      });
+      return;
+    }
+
+    res.status(405).json({ error: 'Método não permitido.' });
   } catch (err) {
     console.error('Erro na API de pedidos:', err);
     if (!res.headersSent) {

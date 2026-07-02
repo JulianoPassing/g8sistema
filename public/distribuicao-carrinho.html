@@ -2118,8 +2118,9 @@
           if (window.G8OfflineData) {
             pedidos = await G8OfflineData.getPedidos();
           } else {
-            const response = await fetch('/api/pedidos');
-            pedidos = await response.json();
+            const response = await fetch('/api/pedidos?limit=400&offset=0');
+            const raw = await response.json();
+            pedidos = Array.isArray(raw) ? raw : (raw.pedidos || []);
           }
           
           // Filtrar apenas pedidos de distribuição do cliente atual

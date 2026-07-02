@@ -1,4 +1,4 @@
-const { getPool } = require('./mysql-pool');
+const { getConnectionWithRetry } = require('./mysql-pool');
 const emailNotification = require('./notifications/email');
 
 function withTimeout(promise, ms, label) {
@@ -19,8 +19,7 @@ function withTimeout(promise, ms, label) {
 module.exports = async (req, res) => {
   let connection;
   try {
-    const pool = getPool();
-    connection = await withTimeout(pool.getConnection(), 25000, 'Obter conexão do pool B2B');
+    connection = await getConnectionWithRetry({ label: 'Obter conexão do pool B2B' });
 
     if (req.method === 'POST') {
       const { clienteId, empresa, descricao, dados, observacoes } = req.body;
