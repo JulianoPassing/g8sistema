@@ -48,7 +48,7 @@
     return precoBase;
   }
 
-  function calcularPrecoUnitario(produto, tamanho, precoDigitado) {
+  function calcularPrecoUnitario(produto, tamanho, precoDigitado, descontoExtra) {
     const r = regras();
     let base = precoDigitado != null ? Number(precoDigitado) : Number(produto.PRECO) || 0;
     if (r.volumePrecoFaixas) {
@@ -56,8 +56,8 @@
       if (tier != null) base = tier;
     }
     let preco = base;
-    const descontoExtra = 0;
-    if (descontoExtra > 0) preco *= 1 - descontoExtra / 100;
+    const desc = Number(descontoExtra) || 0;
+    if (desc > 0) preco *= 1 - desc / 100;
     return aplicarAcrescimoTamanho(preco, tamanho);
   }
 
@@ -90,11 +90,11 @@
     return v;
   }
 
-  function obterDescontoDigitado(produto) {
+  function obterDescontoDigitado(produto, mobile) {
     const ref = produto.REFERENCIA || '';
-    const el =
-      document.getElementById('desconto-' + ref) ||
-      document.getElementById('desconto-mobile-' + ref);
+    const el = document.getElementById(
+      mobile ? `desconto-mobile-${ref}` : `desconto-${ref}`
+    );
     if (!el) return 0;
     return typeof g8ParseDescontoPercent === 'function'
       ? g8ParseDescontoPercent(el.value)
@@ -164,31 +164,26 @@
     }
   }
 
-  function renderizarPoliticaComercial() {
-    const wrap = document.getElementById('politica-comercial-wrap');
-    if (!wrap || !cfg().politicaComercial) return;
-    let html =
-      '<section class="card politica-comercial-card"><div class="politica-comercial-header">POLÍTICA COMERCIAL</div><div class="politica-comercial-body">';
-    cfg().politicaComercial.forEach((linha) => {
-      if (typeof linha === 'string') {
-        html += `<div class="politica-comercial-linha">${linha}</div>`;
-      } else {
-        html += `<div class="politica-comercial-linha${linha.destaque ? ' destaque' : ''}">${linha.text}</div>`;
-      }
-    });
-    html += '</div></section>';
-    wrap.innerHTML = html;
+  function idQuantidade(produto, tamanho, mobile) {
+    const tamanhoId = String(tamanho).replace(/[^a-zA-Z0-9]/g, '');
+    return mobile
+      ? `quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}`
+      : `quantidade-${produto.REFERENCIA}-${tamanhoId}`;
   }
 
-  function montarTamanhosInputs(produto, prefix) {
+  function montarTamanhosInputs(produto, mobile) {
     const tamanhos = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
     let html = '<div class="tamanho-input-container">';
     tamanhos.forEach((tamanho) => {
-      const tamanhoId = String(tamanho).replace(/[^a-zA-Z0-9]/g, '');
-      html += `<div><label for="quantidade-${prefix}-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${prefix}-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+      const id = idQuantidade(produto, tamanho, mobile);
+      html += `<div><label for="${id}">${tamanho}</label><input type="number" min="0" value="0" id="${id}"></div>`;
     });
     html += '</div>';
     return html;
+  }
+
+  function produtoJsonAttr(produto) {
+    return JSON.stringify(produto).replace(/'/g, '&#39;');
   }
 
   function renderizarProdutosPorCategoria(produtos) {
@@ -204,32 +199,47 @@
     }, {});
 
     const isMobile = window.innerWidth <= 768;
-    const ordem =
-      categoriasOrdem.length > 0
-        ? categoriasOrdem
-        : Object.keys(agrupados);
+    const ordem = categoriasOrdem.length > 0 ? categoriasOrdem : Object.keys(agrupados);
+    const corPlaceholder = regras().coresSugeridas ? 'Preto / Azul / Cinza' : 'Opcional';
 
     ordem.forEach((categoria) => {
       const lista = agrupados[categoria];
       if (!lista || !lista.length) return;
 
       if (isMobile && mobileContainer) {
-        let mobileHTML = `<div class="categoria-header-verde">${categoria}</div>`;
+        let mobileHTML = `<div class="card-header"><h2>${categoria}</h2></div>`;
         lista.forEach((produto) => {
+          const preco = (Number(produto.PRECO) || 0).toFixed(2).replace('.', ',');
           mobileHTML += `
             <div class="produto-card-mobile">
               <div class="produto-header-mobile">
                 <div class="produto-ref-mobile">${produto.REFERENCIA}</div>
                 <div class="produto-preco-mobile">R$ ${Number(produto.PRECO).toFixed(2)}</div>
               </div>
-              <div class="produto-descricao-mobile"><h4>${produto.DESCRIÇÃO}</h4></div>
-              <div class="produto-tamanhos-mobile">${montarTamanhosInputs(produto, 'mobile')}</div>
+              <div class="produto-descricao-mobile">
+                <h4>${produto.DESCRIÇÃO}</h4>
+                <small>${(Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS]).join(' / ')}</small>
+              </div>
+              <div class="produto-preco-edit-mobile" style="margin: 8px 0;">
+                <label style="display:block;font-size:0.9rem;margin-bottom:4px;">Preço unit. (R$)</label>
+                <input type="text" inputmode="decimal" class="input-price-pedido preco-base-input" id="preco-base-mobile-${produto.REFERENCIA}" value="${preco}" style="width:100%;max-width:160px;padding:8px;">
+              </div>
+              <div class="produto-tamanhos-mobile" style="margin: 8px 0;">
+                <label style="display:block;font-size:0.9rem;margin-bottom:4px;">Desc. extra (%)</label>
+                <input type="text" inputmode="decimal" class="desconto-input input-discount-pedido" id="desconto-mobile-${produto.REFERENCIA}" value="0">
+              </div>
+              <div class="produto-tamanhos-mobile">
+                <label>Tamanhos & Quantidades:</label>
+                ${montarTamanhosInputs(produto, true)}
+              </div>
               <div class="produto-cor-mobile">
-                <label>Cor${regras().coresSugeridas ? ' (Preto, Azul Marinho, Cinza)' : ' (Preto)'}:</label>
-                <input type="text" placeholder="Opcional" id="cor-mobile-${produto.REFERENCIA}">
+                <label>Cor (opcional):</label>
+                <input type="text" placeholder="${corPlaceholder}" id="cor-mobile-${produto.REFERENCIA}">
               </div>
               <div class="produto-actions-mobile">
-                <button type="button" class="btn-adicionar-mobile btn btn-success" data-ref="${produto.REFERENCIA}">➕ Adicionar ao Pedido</button>
+                <button type="button" class="btn-adicionar-mobile" onclick='adicionarAoPedidoMobile(${produtoJsonAttr(produto)})'>
+                  ➕ Adicionar ao Pedido
+                </button>
               </div>
             </div>`;
         });
@@ -237,70 +247,70 @@
         mobileDiv.className = 'card';
         mobileDiv.innerHTML = mobileHTML;
         mobileContainer.appendChild(mobileDiv);
-        mobileDiv.querySelectorAll('.btn-adicionar-mobile').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const prod = lista.find((p) => p.REFERENCIA === btn.dataset.ref);
-            if (prod) adicionarAoPedidoMobile(prod);
-          });
-        });
       } else {
         const categoriaDiv = document.createElement('section');
         categoriaDiv.className = 'card';
-        let tabelaHTML = `<div class="categoria-header-verde">${categoria}</div>`;
-        tabelaHTML +=
-          '<div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>Preço un. (R$)</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>';
+        let tabelaHTML = `<div class="card-header"><h2>${categoria}</h2></div><div class="table-responsive"><table><thead><tr><th>REF.</th><th>DESCRIÇÃO</th><th>Preço un. (R$)</th><th>Desc. Extra</th><th>Tamanhos & Quantidades</th><th>Cor</th><th>Ação</th></tr></thead><tbody>`;
         lista.forEach((produto) => {
-          const corPlaceholder = regras().coresSugeridas ? 'Preto / Azul / Cinza' : 'Preto';
+          const preco = (Number(produto.PRECO) || 0).toFixed(2).replace('.', ',');
+          const tamanhosTxt = (Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS]).join(' / ');
           tabelaHTML += `<tr>
             <td>${produto.REFERENCIA}</td>
-            <td>${produto.DESCRIÇÃO}<br><small>${(Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS]).join(' / ')}</small></td>
-            <td>R$ ${Number(produto.PRECO).toFixed(2)}</td>
-            <td>${montarTamanhosInputs(produto, 'desktop')}</td>
+            <td>${produto.DESCRIÇÃO}<br><small style="color:#6c757d;">${tamanhosTxt}</small></td>
+            <td><small style="color:#6c757d;">Tabela: R$ ${Number(produto.PRECO).toFixed(2)}</small><br>
+              <input type="text" inputmode="decimal" class="preco-base-input input-price-pedido" id="preco-base-${produto.REFERENCIA}" value="${preco}" title="Valor unitário neste pedido"></td>
+            <td><input type="text" inputmode="decimal" class="desconto-input input-discount-pedido" id="desconto-${produto.REFERENCIA}" value="0"></td>
+            <td>${montarTamanhosInputs(produto, false)}</td>
             <td><input type="text" placeholder="${corPlaceholder}" id="cor-${produto.REFERENCIA}" style="width:100px;"></td>
-            <td><button type="button" class="btn btn-success btn-sm btn-add-produto" data-ref="${produto.REFERENCIA}">Adicionar</button></td>
+            <td><button type="button" class="btn btn-success btn-sm" onclick='adicionarAoPedido(${produtoJsonAttr(produto)})'>Adicionar</button></td>
           </tr>`;
         });
         tabelaHTML += '</tbody></table></div>';
         categoriaDiv.innerHTML = tabelaHTML;
         produtosContainer.appendChild(categoriaDiv);
-        categoriaDiv.querySelectorAll('.btn-add-produto').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const prod = lista.find((p) => p.REFERENCIA === btn.dataset.ref);
-            if (prod) adicionarAoPedido(prod);
-          });
-        });
       }
     });
   }
 
-  function processarItensProduto(produto, prefix, corId, onItem) {
+  function processarItensProduto(produto, mobile, corId, onItem) {
     const tamanhos = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
     const corInput = document.getElementById(corId);
     const corSelecionada = corInput ? corInput.value.trim() : '';
     const precoBaseRef = obterPrecoBaseDigitado(produto);
+    const descontoExtra = obterDescontoDigitado(produto, mobile);
     let itemAdicionado = false;
 
     tamanhos.forEach((tamanho) => {
-      const tamanhoId = String(tamanho).replace(/[^a-zA-Z0-9]/g, '');
       const qtd =
-        parseInt(
-          document.getElementById(`quantidade-${prefix}-${produto.REFERENCIA}-${tamanhoId}`)?.value
-        ) || 0;
+        parseInt(document.getElementById(idQuantidade(produto, tamanho, mobile))?.value) || 0;
       if (qtd <= 0) return;
       itemAdicionado = true;
       const tamanhoNorm = extrairTokenTamanho(tamanho);
-      let precoFinal = calcularPrecoUnitario(produto, tamanho, precoBaseRef);
+      const precoFinal = calcularPrecoUnitario(produto, tamanho, precoBaseRef, descontoExtra);
       const itemDesc = corSelecionada ? `${tamanhoNorm}, Cor: ${corSelecionada}` : tamanhoNorm;
-      onItem({ produto, tamanho: itemDesc, tamanhoToken: tamanhoNorm, quantidade: qtd, preco: precoFinal, cor: corSelecionada, precoBase: precoBaseRef });
+      onItem({
+        produto,
+        tamanho: itemDesc,
+        quantidade: qtd,
+        preco: precoFinal,
+        cor: corSelecionada,
+        precoBase: precoBaseRef,
+        descontoExtra,
+      });
     });
     return itemAdicionado;
   }
 
   function adicionarAoPedido(produto) {
+    produto.REFERENCIA = produto.REFERENCIA || '';
+    produto.DESCRIÇÃO = produto.DESCRIÇÃO || '';
     let itemAdicionado = false;
-    itemAdicionado = processarItensProduto(produto, 'desktop', `cor-${produto.REFERENCIA}`, (d) => {
+    itemAdicionado = processarItensProduto(produto, false, `cor-${produto.REFERENCIA}`, (d) => {
       const existente = window.pedidoItens.find(
-        (i) => i.REFERENCIA === d.produto.REFERENCIA && i.tamanho === d.tamanho && i.cor === d.cor
+        (i) =>
+          i.REFERENCIA === d.produto.REFERENCIA &&
+          i.tamanho === d.tamanho &&
+          i.preco === d.preco
       );
       if (existente) existente.quantidade += d.quantidade;
       else {
@@ -312,7 +322,7 @@
           precoBase: d.precoBase,
           quantidade: d.quantidade,
           cor: d.cor,
-          descontoExtra: 0,
+          descontoExtra: d.descontoExtra,
         });
       }
     });
@@ -325,8 +335,10 @@
   }
 
   function adicionarAoPedidoMobile(produto) {
+    produto.REFERENCIA = produto.REFERENCIA || '';
+    produto.DESCRIÇÃO = produto.DESCRIÇÃO || '';
     let itemAdicionado = false;
-    itemAdicionado = processarItensProduto(produto, 'mobile', `cor-mobile-${produto.REFERENCIA}`, (d) => {
+    itemAdicionado = processarItensProduto(produto, true, `cor-mobile-${produto.REFERENCIA}`, (d) => {
       window.pedidoItens.push({
         REFERENCIA: d.produto.REFERENCIA,
         DESCRIÇÃO: d.produto.DESCRIÇÃO,
@@ -335,7 +347,7 @@
         precoBase: d.precoBase,
         quantidade: d.quantidade,
         cor: d.cor,
-        descontoExtra: 0,
+        descontoExtra: d.descontoExtra,
         subtotal: d.preco * d.quantidade,
       });
     });
@@ -344,10 +356,11 @@
       atualizarVisualizacaoPedido();
       const tamanhos = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
       tamanhos.forEach((t) => {
-        const id = String(t).replace(/[^a-zA-Z0-9]/g, '');
-        const el = document.getElementById(`quantidade-mobile-${produto.REFERENCIA}-${id}`);
+        const el = document.getElementById(idQuantidade(produto, t, true));
         if (el) el.value = 0;
       });
+      const descontoEl = document.getElementById(`desconto-mobile-${produto.REFERENCIA}`);
+      if (descontoEl) descontoEl.value = 0;
       const corEl = document.getElementById(`cor-mobile-${produto.REFERENCIA}`);
       if (corEl) corEl.value = '';
     } else {
@@ -699,16 +712,20 @@
     gerarPedidoBtn = document.getElementById('gerar-pedido-btn');
 
     document.getElementById('page-title').textContent = cfg().titulo;
-    document.getElementById('page-breadcrumb').textContent = cfg().breadcrumb || cfg().titulo;
     document.getElementById('page-subtitle').textContent = cfg().subtitulo || '';
+    const bc = document.getElementById('page-breadcrumb');
+    if (bc) bc.textContent = cfg().breadcrumb || cfg().titulo;
+    const tabelaLabel = cfg().tabelaLabel || cfg().breadcrumb || cfg().titulo;
+    const elGer = document.getElementById('titulo-gerenciar-cliente');
+    const elInfo = document.getElementById('titulo-info-cliente');
+    if (elGer) elGer.textContent = `Gerenciar Cliente - ${tabelaLabel}`;
+    if (elInfo) elInfo.textContent = `Informações do Cliente - ${tabelaLabel}`;
     document.title = `G8 - ${cfg().titulo}`;
 
     if (regras().ocultarDescontosPrazoVolume) {
       const desc = document.querySelector('.descontos-container');
       if (desc) desc.classList.add('oculto');
     }
-
-    renderizarPoliticaComercial();
 
     try {
       const resp = await fetch(cfg().produtosUrl);
