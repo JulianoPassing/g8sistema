@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>G8 - Pantaneiro Jaqueta de Frio</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="modern-design.css" />
+    <link rel="stylesheet" href="mobile.css" />
+    <link rel="stylesheet" href="professional-ui.css" />
+    <link rel="stylesheet" href="connection-status.css" />
+    <link rel="stylesheet" href="pantaneiro-especial.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="sw-register.js"></script>
+    <script src="g8-offline-data.js"></script>
+    <script src="mobile-menu.js" defer></script>
+    <script src="draft-system.js"></script>
+    <script src="offline-system.js"></script>
+    <script src="connection-monitor.js"></script>
+    <style>
+      :root {
+        --primary-color: #ff0000;
+        --primary-hover: #cc0000;
+        --success-color: #059669;
+        --danger-color: #dc2626;
+        --light-color: #ffffff;
+        --dark-color: #000000;
+        --text-color: #000000;
+        --text-muted: #666666;
+        --card-bg: #fafafa;
+        --border-color: #e0e0e0;
+        --border-radius: 8px;
+        --border-radius-lg: 12px;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --gradient-danger: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text-color);
+        background: #fff;
+        padding: 80px 20px 0;
+        min-height: 100vh;
+      }
+      .header-top {
+        position: fixed; top: 0; left: 0; width: 100%; height: 55px;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 25px; background: #fff; box-shadow: var(--shadow); z-index: 1000;
+      }
+      .header-left, .header-center, .header-right { flex: 1; display: flex; align-items: center; }
+      .header-center { justify-content: center; }
+      .header-right { justify-content: flex-end; gap: 12px; }
+      #logo { height: 35px; }
+      #user-info { font-size: 0.9rem; font-weight: 600; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); }
+      #logout-button { background: var(--gradient-danger); color: #fff; border: none; padding: 8px 16px; border-radius: var(--border-radius); cursor: pointer; font-weight: 600; }
+      .container { max-width: 1200px; margin: 0 auto; }
+      .card { background: var(--card-bg); border-radius: var(--border-radius-lg); box-shadow: var(--shadow); padding: 25px 20px; margin-bottom: 25px; border: 1px solid var(--border-color); }
+      .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color); }
+      .card-header h2 { font-size: 1.3rem; font-weight: 700; }
+      .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+      .form-group { display: flex; flex-direction: column; }
+      .form-group.full-width { grid-column: 1 / -1; }
+      .form-group label { font-weight: 500; margin-bottom: 6px; font-size: 0.9rem; }
+      #cliente-selecionado { display: none !important; }
+      input, select, textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.9rem; }
+      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      th, td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; font-size: 0.9rem; }
+      thead th { background: var(--light-color); font-weight: 600; }
+      .btn { display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; border: none; border-radius: var(--border-radius); cursor: pointer; font-weight: 500; text-decoration: none; }
+      .btn-primary { background: var(--primary-color); color: #fff; width: 100%; padding: 12px; font-size: 1rem; font-weight: 600; margin-top: 20px; }
+      .btn-success { background: var(--success-color); color: #fff; }
+      .btn-danger { background: var(--danger-color); color: #fff; padding: 5px 10px; font-size: 0.85em; }
+      .pedido-item { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 15px; background: #fff; border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: 10px; gap: 15px; }
+      #pedido-vazio { text-align: center; padding: 30px; border: 2px dashed var(--border-color); border-radius: var(--border-radius); color: #666; }
+      .total-container { text-align: center; margin: 20px 0; padding: 15px; background: #fff; border-radius: var(--border-radius); border: 2px solid var(--border-color); }
+      .tamanho-input-container { display: flex; flex-wrap: wrap; gap: 8px; }
+      .tamanho-input-container input { width: 45px; text-align: center; padding: 4px; }
+      footer { text-align: center; padding: 20px; color: #666; font-size: 0.85rem; margin-top: auto; }
+    </style>
+  </head>
+  <body class="g8-theme-g8-default app-layout">
+    <header class="header-top">
+      <div class="header-left">
+        <div class="status-indicator" id="connection-status"><div class="status-dot"></div><span>Online</span></div>
+      </div>
+      <div class="header-center"><img id="logo" src="https://i.imgur.com/vjq26ym.png" alt="Logo G8" /></div>
+      <div class="header-right">
+        <div id="user-info"></div>
+        <button id="logout-button" type="button">Sair</button>
+        <a href="painel.html" class="btn" style="height:35px;background:#000;color:#fff">⬅️ Voltar</a>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="breadcrumb">
+        <a href="painel.html">Painel</a> › <span id="page-breadcrumb">Jaqueta de Frio</span>
+      </div>
+      <div class="page-header" style="margin: 20px 0;">
+        <h1 class="dashboard-title" id="page-title">Pantaneiro - Jaqueta de Frio</h1>
+        <p class="dashboard-subtitle" id="page-subtitle"></p>
+      </div>
+
+      <section class="card">
+        <div class="card-header"><span style="font-size:1.8em">👤</span><h2>Gerenciar Cliente</h2></div>
+        <div class="form-group">
+          <input type="text" id="busca-cliente" placeholder="Buscar cliente..." />
+          <div id="sugestoes-clientes" style="position:relative;z-index:10;background:#fff;border:1px solid #ddd;display:none;"></div>
+          <select id="cliente-selecionado"><option value="">- Selecione -</option></select>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header"><span style="font-size:1.8em">📋</span><h2>Informações do Cliente</h2></div>
+        <div class="form-grid">
+          <div class="form-group"><label for="razao">🏢 Razão Social</label><input type="text" id="razao" /></div>
+          <div class="form-group"><label for="cnpj">🏭 CNPJ</label><input type="text" id="cnpj" /></div>
+          <div class="form-group"><label for="ie">📝 I.E.</label><input type="text" id="ie" /></div>
+          <div class="form-group"><label for="endereco">🗺️ Endereço</label><input type="text" id="endereco" /></div>
+          <div class="form-group"><label for="bairro">🏘️ Bairro</label><input type="text" id="bairro" /></div>
+          <div class="form-group"><label for="cidade">🏙️ Cidade</label><input type="text" id="cidade" /></div>
+          <div class="form-group"><label for="estado">🌎 Estado</label><input type="text" id="estado" /></div>
+          <div class="form-group"><label for="cep">📫 CEP</label><input type="text" id="cep" /></div>
+          <div class="form-group"><label for="email">📧 E-mail</label><input type="email" id="email" /></div>
+          <div class="form-group"><label for="telefone">📞 Telefone</label><input type="text" id="telefone" /></div>
+          <div class="form-group"><label for="transporte">🚚 Transporte <span style="color:red">*</span></label><input type="text" id="transporte" required /></div>
+          <div class="form-group"><label for="prazo">💰 Prazo Pagamento <span style="color:red">*</span></label><input type="text" id="prazo" required /></div>
+          <div class="form-group full-width"><label for="obs">💬 Observações <span style="color:red">*</span></label><textarea id="obs" rows="3" required></textarea></div>
+        </div>
+      </section>
+
+      <div id="politica-comercial-wrap"></div>
+
+      <div class="card">
+        <input type="text" id="busca-produto" placeholder="Buscar produto por referência ou descrição..." />
+        <div id="sugestoes-produtos" style="position:relative;z-index:10;background:#fff;border:1px solid #ddd;display:none;"></div>
+      </div>
+      <div id="produtos-container"></div>
+      <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
+
+      <section class="card">
+        <div class="card-header"><span style="font-size:1.8em">🛒</span><h2>Seu Pedido</h2></div>
+        <div id="pedido-container"><p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p></div>
+        <div class="descontos-container oculto">
+          <div class="desconto-linha"><label>Desconto Prazo (%)</label><select id="desconto-prazo"><option value="0">0%</option></select></div>
+          <div class="desconto-linha"><label>Desconto Volume (%)</label><select id="desconto-volume"><option value="0">0%</option></select></div>
+        </div>
+        <div class="total-container"><h3>💰 Total do Pedido: R$ <span id="total-pedido">0.00</span></h3></div>
+        <button type="button" id="gerar-pedido-btn" class="btn btn-primary">🖨️ Gerar Pedido em PDF</button>
+      </section>
+    </main>
+    <footer>© 2025 J.P. Sistemas. Todos os direitos reservados.</footer>
+
+    <script>
+      window.PANTANEIRO_ESPECIAL_CONFIG = {
+        empresa: 'pantaneiro-jaqueta-frio',
+        titulo: 'Pantaneiro - Jaqueta de Frio',
+        breadcrumb: 'Jaqueta de Frio',
+        subtitulo: 'Tabela de Preços Sul e Sudeste - 5 · Preços válidos até 31/10/2026',
+        pdfTitulo: 'Pedido - Pantaneiro Jaqueta de Frio',
+        produtosUrl: '/produtos-pantaneiro-jaqueta-frio.json',
+        categoriasOrdem: ['Urbano - Acessórios'],
+        politicaComercial: [
+          'FRETE CIF SP - Capital, Santo André, São Bernardo do Campo, São Caetano do Sul, Diadema, Mauá, Ribeirão Pires e Rio Grande da Serra, Guarulhos, Ferraz de Vasconcelos, Barueri, Embu das Artes, Embu-Guaçu, Itapecerica da Serra e Taboão da Serra',
+          'FRETE FOB SUL E SUDESTE',
+          'PAGAMENTO A VISTA NO FATURAMENTO',
+          'PEDIDO MÍNIMO - 30 UNIDADES',
+          'ACRÉSCIMO DE 12% NO VALOR PARA TAMANHOS EX',
+          'ACRÉSCIMO DE 15% NO VALOR PARA TAMANHOS EXG',
+          'PRAZO DE ENTREGA 20 DIAS ÚTEIS',
+          'CORES DISPONÍVEIS - PRETO',
+          { text: 'DESCONTO DE VOLUME POR PEDIDO: 100 A 300 PEÇAS - R$ 155,90 / 400 A 1000 - R$ 149,90', destaque: true },
+          'PEDIDOS DESTES ITENS DEVEM VIR SEPARADOS DOS OUTROS ITENS PANTANEIRO',
+          'PEDIDOS PROGRAMADOS EM CARTEIRA, SEGUIRÁ PREÇOS DE ACORDO COM TABELA VIGENTE NO FATURAMENTO'
+        ],
+        regras: {
+          ocultarDescontosPrazoVolume: true,
+          pedidoMinimoPecas: 30,
+          pagamentoPadrao: 'À vista no faturamento',
+          precoBase: 169.9,
+          acrescimosTamanho: { EX: 0.12, EXG: 0.15 },
+          volumePrecoFaixas: [
+            { min: 400, max: 1000, preco: 149.9 },
+            { min: 100, max: 300, preco: 155.9 }
+          ]
+        }
+      };
+    </script>
+    <script src="g8-pedido-linha-ui.js"></script>
+    <script src="pantaneiro-especial.js"></script>
+    <script src="compact-payload-v1.js"></script>
+    <script src="editor-pedido.js"></script>
+  </body>
+</html>

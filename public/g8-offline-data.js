@@ -177,6 +177,8 @@
     '/painel-clientes.html',
     '/pantaneiro5.html',
     '/pantaneiro7.html',
+    '/pantaneiro-jaqueta-frio.html',
+    '/pantaneiro-protecao-uv.html',
     '/steitz.html',
     '/cesari.html',
     '/bkb.html',

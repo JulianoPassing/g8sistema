@@ -239,6 +239,12 @@ function createMobileMenuElements() {
         if (!currentPage.includes('bkb-fabrica.html')) {
             menuItems += `<a href="bkb-fabrica.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>BKB Fábrica</span></a>`;
         }
+        if (!currentPage.includes('pantaneiro-jaqueta-frio')) {
+            menuItems += `<a href="pantaneiro-jaqueta-frio.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>Jaqueta de Frio</span></a>`;
+        }
+        if (!currentPage.includes('pantaneiro-protecao-uv')) {
+            menuItems += `<a href="pantaneiro-protecao-uv.html" class="mobile-menu-item"><span class="icon">${iconBox}</span><span>Proteção UV</span></a>`;
+        }
     }
 
     if (currentPage.includes('distribuicao')) {

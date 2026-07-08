@@ -1,0 +1,44 @@
+[
+  {
+    "CATEGORIA": "Urbano - Acessórios",
+    "REFERENCIA": "0120",
+    "DESCRIÇÃO": "CAMISA UV SEGUNDA PELE COM CAPUZ E ENCAIXE NO POLEGAR",
+    "TAMANHOS": ["PP", "P", "M", "G", "GG", "EX", "EXG"],
+    "PRECO": 38.9
+  },
+  {
+    "CATEGORIA": "Urbano - Acessórios",
+    "REFERENCIA": "0121",
+    "DESCRIÇÃO": "CAMISA UV SEGUNDA PELE COM GOLA E ENCAIXE NO POLEGAR",
+    "TAMANHOS": ["PP", "P", "M", "G", "GG", "EX", "EXG"],
+    "PRECO": 38.9
+  },
+  {
+    "CATEGORIA": "Urbano - Acessórios",
+    "REFERENCIA": "0122",
+    "DESCRIÇÃO": "CAMISA UV SEGUNDA PELE BASICA",
+    "TAMANHOS": ["PP", "P", "M", "G", "GG", "EX", "EXG"],
+    "PRECO": 38.9
+  },
+  {
+    "CATEGORIA": "Urbano - Acessórios",
+    "REFERENCIA": "0130",
+    "DESCRIÇÃO": "MANGUITO UV",
+    "TAMANHOS": ["PP", "P", "M", "G", "GG", "EX"],
+    "PRECO": 11.5
+  },
+  {
+    "CATEGORIA": "Urbano - Acessórios",
+    "REFERENCIA": "0131",
+    "DESCRIÇÃO": "MANGUITO UV COM ENCAIXE NO POLEGAR",
+    "TAMANHOS": ["PP", "P", "M", "G", "GG", "EX"],
+    "PRECO": 11.5
+  },
+  {
+    "CATEGORIA": "Urbano - Acessórios",
+    "REFERENCIA": "0140",
+    "DESCRIÇÃO": "BALACLAVA UV",
+    "TAMANHOS": ["ÚNICO"],
+    "PRECO": 11.9
+  }
+]

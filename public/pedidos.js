@@ -33,6 +33,8 @@ function formatarNomeEmpresaFiltro(empresa) {
   if (!empresa) return '';
   const empresaLower = String(empresa).toLowerCase();
   if (empresaLower === 'distribuicao') return 'Distribuicao';
+  if (empresaLower === 'pantaneiro-jaqueta-frio') return 'Pantaneiro Jaqueta Frio';
+  if (empresaLower === 'pantaneiro-protecao-uv') return 'Pantaneiro Proteção UV';
   if (empresaLower.startsWith('b2b-')) {
     return `B2B ${empresaLower.replace('b2b-', '').toUpperCase()}`;
   }
@@ -122,6 +124,8 @@ function resolverEmpresaParaEdicao(pedido) {
     return 'b2b-bkb-fabrica';
   if (/bkb\s*f[aá]brica/i.test(blob)) return 'bkb-fabrica';
   if (/bkb/.test(blob)) return 'bkb';
+  if (/jaqueta\s*de\s*frio|pantaneiro-jaqueta-frio/i.test(blob)) return 'pantaneiro-jaqueta-frio';
+  if (/prote[cç][aã]o\s*uv|protecao-uv|pantaneiro-protecao-uv/i.test(blob)) return 'pantaneiro-protecao-uv';
   if (/pantaneiro\s*7|pantaneiro7/.test(blob)) {
     return /b2b/.test(blob) ? 'b2b-pantaneiro7' : 'pantaneiro7';
   }
@@ -1274,12 +1278,16 @@ function extrairTokenTamanhoPantaneiro(tamanho) {
   return String(tamanho).split(',')[0].split('-')[0].trim().toUpperCase();
 }
 
-function calcularPrecoPantaneiroDuplicata(precoBase, item) {
+function calcularPrecoPantaneiroDuplicata(precoBase, item, empresa) {
   let preco = Number(precoBase) || 0;
   const descontoExtra = Number(item.descontoExtra) || 0;
   if (descontoExtra > 0) preco *= 1 - descontoExtra / 100;
   const token = extrairTokenTamanhoPantaneiro(item.tamanho);
-  if (['EXG', '2G', '3G'].includes(token)) preco *= 1.15;
+  const emp = String(empresa || '').toLowerCase();
+  if (emp.includes('jaqueta-frio')) {
+    if (token === 'EX') preco *= 1.12;
+    else if (token === 'EXG') preco *= 1.15;
+  } else if (['EXG', '2G', '3G'].includes(token)) preco *= 1.15;
   else if (['4G', '5G'].includes(token)) preco *= 1.4;
   return Math.round(preco * 100) / 100;
 }
@@ -1344,7 +1352,9 @@ function recalcularTotalDadosPedido(dados, empresa) {
   }
 
   let total = subtotal;
-  if (emp.includes('pantaneiro')) {
+  if (emp.includes('pantaneiro-jaqueta-frio') || emp.includes('pantaneiro-protecao-uv')) {
+    total = subtotal;
+  } else if (emp.includes('pantaneiro')) {
     if (descontos.prazo) total *= 1 - Number(descontos.prazo) / 100;
     if (descontos.volume) total *= 1 - Number(descontos.volume) / 100;
   } else if (descontos.extra) {
@@ -1394,7 +1404,7 @@ async function prepararDadosDuplicacaoComPrecosAtuais(pedido) {
 
       let novoPreco;
       if (emp.includes('pantaneiro')) {
-        novoPreco = calcularPrecoPantaneiroDuplicata(precoBase, item);
+        novoPreco = calcularPrecoPantaneiroDuplicata(precoBase, item, empresa);
       } else if (emp.includes('bkb')) {
         novoPreco = precoBase;
         const descontoExtra = Number(item.descontoExtra) || 0;
@@ -1645,6 +1655,14 @@ async function carregarProdutosDaEmpresa(empresa) {
       const response = await fetch('/produtos-pantaneiro7.json');
       if (response.ok) return await response.json();
     }
+    if (emp.includes('jaqueta-frio')) {
+      const response = await fetch('/produtos-pantaneiro-jaqueta-frio.json');
+      if (response.ok) return await response.json();
+    }
+    if (emp.includes('protecao-uv')) {
+      const response = await fetch('/produtos-pantaneiro-protecao-uv.json');
+      if (response.ok) return await response.json();
+    }
     if (emp.includes('steitz')) {
       return produtosSteitzCompletos;
     }
@@ -1849,6 +1867,13 @@ function getProdutosFallback(empresa) {
     case 'cesari':
     case 'b2b-cesari': 
       return produtosCesariCompletos;
+    case 'pantaneiro-jaqueta-frio':
+      return [{ CATEGORIA: 'Urbano - Acessórios', REFERENCIA: '530', DESCRIÇÃO: 'JAQUETA DE FRIO NYLON - MODELO MOTO DUO (JAQUETA E COLETE)', TAMANHOS: ['PP', 'P', 'M', 'G', 'GG', 'EX', 'EXG'], PRECO: 169.9 }];
+    case 'pantaneiro-protecao-uv':
+      return [
+        { CATEGORIA: 'Urbano - Acessórios', REFERENCIA: '0120', DESCRIÇÃO: 'CAMISA UV SEGUNDA PELE COM CAPUZ E ENCAIXE NO POLEGAR', TAMANHOS: ['PP', 'P', 'M', 'G', 'GG', 'EX', 'EXG'], PRECO: 38.9 },
+        { CATEGORIA: 'Urbano - Acessórios', REFERENCIA: '0140', DESCRIÇÃO: 'BALACLAVA UV', TAMANHOS: ['ÚNICO'], PRECO: 11.9 }
+      ];
     default: 
       return [...produtosPantaneiro5Basicos, ...produtosPantaneiro7Basicos, ...produtosSteitzCompletos, ...produtosCesariCompletos];
   }
@@ -2025,6 +2050,12 @@ function criarModalProdutos() {
   } else if (pedidoEditando.empresa === 'pantaneiro7') {
     nomeEmpresa = 'Pantaneiro 7mm';
     iconEmpresa = '🌊';
+  } else if (pedidoEditando.empresa === 'pantaneiro-jaqueta-frio') {
+    nomeEmpresa = 'Pantaneiro Jaqueta de Frio';
+    iconEmpresa = '🧥';
+  } else if (pedidoEditando.empresa === 'pantaneiro-protecao-uv') {
+    nomeEmpresa = 'Pantaneiro Proteção UV';
+    iconEmpresa = '☀️';
   } else if (pedidoEditando.empresa === 'steitz') {
     nomeEmpresa = 'Steitz';
     iconEmpresa = '👞';
@@ -2469,6 +2500,10 @@ function gerarPDFPedidoEditado(pedido) {
     tituloEmpresa = 'Pedido de Venda - Cesari';
   } else if (pedido.empresa === 'b2b-bkb-fabrica' || pedido.empresa === 'bkb-fabrica') {
     tituloEmpresa = 'Pedido de Venda - BKB Fábrica';
+  } else if (pedido.empresa === 'pantaneiro-jaqueta-frio') {
+    tituloEmpresa = 'Pedido - Pantaneiro Jaqueta de Frio';
+  } else if (pedido.empresa === 'pantaneiro-protecao-uv') {
+    tituloEmpresa = 'Pedido - Pantaneiro Proteção UV';
   } else if (pedido.empresa === 'distribuicao') {
     tituloEmpresa = 'Pedido de Venda - Distribuição';
   }
@@ -2707,6 +2742,10 @@ function gerarPDFPedidoEditado(pedido) {
     nomeArquivo = `G8 Pedido Cesari - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else if (pedido.empresa === 'b2b-bkb-fabrica' || pedido.empresa === 'bkb-fabrica') {
     nomeArquivo = `G8 Pedido BKB Fabrica - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  } else if (pedido.empresa === 'pantaneiro-jaqueta-frio') {
+    nomeArquivo = `G8 Pedido Pantaneiro Jaqueta Frio - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+  } else if (pedido.empresa === 'pantaneiro-protecao-uv') {
+    nomeArquivo = `G8 Pedido Pantaneiro Protecao UV - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else if (pedido.empresa === 'distribuicao') {
     nomeArquivo = `G8 Pedido Distribuição - ${cliente?.razao?.replace(/[\s\/]/g, '_') || 'Cliente'} - ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
   } else {
@@ -3766,6 +3805,12 @@ window.editarPedido = function(id) {
           break;
         case 'bkb-fabrica':
           paginaEmpresa = 'bkb-fabrica.html';
+          break;
+        case 'pantaneiro-jaqueta-frio':
+          paginaEmpresa = 'pantaneiro-jaqueta-frio.html';
+          break;
+        case 'pantaneiro-protecao-uv':
+          paginaEmpresa = 'pantaneiro-protecao-uv.html';
           break;
         default:
           alert(
