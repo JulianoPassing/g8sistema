@@ -937,15 +937,9 @@
         />
       </div>
       <div class="header-right">
-        <div id="user-info"></div>
+        <div id="user-info">Carregando...</div>
         <button id="logout-button" type="button">Sair</button>
-        <a
-          href="painel.html"
-          class="btn"
-          style="height: 35px; background-color: black; color: white"
-        >
-          ⬅️ Voltar ao Painel
-        </a>
+        <a href="painel.html" class="btn">⬅️ Voltar</a>
       </div>
     </header>
 
@@ -961,7 +955,7 @@
         </div>
         <div class="page-header-text">
           <h1 class="dashboard-title">BKB Fábrica</h1>
-          <p class="dashboard-subtitle">Tabelas Atacado, Distribuidor e Especial — desconto extra por linha e no total (sem desconto automático de prazo ou volume).</p>
+          <p class="dashboard-subtitle">Tabelas Atacado, Distribuidor e Especial</p>
         </div>
       </div>
       <section class="card">
@@ -972,12 +966,12 @@
             style="font-size: 1.8em"
             >👤</span
           >
-          <h2>Gerenciar Cliente</h2>
+          <h2>Gerenciar Cliente - BKB Fábrica</h2>
         </div>
         <div class="form-group">
           <input type="text" id="busca-cliente" placeholder="Buscar cliente..." style="margin-bottom: 10px;" />
           <div id="sugestoes-clientes" style="position: relative; z-index: 10;"></div>
-          <select id="cliente-selecionado">
+          <select id="cliente-selecionado" style="display: none;">
             <option value="">- Selecione um cliente -</option>
             <option value="novo">- Inserir manualmente -</option>
           </select>
@@ -991,7 +985,7 @@
             style="font-size: 1.8em"
             >📋</span
           >
-          <h2>Informações do Cliente</h2>
+          <h2>Informações do Cliente - BKB Fábrica</h2>
         </div>
         <div class="form-grid">
           <div class="form-group">
@@ -1077,21 +1071,15 @@
         </div>
         <div class="total-container">
           <div class="form-group" style="max-width: 280px; margin: 0 auto 12px;">
-            <label for="desconto-extra-total-b2b"><strong>Desconto extra no total (%):</strong></label>
-            <input type="number" id="desconto-extra-total-b2b" min="0" max="100" value="0" style="text-align: center; width: 100%; max-width: 120px; padding: 8px; display: block; margin: 8px auto 0;">
+            <label for="desconto-extra-total"><strong>Desconto extra no total (%):</strong></label>
+            <input type="number" id="desconto-extra-total" min="0" max="100" value="0" style="text-align: center; width: 100%; max-width: 120px; padding: 8px; display: block; margin: 8px auto 0;">
           </div>
-          <h3>💰 Total do Pedido: R$ <span id="total-pedido-b2b">0.00</span></h3>
+          <h3>💰 Total do Pedido: R$ <span id="total-pedido">0.00</span></h3>
         </div>
-        <div id="pedido-footer-b2b"></div>
-
-      </section>
-
-      <section class="card">
-        <div class="card-header">
-          <span role="img" aria-label="Status" style="font-size: 1.8em">📊</span>
-          <h2>Status do Pedido</h2>
-        </div>
-        <div id="status-mensagem">Pronto para adicionar produtos...</div>
+        <button id="gerar-pedido-btn" class="btn btn-primary" type="button">
+          🖨️ Gerar Pedido em PDF
+        </button>
+        <div id="status-mensagem"></div>
       </section>
     </main>
     
@@ -1486,7 +1474,7 @@
       }
       window.removerDoPedido = removerDoPedido;
 
-      function totaisPedidoB2B() {
+      function totaisPedido() {
         let sub = 0;
         (window.pedidoItens || []).forEach((i) => {
           sub += (i.preco || 0) * (i.quantidade || 0);
@@ -1497,7 +1485,6 @@
 
       function atualizarVisualizacaoPedido() {
         const pedidoItensLista = document.getElementById("pedido-itens-lista");
-        const pedidoFooter = document.getElementById("pedido-footer-b2b");
         if (!pedidoItensLista) return;
         pedidoItensLista.innerHTML = "";
         subtotalPedido = 0;
@@ -1524,27 +1511,46 @@
           pedidoItensLista.innerHTML = '<p id="pedido-vazio">Nenhum item adicionado ao pedido ainda.</p>';
         }
 
-        const { subtotal, total } = totaisPedidoB2B();
+        const { subtotal, total } = totaisPedido();
         subtotalPedido = subtotal;
-        const totalEl = document.getElementById("total-pedido-b2b");
+        const totalEl = document.getElementById("total-pedido");
         if (totalEl) totalEl.textContent = total.toFixed(2);
-
-        if (pedidoFooter) {
-          if (window.pedidoItens.length > 0) {
-            pedidoFooter.innerHTML = `
-              <div class="pedido-info-message" style="margin-bottom: 16px;"><span style="font-size: 1.2em;">ℹ️</span> Preços conforme a tabela escolhida (Atacado, Distribuidor ou Especial). Apenas desconto extra por linha e no total — sem desconto automático de prazo ou volume.</div>
-              <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center;">
-                <button type="button" class="btn btn-secondary" onclick="gerarPedidoPDFB2B()" style="padding: 12px 20px;">🖨️ Baixar PDF</button>
-                <button type="button" class="btn-primary" onclick="enviarPedido()" style="padding: 12px 24px;">📤 Enviar Pedido</button>
-              </div>
-            `;
-          } else {
-            pedidoFooter.innerHTML = "";
-          }
-        }
       }
 
-      function gerarPedidoPDFB2B() {
+      // Gerar Pedido em PDF e Enviar (padrão interno)
+      function gerarPedidoPDF() {
+        if (!window.pedidoItens || window.pedidoItens.length === 0) {
+          alert("O pedido está vazio. Adicione itens antes de gerar o PDF.");
+          return;
+        }
+        if (!inputsCliente.razao.value.trim()) {
+          alert("Por favor, informe a Razão Social do cliente.");
+          inputsCliente.razao.focus();
+          return;
+        }
+        if (!inputsCliente.transporte.value.trim()) {
+          alert("O campo Transporte é obrigatório.");
+          inputsCliente.transporte.focus();
+          return;
+        }
+        if (!inputsCliente.prazo.value.trim()) {
+          alert("O campo Prazo de Pagamento é obrigatório.");
+          inputsCliente.prazo.focus();
+          return;
+        }
+        if (!inputsCliente.obs.value.trim()) {
+          alert("O campo Observações é obrigatório.");
+          inputsCliente.obs.focus();
+          return;
+        }
+
+        gerarPDF();
+        setTimeout(() => {
+          enviarPedido();
+        }, 500);
+      }
+
+      function gerarPDF() {
         if (!window.pedidoItens || window.pedidoItens.length === 0) {
           alert("Adicione itens ao pedido antes de gerar o PDF.");
           return;
@@ -1566,7 +1572,7 @@
           doc.addImage(logoImg, "PNG", margin, 10, 90, 15);
           doc.setFontSize(16);
           doc.setFont("helvetica", "bold");
-          doc.text("Pedido G8 - BKB Fábrica", pageWidth - margin, 18, { align: "right" });
+          doc.text("Pedido de Venda - BKB Fábrica", pageWidth - margin, 18, { align: "right" });
           const hoje = new Date();
           const dataAtual = `${String(hoje.getDate()).padStart(2, "0")}/${String(hoje.getMonth() + 1).padStart(2, "0")}/${hoje.getFullYear()}`;
           doc.setFontSize(10);
@@ -1636,7 +1642,7 @@
 
         let finalY = doc.autoTable.previous.finalY;
         const obsText = `Transporte: ${c.transporte || "—"}\nPrazo: ${c.prazo || "—"}\n\nObs.:\n${document.getElementById("obs")?.value || "—"}`;
-        const { subtotal: subG, total: totF } = totaisPedidoB2B();
+        const { subtotal: subG, total: totF } = totaisPedido();
         const valorDesconto = subG * (descontoExtraTotalPercentual / 100);
         const summaryData = [];
         summaryData.push(["Subtotal:", `R$ ${subG.toFixed(2)}`]);
@@ -1696,7 +1702,7 @@
           return;
         }
 
-        const { subtotal: subPed, total: totalPed } = totaisPedidoB2B();
+        const { subtotal: subPed, total: totalPed } = totaisPedido();
         const clienteObj = getClienteDoForm();
         const descricaoPedido = `BKB Fábrica (interno) — ${clienteObj.razao} — ${window.pedidoItens.length} itens — Total R$ ${totalPed.toFixed(2)}`;
 
@@ -1729,7 +1735,7 @@
           if (result.success) {
             if (window.G8Draft) G8Draft.clear();
             if (result.online) {
-              alert("✅ Pedido enviado com sucesso!");
+              alert("✅ Pedido enviado e salvo com sucesso!");
             } else {
               alert("📱 Sem conexão! Pedido salvo localmente e será enviado automaticamente quando a conexão retornar.");
             }
@@ -1832,12 +1838,17 @@
           carregarProdutos();
         }
 
-        const dxt = document.getElementById("desconto-extra-total-b2b");
+        const dxt = document.getElementById("desconto-extra-total");
         if (dxt) {
           dxt.addEventListener("input", () => {
             descontoExtraTotalPercentual = parseFloat(dxt.value) || 0;
             atualizarVisualizacaoPedido();
           });
+        }
+
+        const gerarPedidoBtn = document.getElementById("gerar-pedido-btn");
+        if (gerarPedidoBtn) {
+          gerarPedidoBtn.addEventListener("click", gerarPedidoPDF);
         }
         
         // Busca de produtos
@@ -1882,7 +1893,7 @@
             getData: () => {
               if (!window.pedidoItens || window.pedidoItens.length === 0) return null;
               const t = document.getElementById("transporte"), p = document.getElementById("prazo"), o = document.getElementById("obs");
-              const dx = document.getElementById("desconto-extra-total-b2b");
+              const dx = document.getElementById("desconto-extra-total");
               const tps = document.getElementById("tabela-precos-select");
               return {
                 items: JSON.parse(JSON.stringify(window.pedidoItens)),
@@ -1897,7 +1908,7 @@
               if (d?.items?.length) { window.pedidoItens.length = 0; window.pedidoItens.push(...d.items); }
               const t = document.getElementById("transporte"), p = document.getElementById("prazo"), o = document.getElementById("obs");
               if (t && d?.transporte != null) t.value = d.transporte; if (p && d?.prazo != null) p.value = d.prazo; if (o && d?.obs != null) o.value = d.obs;
-              const dx = document.getElementById("desconto-extra-total-b2b");
+              const dx = document.getElementById("desconto-extra-total");
               if (dx && d?.descontoExtra != null) {
                 dx.value = d.descontoExtra;
                 descontoExtraTotalPercentual = parseFloat(dx.value) || 0;
