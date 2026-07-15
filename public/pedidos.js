@@ -41,6 +41,30 @@ function formatarNomeEmpresaFiltro(empresa) {
   return empresaLower.toUpperCase();
 }
 
+/** Slugs de empresa agrupados por filtro da página de pedidos. */
+const FILTRO_EMPRESA_GRUPOS = {
+  pantaneiro: [
+    'pantaneiro5',
+    'pantaneiro7',
+    'pantaneiro-jaqueta-frio',
+    'pantaneiro-protecao-uv',
+    'b2b-pantaneiro5',
+    'b2b-pantaneiro7',
+  ],
+  steitz: ['steitz', 'b2b-steitz'],
+  bkb: ['bkb'],
+  'bkb-fabrica': ['bkb-fabrica', 'b2b-bkb-fabrica'],
+  cesari: ['cesari', 'b2b-cesari'],
+};
+
+function pedidoCorrespondeFiltroEmpresa(pedido, filtroEmpresa) {
+  if (!filtroEmpresa || filtroEmpresa === 'todas') return true;
+  const slugs = FILTRO_EMPRESA_GRUPOS[filtroEmpresa];
+  if (!slugs) return true;
+  const empresaSlug = resolverEmpresaParaEdicao(pedido);
+  return slugs.includes(empresaSlug);
+}
+
 /** Resposta GET /api/pedidos pode ser array ou { pedidos, total, … } */
 function normalizarListaPedidosApi(raw) {
   if (Array.isArray(raw)) return raw;
@@ -728,6 +752,13 @@ document.addEventListener('DOMContentLoaded', () => {
     filtrarPedidos();
   });
 
+  const filtroEmpresaEl = document.getElementById('filtro-empresa');
+  if (filtroEmpresaEl) {
+    filtroEmpresaEl.addEventListener('change', function() {
+      filtrarPedidos();
+    });
+  }
+
   const filtroEnvioEl = document.getElementById('filtro-envio-producao');
   if (filtroEnvioEl) {
     filtroEnvioEl.addEventListener('change', function() {
@@ -887,6 +918,7 @@ async function carregarPedidos() {
 function filtrarPedidos() {
   const termoBusca = document.getElementById('busca-pedidos')?.value || '';
   const termo = termoBusca.toLowerCase().trim();
+  const filtroEmpresa = document.getElementById('filtro-empresa')?.value || 'todas';
   const filtroEnvio = document.getElementById('filtro-envio-producao')?.value || 'todos';
 
   let base = todosPedidos;
@@ -895,6 +927,8 @@ function filtrarPedidos() {
   } else if (filtroEnvio === 'pendente') {
     base = base.filter(p => !isPedidoEnviadoProducao(p));
   }
+
+  base = base.filter(p => pedidoCorrespondeFiltroEmpresa(p, filtroEmpresa));
 
   if (!termo) {
     renderizarPedidos(base);
