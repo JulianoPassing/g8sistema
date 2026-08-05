@@ -771,6 +771,39 @@
         background: #f3f7fa;
         color: #007bff;
       }
+      .catalog-filters {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) 2fr;
+        gap: 12px;
+        margin-bottom: 10px;
+        align-items: end;
+      }
+      .catalog-filters .form-group {
+        margin-bottom: 0;
+      }
+      .catalog-filters label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #334155;
+      }
+      .catalog-filters select,
+      .catalog-filters .catalog-search-input {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        padding: 10px 12px;
+        font-size: 1em;
+        background: #fff;
+        margin-bottom: 0;
+      }
+      @media (max-width: 768px) {
+        .catalog-filters {
+          grid-template-columns: 1fr;
+        }
+      }
       #busca-cliente {
         width: 100%;
         box-sizing: border-box;
@@ -972,9 +1005,18 @@
         <div class="card-header">
           <h2><span role="img" aria-label="Produtos">🛞</span> Catálogo de Produtos</h2>
         </div>
-        <div class="form-group">
-          <input type="text" id="busca-produto" class="catalog-search-input" placeholder="Buscar produto por referência ou descrição..." />
-          <div id="sugestoes-produtos" style="position: relative; z-index: 10;"></div>
+        <div class="catalog-filters">
+          <div class="form-group">
+            <label for="filtro-categoria">Categoria</label>
+            <select id="filtro-categoria">
+              <option value="">Todas as categorias</option>
+            </select>
+          </div>
+          <div class="form-group" style="position: relative;">
+            <label for="busca-produto">Buscar produto</label>
+            <input type="text" id="busca-produto" class="catalog-search-input" placeholder="Buscar por referência ou descrição..." />
+            <div id="sugestoes-produtos" style="z-index: 10;"></div>
+          </div>
         </div>
         <div id="produtos-container"></div>
         <div class="produtos-mobile-container" id="produtos-mobile-container"></div>
@@ -1211,6 +1253,69 @@
         });
       }
 
+      function popularFiltroCategorias() {
+        const select = document.getElementById("filtro-categoria");
+        if (!select) return;
+
+        const categoriasPresentes = [...new Set(
+          produtosData.map((p) => p.CATEGORIA || "Sem Categoria").filter(Boolean)
+        )];
+        const ordemReferencia = Array.isArray(CATEGORIAS_ORDEM) && CATEGORIAS_ORDEM.length
+          ? CATEGORIAS_ORDEM
+          : categoriasPresentes;
+        const categorias = [
+          ...ordemReferencia.filter((c) => categoriasPresentes.includes(c)),
+          ...categoriasPresentes.filter((c) => !ordemReferencia.includes(c)),
+        ];
+
+        const valorAtual = select.value;
+        select.innerHTML = '<option value="">Todas as categorias</option>';
+        categorias.forEach((categoria) => {
+          const option = document.createElement("option");
+          option.value = categoria;
+          option.textContent = categoria;
+          select.appendChild(option);
+        });
+        if (valorAtual && categorias.includes(valorAtual)) {
+          select.value = valorAtual;
+        }
+      }
+
+      function obterProdutosFiltradosCatalogo(termoBusca = null) {
+        const selectCategoria = document.getElementById("filtro-categoria");
+        const buscaInput = document.getElementById("busca-produto");
+        const categoria = selectCategoria ? selectCategoria.value : "";
+        const filtro = (termoBusca !== null
+          ? termoBusca
+          : (buscaInput ? buscaInput.value : "")
+        ).trim().toLowerCase();
+
+        return produtosData.filter((produto) => {
+          const matchCategoria = !categoria || (produto.CATEGORIA || "Sem Categoria") === categoria;
+          if (!matchCategoria) return false;
+          if (!filtro) return true;
+          const ref = String(produto.REF || "").toLowerCase();
+          const modelo = String(produto.MODELO || "").toLowerCase();
+          return (
+            ref.includes(filtro) ||
+            modelo.includes(filtro) ||
+            `${ref} - ${modelo}`.includes(filtro) ||
+            (ref && filtro.includes(ref))
+          );
+        });
+      }
+
+      function aplicarFiltrosCatalogo() {
+        const buscaInput = document.getElementById("busca-produto");
+        const termo = buscaInput ? buscaInput.value.trim() : "";
+        // Com termo curto, só filtra por categoria (sugestões cuidam da busca parcial)
+        if (termo.length > 0 && termo.length < 2) {
+          renderizarProdutos(obterProdutosFiltradosCatalogo(""));
+          return;
+        }
+        renderizarProdutos(obterProdutosFiltradosCatalogo());
+      }
+
       function mostrarSugestoesProdutos(filtro) {
         const sugestoesDiv = document.getElementById("sugestoes-produtos");
         sugestoesDiv.innerHTML = "";
@@ -1219,11 +1324,10 @@
           return;
         }
         const filtroLower = filtro.toLowerCase();
-        const produtosFiltrados = produtosData.filter((produto) => {
-          return (
-            (produto.REF && String(produto.REF).toLowerCase().includes(filtroLower)) ||
-            (produto.MODELO && String(produto.MODELO).toLowerCase().includes(filtroLower))
-          );
+        const produtosFiltrados = obterProdutosFiltradosCatalogo("").filter((produto) => {
+          const ref = String(produto.REF || "").toLowerCase();
+          const modelo = String(produto.MODELO || "").toLowerCase();
+          return ref.includes(filtroLower) || modelo.includes(filtroLower);
         });
         if (produtosFiltrados.length === 0) {
           sugestoesDiv.style.display = "none";
@@ -1759,7 +1863,8 @@
         await popularClientes().then(() => {
           const modoEdicaoUrl = new URLSearchParams(window.location.search).get('modo') === 'edicao';
           const montarCatalogo = function() {
-            renderizarProdutos();
+            popularFiltroCategorias();
+            aplicarFiltrosCatalogo();
             atualizarVisualizacaoPedido();
           };
           if (modoEdicaoUrl) {
@@ -1782,13 +1887,22 @@
 
           gerarPedidoBtn.addEventListener("click", gerarPedidoPDF);
 
+          const filtroCategoriaSelect = document.getElementById("filtro-categoria");
+          if (filtroCategoriaSelect) {
+            filtroCategoriaSelect.addEventListener("change", () => {
+              aplicarFiltrosCatalogo();
+              const buscaProdutoInput = document.getElementById("busca-produto");
+              if (buscaProdutoInput && buscaProdutoInput.value.trim().length >= 2) {
+                mostrarSugestoesProdutos(buscaProdutoInput.value);
+              }
+            });
+          }
+
           const buscaProdutoInput = document.getElementById("busca-produto");
           if (buscaProdutoInput) {
             buscaProdutoInput.addEventListener("input", (e) => {
               mostrarSugestoesProdutos(e.target.value);
-              if (!e.target.value) {
-                renderizarProdutos(produtosData);
-              }
+              aplicarFiltrosCatalogo();
             });
           }
           document.addEventListener("mousedown", (event) => {
