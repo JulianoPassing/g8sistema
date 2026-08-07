@@ -427,7 +427,7 @@ main.container {
   }
 }
 
-.input-mobile-mini {
+.input-mobile-mini:not(.qty-stepper-input) {
   width: 100%;
   max-width: 120px;
   height: 36px;

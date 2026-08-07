@@ -348,8 +348,8 @@
     gap: 10px !important;
   }
 
-  /* Botões */
-  button, .btn {
+  /* Botões (exclui stepper +/− de quantidade) */
+  button:not(.qty-stepper-btn), .btn:not(.qty-stepper-btn) {
     width: 100% !important;
     padding: 15px !important;
     font-size: 15px !important;
@@ -360,8 +360,8 @@
     box-sizing: border-box !important;
   }
 
-  /* Inputs e selects */
-  input, select, textarea {
+  /* Inputs e selects (exclui campo do stepper de quantidade) */
+  input:not(.qty-stepper-input), select, textarea {
     width: 100% !important;
     padding: 15px !important;
     font-size: 16px !important;
@@ -654,7 +654,7 @@
     font-size: 16px !important;
   }
 
-  button, .btn {
+  button:not(.qty-stepper-btn), .btn:not(.qty-stepper-btn) {
     padding: 12px !important;
     font-size: 14px !important;
   }
@@ -903,7 +903,7 @@
     font-size: 16px !important;
   }
 
-  button, .btn {
+  button:not(.qty-stepper-btn), .btn:not(.qty-stepper-btn) {
     padding: 10px !important;
     font-size: 13px !important;
   }
@@ -915,7 +915,7 @@
   /* ========== MELHORIAS DE ACESSIBILIDADE E TOUCH ========== */
   
   /* Aumentar área de toque para botões pequenos (mínimo 44x44px recomendado) */
-  .btn, button, .mobile-menu-item, .header-actions button {
+  .btn:not(.qty-stepper-btn), button:not(.qty-stepper-btn), .mobile-menu-item, .header-actions button {
     min-height: 44px !important;
     min-width: 44px !important;
   }
@@ -1310,10 +1310,133 @@
   /* Inputs de busca */
   input[type="text"],
   input[type="email"],
+  input[type="number"],
+  input[type="tel"],
   textarea,
   select {
     font-size: 16px !important; /* Previne zoom no iOS */
     padding: 12px !important;
+  }
+
+  /* Stepper quantidade [−] [input] [+] — isolado das regras genéricas de button/input */
+  .qty-stepper {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    max-width: 280px !important;
+    height: 48px !important;
+    gap: 0 !important;
+    margin: 0 0 12px 0 !important;
+    padding: 0 !important;
+    border: 2px solid var(--border-color, #e2e8f0) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    box-sizing: border-box !important;
+  }
+
+  .qty-stepper > .qty-stepper-btn {
+    flex: 0 0 48px !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    width: 48px !important;
+    max-width: 48px !important;
+    min-width: 48px !important;
+    height: 100% !important;
+    min-height: 44px !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    user-select: none !important;
+    box-sizing: border-box !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .qty-stepper > .qty-stepper-btn:active {
+    background: #e2e8f0 !important;
+    transform: none !important;
+  }
+
+  .qty-stepper > .qty-stepper-input,
+  .qty-stepper > input.qty-stepper-input {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    border: none !important;
+    border-left: 1px solid #e2e8f0 !important;
+    border-right: 1px solid #e2e8f0 !important;
+    border-radius: 0 !important;
+    text-align: center !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+    -moz-appearance: textfield !important;
+  }
+
+  .qty-stepper-input::-webkit-outer-spin-button,
+  .qty-stepper-input::-webkit-inner-spin-button,
+  .qty-stepper input::-webkit-outer-spin-button,
+  .qty-stepper input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+
+  /* Grade de tamanhos: stepper compacto por tamanho */
+  .tamanho-qty-field {
+    margin-bottom: 10px !important;
+  }
+
+  .tamanho-qty-field > label {
+    display: block !important;
+    margin-bottom: 4px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+  }
+
+  .tamanho-input-container .qty-stepper,
+  .produto-tamanhos-mobile .qty-stepper,
+  .tamanho-input-item .qty-stepper,
+  .tamanho-qty-field .qty-stepper {
+    max-width: 100% !important;
+    height: 44px !important;
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .tamanho-input-item .qty-stepper > .qty-stepper-btn,
+  .produto-tamanhos-mobile .qty-stepper > .qty-stepper-btn,
+  .tamanho-qty-field .qty-stepper > .qty-stepper-btn {
+    flex-basis: 40px !important;
+    width: 40px !important;
+    max-width: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    font-size: 1.25rem !important;
+  }
+
+  .produto-quantidade-mobile .qty-stepper,
+  .produto-cor-mobile .qty-stepper {
+    max-width: 100% !important;
   }
   
   /* Modal de produtos (se existir) */

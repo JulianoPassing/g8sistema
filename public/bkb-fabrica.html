@@ -28,6 +28,7 @@
       <script src="sw-register.js"></script>
       <script src="g8-offline-data.js"></script>
       <script src="mobile-menu.js" defer></script>
+      <script src="mobile-qty-stepper.js"></script>
       <script src="advanced-notifications.js"></script>
       <script src="animations.js"></script>
       <script src="draft-system.js"></script>
@@ -1331,7 +1332,7 @@
               </div>
               <div class="produto-cor-mobile">
                 <label>Quantidade:</label>
-                <input type="number" min="0" value="" placeholder="0" class="input-mobile-mini" id="qty-mobile-${produto.REF}">
+                ${typeof g8QtyStepperHtml === "function" ? g8QtyStepperHtml(`qty-mobile-${produto.REF}`, { value: "", placeholder: "0", min: 0 }) : `<input type="text" inputmode="numeric" min="0" value="" placeholder="0" id="qty-mobile-${produto.REF}">`}
               </div>
               <div class="produto-actions-mobile">
                 <button type="button" class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
@@ -1928,11 +1929,12 @@
           });
         }
 
-        // Event listener para redimensionamento da janela
-        window.addEventListener('resize', () => {
-          // Re-renderiza os produtos quando a tela é redimensionada
-          renderizarProdutos();
-        });
+        // Re-render só ao cruzar mobile/desktop (não ao abrir teclado)
+        if (typeof g8OnWidthLayoutChange === "function") {
+          g8OnWidthLayoutChange(() => {
+            renderizarProdutos();
+          });
+        }
       }
     </script>
     <script src="editor-pedido.js"></script>

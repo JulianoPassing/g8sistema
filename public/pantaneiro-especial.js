@@ -176,7 +176,11 @@
     let html = '<div class="tamanho-input-container">';
     tamanhos.forEach((tamanho) => {
       const id = idQuantidade(produto, tamanho, mobile);
-      html += `<div><label for="${id}">${tamanho}</label><input type="number" min="0" value="0" id="${id}"></div>`;
+      if (mobile && typeof g8QtyLabeledFieldHtml === 'function') {
+        html += g8QtyLabeledFieldHtml(id, tamanho, { value: 0, min: 0 });
+      } else {
+        html += `<div><label for="${id}">${tamanho}</label><input type="number" min="0" value="0" id="${id}"></div>`;
+      }
     });
     html += '</div>';
     return html;

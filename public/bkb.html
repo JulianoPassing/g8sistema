@@ -738,12 +738,16 @@
         font-size: 0.9rem;
       }
 
-      .produto-quantidade-mobile input {
+      .produto-quantidade-mobile > input:not(.qty-stepper-input) {
         width: 100%;
         padding: 8px 12px;
         border: 2px solid var(--border-color);
         border-radius: var(--border-radius);
-        font-size: 0.9rem;
+        font-size: 16px;
+      }
+
+      .produto-quantidade-mobile .qty-stepper {
+        max-width: 100%;
       }
 
       .btn-adicionar-mobile {
@@ -1022,6 +1026,7 @@
       © 2025 J.P Sistemas. Todos os direitos reservados. | <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank" style="color: #000000; text-decoration: underline;">jp-sistemas.com</a>
     </footer>
 
+    <script src="mobile-qty-stepper.js"></script>
     <script src="g8-pedido-linha-ui.js"></script>
     <script>
       let clientesCadastrados = [];
@@ -1274,7 +1279,7 @@ window.produtosData = [
               </div>
               <div class="produto-quantidade-mobile">
                 <label>Quantidade:</label>
-                <input type="number" min="0" inputmode="numeric" value="0" id="quantidade-${ref}">
+                ${typeof g8QtyStepperHtml === "function" ? g8QtyStepperHtml(`quantidade-${ref}`, { value: 0, min: 0 }) : `<input type="text" inputmode="numeric" min="0" value="0" id="quantidade-${ref}">`}
               </div>
               <div class="produto-actions-mobile">
                 <button type="button" class="btn-adicionar-mobile" data-bkb-ref="${String(ref).replace(/"/g, "&quot;")}">
@@ -1886,11 +1891,12 @@ window.produtosData = [
           const sugestoesDiv = document.getElementById("sugestoes-produtos");
           const buscaProdutoInput = document.getElementById("busca-produto");
           
-          // Não fechar se clicar no input ou em elementos de input
+          // Não fechar se clicar no input, sugestões ou no stepper de quantidade
           if (event.target === buscaProdutoInput || 
               event.target.tagName === 'INPUT' || 
               event.target.tagName === 'TEXTAREA' || 
               event.target.tagName === 'SELECT' ||
+              (event.target.closest && event.target.closest('.qty-stepper')) ||
               buscaProdutoInput === document.activeElement) {
             return;
           }
@@ -1909,10 +1915,12 @@ window.produtosData = [
         // Usar click em vez de mousedown para melhor compatibilidade mobile
         document.addEventListener("click", fecharSugestoesProdutos, true);
 
-        // Event listener para redimensionamento da janela
-        window.addEventListener('resize', () => {
-          renderizarProdutos(window.produtosData);
-        });
+        // Re-render só ao cruzar mobile/desktop (não ao abrir teclado)
+        if (typeof g8OnWidthLayoutChange === "function") {
+          g8OnWidthLayoutChange(() => {
+            renderizarProdutos(window.produtosData);
+          });
+        }
       }
     </script>
     <script src="editor-pedido.js"></script>

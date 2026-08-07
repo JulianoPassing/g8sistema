@@ -28,6 +28,7 @@
     <script src="sw-register.js"></script>
     <script src="g8-offline-data.js"></script>
     <script src="mobile-menu.js" defer></script>
+    <script src="mobile-qty-stepper.js"></script>
     <script src="advanced-notifications.js"></script>
     <script src="animations.js"></script>
     <script src="connection-monitor.js"></script>
@@ -4028,7 +4029,7 @@ window.produtosData = [
               // Referência 201: Tamanho único com seleção de botas
               const tamanhosBotas = ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
               tamanhosBotas.forEach((tamanho) => {
-                tamanhosMobileHTML += `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanho}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanho}"></div>`;
+                tamanhosMobileHTML += (typeof g8QtyLabeledFieldHtml === "function" ? g8QtyLabeledFieldHtml(`quantidade-mobile-${produto.REFERENCIA}-${tamanho}`, tamanho, { value: 0, min: 0 }) : `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanho}">${tamanho}</label><input type="text" inputmode="numeric" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanho}"></div>`);
               });
             } else if (produto.REFERENCIA === "203" || produto.REFERENCIA === "204") {
               // Outras referências com tamanho manual
@@ -4038,7 +4039,7 @@ window.produtosData = [
               const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
               tamanhosProduto.forEach((tamanho) => {
                 const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
-                tamanhosMobileHTML += `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+                tamanhosMobileHTML += (typeof g8QtyLabeledFieldHtml === "function" ? g8QtyLabeledFieldHtml(`quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}`, tamanho, { value: 0, min: 0 }) : `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="text" inputmode="numeric" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}"></div>`);
               });
             }
             
@@ -4148,7 +4149,7 @@ window.produtosData = [
                 // Referência 201: Tamanho único com seleção de botas
                 const tamanhosBotas = ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
                 tamanhosBotas.forEach((tamanho) => {
-                  tamanhosMobileHTML += `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanho}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanho}"></div>`;
+                  tamanhosMobileHTML += (typeof g8QtyLabeledFieldHtml === "function" ? g8QtyLabeledFieldHtml(`quantidade-mobile-${produto.REFERENCIA}-${tamanho}`, tamanho, { value: 0, min: 0 }) : `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanho}">${tamanho}</label><input type="text" inputmode="numeric" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanho}"></div>`);
                 });
               } else if (produto.REFERENCIA === "203" || produto.REFERENCIA === "204") {
                 // Outras referências com tamanho manual
@@ -4158,7 +4159,7 @@ window.produtosData = [
                 const tamanhosProduto = Array.isArray(produto.TAMANHOS) ? produto.TAMANHOS : [produto.TAMANHOS];
                 tamanhosProduto.forEach((tamanho) => {
                   const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
-                  tamanhosMobileHTML += `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+                  tamanhosMobileHTML += (typeof g8QtyLabeledFieldHtml === "function" ? g8QtyLabeledFieldHtml(`quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}`, tamanho, { value: 0, min: 0 }) : `<div><label for="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="text" inputmode="numeric" min="0" value="0" id="quantidade-mobile-${produto.REFERENCIA}-${tamanhoId}"></div>`);
                 });
               }
               

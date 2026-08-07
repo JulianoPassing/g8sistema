@@ -28,6 +28,7 @@
     <script src="sw-register.js"></script>
     <script src="g8-offline-data.js"></script>
     <script src="mobile-menu.js" defer></script>
+    <script src="mobile-qty-stepper.js"></script>
     <script src="advanced-notifications.js"></script>
     <script src="animations.js"></script>
     <script src="connection-monitor.js"></script>
@@ -1141,7 +1142,11 @@
             if (tamanhosRange) {
               tamanhosMobileHtml = '<div class="tamanho-input-container">';
               tamanhosRange.forEach((tamanho) => {
-                tamanhosMobileHtml += `<div class="tamanho-input-item"><label for="qty-mobile-${produto.REF}-${tamanho}">${tamanho}</label><input type="number" id="qty-mobile-${produto.REF}-${tamanho}" min="0" value=""></div>`;
+                const qtyId = `qty-mobile-${produto.REF}-${tamanho}`;
+                const qtyField = typeof g8QtyStepperHtml === "function"
+                  ? g8QtyStepperHtml(qtyId, { value: "", placeholder: "0", min: 0 })
+                  : `<input type="text" inputmode="numeric" id="${qtyId}" min="0" value="" placeholder="0">`;
+                tamanhosMobileHtml += `<div class="tamanho-input-item"><label for="${qtyId}">${tamanho}</label>${qtyField}</div>`;
               });
               tamanhosMobileHtml += "</div>";
             } else {

@@ -1,8 +1,8 @@
 // ========== SERVICE WORKER G8SISTEMA ==========
 
-const CACHE_NAME = 'g8sistema-v1.3.5';
-const STATIC_CACHE = 'g8sistema-static-v7';
-const DYNAMIC_CACHE = 'g8sistema-dynamic-v7';
+const CACHE_NAME = 'g8sistema-v1.3.6';
+const STATIC_CACHE = 'g8sistema-static-v8';
+const DYNAMIC_CACHE = 'g8sistema-dynamic-v8';
 
 // Arquivos para cache estático (prioridade: páginas e assets locais)
 const STATIC_FILES = [
@@ -40,6 +40,8 @@ const STATIC_FILES = [
   '/professional-ui.css',
   '/connection-status.css',
   '/mobile-menu.js',
+  '/mobile-qty-stepper.js',
+  '/g8-pedido-linha-ui.js',
   '/table-mobile-cards.js',
   '/connection-monitor.js',
   '/auth.js',

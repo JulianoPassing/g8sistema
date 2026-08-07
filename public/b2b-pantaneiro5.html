@@ -27,6 +27,7 @@
       <link rel="stylesheet" href="connection-status.css">
     <script src="sw-register.js"></script>
       <script src="mobile-menu.js" defer></script>
+      <script src="mobile-qty-stepper.js"></script>
     <script src="advanced-notifications.js"></script>
     <script src="animations.js"></script>
     <script src="draft-system.js"></script>
@@ -3255,7 +3256,7 @@ window.produtosData = [
           const tamanhosBotas = ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
           tamanhosHTML = '<div class="tamanho-input-container">';
           tamanhosBotas.forEach((tamanho) => {
-            tamanhosHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanho}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanho}"></div>`;
+            tamanhosHTML += (typeof g8QtyLabeledFieldHtml === "function" ? g8QtyLabeledFieldHtml(`quantidade-${produto.REFERENCIA}-${tamanho}`, tamanho, { value: 0, min: 0 }) : `<div><label for="quantidade-${produto.REFERENCIA}-${tamanho}">${tamanho}</label><input type="text" inputmode="numeric" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanho}"></div>`);
           });
           tamanhosHTML += '</div>';
         } else if (produto.REFERENCIA === "203" || produto.REFERENCIA === "204") {
@@ -3267,7 +3268,7 @@ window.produtosData = [
           tamanhosHTML = '<div class="tamanho-input-container">';
           tamanhosProduto.forEach((tamanho) => {
             const tamanhoId = tamanho.replace(/[^a-zA-Z0-9]/g, "");
-            tamanhosHTML += `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="number" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`;
+            tamanhosHTML += (typeof g8QtyLabeledFieldHtml === "function" ? g8QtyLabeledFieldHtml(`quantidade-${produto.REFERENCIA}-${tamanhoId}`, tamanho, { value: 0, min: 0 }) : `<div><label for="quantidade-${produto.REFERENCIA}-${tamanhoId}">${tamanho}</label><input type="text" inputmode="numeric" min="0" value="0" id="quantidade-${produto.REFERENCIA}-${tamanhoId}"></div>`);
           });
           tamanhosHTML += '</div>';
         }
@@ -3749,10 +3750,12 @@ window.produtosData = [
         }
 
         // Event listener para redimensionamento da janela
-        window.addEventListener('resize', () => {
-          // Re-renderizar produtos quando a tela for redimensionada
-          renderizarProdutosPorCategoria(window.produtosData);
-        });
+        // Re-render só ao cruzar mobile/desktop (não ao abrir teclado)
+        if (typeof g8OnWidthLayoutChange === "function") {
+          g8OnWidthLayoutChange(() => {
+            renderizarProdutosPorCategoria(window.produtosData);
+          });
+        }
       }
     </script>
   </body>

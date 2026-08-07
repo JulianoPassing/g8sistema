@@ -27,6 +27,7 @@
     <script src="sw-register.js"></script>
     <script src="g8-offline-data.js"></script>
     <script src="mobile-menu.js" defer></script>
+    <script src="mobile-qty-stepper.js"></script>
     <script src="advanced-notifications.js"></script>
     <script src="animations.js"></script>
     <script src="connection-monitor.js"></script>
@@ -1199,7 +1200,7 @@
                 </div>
                 <div class="produto-cor-mobile">
                   <label>Quantidade:</label>
-                  <input type="number" min="0" value="" placeholder="0" class="input-mobile-mini" id="qty-mobile-${produto.REF}">
+                  ${typeof g8QtyStepperHtml === "function" ? g8QtyStepperHtml(`qty-mobile-${produto.REF}`, { value: "", placeholder: "0", min: 0 }) : `<input type="text" inputmode="numeric" min="0" value="" placeholder="0" id="qty-mobile-${produto.REF}">`}
                 </div>
                 <div class="produto-actions-mobile">
                   <button class="btn-adicionar-mobile" data-ref="${produto.REF}">➕ Adicionar ao Pedido</button>
