@@ -36,6 +36,7 @@ const STATIC_FILES = [
   '/pedidos.html',
   '/garantias.html',
   '/garantias.js',
+  '/garantias-pdf.js',
   '/garantia-form.html',
   '/clientes.json',
   '/mobile.css',

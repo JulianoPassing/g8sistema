@@ -9,9 +9,12 @@
     <link rel="stylesheet" href="modern-design.css">
     <link rel="stylesheet" href="mobile.css">
     <link rel="stylesheet" href="professional-ui.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <script src="sw-register.js"></script>
     <script src="g8-offline-data.js"></script>
     <script src="mobile-menu.js" defer></script>
+    <script src="garantias-pdf.js"></script>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
@@ -302,6 +305,7 @@
           </div>
           <div class="actions-bar">
             <a class="btn btn-secondary" href="garantias.html" style="text-decoration:none;display:inline-flex;align-items:center;">Cancelar</a>
+            <button type="button" class="btn btn-secondary" id="btn-pdf">🖨️ Gerar PDF</button>
             <button type="button" class="btn btn-primary" id="btn-salvar">Salvar garantia</button>
           </div>
         </div>
@@ -737,6 +741,33 @@
         };
       }
 
+      function montarObjetoGarantiaParaPdf() {
+        const payload = montarPayload();
+        return {
+          id: garantiaEditId || null,
+          empresa: payload.empresa,
+          data_garantia: new Date().toISOString(),
+          dados: payload.dados
+        };
+      }
+
+      function gerarPdfAtual() {
+        const payload = montarPayload();
+        if (!payload.dados.cliente.razao) {
+          alert('Informe o cliente antes de gerar o PDF.');
+          return;
+        }
+        if (!payload.dados.itens.length) {
+          alert('Adicione ao menos um item antes de gerar o PDF.');
+          return;
+        }
+        if (typeof gerarPDFGarantia !== 'function') {
+          alert('Gerador de PDF não carregado. Recarregue a página.');
+          return;
+        }
+        gerarPDFGarantia(montarObjetoGarantiaParaPdf(), { download: true });
+      }
+
       async function salvarGarantia() {
         const payload = montarPayload();
         if (!payload.dados.cliente.razao) {
@@ -858,6 +889,7 @@
         });
         document.getElementById('btn-add-item').addEventListener('click', adicionarItem);
         document.getElementById('btn-salvar').addEventListener('click', salvarGarantia);
+        document.getElementById('btn-pdf').addEventListener('click', gerarPdfAtual);
 
         await carregarClientes();
         await carregarProdutos('pantaneiro5');

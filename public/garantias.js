@@ -235,6 +235,8 @@ function renderizarGarantias(garantias) {
           <button type="button" class="btn-action btn-toggle-envio" onclick="alternarEnvio(${g.id})">
             ${enviado ? '↩ Desmarcar envio' : '✓ Marcar ENVIADO'}
           </button>
+          <button type="button" class="btn-action btn-view" onclick="visualizarPDFGarantia(${g.id})">👁️ Visualizar</button>
+          <button type="button" class="btn-action btn-download" onclick="baixarPDFGarantia(${g.id})">⬇️ PDF</button>
           <button type="button" class="btn-action btn-edit" onclick="editarGarantia(${g.id})">✏️ Editar</button>
           <button type="button" class="btn-action btn-delete" onclick="excluirGarantia(${g.id})">🗑️ Excluir</button>
         </div>
@@ -282,6 +284,32 @@ window.alternarEnvio = async function (id) {
 
 window.editarGarantia = function (id) {
   window.location.href = `garantia-form.html?id=${encodeURIComponent(id)}`;
+};
+
+window.visualizarPDFGarantia = function (id) {
+  const g = todasGarantias.find((x) => String(x.id) === String(id));
+  if (!g) {
+    alert('Garantia não encontrada.');
+    return;
+  }
+  if (typeof gerarPDFGarantia !== 'function') {
+    alert('Gerador de PDF não carregado.');
+    return;
+  }
+  gerarPDFGarantia(g, { download: false });
+};
+
+window.baixarPDFGarantia = function (id) {
+  const g = todasGarantias.find((x) => String(x.id) === String(id));
+  if (!g) {
+    alert('Garantia não encontrada.');
+    return;
+  }
+  if (typeof gerarPDFGarantia !== 'function') {
+    alert('Gerador de PDF não carregado.');
+    return;
+  }
+  gerarPDFGarantia(g, { download: true });
 };
 
 window.excluirGarantia = async function (id) {
