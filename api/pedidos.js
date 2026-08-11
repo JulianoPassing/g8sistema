@@ -543,6 +543,69 @@ module.exports = async (req, res) => {
         return;
       }
 
+      // Último pedido do cliente (por CNPJ) — usado em garantias para herdar prazo/volume
+      if (q.lastDiscounts === '1') {
+        try {
+          const cnpjNorm = String(q.cnpj || '').replace(/\D/g, '');
+          if (cnpjNorm.length < 11) {
+            res.status(200).json({ found: false, reason: 'CNPJ inválido' });
+            return;
+          }
+          const empresaRaw = String(q.empresa || '').trim().toLowerCase();
+          let empresaClause = '';
+          const params = [cnpjNorm];
+          if (empresaRaw === 'pantaneiro5') {
+            empresaClause = ` AND LOWER(IFNULL(empresa,'')) IN ('pantaneiro5','b2b-pantaneiro5')`;
+          } else if (empresaRaw === 'pantaneiro7') {
+            empresaClause = ` AND LOWER(IFNULL(empresa,'')) IN ('pantaneiro7','b2b-pantaneiro7')`;
+          } else if (empresaRaw) {
+            empresaClause = ` AND LOWER(IFNULL(empresa,'')) = ?`;
+            params.push(empresaRaw);
+          }
+
+          const [rows] = await withTimeout(
+            connection.execute(
+              `SELECT id, empresa, dados, data_pedido FROM pedidos
+               WHERE REPLACE(REPLACE(REPLACE(REPLACE(
+                 IFNULL(JSON_UNQUOTE(JSON_EXTRACT(dados, '$.cliente.cnpj')), ''),
+                 '.', ''), '/', ''), '-', ''), ' ', '') = ?
+               ${empresaClause}
+               ORDER BY data_pedido DESC
+               LIMIT 1`,
+              params
+            ),
+            25000,
+            'Último pedido por CNPJ (descontos)'
+          );
+
+          if (!rows.length) {
+            res.status(200).json({ found: false });
+            return;
+          }
+
+          const row = rows[0];
+          const dados = parseDadosJson(row.dados) || {};
+          const descontos = dados.descontos || {};
+          res.status(200).json({
+            found: true,
+            pedidoId: row.id,
+            empresa: row.empresa,
+            data_pedido: row.data_pedido,
+            prazoPagamento: dados.prazo || (dados.cliente && dados.cliente.prazo) || '',
+            descontos: {
+              prazo: parseFloat(descontos.prazo) || 0,
+              volume: parseFloat(descontos.volume) || 0
+            }
+          });
+        } catch (err) {
+          console.error('lastDiscounts:', err);
+          if (!res.headersSent) {
+            res.status(500).json({ error: err.message || 'Erro ao buscar último pedido' });
+          }
+        }
+        return;
+      }
+
       const clienteIdFilter = q.clienteId != null ? String(q.clienteId).trim() : '';
       if (clienteIdFilter !== '') {
         try {

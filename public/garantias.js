@@ -10,6 +10,11 @@ function formatarData(data) {
   }
 }
 
+function formatarMoeda(valor) {
+  if (valor == null || isNaN(Number(valor))) return '—';
+  return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
 function nomeEmpresa(slug) {
   const s = String(slug || '').toLowerCase();
   if (s === 'pantaneiro5') return 'PANTANEIRO 5';
@@ -51,7 +56,21 @@ function extrairInfo(g) {
     if (qtd != null && qtd !== '') label += ` (x${qtd})`;
     return label;
   });
-  return { cliente, cnpj, itens: labels, qtdItens: itens.length, obs: dados.observacoes || '' };
+  const total =
+    dados.total != null && dados.total !== ''
+      ? Number(dados.total)
+      : null;
+  const descontos = dados.descontos || {};
+  return {
+    cliente,
+    cnpj,
+    itens: labels,
+    qtdItens: itens.length,
+    obs: dados.observacoes || '',
+    total,
+    descontoPrazo: Number(descontos.prazo) || 0,
+    descontoVolume: Number(descontos.volume) || 0
+  };
 }
 
 function normalizarLista(raw) {
@@ -197,6 +216,15 @@ function renderizarGarantias(garantias) {
                 .join('')}
               ${info.itens.length > 6 ? `<span class="item-badge">+${info.itens.length - 6} mais</span>` : ''}
             </div>
+          </div>
+          <div>
+            <div class="info-label">Valor total</div>
+            <div class="info-value">${formatarMoeda(info.total)}</div>
+            ${
+              info.descontoPrazo || info.descontoVolume
+                ? `<div style="font-size:0.8rem;color:#64748b;margin-top:2px;">Prazo ${String(info.descontoPrazo).replace('.', ',')}% · Volume ${String(info.descontoVolume).replace('.', ',')}%</div>`
+                : ''
+            }
           </div>
           <div>
             <div class="info-label">Data</div>

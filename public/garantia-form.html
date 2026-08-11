@@ -88,12 +88,42 @@
       .busca-wrap { position: relative; }
       .produto-add-row {
         display: grid;
-        grid-template-columns: 1.2fr 1fr 90px 110px 1fr auto;
+        grid-template-columns: 1.4fr 0.9fr 90px 100px 100px 1fr auto;
         gap: 8px;
         align-items: end;
       }
-      @media (max-width: 900px) {
+      @media (max-width: 1000px) {
         .produto-add-row { grid-template-columns: 1fr 1fr; }
+      }
+      .descontos-box {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+        padding: 14px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+      }
+      .total-box {
+        margin-top: 14px;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+      .total-box small { display: block; font-weight: 500; color: #64748b; margin-top: 4px; }
+      #info-ultimo-pedido {
+        display: none;
+        margin-top: 12px;
+        padding: 10px 12px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        color: #065f46;
+        font-size: 0.9rem;
       }
       .itens-lista { display: grid; gap: 10px; }
       .item-row {
@@ -180,7 +210,9 @@
             <div class="form-group"><label>Estado</label><input id="estado" /></div>
             <div class="form-group"><label>Telefone</label><input id="telefone" /></div>
             <div class="form-group"><label>E-mail</label><input id="email" type="email" /></div>
+            <div class="form-group"><label>Prazo pagamento</label><input id="prazo-pagamento" placeholder="Ex: 30/60/90" /></div>
           </div>
+          <div id="info-ultimo-pedido"></div>
         </div>
       </section>
 
@@ -196,6 +228,7 @@
               <label>Produto</label>
               <input id="produto-desc" readonly placeholder="Selecione um produto" />
               <input type="hidden" id="produto-ref" />
+              <input type="hidden" id="produto-preco" value="0" />
             </div>
             <div class="form-group">
               <label>Tamanho</label>
@@ -204,6 +237,10 @@
             <div class="form-group">
               <label>Qtd</label>
               <input id="produto-qtd" type="number" min="1" value="1" />
+            </div>
+            <div class="form-group">
+              <label>Preço tabela</label>
+              <input id="produto-preco-view" readonly placeholder="R$ 0,00" />
             </div>
             <div class="form-group">
               <label>Cor</label>
@@ -215,8 +252,40 @@
             </div>
             <button type="button" class="btn btn-primary" id="btn-add-item" style="height:42px;">Adicionar</button>
           </div>
-          <p class="hint">Os produtos mudam conforme a empresa selecionada (Pantaneiro 5 ou 7).</p>
+          <p class="hint">Os produtos e preços vêm da tabela da empresa (Pantaneiro 5 ou 7). Descontos de prazo/volume do último pedido são aplicados no total.</p>
+
+          <div class="descontos-box">
+            <div class="form-group">
+              <label for="desconto-prazo">⏳ Desconto Prazo (%)</label>
+              <select id="desconto-prazo">
+                <option value="0" selected>0%</option>
+                <option value="1.2">1,2%</option>
+                <option value="2.5">2,5%</option>
+                <option value="5">5%</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="desconto-volume">📦 Desconto Volume (%)</label>
+              <select id="desconto-volume">
+                <option value="0" selected>0%</option>
+                <option value="2">2%</option>
+                <option value="4">4%</option>
+                <option value="6">6%</option>
+                <option value="8">8%</option>
+                <option value="10">10%</option>
+              </select>
+            </div>
+            <div class="form-group" style="justify-content:flex-end;">
+              <label>&nbsp;</label>
+              <button type="button" class="btn btn-secondary" id="btn-buscar-descontos">Buscar do último pedido</button>
+            </div>
+          </div>
+
           <div id="itens-lista" class="itens-lista" style="margin-top:16px;"></div>
+          <div class="total-box" id="total-box">
+            Total: R$ 0,00
+            <small id="total-detalhe">Sem descontos</small>
+          </div>
         </div>
       </section>
 
@@ -245,6 +314,8 @@
       let itensGarantia = [];
       let clienteIdSelecionado = '';
       let garantiaEditId = null;
+      let carregandoEdicao = false;
+      let ultimoPedidoInfo = null;
 
       const params = new URLSearchParams(window.location.search);
       if (params.get('id')) garantiaEditId = params.get('id');
@@ -257,12 +328,138 @@
           .replace(/"/g, '&quot;');
       }
 
+      function formatMoney(v) {
+        return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      }
+
+      function getDescontos() {
+        return {
+          prazo: parseFloat(document.getElementById('desconto-prazo').value) || 0,
+          volume: parseFloat(document.getElementById('desconto-volume').value) || 0
+        };
+      }
+
+      function fatorDescontos() {
+        const d = getDescontos();
+        return (1 - d.prazo / 100) * (1 - d.volume / 100);
+      }
+
+      function calcTotais() {
+        const subtotal = itensGarantia.reduce((acc, item) => {
+          const preco = Number(item.preco) || 0;
+          const qtd = Number(item.quantidade) || 0;
+          const extra = Number(item.descontoExtra) || 0;
+          return acc + preco * qtd * (1 - extra / 100);
+        }, 0);
+        const d = getDescontos();
+        const total = subtotal * fatorDescontos();
+        return { subtotal, total, ...d };
+      }
+
+      function atualizarTotal() {
+        const t = calcTotais();
+        const box = document.getElementById('total-box');
+        if (!box) return;
+        const partes = [`Subtotal: ${formatMoney(t.subtotal)}`];
+        if (t.prazo > 0) partes.push(`Prazo ${String(t.prazo).replace('.', ',')}%`);
+        if (t.volume > 0) partes.push(`Volume ${String(t.volume).replace('.', ',')}%`);
+        box.innerHTML = `Total: ${formatMoney(t.total)}<small id="total-detalhe">${partes.join(' · ')}</small>`;
+      }
+
+      function setSelectClosest(selectId, value) {
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+        const num = parseFloat(value) || 0;
+        const opts = Array.from(sel.options).map((o) => parseFloat(o.value));
+        let best = opts[0];
+        let bestDiff = Math.abs(best - num);
+        opts.forEach((o) => {
+          const diff = Math.abs(o - num);
+          if (diff < bestDiff) {
+            best = o;
+            bestDiff = diff;
+          }
+        });
+        // If exact option exists use it; else set closest
+        const exact = Array.from(sel.options).find((o) => parseFloat(o.value) === num);
+        sel.value = exact ? exact.value : String(best);
+      }
+
+      function mostrarInfoUltimoPedido(info) {
+        const el = document.getElementById('info-ultimo-pedido');
+        if (!el) return;
+        if (!info || !info.found) {
+          el.style.display = 'none';
+          el.textContent = '';
+          ultimoPedidoInfo = null;
+          return;
+        }
+        ultimoPedidoInfo = info;
+        const data = info.data_pedido
+          ? new Date(info.data_pedido).toLocaleDateString('pt-BR')
+          : '';
+        el.style.display = 'block';
+        el.innerHTML = `Descontos herdados do pedido <strong>#${info.pedidoId}</strong>${
+          data ? ` (${data})` : ''
+        }: prazo <strong>${String(info.descontos.prazo).replace('.', ',')}%</strong>, volume <strong>${String(
+          info.descontos.volume
+        ).replace('.', ',')}%</strong>.`;
+      }
+
+      async function buscarDescontosUltimoPedido({ silent = false } = {}) {
+        const cnpj = document.getElementById('cnpj').value.trim();
+        const empresa = document.getElementById('empresa').value;
+        if (!cnpj.replace(/\D/g, '').length) {
+          if (!silent) alert('Informe o CNPJ do cliente para buscar o último pedido.');
+          return;
+        }
+        try {
+          const url = `/api/pedidos?lastDiscounts=1&cnpj=${encodeURIComponent(cnpj)}&empresa=${encodeURIComponent(empresa)}`;
+          const resp = await fetch(url);
+          const data = await resp.json().catch(() => ({}));
+          if (!resp.ok) {
+            if (!silent) alert(data.error || 'Erro ao buscar último pedido.');
+            return;
+          }
+          if (!data.found) {
+            mostrarInfoUltimoPedido(null);
+            if (!silent) {
+              const el = document.getElementById('info-ultimo-pedido');
+              el.style.display = 'block';
+              el.style.background = '#fff7ed';
+              el.style.borderColor = '#fdba74';
+              el.style.color = '#9a3412';
+              el.textContent = 'Nenhum pedido anterior encontrado para este CNPJ nesta empresa.';
+            }
+            return;
+          }
+          setSelectClosest('desconto-prazo', data.descontos.prazo);
+          setSelectClosest('desconto-volume', data.descontos.volume);
+          if (data.prazoPagamento) {
+            document.getElementById('prazo-pagamento').value = data.prazoPagamento;
+          }
+          const el = document.getElementById('info-ultimo-pedido');
+          el.style.background = '#ecfdf5';
+          el.style.borderColor = '#a7f3d0';
+          el.style.color = '#065f46';
+          mostrarInfoUltimoPedido(data);
+          atualizarTotal();
+        } catch (e) {
+          console.error(e);
+          if (!silent) alert('Erro de rede ao buscar descontos.');
+        }
+      }
+
       function setEmpresa(slug) {
         document.getElementById('empresa').value = slug;
         document.querySelectorAll('.empresa-option').forEach((btn) => {
           btn.classList.toggle('active', btn.dataset.empresa === slug);
         });
-        carregarProdutos(slug);
+        carregarProdutos(slug).then(() => {
+          if (!carregandoEdicao && document.getElementById('cnpj').value.trim()) {
+            buscarDescontosUltimoPedido({ silent: true });
+          }
+        });
       }
 
       async function carregarClientes() {
@@ -303,6 +500,8 @@
       function limparSelecaoProduto() {
         document.getElementById('produto-ref').value = '';
         document.getElementById('produto-desc').value = '';
+        document.getElementById('produto-preco').value = '0';
+        document.getElementById('produto-preco-view').value = '';
         document.getElementById('produto-cor').value = '';
         document.getElementById('produto-motivo').value = '';
         document.getElementById('produto-qtd').value = '1';
@@ -320,6 +519,9 @@
         document.getElementById('telefone').value = cliente.telefone || '';
         document.getElementById('email').value = cliente.email || '';
         document.getElementById('busca-cliente').value = cliente.razao || '';
+        if (!carregandoEdicao) {
+          buscarDescontosUltimoPedido({ silent: true });
+        }
       }
 
       function renderSugestoesClientes(filtro) {
@@ -381,12 +583,13 @@
           return;
         }
         box.innerHTML = matches
-          .map(
-            (p, i) =>
-              `<div class="sugestao-item" data-idx="${i}"><strong>${escapeHtml(
-                p.REFERENCIA || ''
-              )}</strong> — ${escapeHtml(p['DESCRIÇÃO'] || p.DESCRICAO || '')}</div>`
-          )
+          .map((p, i) => {
+            const preco = Number(p.PRECO) || 0;
+            return `<div class="sugestao-item" data-idx="${i}"><strong>${escapeHtml(
+              p.REFERENCIA || ''
+            )}</strong> — ${escapeHtml(p['DESCRIÇÃO'] || p.DESCRICAO || '')}
+            <small style="color:#64748b;float:right;">${formatMoney(preco)}</small></div>`;
+          })
           .join('');
         box.style.display = 'block';
         box.querySelectorAll('.sugestao-item').forEach((el) => {
@@ -400,9 +603,12 @@
       }
 
       function selecionarProduto(p) {
+        const preco = Number(p.PRECO) || 0;
         document.getElementById('produto-ref').value = p.REFERENCIA || '';
         document.getElementById('produto-desc').value =
           `${p.REFERENCIA || ''} — ${p['DESCRIÇÃO'] || p.DESCRICAO || ''}`;
+        document.getElementById('produto-preco').value = String(preco);
+        document.getElementById('produto-preco-view').value = formatMoney(preco);
         const sel = document.getElementById('produto-tamanho');
         const tamanhos = Array.isArray(p.TAMANHOS)
           ? p.TAMANHOS
@@ -410,33 +616,47 @@
               .split('/')
               .map((t) => t.trim())
               .filter(Boolean);
-        sel.innerHTML = '<option value="">-</option>' + tamanhos.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+        sel.innerHTML =
+          '<option value="">-</option>' +
+          tamanhos.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
         if (tamanhos.length === 1) sel.value = tamanhos[0];
+      }
+
+      function precoUnitarioComDescontos(preco, descontoExtra) {
+        const extra = Number(descontoExtra) || 0;
+        return (Number(preco) || 0) * (1 - extra / 100) * fatorDescontos();
       }
 
       function renderItens() {
         const box = document.getElementById('itens-lista');
         if (!itensGarantia.length) {
           box.innerHTML = '<p class="hint">Nenhum item adicionado ainda.</p>';
+          atualizarTotal();
           return;
         }
         box.innerHTML = itensGarantia
-          .map(
-            (item, index) => `
+          .map((item, index) => {
+            const unit = precoUnitarioComDescontos(item.preco, item.descontoExtra);
+            const linha = unit * (Number(item.quantidade) || 0);
+            return `
           <div class="item-row">
             <div>
               <strong>${escapeHtml(item.REFERENCIA)}</strong> — ${escapeHtml(item.DESCRICAO)}
               <div class="item-meta">
                 ${item.tamanho ? `<span class="chip">Tam: ${escapeHtml(item.tamanho)}</span>` : ''}
                 <span class="chip">Qtd: ${escapeHtml(item.quantidade)}</span>
+                <span class="chip">Tabela: ${formatMoney(item.preco)}</span>
+                <span class="chip">Unit. c/ desc.: ${formatMoney(unit)}</span>
+                <span class="chip">Linha: ${formatMoney(linha)}</span>
                 ${item.cor ? `<span class="chip">Cor: ${escapeHtml(item.cor)}</span>` : ''}
                 ${item.motivo ? `<span class="chip">Motivo: ${escapeHtml(item.motivo)}</span>` : ''}
               </div>
             </div>
             <button type="button" class="btn btn-danger" onclick="removerItem(${index})">Remover</button>
-          </div>`
-          )
+          </div>`;
+          })
           .join('');
+        atualizarTotal();
       }
 
       window.removerItem = function (index) {
@@ -455,11 +675,16 @@
           ? descFull.split('—').slice(1).join('—').trim()
           : descFull;
         const qtd = parseInt(document.getElementById('produto-qtd').value, 10) || 1;
+        const preco = parseFloat(document.getElementById('produto-preco').value) || 0;
         itensGarantia.push({
           REFERENCIA: ref,
           DESCRICAO: desc,
+          DESCRIÇÃO: desc,
           tamanho: document.getElementById('produto-tamanho').value || '',
           quantidade: qtd,
+          preco,
+          PRECO: preco,
+          descontoExtra: 0,
           cor: document.getElementById('produto-cor').value.trim(),
           motivo: document.getElementById('produto-motivo').value.trim()
         });
@@ -469,6 +694,8 @@
 
       function montarPayload() {
         const empresa = document.getElementById('empresa').value;
+        const descontos = getDescontos();
+        const totais = calcTotais();
         const cliente = {
           id: clienteIdSelecionado || null,
           razao: document.getElementById('razao').value.trim(),
@@ -476,11 +703,14 @@
           cidade: document.getElementById('cidade').value.trim(),
           estado: document.getElementById('estado').value.trim(),
           telefone: document.getElementById('telefone').value.trim(),
-          email: document.getElementById('email').value.trim()
+          email: document.getElementById('email').value.trim(),
+          prazo: document.getElementById('prazo-pagamento').value.trim()
         };
         const observacoes = document.getElementById('observacoes').value.trim();
         const enviado = parseInt(document.getElementById('status-enviado').value, 10) ? 1 : 0;
-        const descricao = `Garantia ${empresa.toUpperCase()} - ${cliente.razao || 'Cliente'}`;
+        const descricao = `Garantia ${empresa.toUpperCase()} - ${cliente.razao || 'Cliente'} Total: ${formatMoney(
+          totais.total
+        )}`;
         return {
           empresa,
           descricao,
@@ -490,9 +720,19 @@
             empresa,
             cliente,
             clienteNome: cliente.razao,
+            prazo: cliente.prazo,
             itens: itensGarantia,
+            descontos,
+            subtotal: totais.subtotal,
+            total: totais.total,
             observacoes,
-            enviado
+            enviado,
+            ultimoPedidoOrigem: ultimoPedidoInfo
+              ? {
+                  pedidoId: ultimoPedidoInfo.pedidoId,
+                  data_pedido: ultimoPedidoInfo.data_pedido
+                }
+              : null
           }
         };
       }
@@ -533,21 +773,35 @@
       }
 
       async function carregarGarantiaEdicao(id) {
+        carregandoEdicao = true;
         const resp = await fetch(`/api/garantias/${encodeURIComponent(id)}`);
         if (!resp.ok) throw new Error('Garantia não encontrada');
         const g = await resp.json();
         const dados = typeof g.dados === 'string' ? JSON.parse(g.dados) : g.dados || {};
         const empresa = g.empresa || dados.empresa || 'pantaneiro5';
         setEmpresa(empresa);
+        await carregarProdutos(empresa);
         if (dados.cliente) preencherCliente(dados.cliente);
-        itensGarantia = Array.isArray(dados.itens) ? dados.itens.map((it) => ({
-          REFERENCIA: it.REFERENCIA || it.ref || '',
-          DESCRICAO: it.DESCRICAO || it.DESCRIÇÃO || it.descricao || '',
-          tamanho: it.tamanho || '',
-          quantidade: it.quantidade != null ? it.quantidade : it.qtd || 1,
-          cor: it.cor || '',
-          motivo: it.motivo || it.observacao || ''
-        })) : [];
+        document.getElementById('prazo-pagamento').value =
+          dados.prazo || (dados.cliente && dados.cliente.prazo) || '';
+        if (dados.descontos) {
+          setSelectClosest('desconto-prazo', dados.descontos.prazo);
+          setSelectClosest('desconto-volume', dados.descontos.volume);
+        }
+        itensGarantia = Array.isArray(dados.itens)
+          ? dados.itens.map((it) => ({
+              REFERENCIA: it.REFERENCIA || it.ref || '',
+              DESCRICAO: it.DESCRICAO || it.DESCRIÇÃO || it.descricao || '',
+              DESCRIÇÃO: it.DESCRICAO || it.DESCRIÇÃO || it.descricao || '',
+              tamanho: it.tamanho || '',
+              quantidade: it.quantidade != null ? it.quantidade : it.qtd || 1,
+              preco: Number(it.preco != null ? it.preco : it.PRECO) || 0,
+              PRECO: Number(it.preco != null ? it.preco : it.PRECO) || 0,
+              descontoExtra: Number(it.descontoExtra) || 0,
+              cor: it.cor || '',
+              motivo: it.motivo || it.observacao || ''
+            }))
+          : [];
         document.getElementById('observacoes').value = dados.observacoes || '';
         const enviado = g.enviado === 1 || g.enviado === true || dados.enviado === 1 ? '1' : '0';
         document.getElementById('status-enviado').value = enviado;
@@ -555,6 +809,7 @@
         document.getElementById('titulo-pagina').textContent = `Editar Garantia #${id}`;
         document.getElementById('breadcrumb-acao').textContent = `Editar #${id}`;
         document.title = `G8 - Editar Garantia #${id}`;
+        carregandoEdicao = false;
       }
 
       document.addEventListener('DOMContentLoaded', async () => {
@@ -580,6 +835,20 @@
         });
         document.getElementById('busca-produto').addEventListener('input', (e) => {
           renderSugestoesProdutos(e.target.value);
+        });
+        document.getElementById('desconto-prazo').addEventListener('change', () => {
+          renderItens();
+        });
+        document.getElementById('desconto-volume').addEventListener('change', () => {
+          renderItens();
+        });
+        document.getElementById('btn-buscar-descontos').addEventListener('click', () => {
+          buscarDescontosUltimoPedido({ silent: false });
+        });
+        document.getElementById('cnpj').addEventListener('blur', () => {
+          if (!carregandoEdicao && document.getElementById('cnpj').value.trim()) {
+            buscarDescontosUltimoPedido({ silent: true });
+          }
         });
         document.addEventListener('click', (e) => {
           if (!e.target.closest('.busca-wrap')) {
