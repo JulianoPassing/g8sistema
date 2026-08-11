@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>G8 - Garantias</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="modern-design.css">
+    <link rel="stylesheet" href="professional-ui.css">
+    <script src="sw-register.js"></script>
+    <script src="g8-offline-data.js"></script>
+    <script src="mobile-menu.js" defer></script>
+    <script src="advanced-notifications.js" defer></script>
+    <script src="animations.js" defer></script>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background: var(--bg-color);
+        margin: 0;
+        padding: 80px 20px 0 20px;
+        font-size: 14px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .header-top {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 25px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: var(--shadow);
+        z-index: 1000;
+        border-bottom: 1px solid var(--border-color);
+        height: 55px;
+      }
+      .header-left, .header-center, .header-right {
+        flex: 1;
+        display: flex;
+        align-items: center;
+      }
+      .header-center { justify-content: center; }
+      .header-right { justify-content: flex-end; gap: 12px; }
+      #user-info {
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 6px 12px;
+        background: var(--light-color);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+      }
+      #logout-button {
+        background: var(--gradient-danger);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .breadcrumb {
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+        color: #64748b;
+      }
+      .breadcrumb a { color: #dc2626; text-decoration: none; font-weight: 600; }
+      .breadcrumb-sep { margin: 0 8px; }
+      .alerta-pendentes-banner {
+        margin-bottom: 16px;
+        border-radius: 12px;
+        border: 1px solid #fbbf24;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        overflow: hidden;
+      }
+      .alerta-pendentes-inner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+      }
+      .alerta-pendentes-text { flex: 1; min-width: 200px; }
+      .alerta-pendentes-msg { margin: 4px 0 0; color: #92400e; font-size: 0.92rem; }
+      .alerta-pendentes-btn, .alerta-pendentes-close {
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        padding: 8px 12px;
+      }
+      .alerta-pendentes-btn { background: #d97706; color: #fff; }
+      .alerta-pendentes-close { background: transparent; color: #92400e; font-size: 1.1rem; }
+      .garantias-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 20px;
+        padding: 20px;
+      }
+      .garantia-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+      }
+      .garantia-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #dc2626, #f59e0b);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.25s ease;
+      }
+      .garantia-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(220, 38, 38, 0.12);
+      }
+      .garantia-card:hover::before { transform: scaleX(1); }
+      .garantia-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 20px 14px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-bottom: 1px solid #e9ecef;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .id-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .id-number {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #dc2626;
+      }
+      .garantia-badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .empresa-badge {
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+        color: #fff;
+        border-radius: 16px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .enviado-badge {
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: #fff;
+        border-radius: 16px;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+      .pendente-badge {
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        color: #fff;
+        border-radius: 16px;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+      .garantia-body { padding: 16px 20px; display: grid; gap: 12px; }
+      .info-label { font-size: 0.78rem; color: #64748b; font-weight: 600; margin-bottom: 2px; }
+      .info-value { font-weight: 600; color: #0f172a; }
+      .itens-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+      .item-badge {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 4px 8px;
+        font-size: 0.78rem;
+        color: #334155;
+      }
+      .garantia-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 14px 20px 18px;
+        border-top: 1px solid #f1f5f9;
+      }
+      .btn-action {
+        border: none;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: #fff;
+      }
+      .btn-toggle-envio { background: #0f766e; }
+      .btn-edit { background: #2563eb; }
+      .btn-delete { background: #dc2626; }
+      .btn-nova {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: #fff;
+        text-decoration: none;
+        padding: 12px 18px;
+        border-radius: 10px;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
+      }
+      .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: #64748b;
+      }
+      footer {
+        margin-top: auto;
+        padding: 24px 0;
+        text-align: center;
+        color: #64748b;
+        font-size: 0.85rem;
+      }
+      footer a { color: #dc2626; }
+      @media (max-width: 640px) {
+        body { padding: 70px 12px 0 12px; }
+        .garantias-grid { grid-template-columns: 1fr; padding: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header-top">
+      <div class="header-left">
+        <a href="painel.html" class="btn" style="text-decoration:none;color:#dc2626;font-weight:700;">⬅️ Voltar ao Painel</a>
+      </div>
+      <div class="header-center">
+        <img id="logo" src="https://i.imgur.com/vjq26ym.png" alt="Logo G8" style="height:36px;" />
+      </div>
+      <div class="header-right">
+        <div id="user-info"></div>
+        <button id="logout-button" type="button">Sair</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="breadcrumb">
+        <a href="painel.html">Painel</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>Garantias</span>
+      </div>
+
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div class="page-header-icon"><i class="fas fa-shield-alt"></i></div>
+          <div class="page-header-text">
+            <h1 class="dashboard-title">Garantias</h1>
+            <p class="dashboard-subtitle">Separado dos pedidos — Pantaneiro 5 e 7</p>
+          </div>
+        </div>
+        <a class="btn-nova" href="garantia-form.html">➕ Nova garantia</a>
+      </div>
+
+      <div id="alerta-garantias-pendentes" class="alerta-pendentes-banner" style="display:none" role="alert" aria-hidden="true">
+        <div class="alerta-pendentes-inner">
+          <span aria-hidden="true">⚠️</span>
+          <div class="alerta-pendentes-text">
+            <strong>Atenção — envio</strong>
+            <p id="alerta-pendentes-msg" class="alerta-pendentes-msg"></p>
+          </div>
+          <button type="button" id="alerta-pendentes-ver-filtro" class="alerta-pendentes-btn">Ver só pendentes</button>
+          <button type="button" id="alerta-pendentes-fechar" class="alerta-pendentes-close" aria-label="Fechar aviso">✕</button>
+        </div>
+      </div>
+
+      <section class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <span style="font-size:1.6em">🔍</span>
+          <h2>Buscar Garantias</h2>
+        </div>
+        <div style="padding:20px;">
+          <input
+            type="text"
+            id="busca-garantias"
+            placeholder="Buscar por ID, razão social, CNPJ, referência..."
+            style="width:100%;max-width:640px;margin:0 auto;display:block;padding:14px 18px;border:2px solid #e2e8f0;border-radius:12px;font-size:1rem;outline:none;"
+          />
+          <div id="contador-resultados" style="text-align:center;margin-top:10px;color:#64748b;font-weight:500;"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;margin-top:16px;">
+            <label for="filtro-empresa" style="font-weight:600;color:#334155;">Empresa:</label>
+            <select id="filtro-empresa" style="padding:10px 14px;border:2px solid #e2e8f0;border-radius:10px;min-width:180px;background:#fff;">
+              <option value="todas">Todas</option>
+              <option value="pantaneiro5">Pantaneiro 5</option>
+              <option value="pantaneiro7">Pantaneiro 7</option>
+            </select>
+            <label for="filtro-envio" style="font-weight:600;color:#334155;">Status:</label>
+            <select id="filtro-envio" style="padding:10px 14px;border:2px solid #e2e8f0;border-radius:10px;min-width:200px;background:#fff;">
+              <option value="todos">Todas</option>
+              <option value="enviado">Somente ENVIADO</option>
+              <option value="pendente">Somente NÃO ENVIADO</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span style="font-size:1.6em">🛡️</span>
+          <h2>Garantias</h2>
+        </div>
+        <div id="garantias-lista"></div>
+      </section>
+    </main>
+
+    <footer>
+      © 2025 J.P. Sistemas. Todos os direitos reservados. |
+      <a href="https://whatsa.me/5548996852138/?t=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20sistemas." target="_blank">jp-sistemas.com</a>
+    </footer>
+    <script src="garantias.js"></script>
+  </body>
+</html>

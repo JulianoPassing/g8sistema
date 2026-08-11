@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>G8 - Nova Garantia</title>
+    <link rel="icon" href="https://i.imgur.com/WveVVY5.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="modern-design.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="professional-ui.css">
+    <script src="sw-register.js"></script>
+    <script src="g8-offline-data.js"></script>
+    <script src="mobile-menu.js" defer></script>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #fff;
+        color: #111;
+        padding: 80px 20px 40px;
+        min-height: 100vh;
+      }
+      .header-top {
+        position: absolute; top: 0; left: 0; right: 0;
+        height: 55px; display: flex; align-items: center; justify-content: space-between;
+        padding: 0 24px; background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+        border-bottom: 1px solid #e2e8f0; z-index: 100;
+      }
+      .header-top a { color: #dc2626; font-weight: 700; text-decoration: none; }
+      #user-info { font-weight: 600; margin-right: 10px; }
+      #logout-button {
+        background: #dc2626; color: #fff; border: none; border-radius: 8px;
+        padding: 8px 14px; font-weight: 600; cursor: pointer;
+      }
+      .breadcrumb { margin-bottom: 14px; color: #64748b; font-size: 0.9rem; }
+      .breadcrumb a { color: #dc2626; font-weight: 600; text-decoration: none; }
+      .card {
+        background: #fafafa; border: 1px solid #e5e7eb; border-radius: 14px;
+        margin-bottom: 18px; overflow: hidden;
+      }
+      .card-header {
+        display: flex; align-items: center; gap: 10px;
+        padding: 14px 18px; background: #fff; border-bottom: 1px solid #eee;
+      }
+      .card-header h2 { font-size: 1.05rem; }
+      .card-body { padding: 18px; }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .form-group { display: flex; flex-direction: column; gap: 6px; }
+      .form-group label { font-weight: 600; font-size: 0.88rem; color: #334155; }
+      input, select, textarea {
+        padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+        font-size: 0.95rem; background: #fff;
+      }
+      textarea { min-height: 90px; resize: vertical; }
+      .empresa-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+      .empresa-option {
+        border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px;
+        cursor: pointer; background: #fff; text-align: center; transition: all 0.2s;
+      }
+      .empresa-option:hover { border-color: #fca5a5; }
+      .empresa-option.active {
+        border-color: #dc2626;
+        background: #fff5f5;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+      }
+      .empresa-option strong { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+      .empresa-option span { color: #64748b; font-size: 0.85rem; }
+      #sugestoes-clientes, #sugestoes-produtos {
+        position: absolute; left: 0; right: 0; top: 100%;
+        background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+        max-height: 240px; overflow: auto; z-index: 20;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        display: none;
+      }
+      .sugestao-item {
+        padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9;
+      }
+      .sugestao-item:hover { background: #fef2f2; }
+      .busca-wrap { position: relative; }
+      .produto-add-row {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 90px 110px 1fr auto;
+        gap: 8px;
+        align-items: end;
+      }
+      @media (max-width: 900px) {
+        .produto-add-row { grid-template-columns: 1fr 1fr; }
+      }
+      .itens-lista { display: grid; gap: 10px; }
+      .item-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: start;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .item-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+      .chip {
+        background: #f1f5f9; border-radius: 999px; padding: 3px 10px;
+        font-size: 0.78rem; color: #334155;
+      }
+      .btn {
+        border: none; border-radius: 8px; padding: 10px 14px;
+        font-weight: 700; cursor: pointer;
+      }
+      .btn-primary { background: #dc2626; color: #fff; }
+      .btn-secondary { background: #e2e8f0; color: #0f172a; }
+      .btn-danger { background: #b91c1c; color: #fff; }
+      .actions-bar {
+        display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end;
+        margin-top: 8px;
+      }
+      .hint { color: #64748b; font-size: 0.85rem; margin-top: 6px; }
+      #cliente-selecionado { display: none; }
+    </style>
+  </head>
+  <body>
+    <header class="header-top">
+      <a href="garantias.html">⬅️ Voltar às Garantias</a>
+      <img src="https://i.imgur.com/vjq26ym.png" alt="G8" style="height:34px;" />
+      <div style="display:flex;align-items:center;">
+        <div id="user-info"></div>
+        <button id="logout-button" type="button">Sair</button>
+      </div>
+    </header>
+
+    <main class="container" style="max-width:1100px;margin:0 auto;">
+      <div class="breadcrumb">
+        <a href="painel.html">Painel</a> ›
+        <a href="garantias.html">Garantias</a> ›
+        <span id="breadcrumb-acao">Nova</span>
+      </div>
+
+      <div class="page-header" style="margin-bottom:18px;">
+        <h1 class="dashboard-title" id="titulo-pagina">Nova Garantia</h1>
+        <p class="dashboard-subtitle">Escolha a empresa, o cliente e os itens da garantia</p>
+      </div>
+
+      <section class="card">
+        <div class="card-header"><span>🏭</span><h2>Empresa</h2></div>
+        <div class="card-body">
+          <div class="empresa-options">
+            <button type="button" class="empresa-option active" data-empresa="pantaneiro5" id="opt-p5">
+              <strong>Pantaneiro 5</strong>
+              <span>Tabela 5%</span>
+            </button>
+            <button type="button" class="empresa-option" data-empresa="pantaneiro7" id="opt-p7">
+              <strong>Pantaneiro 7</strong>
+              <span>Tabela 7%</span>
+            </button>
+          </div>
+          <input type="hidden" id="empresa" value="pantaneiro5" />
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header"><span>👤</span><h2>Cliente</h2></div>
+        <div class="card-body">
+          <div class="busca-wrap">
+            <input type="text" id="busca-cliente" placeholder="Buscar cliente por razão, CNPJ, cidade..." />
+            <div id="sugestoes-clientes"></div>
+          </div>
+          <select id="cliente-selecionado"><option value="">-</option></select>
+          <div class="form-grid" style="margin-top:14px;">
+            <div class="form-group"><label>Razão Social</label><input id="razao" /></div>
+            <div class="form-group"><label>CNPJ</label><input id="cnpj" /></div>
+            <div class="form-group"><label>Cidade</label><input id="cidade" /></div>
+            <div class="form-group"><label>Estado</label><input id="estado" /></div>
+            <div class="form-group"><label>Telefone</label><input id="telefone" /></div>
+            <div class="form-group"><label>E-mail</label><input id="email" type="email" /></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header"><span>📦</span><h2>Itens da garantia</h2></div>
+        <div class="card-body">
+          <div class="busca-wrap" style="margin-bottom:12px;">
+            <input type="text" id="busca-produto" placeholder="Buscar produto por referência ou descrição..." />
+            <div id="sugestoes-produtos"></div>
+          </div>
+          <div class="produto-add-row">
+            <div class="form-group">
+              <label>Produto</label>
+              <input id="produto-desc" readonly placeholder="Selecione um produto" />
+              <input type="hidden" id="produto-ref" />
+            </div>
+            <div class="form-group">
+              <label>Tamanho</label>
+              <select id="produto-tamanho"><option value="">-</option></select>
+            </div>
+            <div class="form-group">
+              <label>Qtd</label>
+              <input id="produto-qtd" type="number" min="1" value="1" />
+            </div>
+            <div class="form-group">
+              <label>Cor</label>
+              <input id="produto-cor" placeholder="Opcional" />
+            </div>
+            <div class="form-group">
+              <label>Motivo / defeito</label>
+              <input id="produto-motivo" placeholder="Ex.: costura, vazamento..." />
+            </div>
+            <button type="button" class="btn btn-primary" id="btn-add-item" style="height:42px;">Adicionar</button>
+          </div>
+          <p class="hint">Os produtos mudam conforme a empresa selecionada (Pantaneiro 5 ou 7).</p>
+          <div id="itens-lista" class="itens-lista" style="margin-top:16px;"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header"><span>📝</span><h2>Observações</h2></div>
+        <div class="card-body">
+          <textarea id="observacoes" placeholder="Observações gerais da garantia..."></textarea>
+          <div class="form-group" style="margin-top:12px;max-width:280px;">
+            <label for="status-enviado">Status de envio</label>
+            <select id="status-enviado">
+              <option value="0">Não enviado</option>
+              <option value="1">Enviado</option>
+            </select>
+          </div>
+          <div class="actions-bar">
+            <a class="btn btn-secondary" href="garantias.html" style="text-decoration:none;display:inline-flex;align-items:center;">Cancelar</a>
+            <button type="button" class="btn btn-primary" id="btn-salvar">Salvar garantia</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      let clientesCadastrados = [];
+      let produtos = [];
+      let itensGarantia = [];
+      let clienteIdSelecionado = '';
+      let garantiaEditId = null;
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('id')) garantiaEditId = params.get('id');
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function setEmpresa(slug) {
+        document.getElementById('empresa').value = slug;
+        document.querySelectorAll('.empresa-option').forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.empresa === slug);
+        });
+        carregarProdutos(slug);
+      }
+
+      async function carregarClientes() {
+        try {
+          if (window.G8OfflineData && typeof G8OfflineData.getClientes === 'function') {
+            clientesCadastrados = await G8OfflineData.getClientes();
+          } else {
+            const resp = await fetch('/api/clientes');
+            if (!resp.ok) throw new Error('API clientes');
+            clientesCadastrados = await resp.json();
+          }
+        } catch (e) {
+          try {
+            const resp = await fetch('clientes.json');
+            clientesCadastrados = await resp.json();
+          } catch (err) {
+            alert('Erro ao carregar clientes.');
+            clientesCadastrados = [];
+          }
+        }
+      }
+
+      async function carregarProdutos(empresa) {
+        const arquivo =
+          empresa === 'pantaneiro5' ? 'produtos-pantaneiro5.json' : 'produtos-pantaneiro7.json';
+        try {
+          const resp = await fetch(arquivo);
+          if (!resp.ok) throw new Error('Falha produtos');
+          produtos = await resp.json();
+        } catch (e) {
+          console.error(e);
+          produtos = [];
+          alert('Não foi possível carregar os produtos da empresa selecionada.');
+        }
+        limparSelecaoProduto();
+      }
+
+      function limparSelecaoProduto() {
+        document.getElementById('produto-ref').value = '';
+        document.getElementById('produto-desc').value = '';
+        document.getElementById('produto-cor').value = '';
+        document.getElementById('produto-motivo').value = '';
+        document.getElementById('produto-qtd').value = '1';
+        const sel = document.getElementById('produto-tamanho');
+        sel.innerHTML = '<option value="">-</option>';
+      }
+
+      function preencherCliente(cliente) {
+        if (!cliente) return;
+        clienteIdSelecionado = cliente.id || '';
+        document.getElementById('razao').value = cliente.razao || '';
+        document.getElementById('cnpj').value = cliente.cnpj || '';
+        document.getElementById('cidade').value = cliente.cidade || '';
+        document.getElementById('estado').value = cliente.estado || '';
+        document.getElementById('telefone').value = cliente.telefone || '';
+        document.getElementById('email').value = cliente.email || '';
+        document.getElementById('busca-cliente').value = cliente.razao || '';
+      }
+
+      function renderSugestoesClientes(filtro) {
+        const box = document.getElementById('sugestoes-clientes');
+        const f = String(filtro || '').toLowerCase().trim();
+        if (!f) {
+          box.style.display = 'none';
+          box.innerHTML = '';
+          return;
+        }
+        const matches = clientesCadastrados
+          .filter((c) => {
+            const blob = [c.razao, c.cnpj, c.cidade, c.estado, c.email, c.telefone]
+              .join(' ')
+              .toLowerCase();
+            return blob.includes(f);
+          })
+          .slice(0, 20);
+        if (!matches.length) {
+          box.style.display = 'none';
+          return;
+        }
+        box.innerHTML = matches
+          .map(
+            (c, i) =>
+              `<div class="sugestao-item" data-idx="${i}">${escapeHtml(c.razao || '')} <small style="color:#64748b;">${escapeHtml(
+                c.cnpj || ''
+              )}</small></div>`
+          )
+          .join('');
+        box.style.display = 'block';
+        box.querySelectorAll('.sugestao-item').forEach((el) => {
+          el.addEventListener('click', () => {
+            const c = matches[parseInt(el.dataset.idx, 10)];
+            preencherCliente(c);
+            box.style.display = 'none';
+          });
+        });
+      }
+
+      function renderSugestoesProdutos(filtro) {
+        const box = document.getElementById('sugestoes-produtos');
+        const f = String(filtro || '').toLowerCase().trim();
+        if (!f) {
+          box.style.display = 'none';
+          box.innerHTML = '';
+          return;
+        }
+        const matches = produtos
+          .filter((p) => {
+            const blob = [p.REFERENCIA, p['DESCRIÇÃO'] || p.DESCRICAO, p.CATEGORIA]
+              .join(' ')
+              .toLowerCase();
+            return blob.includes(f);
+          })
+          .slice(0, 25);
+        if (!matches.length) {
+          box.style.display = 'none';
+          return;
+        }
+        box.innerHTML = matches
+          .map(
+            (p, i) =>
+              `<div class="sugestao-item" data-idx="${i}"><strong>${escapeHtml(
+                p.REFERENCIA || ''
+              )}</strong> — ${escapeHtml(p['DESCRIÇÃO'] || p.DESCRICAO || '')}</div>`
+          )
+          .join('');
+        box.style.display = 'block';
+        box.querySelectorAll('.sugestao-item').forEach((el) => {
+          el.addEventListener('click', () => {
+            const p = matches[parseInt(el.dataset.idx, 10)];
+            selecionarProduto(p);
+            box.style.display = 'none';
+            document.getElementById('busca-produto').value = '';
+          });
+        });
+      }
+
+      function selecionarProduto(p) {
+        document.getElementById('produto-ref').value = p.REFERENCIA || '';
+        document.getElementById('produto-desc').value =
+          `${p.REFERENCIA || ''} — ${p['DESCRIÇÃO'] || p.DESCRICAO || ''}`;
+        const sel = document.getElementById('produto-tamanho');
+        const tamanhos = Array.isArray(p.TAMANHOS)
+          ? p.TAMANHOS
+          : String(p.TAMANHOS || '')
+              .split('/')
+              .map((t) => t.trim())
+              .filter(Boolean);
+        sel.innerHTML = '<option value="">-</option>' + tamanhos.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+        if (tamanhos.length === 1) sel.value = tamanhos[0];
+      }
+
+      function renderItens() {
+        const box = document.getElementById('itens-lista');
+        if (!itensGarantia.length) {
+          box.innerHTML = '<p class="hint">Nenhum item adicionado ainda.</p>';
+          return;
+        }
+        box.innerHTML = itensGarantia
+          .map(
+            (item, index) => `
+          <div class="item-row">
+            <div>
+              <strong>${escapeHtml(item.REFERENCIA)}</strong> — ${escapeHtml(item.DESCRICAO)}
+              <div class="item-meta">
+                ${item.tamanho ? `<span class="chip">Tam: ${escapeHtml(item.tamanho)}</span>` : ''}
+                <span class="chip">Qtd: ${escapeHtml(item.quantidade)}</span>
+                ${item.cor ? `<span class="chip">Cor: ${escapeHtml(item.cor)}</span>` : ''}
+                ${item.motivo ? `<span class="chip">Motivo: ${escapeHtml(item.motivo)}</span>` : ''}
+              </div>
+            </div>
+            <button type="button" class="btn btn-danger" onclick="removerItem(${index})">Remover</button>
+          </div>`
+          )
+          .join('');
+      }
+
+      window.removerItem = function (index) {
+        itensGarantia.splice(index, 1);
+        renderItens();
+      };
+
+      function adicionarItem() {
+        const ref = document.getElementById('produto-ref').value.trim();
+        const descFull = document.getElementById('produto-desc').value.trim();
+        if (!ref && !descFull) {
+          alert('Selecione um produto.');
+          return;
+        }
+        const desc = descFull.includes('—')
+          ? descFull.split('—').slice(1).join('—').trim()
+          : descFull;
+        const qtd = parseInt(document.getElementById('produto-qtd').value, 10) || 1;
+        itensGarantia.push({
+          REFERENCIA: ref,
+          DESCRICAO: desc,
+          tamanho: document.getElementById('produto-tamanho').value || '',
+          quantidade: qtd,
+          cor: document.getElementById('produto-cor').value.trim(),
+          motivo: document.getElementById('produto-motivo').value.trim()
+        });
+        limparSelecaoProduto();
+        renderItens();
+      }
+
+      function montarPayload() {
+        const empresa = document.getElementById('empresa').value;
+        const cliente = {
+          id: clienteIdSelecionado || null,
+          razao: document.getElementById('razao').value.trim(),
+          cnpj: document.getElementById('cnpj').value.trim(),
+          cidade: document.getElementById('cidade').value.trim(),
+          estado: document.getElementById('estado').value.trim(),
+          telefone: document.getElementById('telefone').value.trim(),
+          email: document.getElementById('email').value.trim()
+        };
+        const observacoes = document.getElementById('observacoes').value.trim();
+        const enviado = parseInt(document.getElementById('status-enviado').value, 10) ? 1 : 0;
+        const descricao = `Garantia ${empresa.toUpperCase()} - ${cliente.razao || 'Cliente'}`;
+        return {
+          empresa,
+          descricao,
+          enviado,
+          dados: {
+            origem: 'garantia',
+            empresa,
+            cliente,
+            clienteNome: cliente.razao,
+            itens: itensGarantia,
+            observacoes,
+            enviado
+          }
+        };
+      }
+
+      async function salvarGarantia() {
+        const payload = montarPayload();
+        if (!payload.dados.cliente.razao) {
+          alert('Informe o cliente (razão social).');
+          return;
+        }
+        if (!payload.dados.itens.length) {
+          alert('Adicione ao menos um item.');
+          return;
+        }
+        const btn = document.getElementById('btn-salvar');
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+        try {
+          const isEdit = !!garantiaEditId;
+          const resp = await fetch(isEdit ? `/api/garantias/${garantiaEditId}` : '/api/garantias', {
+            method: isEdit ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(isEdit ? { id: garantiaEditId, ...payload } : payload)
+          });
+          const data = await resp.json().catch(() => ({}));
+          if (!resp.ok) {
+            alert(data.error || 'Erro ao salvar garantia.');
+            return;
+          }
+          window.location.href = 'garantias.html';
+        } catch (e) {
+          console.error(e);
+          alert('Erro de rede ao salvar.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Salvar garantia';
+        }
+      }
+
+      async function carregarGarantiaEdicao(id) {
+        const resp = await fetch(`/api/garantias/${encodeURIComponent(id)}`);
+        if (!resp.ok) throw new Error('Garantia não encontrada');
+        const g = await resp.json();
+        const dados = typeof g.dados === 'string' ? JSON.parse(g.dados) : g.dados || {};
+        const empresa = g.empresa || dados.empresa || 'pantaneiro5';
+        setEmpresa(empresa);
+        if (dados.cliente) preencherCliente(dados.cliente);
+        itensGarantia = Array.isArray(dados.itens) ? dados.itens.map((it) => ({
+          REFERENCIA: it.REFERENCIA || it.ref || '',
+          DESCRICAO: it.DESCRICAO || it.DESCRIÇÃO || it.descricao || '',
+          tamanho: it.tamanho || '',
+          quantidade: it.quantidade != null ? it.quantidade : it.qtd || 1,
+          cor: it.cor || '',
+          motivo: it.motivo || it.observacao || ''
+        })) : [];
+        document.getElementById('observacoes').value = dados.observacoes || '';
+        const enviado = g.enviado === 1 || g.enviado === true || dados.enviado === 1 ? '1' : '0';
+        document.getElementById('status-enviado').value = enviado;
+        renderItens();
+        document.getElementById('titulo-pagina').textContent = `Editar Garantia #${id}`;
+        document.getElementById('breadcrumb-acao').textContent = `Editar #${id}`;
+        document.title = `G8 - Editar Garantia #${id}`;
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        const loggedInUser = sessionStorage.getItem('loggedInUser');
+        if (!loggedInUser) {
+          window.location.href = 'index.html';
+          return;
+        }
+        document.getElementById('user-info').textContent =
+          `Bem-vindo(a), ${loggedInUser.charAt(0).toUpperCase() + loggedInUser.slice(1)}!`;
+        document.getElementById('logout-button').addEventListener('click', () => {
+          if (confirm('Deseja sair do sistema?')) {
+            sessionStorage.removeItem('loggedInUser');
+            window.location.href = 'index.html';
+          }
+        });
+
+        document.querySelectorAll('.empresa-option').forEach((btn) => {
+          btn.addEventListener('click', () => setEmpresa(btn.dataset.empresa));
+        });
+        document.getElementById('busca-cliente').addEventListener('input', (e) => {
+          renderSugestoesClientes(e.target.value);
+        });
+        document.getElementById('busca-produto').addEventListener('input', (e) => {
+          renderSugestoesProdutos(e.target.value);
+        });
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.busca-wrap')) {
+            document.getElementById('sugestoes-clientes').style.display = 'none';
+            document.getElementById('sugestoes-produtos').style.display = 'none';
+          }
+        });
+        document.getElementById('btn-add-item').addEventListener('click', adicionarItem);
+        document.getElementById('btn-salvar').addEventListener('click', salvarGarantia);
+
+        await carregarClientes();
+        await carregarProdutos('pantaneiro5');
+        renderItens();
+
+        if (garantiaEditId) {
+          try {
+            await carregarGarantiaEdicao(garantiaEditId);
+          } catch (e) {
+            alert(e.message || 'Erro ao carregar garantia.');
+            window.location.href = 'garantias.html';
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

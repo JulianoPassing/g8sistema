@@ -3,6 +3,9 @@
   "functions": {
     "api/pedidos.js": {
       "maxDuration": 60
+    },
+    "api/garantias.js": {
+      "maxDuration": 60
     }
   },
   "rewrites": [
@@ -41,6 +44,14 @@
     {
       "source": "/api/pedidos/:id",
       "destination": "/api/pedidos.js"
+    },
+    {
+      "source": "/api/garantias",
+      "destination": "/api/garantias.js"
+    },
+    {
+      "source": "/api/garantias/:id",
+      "destination": "/api/garantias.js"
     },
     {
       "source": "/api/auth",
