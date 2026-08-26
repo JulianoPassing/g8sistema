@@ -1,8 +1,8 @@
 // ========== SERVICE WORKER G8SISTEMA ==========
 
-const CACHE_NAME = 'g8sistema-v1.3.7';
-const STATIC_CACHE = 'g8sistema-static-v9';
-const DYNAMIC_CACHE = 'g8sistema-dynamic-v9';
+const CACHE_NAME = 'g8sistema-v1.3.8';
+const STATIC_CACHE = 'g8sistema-static-v10';
+const DYNAMIC_CACHE = 'g8sistema-dynamic-v10';
 
 // Arquivos para cache estático (prioridade: páginas e assets locais)
 const STATIC_FILES = [
