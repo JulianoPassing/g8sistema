@@ -11,14 +11,31 @@ except ImportError:
     print("Instale openpyxl: pip install openpyxl", file=sys.stderr)
     raise
 
-DEFAULT_XLSX_5 = (
+PANTANEIRO_DIR = (
     r"g:\Outros computadores\Meu laptop\G8 Representações\PANTANEIRO"
-    + r"\Tabela de Preços Completa (281400) -  Região Sulsudeste - Comissão 5%.xlsx"
 )
-DEFAULT_XLSX_7 = (
-    r"g:\Outros computadores\Meu laptop\G8 Representações\PANTANEIRO"
-    + r"\Tabela de Preços Completa (301400) -  Região Sulsudeste - Comissão 7%.xlsx"
-)
+
+
+def resolve_xlsx(codigo, explicit=None):
+    if explicit:
+        return explicit
+    if not os.path.isdir(PANTANEIRO_DIR):
+        return None
+    matches = []
+    for name in os.listdir(PANTANEIRO_DIR):
+        lower = name.lower()
+        if not lower.endswith(".xlsx"):
+            continue
+        if codigo not in name:
+            continue
+        if "comiss" not in lower:
+            continue
+        matches.append(os.path.join(PANTANEIRO_DIR, name))
+    if not matches:
+        return None
+    matches.sort(key=os.path.getmtime, reverse=True)
+    return matches[0]
+
 
 SKIP_CATEGORY_PREFIXES = (
     "REF.",
@@ -226,12 +243,12 @@ def write_json(path, items):
 def main():
     root = os.path.join(os.path.dirname(__file__), "..")
     public_dir = os.path.join(root, "public")
-    xlsx5 = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_XLSX_5
-    xlsx7 = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_XLSX_7
+    xlsx5 = resolve_xlsx("281400", sys.argv[1] if len(sys.argv) > 1 else None)
+    xlsx7 = resolve_xlsx("301400", sys.argv[2] if len(sys.argv) > 2 else None)
 
     results = []
     for comissao, path in ((5, xlsx5), (7, xlsx7)):
-        if not os.path.isfile(path):
+        if not path or not os.path.isfile(path):
             print(f"Arquivo não encontrado: {path}", file=sys.stderr)
             sys.exit(1)
         items = parse_xlsx(path)
