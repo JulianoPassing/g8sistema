@@ -1,4 +1,4 @@
-// ========== SERVICE WORKER G8SISTEMA ==========
+﻿// ========== SERVICE WORKER G8SISTEMA ==========
 
 const CACHE_NAME = 'g8sistema-v1.3.8';
 const STATIC_CACHE = 'g8sistema-static-v10';
@@ -87,8 +87,8 @@ const EXTERNAL_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
-  'https://i.imgur.com/WveVVY5.png',
-  'https://i.imgur.com/vjq26ym.png'
+  '/favicon.png',
+  '/logo.png'
 ];
 
 // Instalar Service Worker - cache local primeiro, externos em paralelo (falhas não bloqueiam)

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PDF de garantias — layout alinhado aos pedidos Pantaneiro.
  * Valor unitário e subtotal já saem com desconto prazo + volume aplicados.
  */
@@ -92,7 +92,7 @@
     const drawHeaderAndFooter = (data) => {
       try {
         const logoImg = new Image();
-        logoImg.src = 'https://i.imgur.com/vjq26ym.png';
+        logoImg.src = '/logo.png';
         doc.addImage(logoImg, 'PNG', margin, 10, 90, 15);
       } catch (e) {
         /* ignore logo */

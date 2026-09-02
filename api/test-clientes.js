@@ -1,18 +1,11 @@
 module.exports = async (req, res) => {
-  console.log('=== TESTE CLIENTES ===');
-  console.log('Method:', req.method);
-  console.log('URL:', req.url);
-  console.log('Headers:', req.headers);
-  console.log('Body:', req.body);
-  console.log('=====================');
-  
-  // Simular uma resposta de sucesso para qualquer método
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEBUG !== '1') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
   res.status(200).json({
-    message: 'Teste de clientes funcionando!',
+    message: 'ok',
     method: req.method,
-    url: req.url,
-    headers: req.headers,
-    body: req.body,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Exporta tabela Steitz para Excel e PDF (mesmo padrão Pantaneiro/Cesari).
  * Excel: lista de prazo (30/60/90, 30/45/60, À Vista) altera coluna Preço; Qtd.; Total linha; total pedido.
  * PDF: três colunas de preço + Qtd. e Total em branco.
@@ -6,7 +6,7 @@
 (function () {
   'use strict';
 
-  const LOGO_BANNER = 'https://i.imgur.com/vjq26ym.png';
+  const LOGO_BANNER = '/logo.png';
   const MARKER = 'const produtosData = ';
 
   const PRAZO_LABELS = ['30/60/90 Dias', '30/45/60 Dias', 'À Vista'];

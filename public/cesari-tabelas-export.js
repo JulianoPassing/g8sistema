@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Exporta tabela Cesari para Excel e PDF com logo G8 (banner),
  * usando window.CESARI_PRODUTOS_DATA (mesmo arquivo que cesari.html / b2b-cesari.html).
  * Excel: preço unitário, coluna Qtd. (preenchimento manual), Total = unit. × qtd., e linha TOTAL DO PEDIDO (soma dos totais).
@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  const LOGO_BANNER = 'https://i.imgur.com/vjq26ym.png';
+  const LOGO_BANNER = '/logo.png';
 
   /** Mesma ordem de cesari-produtos-data.js (CESARI_CATEGORIAS_ORDEM) */
   const CATEGORIAS_ORDEM = (window.CESARI_CATEGORIAS_ORDEM && window.CESARI_CATEGORIAS_ORDEM.length)

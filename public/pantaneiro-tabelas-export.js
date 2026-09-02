@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Exporta tabelas Pantaneiro 5 e 7 para Excel e PDF com logo G8 (banner),
  * usando os mesmos preços e categorias de pantaneiro5.html / pantaneiro7.html.
  * Excel: descontos prazo/volume (listas col. H e I); preço em D; Qtd. em E; Total linha = D×Qtd.; rodapé soma do pedido. PDF: colunas Qtd./Total em branco.
@@ -6,7 +6,7 @@
 (function () {
   'use strict';
 
-  const LOGO_BANNER = 'https://i.imgur.com/vjq26ym.png';
+  const LOGO_BANNER = '/logo.png';
 
   const MARKER = 'window.produtosData = ';
 

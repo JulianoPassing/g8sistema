@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Lógica compartilhada para tabelas Pantaneiro especiais.
  * Cada página define window.PANTANEIRO_ESPECIAL_CONFIG antes de carregar este script.
  */
@@ -497,7 +497,7 @@
 
     const drawHeaderAndFooter = (data) => {
       const logoImg = new Image();
-      logoImg.src = 'https://i.imgur.com/vjq26ym.png';
+      logoImg.src = '/logo.png';
       doc.addImage(logoImg, 'PNG', margin, 10, 90, 15);
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');

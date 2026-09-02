@@ -1,4 +1,4 @@
-// pedidos.js
+﻿// pedidos.js
 
 // Variável global para armazenar todos os pedidos
 let todosPedidos = [];
@@ -2545,7 +2545,7 @@ function gerarPDFPedidoEditado(pedido) {
   // Cabeçalho e rodapé
   const drawHeaderAndFooter = (data) => {
     const logoImg = new Image();
-    logoImg.src = 'https://i.imgur.com/vjq26ym.png';
+    logoImg.src = '/logo.png';
     doc.addImage(logoImg, 'PNG', margin, 10, 90, 15);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');

@@ -621,3 +621,111 @@ body.app-layout::before {
 .search-input, .search-box input {
   border-radius: 10px;
 }
+
+/* === PASSE PROFISSIONAL (mantém #ff0000, logo e favicon) === */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.55;
+  color: #0f172a;
+}
+
+a[href], button, .btn, .option-card, [role="button"], input[type="submit"], select {
+  cursor: pointer;
+}
+
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #ff0000;
+  outline-offset: 2px;
+}
+
+body.app-layout,
+body:has(.header-top):not(:has(.login-container)) {
+  background: #f5f7fa !important;
+}
+
+@media (min-width: 769px) {
+  body:not(:has(.login-container)) .header-top,
+  body:not(:has(.login-container)) header,
+  body:not(:has(.login-container)) .header {
+    height: 60px;
+    padding: 0 28px !important;
+    background: linear-gradient(135deg, #ff0000 0%, #b30000 100%) !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 8px 24px rgba(153, 0, 0, 0.22) !important;
+  }
+}
+
+.option-card {
+  border-radius: 14px !important;
+  border: 1px solid #e8eef4 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04) !important;
+  background: #fff !important;
+}
+
+.option-card:hover {
+  transform: translateY(-3px) !important;
+  border-color: #ff0000 !important;
+  box-shadow: 0 12px 28px rgba(255, 0, 0, 0.12) !important;
+}
+
+.option-card::before {
+  display: none;
+}
+
+.dashboard-header,
+.page-header {
+  margin-bottom: 1.75rem;
+}
+
+.dashboard-title,
+.page-header-text h1 {
+  letter-spacing: -0.03em;
+}
+
+.login-container {
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18) !important;
+}
+
+.login-container:hover {
+  transform: none !important;
+}
+
+.login-btn, .btn-primary, input[type="submit"] {
+  min-height: 40px;
+}
+
+.btn-primary,
+input[type="submit"] {
+  background: linear-gradient(180deg, #ff1a1a 0%, #e60000 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 6px 16px rgba(255, 0, 0, 0.22) !important;
+}
+
+.btn-primary:hover,
+input[type="submit"]:hover {
+  background: linear-gradient(180deg, #ff3333 0%, #cc0000 100%) !important;
+}
+
+table th {
+  background: #f8fafc;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "G8 Sistema de Pedidos",
   "short_name": "G8Sistema",
   "description": "Sistema de gestão de pedidos e clientes G8 Representações",
@@ -13,13 +13,13 @@
   "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "https://i.imgur.com/WveVVY5.png",
+      "src": "/favicon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://i.imgur.com/WveVVY5.png",
+      "src": "/favicon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -33,7 +33,7 @@
       "url": "/painel.html",
       "icons": [
         {
-          "src": "https://i.imgur.com/WveVVY5.png",
+          "src": "/favicon.png",
           "sizes": "96x96"
         }
       ]
@@ -45,7 +45,7 @@
       "url": "/painel-clientes.html",
       "icons": [
         {
-          "src": "https://i.imgur.com/WveVVY5.png",
+          "src": "/favicon.png",
           "sizes": "96x96"
         }
       ]
@@ -57,7 +57,7 @@
       "url": "/b2b-login.html",
       "icons": [
         {
-          "src": "https://i.imgur.com/WveVVY5.png",
+          "src": "/favicon.png",
           "sizes": "96x96"
         }
       ]
@@ -69,7 +69,7 @@
       "url": "/pantaneiro5.html",
       "icons": [
         {
-          "src": "https://i.imgur.com/WveVVY5.png",
+          "src": "/favicon.png",
           "sizes": "96x96"
         }
       ]
@@ -77,7 +77,7 @@
   ],
   "screenshots": [
     {
-      "src": "https://i.imgur.com/vjq26ym.png",
+      "src": "/logo.png",
       "sizes": "1280x720",
       "type": "image/png",
       "platform": "wide",

@@ -52,7 +52,11 @@ module.exports = async (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin || '';
+  const allowed = /^(https:\/\/([a-z0-9-]+\.)?g8representacoes\.(com\.br|vercel\.app)|http:\/\/localhost(:\d+)?)$/i.test(origin);
+  if (allowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   

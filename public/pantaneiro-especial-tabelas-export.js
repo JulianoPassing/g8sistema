@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Exporta tabelas Pantaneiro especiais (Jaqueta de Frio, Proteção UV) para Excel e PDF
  * com logo G8, produtos do JSON e política comercial de cada tabela.
  */
 (function () {
   'use strict';
 
-  const LOGO_BANNER = 'https://i.imgur.com/vjq26ym.png';
+  const LOGO_BANNER = '/logo.png';
   const COR_CATEGORIA = 'FF16A34A';
   const COR_CATEGORIA_RGB = [22, 163, 74];
   const POLITICA_TITULO = 'POLÍTICA COMERCIAL';
