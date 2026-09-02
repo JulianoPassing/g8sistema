@@ -585,6 +585,15 @@ window.produtosData = [
     }
   },
   {
+    "REF": "RBE-007",
+    "MODELO": "Retentor de Bengala Fazer/Lander 250 2019 em diante/BMW G 310 GS/G 310 R/Kawasaki 650 ER-6F ABS/ER-6N ABS/Ninja 650/750 Z 750R/800 Z 800/Suzuki 150 Gixxer 150/650 GSF Bandit 650 S/GSX 650F/800 Boulevard M800/Yamaha 150/250/320/600/650/689/847/950 - 41 x 53 x 8/10,5 (par)",
+    "PRECOS": {
+      "atacado": 15,
+      "distribuidor": 12.2,
+      "especial": 11
+    }
+  },
+  {
     "REF": "GPB-150",
     "MODELO": "Guarda Pó Bengala Titan 150/160/Bros 150 (par)",
     "PRECOS": {
